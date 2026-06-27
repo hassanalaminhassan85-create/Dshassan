@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DS Tech Career Portal & Academy</title>
+    
+    <!-- PWA Config -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#f59e0b" />
+    <link rel="apple-touch-icon" href="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=192&h=192&fit=crop&auto=format" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="DS Tech Premium Career Portal, HR Admin Academy, and instant offline-first QR scanning system. Designed with cutting-edge 2026 security." />
+    <meta name="keywords" content="recruitment, career portal, academy, QR code, smart recruitment, Cloudflare D1" />
+    <meta name="author" content="DS Tech Enterprise Solutions" />
+
+    <!-- OpenGraph (Facebook/LinkedIn) Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="DS Tech Career Portal & Super Admin Academy" />
+    <meta property="og:description" content="A next-generation career portal, live applicant tracking system with encrypted QR-badge scanning, secure R2 uploads, and real-time synchronization." />
+    <meta property="og:image" content="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=630&fit=crop&auto=format" />
+    <meta property="og:url" content="https://dstech-career-portal.pages.dev" />
+    <meta property="og:site_name" content="DS Tech Career Portal" />
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="DS Tech Career Portal & Super Admin Academy" />
+    <meta name="twitter:description" content="Smart recruitment system, live D1 sync, and AI-powered executive applicant summaries with Cloudflare Pages Functions." />
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&h=630&fit=crop&auto=format" />
+  </head>
+  <body class="bg-slate-950 text-slate-100 antialiased overflow-x-hidden">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- PWA Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('Service Worker registered successfully!', reg.scope))
+            .catch(err => console.error('Service Worker registration failed:', err));
+        });
+      }
+    </script>
+  </body>
+</html>
+

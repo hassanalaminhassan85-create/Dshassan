@@ -1,0 +1,38 @@
+# wrangler.toml - Cloudflare Pages & Workers Configuration
+name = "dstech-career-portal"
+pages_build_output_dir = "dist"
+
+[vars]
+# Server-side environment variables
+NODE_VERSION = "18"
+# GEMINI_API_KEY can be set via Cloudflare dashboard or Wrangler Secrets: npx wrangler secret put GEMINI_API_KEY
+
+# 1. Cloudflare D1 Relational SQL Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "dstech-portal-db"
+database_id = "60ce292c-a702-401c-891c-400e80a75828" # Replace with actual live D1 database ID
+
+# 2. Cloudflare R2 Object Storage Binding (for secure QR badges/images)
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "dstech-qr-storage"
+
+# 3. Cloudflare Vectorize (Semantic Search over AI summaries)
+[[vectorize]]
+binding = "VECTORIZE"
+index_name = "dstech-summaries-index"
+
+# 4. Cloudflare Queues (Background AI Processing Queue)
+[[queues.producers]]
+queue = "dstech-ai-analysis-queue"
+binding = "AI_QUEUE"
+
+# 5. Cloudflare Durable Objects (For WebSockets & real-time sync)
+[[durable_objects.bindings]]
+name = "SYNC_ROOMS"
+class_name = "SyncRooms"
+
+[[migrations]]
+tag = "v1"
+new_classes = ["SyncRooms"]
