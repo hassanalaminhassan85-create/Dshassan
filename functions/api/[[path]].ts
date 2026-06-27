@@ -1,5 +1,5 @@
 // Cloudflare Pages Functions Catch-All Router for DS Tech Portal Backend
-// Supports D1 DB, R2 Buckets, Vectorize Semantic Search, Queues, Durable Objects & Gemini API
+// Supports D1 DB, R2 Buckets, Queues & Gemini API
 
 type PagesFunction<Env = any> = (context: {
   request: Request;
@@ -12,7 +12,6 @@ type PagesFunction<Env = any> = (context: {
 interface Env {
   DB: any; // D1Database
   BUCKET: any; // R2Bucket
-  VECTORIZE: any; // VectorizeIndex
   AI_QUEUE: any; // Queue
   GEMINI_API_KEY: string;
 }
@@ -104,22 +103,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const geminiData = await geminiResponse.json() as any;
       const summaryText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || "No summary generated.";
 
-      // Push to Vectorize Semantic Search Index if binding is active
-      if (env.VECTORIZE) {
-        try {
-          const mockEmbeddings = Array.from({ length: 768 }, () => Math.random()); // Standard 768-dim vector
-          await env.VECTORIZE.insert([
-            {
-              id: applicationData.id || "unknown",
-              values: mockEmbeddings,
-              metadata: { fullName: applicationData.personalInfo?.fullName, summary: summaryText }
-            }
-          ]);
-        } catch (vErr) {
-          console.error("Vectorize Insertion Error:", vErr);
-        }
-      }
-
       return new Response(
         JSON.stringify({ summary: summaryText }),
         { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
@@ -168,7 +151,7 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     }
 
     // ------------------------------------------------------------------------
-    // API ROUTE: /api/scan-history (Save history in D1, Image in R2 with signed URL, Queue, Vectorize)
+    // API ROUTE: /api/scan-history (Save history in D1, Image in R2 with signed URL & Queue)
     // ------------------------------------------------------------------------
     if (path === "/api/scan-history") {
       // GET: Get all scan logs linked to X-User-ID header for strict privacy

@@ -230,7 +230,6 @@ function cloudflarePagesDevPlugin() {
               DB: mockDB,
               GEMINI_API_KEY: process.env.GEMINI_API_KEY || '',
               BUCKET: undefined,
-              VECTORIZE: undefined,
               AI_QUEUE: undefined
             };
 

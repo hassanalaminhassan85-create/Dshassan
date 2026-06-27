@@ -18,10 +18,6 @@ database_id = "60ce292c-a702-401c-891c-400e80a75828" # Replace with actual live 
 binding = "BUCKET"
 bucket_name = "dstech-qr-storage"
 
-# 3. Cloudflare Vectorize (Semantic Search over AI summaries)
-[[vectorize]]
-binding = "VECTORIZE"
-index_name = "dstech-summaries-index"
 
 # 4. Cloudflare Queues (Background AI Processing Queue)
 [[queues.producers]]
