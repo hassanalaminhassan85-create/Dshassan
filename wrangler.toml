@@ -28,11 +28,4 @@ index_name = "dstech-summaries-index"
 queue = "dstech-ai-analysis-queue"
 binding = "AI_QUEUE"
 
-# 5. Cloudflare Durable Objects (For WebSockets & real-time sync)
-[[durable_objects.bindings]]
-name = "SYNC_ROOMS"
-class_name = "SyncRooms"
 
-[[migrations]]
-tag = "v1"
-new_classes = ["SyncRooms"]
