@@ -4,7 +4,7 @@ pages_build_output_dir = "dist"
 
 [vars]
 # Server-side environment variables
-NODE_VERSION = "18"
+NODE_VERSION = "22"
 # GEMINI_API_KEY can be set via Cloudflare dashboard or Wrangler Secrets: npx wrangler secret put GEMINI_API_KEY
 
 # 1. Cloudflare D1 Relational SQL Database Binding
