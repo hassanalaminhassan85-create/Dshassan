@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Shield, ShieldAlert, Fingerprint, Lock, Eye, EyeOff, CheckCircle2, Award, FileText, Zap, RefreshCw, KeyRound, Check } from 'lucide-react';
-import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+import { PhoneBiometricPrompt } from './PhoneBiometricPrompt';
 
 interface SensitiveDocument {
   id: string;
@@ -15,6 +15,7 @@ interface SensitiveDocument {
 export const BiometricVault: React.FC<{ application?: any }> = ({ application }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [isBiometricPromptOpen, setIsBiometricPromptOpen] = useState<boolean>(false);
   const [verificationError, setVerificationError] = useState<string | null>(null);
   const [showZkSuccess, setShowZkSuccess] = useState<boolean>(false);
   const [isZkVerifying, setIsZkVerifying] = useState<boolean>(false);
@@ -28,46 +29,14 @@ export const BiometricVault: React.FC<{ application?: any }> = ({ application })
     { id: 'doc-3', title: 'Biometric Encrypted Digital Signature Signature Block', type: 'E-Contract Agreement', hash: 'SHA256: 9ef3a1b4d0...', rawUrl: application?.appointmentSignature || 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=150&fit=crop&q=80', status: 'verified' }
   ];
 
-  const handleBiometricAuth = async () => {
-    setIsScanning(true);
+  const handleBiometricAuth = () => {
     setVerificationError(null);
+    setIsBiometricPromptOpen(true);
+  };
 
-    try {
-      // First, check if the browser supports WebAuthn APIs
-      if (typeof window !== 'undefined' && window.PublicKeyCredential) {
-        // Attempt realistic WebAuthn login handshake options from backend
-        const res = await fetch('/api/auth/authenticate-options?userId=' + (application?.id || 'candidate-1'));
-        if (res.ok) {
-          const options = await res.json();
-          // Try executing native WebAuthn authentication via browser API
-          const assertionResponse = await startAuthentication(options as any);
-          
-          // Verify with Cloudflare backend
-          const verifyRes = await fetch('/api/auth/authenticate-verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: application?.id, assertionResponse })
-          });
-
-          if (verifyRes.ok) {
-            const verification = await verifyRes.json() as { verified: boolean };
-            if (verification.verified) {
-              setIsAuthenticated(true);
-              setIsScanning(false);
-              return;
-            }
-          }
-        }
-      }
-    } catch (err: any) {
-      console.warn("Hardware biometric authentication failed or was cancelled. Activating high-security visual scan fallback.", err);
-    }
-
-    // Graceful, stunning fallback for iframe / non-WebAuthn platforms
-    setTimeout(() => {
-      setIsScanning(false);
-      setIsAuthenticated(true);
-    }, 2400);
+  const handleBiometricSuccess = () => {
+    setIsBiometricPromptOpen(false);
+    setIsAuthenticated(true);
   };
 
   const handleZkVerify = () => {
@@ -316,6 +285,14 @@ export const BiometricVault: React.FC<{ application?: any }> = ({ application })
           </motion.div>
         )}
       </AnimatePresence>
+
+      <PhoneBiometricPrompt
+        isOpen={isBiometricPromptOpen}
+        onSuccess={handleBiometricSuccess}
+        onCancel={() => setIsBiometricPromptOpen(false)}
+        title="Biometric Document Decryption"
+        subtitle="Verify fingerprint or Face ID to unlock sensitive credentials and contracts"
+      />
     </div>
   );
 };

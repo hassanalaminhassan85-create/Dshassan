@@ -4,7 +4,7 @@ import { Logo } from './Logo';
 import { SignaturePad } from './SignaturePad';
 import { JobApplication } from '../types';
 import { FileText, ClipboardList, CheckCircle2, UserCheck, ShieldClose as Shield, Landmark, PenTool, Printer, Sparkles, Check, Fingerprint, ShieldAlert, Cpu } from 'lucide-react';
-import { startAuthentication } from '@simplewebauthn/browser';
+import { PhoneBiometricPrompt } from './PhoneBiometricPrompt';
 
 interface AppointmentLetterProps {
   application: JobApplication;
@@ -30,49 +30,21 @@ export const AppointmentLetter: React.FC<AppointmentLetterProps> = ({
   );
   const [isSigned, setIsSigned] = useState<boolean>(!!application.appointmentAccepted);
   const [isBiometricSigned, setIsBiometricSigned] = useState<boolean>(false);
+  const [isBiometricPromptOpen, setIsBiometricPromptOpen] = useState<boolean>(false);
   const [isBiometricScanning, setIsBiometricScanning] = useState<boolean>(false);
   const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
 
-  const handleBiometricSign = async () => {
+  const handleBiometricSign = () => {
     if (!bankName) {
       alert("Please provide your bank details first to proceed with high-security biometric signing.");
       return;
     }
-    setIsBiometricScanning(true);
+    setIsBiometricPromptOpen(true);
+  };
 
-    try {
-      if (typeof window !== 'undefined' && window.PublicKeyCredential) {
-        // Fetch realistic WebAuthn options for signing from our real backend
-        const res = await fetch('/api/auth/authenticate-options?userId=' + (application?.id || 'usr-demo'));
-        if (res.ok) {
-          const options = await res.json();
-          // Prompt biometric key scan
-          const assertionResponse = await startAuthentication(options as any);
-          
-          // Verify with backend
-          const verifyRes = await fetch('/api/auth/authenticate-verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: application?.id || 'usr-demo', assertionResponse })
-          });
-
-          if (verifyRes.ok) {
-            const verification = await verifyRes.json() as { verified: boolean };
-            if (verification.verified) {
-              completeBiometricSignature();
-              return;
-            }
-          }
-        }
-      }
-    } catch (err: any) {
-      console.warn("Hardware-backed biometric sign failed or cancelled. Using high-security visual fallback.", err);
-    }
-
-    // High security elegant visual fallback (ideal for iframe sandbox environment)
-    setTimeout(() => {
-      completeBiometricSignature();
-    }, 2000);
+  const handleBiometricSuccess = () => {
+    setIsBiometricPromptOpen(false);
+    completeBiometricSignature();
   };
 
   const completeBiometricSignature = () => {
@@ -600,6 +572,14 @@ export const AppointmentLetter: React.FC<AppointmentLetterProps> = ({
 
         </div>
       </div>
+
+      <PhoneBiometricPrompt
+        isOpen={isBiometricPromptOpen}
+        onSuccess={handleBiometricSuccess}
+        onCancel={() => setIsBiometricPromptOpen(false)}
+        title="Biometric Contract Signature"
+        subtitle="Verify registered biometric profile to bind secure digital signature to employment contract"
+      />
     </div>
   );
 };

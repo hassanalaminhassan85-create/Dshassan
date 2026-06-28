@@ -5,7 +5,7 @@ import {
   ArrowRight, Compass, Cpu, CheckCircle, Smartphone, LayoutGrid, Sun, Moon, 
   HelpCircle, RefreshCw, Send, Trash2, Award, LogOut, ChevronRight, Zap, Video, Coins
 } from 'lucide-react';
-import { startRegistration, startAuthentication } from '@simplewebauthn/browser';
+import { PhoneBiometricPrompt } from './PhoneBiometricPrompt';
 
 // Modern modular ecosystem widgets
 import { CareerConstellation } from './CareerConstellation';
@@ -47,6 +47,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
   const [currentUser, setCurrentUser] = useState<{ id: string; email: string; fullName: string } | null>(null);
   const [biometricLinked, setBiometricLinked] = useState<boolean>(false);
   const [isLinkingBiometric, setIsLinkingBiometric] = useState<boolean>(false);
+  
+  // Simulated Biometric Prompt States
+  const [isBiometricPromptOpen, setIsBiometricPromptOpen] = useState<boolean>(false);
+  const [biometricPromptMode, setBiometricPromptMode] = useState<'login' | 'register'>('login');
   
   // Generative layout roadmap states
   const [roadmap, setRoadmap] = useState<RoadmapData | null>(null);
@@ -186,95 +190,35 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
     }
   };
 
-  // Link biometric WebAuthn security
+  // Link biometric security (Mocked simulation to resemble actual phones)
   const handleLinkBiometric = async () => {
     if (!currentUser) return;
-    setIsLinkingBiometric(true);
     setAuthError(null);
     triggerHaptic([30, 50, 30]);
-
-    try {
-      // Fetch credential generation options from server
-      const optionsRes = await fetch(`/api/auth/register-options?userId=${currentUser.id}&username=${encodeURIComponent(currentUser.email)}`);
-      if (!optionsRes.ok) throw new Error("Could not acquire biometric registration options");
-      const options = await optionsRes.json();
-
-      // Launch native credential browser interface
-      const credentialResponse = await startRegistration(options as any);
-
-      // Verify the credential on server
-      const verifyRes = await fetch('/api/auth/verify-registration', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: currentUser.id,
-          registrationResponse: credentialResponse
-        })
-      });
-
-      const verifyData = await verifyRes.json() as { verified: boolean, error?: string };
-      if (verifyRes.ok && verifyData.verified) {
-        setBiometricLinked(true);
-        triggerHaptic(100);
-        alert("Hardware key securely linked! Device biometric authorization bound successfully to D1 Node.");
-      } else {
-        throw new Error(verifyData.error || "Verification failed");
-      }
-    } catch (err: any) {
-      console.warn("Native hardware biometric key skipped. Activating 2026 simulated biometric simulation key bond.", err);
-      // Simulated Link
-      setTimeout(() => {
-        setBiometricLinked(true);
-        triggerHaptic(60);
-      }, 2000);
-    } finally {
-      setIsLinkingBiometric(false);
-    }
+    setBiometricPromptMode('register');
+    setIsBiometricPromptOpen(true);
   };
 
-  // Authenticate using WebAuthn (Login)
+  // Authenticate using Biometric (Mocked simulation to resemble actual phones)
   const handleBiometricLogin = async () => {
     setAuthError(null);
-    setIsSubmitting(true);
     triggerHaptic(40);
-    const demoUserEmail = email || 'candidate2026@dstech.com';
+    setBiometricPromptMode('login');
+    setIsBiometricPromptOpen(true);
+  };
 
-    try {
-      const optionsRes = await fetch(`/api/auth/authenticate-options?userId=usr-demo`);
-      if (!optionsRes.ok) throw new Error("Credentials not registered on this device.");
-      const options = await optionsRes.json();
-
-      const assertion = await startAuthentication(options as any);
-
-      const verifyRes = await fetch('/api/auth/authenticate-verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: 'usr-demo',
-          assertionResponse: assertion
-        })
-      });
-
-      const verifyData = await verifyRes.json() as { verified: boolean };
-      if (verifyRes.ok && verifyData.verified) {
-        setCurrentUser({ id: 'usr-demo', email: demoUserEmail, fullName: fullName || 'Ngozi Balogun' });
-        setAuthState('dashboard');
-        fetchAiRoadmap(fullName || 'Ngozi Balogun', targetRole, initialSkills);
-      } else {
-        throw new Error("Biometric verification rejected.");
-      }
-    } catch (err: any) {
-      console.warn("Biometric verification fallback active.", err);
-      // Fallback Simulator login
-      setTimeout(() => {
-        const fakeUser = { id: 'usr-demo', email: demoUserEmail, fullName: fullName || 'Ngozi Balogun' };
-        setCurrentUser(fakeUser);
-        setAuthState('dashboard');
-        setBiometricLinked(true);
-        fetchAiRoadmap(fakeUser.fullName, targetRole, initialSkills);
-      }, 1500);
-    } finally {
-      setIsSubmitting(false);
+  const handleBiometricSuccess = () => {
+    setIsBiometricPromptOpen(false);
+    if (biometricPromptMode === 'register') {
+      setBiometricLinked(true);
+      triggerHaptic(100);
+    } else {
+      const demoUserEmail = email || 'candidate2026@dstech.com';
+      const fakeUser = { id: 'usr-demo', email: demoUserEmail, fullName: fullName || 'Ngozi Balogun' };
+      setCurrentUser(fakeUser);
+      setAuthState('dashboard');
+      setBiometricLinked(true);
+      fetchAiRoadmap(fakeUser.fullName, targetRole, initialSkills);
     }
   };
 
@@ -1083,6 +1027,13 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
         </AnimatePresence>
       </main>
 
+      <PhoneBiometricPrompt
+        isOpen={isBiometricPromptOpen}
+        onSuccess={handleBiometricSuccess}
+        onCancel={() => setIsBiometricPromptOpen(false)}
+        title={biometricPromptMode === 'register' ? "Link Biometric Credentials" : "Authorize Portal Login"}
+        subtitle={biometricPromptMode === 'register' ? "Secure device locking via simulated 3D scan" : "Verify registered biometric profile"}
+      />
     </div>
   );
 };
