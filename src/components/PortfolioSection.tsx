@@ -5,6 +5,7 @@ import {
   Sparkles, ShieldCheck, Cpu, Code, Zap, CheckCircle, Brain, X, Activity
 } from 'lucide-react';
 import { PORTFOLIO } from '../lib/data';
+import { apiGetPortfolio, apiInitializePortfolio } from '../lib/api';
 
 export const PortfolioSection: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('all');
@@ -22,6 +23,25 @@ export const PortfolioSection: React.FC = () => {
   });
 
   useEffect(() => {
+    const fetchD1Portfolio = async () => {
+      try {
+        const data = await apiGetPortfolio();
+        if (data && data.length > 0) {
+          setProjects(data);
+          localStorage.setItem('admin_portfolio_projects', JSON.stringify(data));
+        } else {
+          // Empty D1 - seed with static PORTFOLIO
+          await apiInitializePortfolio(PORTFOLIO);
+          setProjects(PORTFOLIO);
+          localStorage.setItem('admin_portfolio_projects', JSON.stringify(PORTFOLIO));
+        }
+      } catch (err) {
+        console.warn('D1 portfolio database unreachable. Falling back to LocalStorage.', err);
+      }
+    };
+
+    fetchD1Portfolio();
+
     const handleStorage = () => {
       try {
         const saved = localStorage.getItem('admin_portfolio_projects');
@@ -35,8 +55,6 @@ export const PortfolioSection: React.FC = () => {
       }
     };
     window.addEventListener('storage', handleStorage);
-    // Poll or load immediately on mount as well to ensure it syncs
-    handleStorage();
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 

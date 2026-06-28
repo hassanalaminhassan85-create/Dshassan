@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Search, Tag, Calendar, User, BookOpen, Clock, Heart, ArrowLeft, ArrowRight, Brain, Sparkles } from 'lucide-react';
 import { BLOG_POSTS, BlogPost } from '../lib/data';
+import { apiGetBlogs, apiInitializeBlogs } from '../lib/api';
 
 export const BlogSection: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,6 +22,25 @@ export const BlogSection: React.FC = () => {
   });
 
   useEffect(() => {
+    const fetchD1Blogs = async () => {
+      try {
+        const data = await apiGetBlogs();
+        if (data && data.length > 0) {
+          setBlogs(data);
+          localStorage.setItem('admin_blogs', JSON.stringify(data));
+        } else {
+          // Empty D1 - seed with static BLOG_POSTS
+          await apiInitializeBlogs(BLOG_POSTS);
+          setBlogs(BLOG_POSTS);
+          localStorage.setItem('admin_blogs', JSON.stringify(BLOG_POSTS));
+        }
+      } catch (err) {
+        console.warn('D1 blogs database unreachable. Falling back to LocalStorage.', err);
+      }
+    };
+
+    fetchD1Blogs();
+
     const handleStorage = () => {
       try {
         const saved = localStorage.getItem('admin_blogs');
@@ -34,7 +54,6 @@ export const BlogSection: React.FC = () => {
       }
     };
     window.addEventListener('storage', handleStorage);
-    handleStorage();
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 

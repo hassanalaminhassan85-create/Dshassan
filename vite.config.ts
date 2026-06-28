@@ -87,9 +87,14 @@ function readDB() {
     return initial;
   }
   try {
-    return JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+    const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+    if (!data.services) data.services = [];
+    if (!data.portfolio) data.portfolio = [];
+    if (!data.blogs) data.blogs = [];
+    if (!data.courses) data.courses = [];
+    return data;
   } catch (e) {
-    return { applications: [], scan_history: [] };
+    return { applications: [], scan_history: [], services: [], portfolio: [], blogs: [], courses: [] };
   }
 }
 
@@ -113,11 +118,22 @@ const mockDB = {
               return { results };
             }
             if (normalizedSql.includes("FROM scan_history")) {
-              return { results: db.scan_history };
+              return { results: db.scan_history || [] };
             }
             if (normalizedSql.includes("FROM applications")) {
-              const results = db.applications;
-              return { results };
+              return { results: db.applications || [] };
+            }
+            if (normalizedSql.includes("FROM services")) {
+              return { results: db.services || [] };
+            }
+            if (normalizedSql.includes("FROM portfolio")) {
+              return { results: db.portfolio || [] };
+            }
+            if (normalizedSql.includes("FROM blogs")) {
+              return { results: db.blogs || [] };
+            }
+            if (normalizedSql.includes("FROM courses")) {
+              return { results: db.courses || [] };
             }
             return { results: [] };
           },
@@ -126,6 +142,26 @@ const mockDB = {
             if (normalizedSql.includes("FROM applications WHERE id = ?")) {
               const id = params[0];
               const record = db.applications.find((r: any) => r.id === id);
+              return record || null;
+            }
+            if (normalizedSql.includes("FROM services WHERE id = ?")) {
+              const id = params[0];
+              const record = db.services.find((r: any) => r.id === id);
+              return record || null;
+            }
+            if (normalizedSql.includes("FROM portfolio WHERE id = ?")) {
+              const id = params[0];
+              const record = db.portfolio.find((r: any) => r.id === id);
+              return record || null;
+            }
+            if (normalizedSql.includes("FROM blogs WHERE id = ?")) {
+              const id = params[0];
+              const record = db.blogs.find((r: any) => r.id === id);
+              return record || null;
+            }
+            if (normalizedSql.includes("FROM courses WHERE id = ?")) {
+              const id = params[0];
+              const record = db.courses.find((r: any) => r.id === id);
               return record || null;
             }
             return null;
@@ -159,6 +195,59 @@ const mockDB = {
               writeDB(db);
               return { success: true };
             }
+            // Mock OR REPLACE/INSERT/UPDATE for custom dynamic tables
+            if (normalizedSql.includes("INSERT OR REPLACE INTO services")) {
+              const [id, data_json] = params;
+              db.services = db.services.filter((r: any) => r.id !== id);
+              db.services.push({ id, data_json });
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("DELETE FROM services")) {
+              const id = params[0];
+              db.services = db.services.filter((r: any) => r.id !== id);
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("INSERT OR REPLACE INTO portfolio")) {
+              const [id, data_json] = params;
+              db.portfolio = db.portfolio.filter((r: any) => r.id !== id);
+              db.portfolio.push({ id, data_json });
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("DELETE FROM portfolio")) {
+              const id = params[0];
+              db.portfolio = db.portfolio.filter((r: any) => r.id !== id);
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("INSERT OR REPLACE INTO blogs")) {
+              const [id, data_json] = params;
+              db.blogs = db.blogs.filter((r: any) => r.id !== id);
+              db.blogs.push({ id, data_json });
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("DELETE FROM blogs")) {
+              const id = params[0];
+              db.blogs = db.blogs.filter((r: any) => r.id !== id);
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("INSERT OR REPLACE INTO courses")) {
+              const [id, data_json] = params;
+              db.courses = db.courses.filter((r: any) => r.id !== id);
+              db.courses.push({ id, data_json });
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("DELETE FROM courses")) {
+              const id = params[0];
+              db.courses = db.courses.filter((r: any) => r.id !== id);
+              writeDB(db);
+              return { success: true };
+            }
             return { success: true };
           }
         };
@@ -166,10 +255,22 @@ const mockDB = {
       all: async () => {
         const db = readDB();
         if (normalizedSql.includes("FROM applications")) {
-          return { results: db.applications };
+          return { results: db.applications || [] };
         }
         if (normalizedSql.includes("FROM scan_history")) {
-          return { results: db.scan_history };
+          return { results: db.scan_history || [] };
+        }
+        if (normalizedSql.includes("FROM services")) {
+          return { results: db.services || [] };
+        }
+        if (normalizedSql.includes("FROM portfolio")) {
+          return { results: db.portfolio || [] };
+        }
+        if (normalizedSql.includes("FROM blogs")) {
+          return { results: db.blogs || [] };
+        }
+        if (normalizedSql.includes("FROM courses")) {
+          return { results: db.courses || [] };
         }
         return { results: [] };
       },

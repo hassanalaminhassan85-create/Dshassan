@@ -5,6 +5,7 @@ import {
   ArrowRight, Users, Eye, HelpCircle, Trophy, UserCheck, ShieldAlert 
 } from 'lucide-react';
 import { COURSES, Course, Lesson } from '../lib/data';
+import { apiGetCourses, apiInitializeCourses } from '../lib/api';
 
 export const TrainingAcademySection: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'student' | 'admin'>('student');
@@ -31,6 +32,25 @@ export const TrainingAcademySection: React.FC = () => {
   });
 
   React.useEffect(() => {
+    const fetchD1Courses = async () => {
+      try {
+        const data = await apiGetCourses();
+        if (data && data.length > 0) {
+          setAdminCourses(data);
+          localStorage.setItem('admin_courses', JSON.stringify(data));
+        } else {
+          // Empty D1 - seed with static COURSES
+          await apiInitializeCourses(COURSES);
+          setAdminCourses(COURSES);
+          localStorage.setItem('admin_courses', JSON.stringify(COURSES));
+        }
+      } catch (err) {
+        console.warn('D1 courses database unreachable. Falling back to LocalStorage.', err);
+      }
+    };
+
+    fetchD1Courses();
+
     const handleStorage = () => {
       try {
         const saved = localStorage.getItem('admin_courses');
@@ -44,7 +64,6 @@ export const TrainingAcademySection: React.FC = () => {
       }
     };
     window.addEventListener('storage', handleStorage);
-    handleStorage();
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 

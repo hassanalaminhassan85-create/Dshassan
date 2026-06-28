@@ -95,6 +95,26 @@ export async function apiPreScreenUrl(targetUrl: string): Promise<UrlSafetyRepor
   return res.json();
 }
 
+// Analyze applicant using server-side Gemini AI for compatibility, strengths, risks, and questions
+export async function apiAnalyzeCandidate(applicationData: any): Promise<{
+  compatibilityScore: number;
+  keyStrengths: string[];
+  potentialRisks: string[];
+  interviewQuestions: string[];
+}> {
+  const res = await fetch('/api/gemini/analyze-candidate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ applicationData })
+  });
+  if (!res.ok) {
+    throw new Error('Failed to run AI candidate analysis.');
+  }
+  return res.json();
+}
+
 // Start a real-time Server-Sent Events connection for instant multi-screen syncing
 export function apiSubscribeToRealtimeSync(onEvent: (data: any) => void): () => void {
   const eventSource = new EventSource('/api/real-time/sync');
@@ -116,4 +136,184 @@ export function apiSubscribeToRealtimeSync(onEvent: (data: any) => void): () => 
   return () => {
     eventSource.close();
   };
+}
+
+// --- Dynamic Services Sync ---
+export async function apiGetServices(): Promise<any[]> {
+  const res = await fetch('/api/services');
+  if (!res.ok) throw new Error('Failed to retrieve services from Cloudflare D1.');
+  return res.json();
+}
+
+export async function apiSaveService(service: any): Promise<any> {
+  const res = await fetch('/api/services', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(service)
+  });
+  if (!res.ok) throw new Error('Failed to save service.');
+  return res.json();
+}
+
+export async function apiUpdateService(id: string, service: any): Promise<any> {
+  const res = await fetch(`/api/services/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(service)
+  });
+  if (!res.ok) throw new Error('Failed to update service.');
+  return res.json();
+}
+
+export async function apiDeleteService(id: string): Promise<any> {
+  const res = await fetch(`/api/services/${id}`, {
+    method: 'DELETE'
+  });
+  if (!res.ok) throw new Error('Failed to delete service.');
+  return res.json();
+}
+
+export async function apiInitializeServices(items: any[]): Promise<any> {
+  const res = await fetch('/api/services/initialize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(items)
+  });
+  if (!res.ok) throw new Error('Failed to initialize services.');
+  return res.json();
+}
+
+// --- Dynamic Portfolio Sync ---
+export async function apiGetPortfolio(): Promise<any[]> {
+  const res = await fetch('/api/portfolio');
+  if (!res.ok) throw new Error('Failed to retrieve portfolio from Cloudflare D1.');
+  return res.json();
+}
+
+export async function apiSavePortfolio(project: any): Promise<any> {
+  const res = await fetch('/api/portfolio', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(project)
+  });
+  if (!res.ok) throw new Error('Failed to save project.');
+  return res.json();
+}
+
+export async function apiUpdatePortfolio(id: string, project: any): Promise<any> {
+  const res = await fetch(`/api/portfolio/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(project)
+  });
+  if (!res.ok) throw new Error('Failed to update project.');
+  return res.json();
+}
+
+export async function apiDeletePortfolio(id: string): Promise<any> {
+  const res = await fetch(`/api/portfolio/${id}`, {
+    method: 'DELETE'
+  });
+  if (!res.ok) throw new Error('Failed to delete project.');
+  return res.json();
+}
+
+export async function apiInitializePortfolio(items: any[]): Promise<any> {
+  const res = await fetch('/api/portfolio/initialize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(items)
+  });
+  if (!res.ok) throw new Error('Failed to initialize portfolio.');
+  return res.json();
+}
+
+// --- Dynamic Blogs Sync ---
+export async function apiGetBlogs(): Promise<any[]> {
+  const res = await fetch('/api/blogs');
+  if (!res.ok) throw new Error('Failed to retrieve blogs from Cloudflare D1.');
+  return res.json();
+}
+
+export async function apiSaveBlog(blog: any): Promise<any> {
+  const res = await fetch('/api/blogs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(blog)
+  });
+  if (!res.ok) throw new Error('Failed to save blog.');
+  return res.json();
+}
+
+export async function apiUpdateBlog(id: string, blog: any): Promise<any> {
+  const res = await fetch(`/api/blogs/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(blog)
+  });
+  if (!res.ok) throw new Error('Failed to update blog.');
+  return res.json();
+}
+
+export async function apiDeleteBlog(id: string): Promise<any> {
+  const res = await fetch(`/api/blogs/${id}`, {
+    method: 'DELETE'
+  });
+  if (!res.ok) throw new Error('Failed to delete blog.');
+  return res.json();
+}
+
+export async function apiInitializeBlogs(items: any[]): Promise<any> {
+  const res = await fetch('/api/blogs/initialize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(items)
+  });
+  if (!res.ok) throw new Error('Failed to initialize blogs.');
+  return res.json();
+}
+
+// --- Dynamic Courses Sync ---
+export async function apiGetCourses(): Promise<any[]> {
+  const res = await fetch('/api/courses');
+  if (!res.ok) throw new Error('Failed to retrieve courses from Cloudflare D1.');
+  return res.json();
+}
+
+export async function apiSaveCourse(course: any): Promise<any> {
+  const res = await fetch('/api/courses', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(course)
+  });
+  if (!res.ok) throw new Error('Failed to save course.');
+  return res.json();
+}
+
+export async function apiUpdateCourse(id: string, course: any): Promise<any> {
+  const res = await fetch(`/api/courses/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(course)
+  });
+  if (!res.ok) throw new Error('Failed to update course.');
+  return res.json();
+}
+
+export async function apiDeleteCourse(id: string): Promise<any> {
+  const res = await fetch(`/api/courses/${id}`, {
+    method: 'DELETE'
+  });
+  if (!res.ok) throw new Error('Failed to delete course.');
+  return res.json();
+}
+
+export async function apiInitializeCourses(items: any[]): Promise<any> {
+  const res = await fetch('/api/courses/initialize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(items)
+  });
+  if (!res.ok) throw new Error('Failed to initialize courses.');
+  return res.json();
 }

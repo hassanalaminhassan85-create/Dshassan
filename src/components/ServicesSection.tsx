@@ -8,6 +8,7 @@ import { SERVICES, ServiceItem } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
 import { ServiceDetailView } from './ServiceDetailView';
 import { ServiceCard } from './ServiceCard';
+import { apiGetServices, apiInitializeServices } from '../lib/api';
 
 interface ServicesSectionProps {
   language: LanguageCode;
@@ -35,6 +36,25 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
   });
 
   useEffect(() => {
+    const fetchD1Services = async () => {
+      try {
+        const data = await apiGetServices();
+        if (data && data.length > 0) {
+          setServices(data);
+          localStorage.setItem('admin_services', JSON.stringify(data));
+        } else {
+          // Empty D1 database - auto-seed D1 with standard SERVICES catalog!
+          await apiInitializeServices(SERVICES);
+          setServices(SERVICES);
+          localStorage.setItem('admin_services', JSON.stringify(SERVICES));
+        }
+      } catch (err) {
+        console.warn('D1 database unreachable. Falling back to LocalStorage.', err);
+      }
+    };
+
+    fetchD1Services();
+
     const handleStorage = () => {
       try {
         const saved = localStorage.getItem('admin_services');
@@ -48,7 +68,6 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
       }
     };
     window.addEventListener('storage', handleStorage);
-    handleStorage();
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 

@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { Logo } from './Logo';
 import { JobApplication } from '../types';
-import { Share2, Copy, FileText, CheckCircle2, Award, ExternalLink, RefreshCw, Printer, FileDown, Building2, Send, MessageSquare } from 'lucide-react';
+import { Share2, Copy, FileText, CheckCircle2, Award, ExternalLink, RefreshCw, Printer, FileDown, Building2, Send, MessageSquare, Cpu, ShieldCheck } from 'lucide-react';
 import { AppointmentLetter } from './AppointmentLetter';
 import { ApplicationQRCode } from './ApplicationQRCode';
 import { CareersFormPDFView } from './CareersFormPDFView';
+import { RealTimePresence } from './RealTimePresence';
+import { BiometricVault } from './BiometricVault';
+import { AIPersonalInterviewer } from './AIPersonalInterviewer';
 
 interface ApplicationViewProps {
   application: JobApplication;
@@ -114,6 +117,11 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
         >
           ← Careers Application Portal
         </button>
+      </div>
+
+      {/* Real-time multi-device Presence visualizer */}
+      <div className="no-print">
+        <RealTimePresence />
       </div>
 
       {/* SUCCESS OVERLAY PANEL WITH SHAREABLE LINKS AND QR CODE GENERATION UTILITY */}
@@ -238,6 +246,30 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
             <MessageSquare size={14} />
             <span>3. Send via WhatsApp</span>
           </button>
+        </div>
+      </div>
+
+      {/* ADVANCED RECRUITMENT UTILITIES (2026 VISION) */}
+      <div className="no-print grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Biometric Vault Decryption */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 px-1">
+            <span className="p-1.5 bg-orange-600 text-white rounded-lg text-xs font-black">2026</span>
+            <h3 className="text-sm font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">High-Security Document Core</h3>
+          </div>
+          <BiometricVault application={application} />
+        </div>
+
+        {/* AI automated agent & Interviewer */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 px-1">
+            <span className="p-1.5 bg-indigo-600 text-white rounded-lg text-xs font-black">AI</span>
+            <h3 className="text-sm font-black text-slate-800 dark:text-slate-100 uppercase tracking-wider">Proactive Cognitive Screening</h3>
+          </div>
+          <AIPersonalInterviewer 
+            candidateName={application.personalInfo?.fullName} 
+            position={application.positionSkills?.majorRole} 
+          />
         </div>
       </div>
 

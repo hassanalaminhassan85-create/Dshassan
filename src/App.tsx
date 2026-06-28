@@ -4,6 +4,7 @@ import { CareersForm } from './components/CareersForm';
 import { ApplicationView } from './components/ApplicationView';
 import { AdminDashboard } from './components/AdminDashboard';
 import { PremiumContactSection } from './components/PremiumContactSection';
+import { UserDashboard } from './components/UserDashboard';
 
 // Website Ecosystem Modules
 import { HomeSection } from './components/HomeSection';
@@ -15,7 +16,7 @@ import { TrainingAcademySection } from './components/TrainingAcademySection';
 import { ClientPortalSection } from './components/ClientPortalSection';
 import { CareersSection } from './components/CareersSection';
 import { JobApplication } from './types';
-import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter } from 'lucide-react';
+import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint } from 'lucide-react';
 import { Logo } from './components/Logo';
 import { apiGetApplication, apiSaveApplication, apiUpdateApplication } from './lib/storage';
 import { CAREER_ROLES, CATEGORIES, CareerRole } from './lib/roles';
@@ -190,7 +191,10 @@ export default function App() {
   const [selectedRoleTitle, setSelectedRoleTitle] = useState<string>('');
 
   // Active website ecosystem page routing state
-  const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'blog' | 'training' | 'clients' | 'careers'>('home');
+  const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'blog' | 'training' | 'clients' | 'careers' | 'account'>('home');
+
+  // Interactive 2027 App Shell full-screen state
+  const [isUserLoggedIn, setIsUserLoggedIn] = useState<boolean>(false);
 
   // Settings & Theme
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
@@ -331,6 +335,8 @@ export default function App() {
           setActivePage('clients');
         } else if (path === '/careers') {
           setActivePage('careers');
+        } else if (path === '/account') {
+          setActivePage('account');
         }
       }
     };
@@ -414,7 +420,7 @@ export default function App() {
       className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans selection:bg-orange-500 selection:text-white transition-colors duration-300"
     >
       {/* Upper Navigation Header Bar */}
-      {!isAdminView && (
+      {!isAdminView && !isUserLoggedIn && (
         <header className="no-print bg-white/80 dark:bg-slate-900/85 backdrop-blur-md border-b border-indigo-100/50 dark:border-slate-800 sticky top-0 z-50 shadow-sm px-4 py-3 sm:px-6 sm:py-3.5 flex flex-col lg:flex-row gap-3 lg:gap-4 justify-between items-center transition-colors duration-300 animate-fade-in">
           
           {/* Logo Container and Mobile Controls (Language + Theme + Menu Toggle) */}
@@ -791,6 +797,19 @@ export default function App() {
               </button>
             )}
 
+            <button
+              onClick={() => safeNavigate('/account')}
+              type="button"
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shadow-sm border ${
+                activePage === 'account'
+                  ? 'bg-gradient-to-r from-orange-600 to-indigo-600 text-white border-transparent'
+                  : 'bg-indigo-50/50 hover:bg-indigo-100/60 dark:bg-slate-800 dark:hover:bg-slate-700 border-indigo-100/50 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+              }`}
+            >
+              <Fingerprint size={12} className={activePage === 'account' ? 'text-white' : 'text-orange-500'} />
+              <span>Candidate Hub (2026)</span>
+            </button>
+
             {!currentAppId && !isAdminView && !isApplying && (
               <button
                 onClick={loadDemoSeed}
@@ -897,6 +916,22 @@ export default function App() {
                         <span>{t.adminTitle}</span>
                       </button>
                     )}
+
+                    <button
+                      onClick={() => {
+                        safeNavigate('/account');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      type="button"
+                      className={`w-full justify-center py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border ${
+                        activePage === 'account'
+                          ? 'bg-gradient-to-r from-orange-600 to-indigo-600 text-white border-transparent'
+                          : 'bg-indigo-50/50 hover:bg-indigo-100/60 dark:bg-slate-800 dark:hover:bg-slate-700 border-indigo-100/50 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <Fingerprint size={12} className={activePage === 'account' ? 'text-white' : 'text-orange-500'} />
+                      <span>Candidate Hub (2026)</span>
+                    </button>
 
                     {!currentAppId && !isAdminView && !isApplying && (
                       <button
@@ -1095,6 +1130,16 @@ export default function App() {
                 className="w-full"
               >
                 <ClientPortalSection />
+              </motion.div>
+             ) : activePage === 'account' ? (
+              <motion.div
+                key="account-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full"
+              >
+                <UserDashboard onLoginStatusChange={setIsUserLoggedIn} />
               </motion.div>
              ) : !isApplying ? (
               <motion.div
@@ -1423,7 +1468,8 @@ export default function App() {
       </main>
 
       {/* Document bottom footer info */}
-      <footer className="no-print bg-slate-900 text-slate-400 border-t border-slate-800 mt-auto pt-16 pb-12 px-6 md:px-12 relative overflow-hidden font-sans">
+      {!isUserLoggedIn && (
+        <footer className="no-print bg-slate-900 text-slate-400 border-t border-slate-800 mt-auto pt-16 pb-12 px-6 md:px-12 relative overflow-hidden font-sans">
         {/* Decorative ambient background light */}
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-indigo-500/5 rounded-full filter blur-3xl pointer-events-none" />
@@ -1555,6 +1601,7 @@ export default function App() {
 
         </div>
       </footer>
+      )}
     </div>
   );
 }

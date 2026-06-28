@@ -16,6 +16,7 @@ import {
   apiGetScanHistory, 
   apiSubscribeToRealtimeSync, 
   apiSummarizeApplicant, 
+  apiAnalyzeCandidate,
   ScanHistoryRecord 
 } from '../lib/api';
 import { ApplicationQRScanner } from './ApplicationQRScanner';
@@ -72,9 +73,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [aiSummaryLoading, setAiSummaryLoading] = useState<boolean>(false);
 
   // New features: PDF View toggle and Message Presets
-  const [adminDetailTab, setAdminDetailTab] = useState<'actions' | 'pdf'>('actions');
+  const [adminDetailTab, setAdminDetailTab] = useState<'actions' | 'pdf' | 'ai'>('actions');
   const [selectedPreset, setSelectedPreset] = useState<string>('review');
   const [customMessage, setCustomMessage] = useState<string>('');
+
+  const [candidateAnalyses, setCandidateAnalyses] = useState<Record<string, {
+    compatibilityScore: number;
+    keyStrengths: string[];
+    potentialRisks: string[];
+    interviewQuestions: string[];
+  }>>(() => {
+    try {
+      const saved = localStorage.getItem('candidate_analyses');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+  const [candidateAnalysisLoading, setCandidateAnalysisLoading] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('candidate_analyses', JSON.stringify(candidateAnalyses));
+    } catch (e) {}
+  }, [candidateAnalyses]);
 
   // Super Admin Control Center State
   const [adminModule, setAdminModule] = useState<'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications'>('recruitment');
@@ -331,7 +353,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     sqlLines.push("DROP TABLE IF EXISTS blog_posts;");
     sqlLines.push("DROP TABLE IF EXISTS portfolio_projects;");
     sqlLines.push("DROP TABLE IF EXISTS services;");
-    sqlLines.push("DROP TABLE IF EXISTS job_applications;\n");
+    sqlLines.push("DROP TABLE IF EXISTS job_applications;");
+    sqlLines.push("DROP TABLE IF EXISTS eidas_webauthn_devices;");
+    sqlLines.push("DROP TABLE IF EXISTS zkp_credentials_proofs;");
+    sqlLines.push("DROP TABLE IF EXISTS digital_passports;");
+    sqlLines.push("DROP TABLE IF EXISTS compensation_agreements;");
+    sqlLines.push("DROP TABLE IF EXISTS career_constellations;\n");
 
     sqlLines.push("-- Table: services");
     sqlLines.push("CREATE TABLE services (");
@@ -482,6 +509,64 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     sqlLines.push("    admin_notes TEXT");
     sqlLines.push(");\n");
 
+    sqlLines.push("-- Table: eidas_webauthn_devices");
+    sqlLines.push("CREATE TABLE eidas_webauthn_devices (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    user_id TEXT NOT NULL,");
+    sqlLines.push("    credential_id TEXT NOT NULL UNIQUE,");
+    sqlLines.push("    public_key TEXT NOT NULL,");
+    sqlLines.push("    algorithm TEXT DEFAULT 'Dilithium-5',");
+    sqlLines.push("    sign_count INTEGER DEFAULT 0,");
+    sqlLines.push("    created_at TEXT NOT NULL,");
+    sqlLines.push("    status TEXT DEFAULT 'ACTIVE'");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: zkp_credentials_proofs");
+    sqlLines.push("CREATE TABLE zkp_credentials_proofs (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    candidate_id TEXT NOT NULL,");
+    sqlLines.push("    credential_name TEXT NOT NULL,");
+    sqlLines.push("    hash_algorithm TEXT DEFAULT 'SHA3-512',");
+    sqlLines.push("    proof_hash TEXT NOT NULL,");
+    sqlLines.push("    verification_node TEXT DEFAULT 'ZKP_VALIDATION_NODE_D1',");
+    sqlLines.push("    verified_at TEXT NOT NULL,");
+    sqlLines.push("    is_ledger_bound INTEGER DEFAULT 1");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: digital_passports");
+    sqlLines.push("CREATE TABLE digital_passports (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    candidate_id TEXT NOT NULL UNIQUE,");
+    sqlLines.push("    passport_hash TEXT NOT NULL,");
+    sqlLines.push("    issuer TEXT DEFAULT 'DS Tech and Digital Marketing Agency Limited',");
+    sqlLines.push("    compliance_standard TEXT DEFAULT 'EIDAS WebAuthn Multi-Factor Security Protocol',");
+    sqlLines.push("    biometric_seal_status TEXT NOT NULL,");
+    sqlLines.push("    created_at TEXT NOT NULL,");
+    sqlLines.push("    e_signing_authority_status TEXT DEFAULT 'CONTRACT_READY'");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: compensation_agreements");
+    sqlLines.push("CREATE TABLE compensation_agreements (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    candidate_id TEXT NOT NULL,");
+    sqlLines.push("    requested_salary INTEGER NOT NULL,");
+    sqlLines.push("    requested_equity REAL NOT NULL,");
+    sqlLines.push("    work_mode TEXT NOT NULL,");
+    sqlLines.push("    negotiation_status TEXT NOT NULL,");
+    sqlLines.push("    agreement_compact_seal TEXT,");
+    sqlLines.push("    arbitrated_at TEXT NOT NULL");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: career_constellations");
+    sqlLines.push("CREATE TABLE career_constellations (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    candidate_id TEXT NOT NULL,");
+    sqlLines.push("    skills_matrix_json TEXT NOT NULL,");
+    sqlLines.push("    retention_prediction_pct REAL DEFAULT 94.8,");
+    sqlLines.push("    screening_matrix_hash TEXT,");
+    sqlLines.push("    last_updated TEXT NOT NULL");
+    sqlLines.push(");\n");
+
     sqlLines.push("-- Relational & Query Performance Indexes");
     sqlLines.push("CREATE INDEX idx_services_category ON services(category);");
     sqlLines.push("CREATE INDEX idx_portfolio_category ON portfolio_projects(category);");
@@ -490,7 +575,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     sqlLines.push("CREATE INDEX idx_invoices_status ON invoices(status);");
     sqlLines.push("CREATE INDEX idx_tickets_status ON support_tickets(status);");
     sqlLines.push("CREATE INDEX idx_applications_status ON job_applications(status);");
-    sqlLines.push("CREATE INDEX idx_applications_email ON job_applications(email_address);\n");
+    sqlLines.push("CREATE INDEX idx_applications_email ON job_applications(email_address);");
+    sqlLines.push("CREATE INDEX idx_webauthn_user ON eidas_webauthn_devices(user_id);");
+    sqlLines.push("CREATE INDEX idx_zkp_candidate ON zkp_credentials_proofs(candidate_id);");
+    sqlLines.push("CREATE INDEX idx_passport_candidate ON digital_passports(candidate_id);");
+    sqlLines.push("CREATE INDEX idx_compensation_candidate ON compensation_agreements(candidate_id);");
+    sqlLines.push("CREATE INDEX idx_constellation_candidate ON career_constellations(candidate_id);\n");
 
     sqlLines.push("-- =====================================================================");
     sqlLines.push("-- SEED DATA INSERTIONS (Hydrates the schema with active dashboard states)");
@@ -604,6 +694,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         `${escapeStr(app.adminNotes)}` +
       `);`);
     });
+
+    sqlLines.push("\n-- Seeds: eidas_webauthn_devices");
+    sqlLines.push("INSERT INTO eidas_webauthn_devices (id, user_id, credential_id, public_key, algorithm, sign_count, created_at, status) VALUES ('dev-01', 'usr-demo', 'cred-8f9d3a7e5b', 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7p9X...3b8d', 'Dilithium-5', 12, '2027-01-15T08:30:00Z', 'ACTIVE');");
+    sqlLines.push("INSERT INTO eidas_webauthn_devices (id, user_id, credential_id, public_key, algorithm, sign_count, created_at, status) VALUES ('dev-02', 'usr-ngozi', 'cred-d2f1e4c6b5', 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEm3f9...a2c1', 'Dilithium-5', 4, '2027-02-20T14:45:00Z', 'ACTIVE');");
+
+    sqlLines.push("\n-- Seeds: zkp_credentials_proofs");
+    sqlLines.push("INSERT INTO zkp_credentials_proofs (id, candidate_id, credential_name, hash_algorithm, proof_hash, verification_node, verified_at, is_ledger_bound) VALUES ('zkp-01', 'usr-demo', 'BS_Computer_Science_Verified_Diploma.pdf', 'SHA3-512', 'SHA256-4D6F5E4B3C2A1E0D9C8B7A6F5E4D3C2B1A0D9C8B7A6F5E4D3C2B1A0D9C8B7A6F...', 'ZKP_VALIDATION_NODE_D1', '2027-03-01T10:00:00Z', 1);");
+    sqlLines.push("INSERT INTO zkp_credentials_proofs (id, candidate_id, credential_name, hash_algorithm, proof_hash, verification_node, verified_at, is_ledger_bound) VALUES ('zkp-02', 'usr-demo', 'AWS_Architect_Cert_Verified_Diploma.pdf', 'SHA3-512', 'SHA256-1F2E3D4C5B6A7F8E9D0C1B2A3F4E5D6C7B8A9F0E1D2C3B4A5F6E7D8C9B0A1F2E...', 'ZKP_VALIDATION_NODE_D1', '2027-03-05T11:15:00Z', 1);");
+
+    sqlLines.push("\n-- Seeds: digital_passports");
+    sqlLines.push("INSERT INTO digital_passports (id, candidate_id, passport_hash, issuer, compliance_standard, biometric_seal_status, created_at, e_signing_authority_status) VALUES ('pass-01', 'usr-demo', '#DST-2027-DEMO', 'DS Tech and Digital Marketing Agency Limited', 'EIDAS WebAuthn Multi-Factor Security Protocol', 'ACTIVE', '2027-03-10T09:00:00Z', 'CONTRACT_READY');");
+    sqlLines.push("INSERT INTO digital_passports (id, candidate_id, passport_hash, issuer, compliance_standard, biometric_seal_status, created_at, e_signing_authority_status) VALUES ('pass-02', 'usr-ngozi', '#DST-2027-NGOZI', 'DS Tech and Digital Marketing Agency Limited', 'EIDAS WebAuthn Multi-Factor Security Protocol', 'ACTIVE', '2027-03-12T10:30:00Z', 'CONTRACT_READY');");
+
+    sqlLines.push("\n-- Seeds: compensation_agreements");
+    sqlLines.push("INSERT INTO compensation_agreements (id, candidate_id, requested_salary, requested_equity, work_mode, negotiation_status, agreement_compact_seal, arbitrated_at) VALUES ('comp-01', 'usr-demo', 145, 0.15, 'remote', 'accepted', 'AGREE-SEAL-0X8F9E2D7C5B4A1F2E3D4C5B6A7F8E9D0C1B2A3F4E', '2027-03-22T16:20:00Z');");
+    sqlLines.push("INSERT INTO compensation_agreements (id, candidate_id, requested_salary, requested_equity, work_mode, negotiation_status, agreement_compact_seal, arbitrated_at) VALUES ('comp-02', 'usr-ngozi', 130, 0.10, 'hybrid', 'accepted', 'AGREE-SEAL-0X3D4F5E6A7B8C9D0E1F2A3B4C5D6E7F8A9B0C1D2E', '2027-03-24T11:45:00Z');");
+
+    sqlLines.push("\n-- Seeds: career_constellations");
+    sqlLines.push("INSERT INTO career_constellations (id, candidate_id, skills_matrix_json, retention_prediction_pct, screening_matrix_hash, last_updated) VALUES ('const-01', 'usr-demo', '{\"react\":95,\"typescript\":90,\"tailwindcss\":92,\"node\":85,\"system_architecture\":88}', 94.8, 'SCREEN-MX-0XF1E2D3C4B5A6', '2027-03-25T14:00:00Z');");
+    sqlLines.push("INSERT INTO career_constellations (id, candidate_id, skills_matrix_json, retention_prediction_pct, screening_matrix_hash, last_updated) VALUES ('const-02', 'usr-ngozi', '{\"react\":88,\"typescript\":85,\"marketing\":95,\"seo\":92,\"ai_prompting\":90}', 91.2, 'SCREEN-MX-0X2D3C4B5A6F1E', '2027-03-26T15:30:00Z');");
 
     sqlLines.push("\n-- =====================================================================");
     sqlLines.push("-- DATABASE SEEDING COMPLETED SUCCESSFULLY");
@@ -927,28 +1037,36 @@ export default {
     // Establish real-time sync subscription to Multi-screen Sync Channel (SSE)
     setRealtimeConnected(true);
     const unsubscribe = apiSubscribeToRealtimeSync((event) => {
-      if (event.type === 'HANDSHAKE') {
-        console.log('[SSE Multi-screen Sync Hub]', event.message);
+      if (event.type === 'APPLICATION_CREATED') {
+        setApplications((prev) => [event.application, ...prev]);
+        setShowAdminNotification(`📝 ${event.message}`);
+      } else if (event.type === 'APPLICATION_UPDATED') {
+        setApplications((prev) => prev.map(app => app.id === event.applicationId ? event.application : app));
+        if (selectedApp?.id === event.applicationId) setSelectedApp(event.application);
+        setSelectedApp((prev) => prev && prev.id === event.applicationId ? event.application : prev);
+        setShowAdminNotification(`✏️ ${event.message}`);
+      } else if (event.type === 'APPLICATION_DELETED') {
+        setApplications((prev) => prev.filter(app => app.id !== event.applicationId));
+        if (selectedApp?.id === event.applicationId) setSelectedApp(null);
+        setSelectedApp((prev) => prev && prev.id === event.applicationId ? null : prev);
+        setShowAdminNotification(`🗑️ ${event.message}`);
       } else if (event.type === 'SCAN_SYNC') {
-        const { scanRecord, message } = event;
+        setScanHistory((prev) => [event.scanRecord, ...prev]);
+        setShowAdminNotification(`🔔 ${event.message}`);
         
-        // Show floating premium notification banner
-        setShowAdminNotification(`🔔 Real-Time Sync: ${message}`);
-        setTimeout(() => setShowAdminNotification(null), 5000);
-
-        // Add scanned record to state instantly
-        setScanHistory(prev => [scanRecord, ...prev]);
-
-        // Automatically load and display the scanned applicant on screen without refresh!
+        // Keep existing SCAN_SYNC load/display logic
         apiGetApplications().then(apps => {
           setApplications(apps);
-          const found = apps.find(a => a.id === scanRecord.applicant_id);
+          const found = apps.find(a => a.id === event.scanRecord.applicant_id);
           if (found) {
             setSelectedApp(found);
             setAdminDetailTab('actions');
           }
         }).catch(err => console.error(err));
+      } else if (event.type === 'HANDSHAKE') {
+        console.log('[SSE Multi-screen Sync Hub]', event.message);
       }
+      setTimeout(() => setShowAdminNotification(null), 4000);
     });
 
     return () => {
@@ -2608,8 +2726,8 @@ export default {
                     </button>
                   </div>
 
-                  {/* Tab Selector for Actions vs PDF - Hidden on desktop due to persistent sidebar */}
-                  <div className="flex bg-slate-100 p-1 border-b border-slate-200 md:hidden">
+                  {/* Tab Selector for Actions, AI Insights, and PDF Form */}
+                  <div className="flex bg-slate-100 p-1 border-b border-slate-200">
                     <button
                       type="button"
                       onClick={() => setAdminDetailTab('actions')}
@@ -2621,12 +2739,21 @@ export default {
                     </button>
                     <button
                       type="button"
+                      onClick={() => setAdminDetailTab('ai')}
+                      className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all ${
+                        adminDetailTab === 'ai' ? 'bg-[#000E32] text-white shadow' : 'text-slate-500 hover:text-[#000E32]'
+                      }`}
+                    >
+                      ✨ AI Insights
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setAdminDetailTab('pdf')}
                       className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all ${
                         adminDetailTab === 'pdf' ? 'bg-[#000E32] text-white shadow' : 'text-slate-500 hover:text-[#000E32]'
                       }`}
                     >
-                      📄 View Filled PDF Form
+                      📄 PDF Form
                     </button>
                   </div>
 
@@ -2635,6 +2762,234 @@ export default {
                       <div className="border border-slate-300 rounded-2xl overflow-hidden shadow-sm bg-white p-2">
                         <CareersFormPDFView application={selectedApp} />
                       </div>
+                    </div>
+                  ) : adminDetailTab === 'ai' ? (
+                    <div className="p-6 bg-slate-50 max-h-[75vh] overflow-y-auto space-y-6 text-left scrollbar-thin">
+                      {/* Title & Badge */}
+                      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                        <div className="flex items-center gap-2">
+                          <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <Sparkles size={18} className="animate-pulse" />
+                          </div>
+                          <div>
+                            <h4 className="font-extrabold text-slate-800 text-sm">Gemini AI Cognitive Analysis</h4>
+                            <p className="text-[10px] text-slate-400 font-medium">Real-Time Secure Cloud Evaluation</p>
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-mono px-2 py-0.5 bg-emerald-100/60 text-emerald-800 rounded-full font-black uppercase">
+                          Secure API
+                        </span>
+                      </div>
+
+                      {candidateAnalysisLoading ? (
+                        <div className="py-12 flex flex-col items-center justify-center gap-4 text-center">
+                          {/* AI Thinking Animation with framer-motion */}
+                          <div className="relative flex items-center justify-center">
+                            <motion.div
+                              animate={{ scale: [1, 1.3, 1], rotate: 360 }}
+                              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                              className="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 opacity-20 filter blur-md absolute"
+                            />
+                            <motion.div
+                              animate={{ scale: [1.2, 1, 1.2] }}
+                              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                              className="w-12 h-12 rounded-full border-2 border-indigo-500 border-t-pink-500 animate-spin flex items-center justify-center"
+                            />
+                            <Sparkles size={20} className="text-indigo-600 absolute animate-pulse" />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-xs font-black text-indigo-900 animate-pulse uppercase tracking-wider">AI Engines Thinking...</p>
+                            <p className="text-[10px] text-slate-400 max-w-xs leading-normal">
+                              Parsing resume documents, scanning educational background, and conducting cross-role match modeling...
+                            </p>
+                          </div>
+                        </div>
+                      ) : candidateAnalyses[selectedApp.id] ? (() => {
+                        const analysis = candidateAnalyses[selectedApp.id];
+                        const score = analysis.compatibilityScore;
+                        
+                        return (
+                          <motion.div 
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="space-y-6"
+                          >
+                            {/* Compatibility Meter Section */}
+                            <div className="bg-white rounded-2xl p-5 border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center gap-5 relative overflow-hidden">
+                              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-indigo-50 to-transparent rounded-bl-full pointer-events-none" />
+                              
+                              {/* Visual Circle Meter */}
+                              <div className="relative w-28 h-28 flex-shrink-0 flex items-center justify-center">
+                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                                  {/* Background Track */}
+                                  <circle
+                                    cx="50"
+                                    cy="50"
+                                    r="40"
+                                    fill="none"
+                                    stroke="#F1F5F9"
+                                    strokeWidth="8"
+                                  />
+                                  {/* Progress Path */}
+                                  <motion.circle
+                                    cx="50"
+                                    cy="50"
+                                    r="40"
+                                    fill="none"
+                                    stroke="url(#meterGradient)"
+                                    strokeWidth="8"
+                                    strokeDasharray="251.2"
+                                    initial={{ strokeDashoffset: 251.2 }}
+                                    animate={{ strokeDashoffset: 251.2 - (251.2 * score) / 100 }}
+                                    transition={{ duration: 1.5, ease: "easeOut" }}
+                                    strokeLinecap="round"
+                                  />
+                                  <defs>
+                                    <linearGradient id="meterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                      <stop offset="0%" stopColor="#6366F1" />
+                                      <stop offset="50%" stopColor="#8B5CF6" />
+                                      <stop offset="100%" stopColor="#EC4899" />
+                                    </linearGradient>
+                                  </defs>
+                                </svg>
+                                {/* Center Text */}
+                                <div className="absolute flex flex-col items-center">
+                                  <span className="text-2xl font-black text-slate-800 leading-none">{score}%</span>
+                                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider mt-1">Match Rate</span>
+                                </div>
+                              </div>
+
+                              <div className="text-center md:text-left space-y-2">
+                                <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border bg-indigo-50 border-indigo-100 text-indigo-700">
+                                  <Sparkles size={10} />
+                                  Match Quality Index
+                                </div>
+                                <h5 className="font-extrabold text-slate-800 text-xs">
+                                  {score >= 80 ? 'Highly Compatible candidate' : score >= 60 ? 'Moderate Role alignment' : 'Low Alignment (Review recommended)'}
+                                </h5>
+                                <p className="text-[10px] text-slate-500 leading-normal max-w-xs">
+                                  Our secure Gemini neural modeling checked their position skills, education, and credentials relative to technical criteria.
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Glass-morphism Cards Grid */}
+                            <div className="grid grid-cols-1 gap-4">
+                              {/* Strengths Card */}
+                              <div className="bg-emerald-50/40 border border-emerald-100/60 rounded-2xl p-4 backdrop-blur-md shadow-sm relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-12 h-12 bg-emerald-500/5 rounded-full filter blur-md" />
+                                <h6 className="text-[10px] font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1.5 mb-2.5">
+                                  <CheckCircle2 size={13} className="text-emerald-500" />
+                                  Key Strengths
+                                </h6>
+                                <ul className="space-y-2">
+                                  {analysis.keyStrengths?.map((str: string, idx: number) => (
+                                    <li key={idx} className="flex items-start gap-2 text-[11px] text-slate-700 leading-snug">
+                                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5 flex-shrink-0" />
+                                      <span>{str}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              {/* Potential Risks Card */}
+                              <div className="bg-rose-50/40 border border-rose-100/60 rounded-2xl p-4 backdrop-blur-md shadow-sm relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-12 h-12 bg-rose-500/5 rounded-full filter blur-md" />
+                                <h6 className="text-[10px] font-black uppercase tracking-wider text-rose-800 flex items-center gap-1.5 mb-2.5">
+                                  <AlertCircle size={13} className="text-rose-500" />
+                                  Potential Risks
+                                </h6>
+                                <ul className="space-y-2">
+                                  {analysis.potentialRisks?.map((risk: string, idx: number) => (
+                                    <li key={idx} className="flex items-start gap-2 text-[11px] text-slate-700 leading-snug">
+                                      <span className="w-1.5 h-1.5 bg-rose-500 rounded-full mt-1.5 flex-shrink-0" />
+                                      <span>{risk}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              {/* Interview Questions Card */}
+                              <div className="bg-indigo-50/40 border border-indigo-100/60 rounded-2xl p-4 backdrop-blur-md shadow-sm relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-12 h-12 bg-indigo-500/5 rounded-full filter blur-md" />
+                                <h6 className="text-[10px] font-black uppercase tracking-wider text-indigo-800 flex items-center gap-1.5 mb-2.5">
+                                  <MessageSquare size={13} className="text-indigo-500" />
+                                  Targeted Interview Questions
+                                </h6>
+                                <div className="space-y-2.5">
+                                  {analysis.interviewQuestions?.map((q: string, idx: number) => (
+                                    <div key={idx} className="bg-white/60 rounded-xl p-2.5 border border-indigo-50/40 text-[10.5px] text-slate-700 leading-relaxed font-medium">
+                                      <span className="font-black text-indigo-600 block text-[9px] uppercase tracking-wider mb-0.5">Question {idx + 1}</span>
+                                      {q}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Recalculate Button */}
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                setCandidateAnalysisLoading(true);
+                                try {
+                                  const result = await apiAnalyzeCandidate(selectedApp);
+                                  setCandidateAnalyses(prev => ({
+                                    ...prev,
+                                    [selectedApp.id]: result
+                                  }));
+                                  setShowAdminNotification("✨ Recalculated AI applicant evaluation!");
+                                  setTimeout(() => setShowAdminNotification(null), 3000);
+                                } catch (err) {
+                                  console.error(err);
+                                  alert("Failed to run Gemini AI analysis. Please check your credentials.");
+                                } finally {
+                                  setCandidateAnalysisLoading(false);
+                                }
+                              }}
+                              className="w-full py-2 border border-dashed border-indigo-200 hover:border-indigo-400 text-indigo-600 text-[10px] font-extrabold uppercase tracking-widest rounded-xl transition-all cursor-pointer bg-white"
+                            >
+                              🔄 Recalculate AI Insights
+                            </button>
+                          </motion.div>
+                        );
+                      })() : (
+                        <div className="py-8 text-center space-y-4">
+                          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto">
+                            <Sparkles size={20} className="animate-pulse" />
+                          </div>
+                          <div className="space-y-2">
+                            <h5 className="font-bold text-slate-800 text-xs">No Cognitive Analysis Found</h5>
+                            <p className="text-[11px] text-slate-400 leading-relaxed max-w-xs mx-auto">
+                              Unlock secure server-side neural scoring for compatibility, key candidate advantages, potential risks, and custom generated screening questions.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              setCandidateAnalysisLoading(true);
+                              try {
+                                const result = await apiAnalyzeCandidate(selectedApp);
+                                setCandidateAnalyses(prev => ({
+                                  ...prev,
+                                  [selectedApp.id]: result
+                                }));
+                                setShowAdminNotification("✨ Generated secure AI candidate insights!");
+                                setTimeout(() => setShowAdminNotification(null), 3000);
+                              } catch (err) {
+                                console.error(err);
+                                alert("Failed to run Gemini AI analysis. Please check your credentials.");
+                              } finally {
+                                setCandidateAnalysisLoading(false);
+                              }
+                            }}
+                            className="px-5 py-2.5 bg-[#000E32] hover:bg-slate-900 text-white font-extrabold text-[10px] uppercase tracking-widest rounded-xl transition-all cursor-pointer flex items-center gap-1.5 mx-auto"
+                          >
+                            <Sparkles size={11} className="text-amber-400" />
+                            Run Cognitive Analysis
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto text-left">

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
   Sparkles, ArrowRight, BarChart3, Users, Star, ArrowUpRight, 
@@ -25,6 +25,28 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
   const [bookingEmail, setBookingEmail] = useState('');
   const [bookingService, setBookingService] = useState('Digital Marketing');
   const [bookingSubmitted, setBookingSubmitted] = useState(false);
+
+  const [services, setServices] = useState(() => {
+    try {
+      const saved = localStorage.getItem('admin_services');
+      return saved ? JSON.parse(saved) : SERVICES;
+    } catch (e) {
+      return SERVICES;
+    }
+  });
+
+  useEffect(() => {
+    const handleStorage = () => {
+      try {
+        const saved = localStorage.getItem('admin_services');
+        if (saved) {
+          setServices(JSON.parse(saved));
+        }
+      } catch (e) {}
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   const t = HOME_TRANSLATIONS[language] || HOME_TRANSLATIONS.en;
 
@@ -356,7 +378,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {SERVICES.slice(0, 3).map((svc) => (
+          {services.slice(0, 3).map((svc) => (
             <motion.div 
               whileHover={{ scale: 1.02, y: -4 }}
               whileTap={{ scale: 0.98 }}
