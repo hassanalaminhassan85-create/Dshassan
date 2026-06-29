@@ -11,7 +11,7 @@ NODE_VERSION = "22"
 [[d1_databases]]
 binding = "DB"
 database_name = "dstech-portal-db"
-database_id = "60ce292c-a702-401c-891c-400e80a75828" # Replace with actual live D1 database ID
+database_id = "533a56ff-2ee2-4365-9782-275758f71a28"
 
 # 2. Cloudflare R2 Object Storage Binding (for secure QR badges/images)
 [[r2_buckets]]
