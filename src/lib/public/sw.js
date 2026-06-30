@@ -90,3 +90,67 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// --- PWA Push Notification Event Listener ---
+self.addEventListener('push', (event) => {
+  let data = {
+    title: 'DS Tech Notification',
+    body: 'New notification from your DS Tech Career Portal.',
+    tag: 'dstech-portal-alert'
+  };
+
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: data.body || data.message || '',
+    icon: data.icon || data.image || '',
+    badge: data.icon || data.image || '',
+    vibrate: [100, 50, 100],
+    data: {
+      actionUrl: data.actionUrl || '/'
+    },
+    actions: [
+      { action: 'open', title: 'View Details' },
+      { action: 'close', title: 'Dismiss' }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, options)
+  );
+});
+
+// --- Notification Click Handling ---
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  if (event.action === 'close') {
+    return;
+  }
+
+  const actionUrl = event.notification.data?.actionUrl || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // If a window is already open on this URL, focus it
+      for (const client of clientList) {
+        const clientUrl = new URL(client.url).pathname;
+        const targetUrl = new URL(actionUrl, self.location.origin).pathname;
+        if (clientUrl === targetUrl && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Otherwise open a new tab/window
+      if (clients.openWindow) {
+        return clients.openWindow(actionUrl);
+      }
+    })
+  );
+});
+

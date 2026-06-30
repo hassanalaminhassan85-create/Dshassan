@@ -38,7 +38,11 @@ export const CareersForm: React.FC<CareersFormProps> = ({
 
   // Instant snap scroll to top when activeTab changes (improving wizard navigation UX)
   React.useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const element = document.getElementById('careers-portal-root');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }, [activeTab]);
 
   // Form States matching the 12 points
@@ -212,35 +216,35 @@ export const CareersForm: React.FC<CareersFormProps> = ({
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto px-4 py-6 md:py-10">
+    <div id="careers-portal-root" className="w-full max-w-6xl mx-auto px-4 py-6 md:py-10">
       {/* Sleek, Modern, Minimal Top Progress Header */}
-      <div className="bg-white rounded-2xl md:rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden mb-6 md:mb-10">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden mb-6 md:mb-10">
         <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-[#000E32] h-1.5 w-full animate-gradient" />
         
-        <div className="p-4 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-100">
+        <div className="p-4 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800">
           <div className="flex items-center gap-3 w-full sm:w-auto">
             {onCancel && (
               <button
                 type="button"
                 onClick={onCancel}
-                className="p-1.5 text-slate-400 hover:text-orange-600 hover:bg-slate-100 rounded-xl transition-all mr-1 flex items-center justify-center border border-slate-200"
+                className="p-1.5 text-slate-400 hover:text-orange-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all mr-1 flex items-center justify-center border border-slate-200 dark:border-slate-800"
                 title="Back to Corporate Hub"
               >
                 <ArrowLeft size={16} />
               </button>
             )}
             <Logo size="sm" variant="dark" />
-            <div className="h-8 w-[1px] bg-slate-200 hidden sm:block" />
+            <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 hidden sm:block" />
             <div className="text-left hidden sm:block">
               <span className="text-[10px] font-black tracking-widest text-orange-600 uppercase">Careers Application</span>
-              <p className="text-xs text-slate-500 font-medium">Accreditation Profile Wizard</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Accreditation Profile Wizard</p>
             </div>
           </div>
 
           <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
             <div className="flex flex-col items-start sm:items-end text-left sm:text-right">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Overall Progress</span>
-              <span className="text-xs font-extrabold text-[#000E32] bg-slate-100 px-2.5 py-1 rounded-lg mt-0.5 shadow-sm border border-slate-200/40">
+              <span className="text-xs font-extrabold text-[#000E32] dark:text-slate-200 bg-slate-100 dark:bg-slate-950 px-2.5 py-1 rounded-lg mt-0.5 shadow-sm border border-slate-200/40 dark:border-slate-850">
                 {Math.round((activeTab / totalSteps) * 100)}% Completed
               </span>
             </div>
@@ -249,7 +253,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
               <button
                 type="button"
                 onClick={onLoadDemo}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 hover:bg-orange-100 text-orange-700 hover:text-orange-800 rounded-xl text-xs font-bold transition-all duration-300 border border-orange-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 shrink-0"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 dark:bg-orange-950/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:text-orange-800 rounded-xl text-xs font-bold transition-all duration-300 border border-orange-100 dark:border-orange-900/20 shadow-sm hover:shadow-md hover:-translate-y-0.5 shrink-0"
               >
                 <Sparkles size={13} className="animate-pulse" />
                 <span>Quick Autofill</span>
@@ -291,7 +295,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
       {/* Main Core Form Block: Responsive Left-Progress, Right-Input split */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Side Trackbar progress rail */}
-        <div className="lg:col-span-4 bg-white p-6 rounded-3xl shadow-lg border border-slate-100 hidden lg:block sticky top-8">
+        <div className="lg:col-span-4 bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-lg border border-slate-100 dark:border-slate-800 hidden lg:block sticky top-8">
           <h3 className="font-extrabold text-xs text-slate-400 uppercase tracking-widest mb-6">
             Recruitment Process Modules
           </h3>
@@ -308,10 +312,10 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                   onClick={() => setActiveTab(step.id)}
                   className={`w-full flex items-center gap-4 p-3 rounded-2xl transition-all duration-300 text-left ${
                     isActive
-                      ? 'bg-[#000E32] text-white shadow-md shadow-blue-950/20 translate-x-2'
+                      ? 'bg-[#000E32] dark:bg-orange-600 text-white shadow-md shadow-blue-950/20 dark:shadow-orange-950/20 translate-x-2'
                       : isCompleted
-                      ? 'text-emerald-600 bg-emerald-50/40 hover:bg-emerald-50/80 border border-transparent'
-                      : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 border border-transparent'
+                      ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/10 hover:bg-emerald-50/80 dark:hover:bg-emerald-900/20 border border-transparent'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40 border border-transparent'
                   }`}
                 >
                   <div
@@ -319,8 +323,8 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                       isActive
                         ? 'bg-orange-500 text-white'
                         : isCompleted
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-slate-100 text-slate-400'
+                        ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400'
+                        : 'bg-slate-100 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500'
                     }`}
                   >
                     <StepIcon size={16} />
@@ -340,7 +344,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
         </div>
 
         {/* Right Side Form Content Window */}
-        <div className="lg:col-span-8 bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+        <div className="lg:col-span-8 bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
           <form onSubmit={handleFormSubmission} className="flex flex-col">
             <div className="p-6 md:p-8 min-h-[420px]">
               

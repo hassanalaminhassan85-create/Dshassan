@@ -579,6 +579,9 @@ export const AppointmentLetter: React.FC<AppointmentLetterProps> = ({
         onCancel={() => setIsBiometricPromptOpen(false)}
         title="Biometric Contract Signature"
         subtitle="Verify registered biometric profile to bind secure digital signature to employment contract"
+        mode="verify"
+        userId={application?.id || 'usr-demo'}
+        email={application?.personalInfo?.emailAddress || 'candidate2026@dstech.com'}
       />
     </div>
   );

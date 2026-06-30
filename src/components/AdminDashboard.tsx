@@ -4,12 +4,14 @@ import {
   Search, Filter, CheckCircle2, XCircle, Clock, Eye, Trash2, Download, 
   FileSpreadsheet, FileDown, Briefcase, GraduationCap, MapPin, Sparkles, 
   UserCheck, AlertCircle, ChevronLeft, ChevronRight, Calendar, Mail, Phone, RefreshCw,  
-  Edit3, ArrowLeft, Heart, BarChart3, Users, Landmark, UserMinus, ShieldAlert,
+  Edit3, ArrowLeft, Heart, BarChart3, Users, Landmark, UserMinus, ShieldAlert, LogOut,
   QrCode, MessageSquare, Send, FileText, Printer, Layers, FolderOpen, BookOpen,
   Video, Plus, PlusCircle, Check, MoreVertical, Settings, Sliders, Database, ArrowUp,
-  Sun, Moon, Globe, ChevronDown, Copy, X, Code
+  Sun, Moon, Globe, ChevronDown, Copy, X, Code, Bell
 } from 'lucide-react';
 import { JobApplication } from '../types';
+import { useNotifications } from './NotificationProvider';
+import { NotificationCenter } from './NotificationCenter';
 import { Logo } from './Logo';
 import { apiGetApplications, apiUpdateApplication, apiDeleteApplication } from '../lib/storage';
 import { 
@@ -21,6 +23,9 @@ import {
 } from '../lib/api';
 import { ApplicationQRScanner } from './ApplicationQRScanner';
 import { CareersFormPDFView } from './CareersFormPDFView';
+import { BrevoEmailDashboard } from './BrevoEmailDashboard';
+import { AdminAuthGate } from './AdminAuthGate';
+
 import { 
   SERVICES, 
   PORTFOLIO, 
@@ -47,6 +52,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   theme = 'light',
   setTheme = (_theme: string) => {},
 }) => {
+  const { unreadCount, registerUser } = useNotifications();
+  const [isAdminLoggedIn, setIsAdminLoggedIn] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('isAdminLoggedIn') === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+  const [adminUser, setAdminUser] = useState<any>(() => {
+    try {
+      const saved = localStorage.getItem('adminUser');
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const [isNotifCenterOpen, setIsNotifCenterOpen] = useState<boolean>(false);
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +79,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [eduFilter, setEduFilter] = useState<'all' | 'student' | 'graduate'>('all');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
   
   // Selected candidate details drawer/modal
   const [selectedApp, setSelectedApp] = useState<JobApplication | null>(null);
@@ -99,7 +123,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   }, [candidateAnalyses]);
 
   // Super Admin Control Center State
-  const [adminModule, setAdminModule] = useState<'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications'>('recruitment');
+  const [adminModule, setAdminModule] = useState<'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'emails'>('recruitment');
   
   // Custom navigation header states
   const [isThreeDotsOpen, setIsThreeDotsOpen] = useState<boolean>(false);
@@ -358,7 +382,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     sqlLines.push("DROP TABLE IF EXISTS zkp_credentials_proofs;");
     sqlLines.push("DROP TABLE IF EXISTS digital_passports;");
     sqlLines.push("DROP TABLE IF EXISTS compensation_agreements;");
-    sqlLines.push("DROP TABLE IF EXISTS career_constellations;\n");
+    sqlLines.push("DROP TABLE IF EXISTS career_constellations;");
+    sqlLines.push("DROP TABLE IF EXISTS portal_users;");
+    sqlLines.push("DROP TABLE IF EXISTS biometric_challenges;");
+    sqlLines.push("DROP TABLE IF EXISTS biometric_credentials;");
+    sqlLines.push("DROP TABLE IF EXISTS biometric_attempts_logs;");
+    sqlLines.push("DROP TABLE IF EXISTS notifications;");
+    sqlLines.push("DROP TABLE IF EXISTS fcm_tokens;");
+    sqlLines.push("DROP TABLE IF EXISTS email_logs;");
+    sqlLines.push("DROP TABLE IF EXISTS email_queue;");
+    sqlLines.push("DROP TABLE IF EXISTS email_templates;\n");
 
     sqlLines.push("-- Table: services");
     sqlLines.push("CREATE TABLE services (");
@@ -567,6 +600,125 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     sqlLines.push("    last_updated TEXT NOT NULL");
     sqlLines.push(");\n");
 
+    sqlLines.push("-- Table: portal_users");
+    sqlLines.push("CREATE TABLE portal_users (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    email TEXT UNIQUE NOT NULL,");
+    sqlLines.push("    password_hash TEXT NOT NULL,");
+    sqlLines.push("    fullName TEXT,");
+    sqlLines.push("    preferences TEXT,");
+    sqlLines.push("    created_at TEXT NOT NULL");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: biometric_challenges");
+    sqlLines.push("CREATE TABLE biometric_challenges (");
+    sqlLines.push("    user_id TEXT PRIMARY KEY,");
+    sqlLines.push("    challenge TEXT NOT NULL,");
+    sqlLines.push("    created_at TEXT NOT NULL");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: biometric_credentials");
+    sqlLines.push("CREATE TABLE biometric_credentials (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    user_id TEXT NOT NULL,");
+    sqlLines.push("    credential_id TEXT NOT NULL UNIQUE,");
+    sqlLines.push("    public_key TEXT NOT NULL,");
+    sqlLines.push("    counter INTEGER DEFAULT 0,");
+    sqlLines.push("    transports TEXT");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: biometric_attempts_logs");
+    sqlLines.push("CREATE TABLE biometric_attempts_logs (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    user_id TEXT,");
+    sqlLines.push("    email TEXT,");
+    sqlLines.push("    biometric_type TEXT NOT NULL,");
+    sqlLines.push("    status TEXT NOT NULL,");
+    sqlLines.push("    ip_address TEXT,");
+    sqlLines.push("    user_agent TEXT,");
+    sqlLines.push("    message TEXT,");
+    sqlLines.push("    timestamp TEXT NOT NULL");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: notifications");
+    sqlLines.push("CREATE TABLE notifications (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    title TEXT NOT NULL,");
+    sqlLines.push("    message TEXT NOT NULL,");
+    sqlLines.push("    type TEXT DEFAULT 'info',");
+    sqlLines.push("    priority TEXT DEFAULT 'normal',");
+    sqlLines.push("    userId TEXT,");
+    sqlLines.push("    recipientRole TEXT,");
+    sqlLines.push("    image TEXT,");
+    sqlLines.push("    createdAt TEXT NOT NULL,");
+    sqlLines.push("    read INTEGER DEFAULT 0,");
+    sqlLines.push("    actionUrl TEXT,");
+    sqlLines.push("    metadata TEXT,");
+    sqlLines.push("    expiresAt TEXT");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: fcm_tokens");
+    sqlLines.push("CREATE TABLE fcm_tokens (");
+    sqlLines.push("    tokenId TEXT PRIMARY KEY,");
+    sqlLines.push("    userId TEXT,");
+    sqlLines.push("    fcmToken TEXT NOT NULL,");
+    sqlLines.push("    deviceName TEXT,");
+    sqlLines.push("    deviceType TEXT,");
+    sqlLines.push("    isActive INTEGER DEFAULT 1,");
+    sqlLines.push("    createdAt TEXT NOT NULL,");
+    sqlLines.push("    lastUsedAt TEXT,");
+    sqlLines.push("    expiresAt TEXT");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: email_logs");
+    sqlLines.push("CREATE TABLE email_logs (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    recipient_email TEXT NOT NULL,");
+    sqlLines.push("    recipient_id TEXT,");
+    sqlLines.push("    subject TEXT NOT NULL,");
+    sqlLines.push("    email_type TEXT,");
+    sqlLines.push("    status TEXT NOT NULL,");
+    sqlLines.push("    brevo_message_id TEXT,");
+    sqlLines.push("    sent_at TEXT,");
+    sqlLines.push("    delivered_at TEXT,");
+    sqlLines.push("    opened_at TEXT,");
+    sqlLines.push("    clicked_at TEXT,");
+    sqlLines.push("    open_count INTEGER DEFAULT 0,");
+    sqlLines.push("    click_count INTEGER DEFAULT 0,");
+    sqlLines.push("    failed_reason TEXT,");
+    sqlLines.push("    created_at TEXT NOT NULL,");
+    sqlLines.push("    updated_at TEXT NOT NULL");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: email_queue");
+    sqlLines.push("CREATE TABLE email_queue (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    recipient_email TEXT NOT NULL,");
+    sqlLines.push("    recipient_id TEXT,");
+    sqlLines.push("    subject TEXT NOT NULL,");
+    sqlLines.push("    email_type TEXT,");
+    sqlLines.push("    template_data TEXT,");
+    sqlLines.push("    priority TEXT DEFAULT 'normal',");
+    sqlLines.push("    status TEXT DEFAULT 'pending',");
+    sqlLines.push("    retry_count INTEGER DEFAULT 0,");
+    sqlLines.push("    next_retry_at TEXT,");
+    sqlLines.push("    error_message TEXT,");
+    sqlLines.push("    created_at TEXT NOT NULL,");
+    sqlLines.push("    updated_at TEXT NOT NULL");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: email_templates");
+    sqlLines.push("CREATE TABLE email_templates (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    template_name TEXT UNIQUE NOT NULL,");
+    sqlLines.push("    template_id INTEGER,");
+    sqlLines.push("    subject TEXT NOT NULL,");
+    sqlLines.push("    description TEXT,");
+    sqlLines.push("    variables TEXT,");
+    sqlLines.push("    created_at TEXT NOT NULL,");
+    sqlLines.push("    updated_at TEXT NOT NULL");
+    sqlLines.push(");\n");
+
     sqlLines.push("-- Relational & Query Performance Indexes");
     sqlLines.push("CREATE INDEX idx_services_category ON services(category);");
     sqlLines.push("CREATE INDEX idx_portfolio_category ON portfolio_projects(category);");
@@ -580,7 +732,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     sqlLines.push("CREATE INDEX idx_zkp_candidate ON zkp_credentials_proofs(candidate_id);");
     sqlLines.push("CREATE INDEX idx_passport_candidate ON digital_passports(candidate_id);");
     sqlLines.push("CREATE INDEX idx_compensation_candidate ON compensation_agreements(candidate_id);");
-    sqlLines.push("CREATE INDEX idx_constellation_candidate ON career_constellations(candidate_id);\n");
+    sqlLines.push("CREATE INDEX idx_constellation_candidate ON career_constellations(candidate_id);");
+    sqlLines.push("CREATE INDEX idx_biometric_logs_user ON biometric_attempts_logs(user_id);");
+    sqlLines.push("CREATE INDEX idx_biometric_logs_email ON biometric_attempts_logs(email);");
+    sqlLines.push("CREATE INDEX idx_notifications_user ON notifications(userId);");
+    sqlLines.push("CREATE INDEX idx_email_logs_recipient ON email_logs(recipient_email);\n");
 
     sqlLines.push("-- =====================================================================");
     sqlLines.push("-- SEED DATA INSERTIONS (Hydrates the schema with active dashboard states)");
@@ -1031,6 +1187,7 @@ export default {
   };
 
   useEffect(() => {
+    registerUser('admin_user', 'admin');
     fetchApplications();
     fetchScanHistory();
 
@@ -1773,405 +1930,404 @@ export default {
     }
   ];
 
+  if (!isAdminLoggedIn) {
+    return (
+      <AdminAuthGate
+        onAuthSuccess={(admin) => {
+          try {
+            localStorage.setItem('isAdminLoggedIn', 'true');
+            localStorage.setItem('adminUser', JSON.stringify(admin));
+          } catch (e) {}
+          setIsAdminLoggedIn(true);
+          setAdminUser(admin);
+        }}
+        onBackToPortal={onBackToPortal}
+        theme={theme}
+        language={language}
+      />
+    );
+  }
+
+  const sidebarTabs = [
+    {
+      group: 'Talent Acquisition',
+      items: [
+        { id: 'recruitment', label: 'Recruitment', icon: Briefcase, count: applications.length },
+      ]
+    },
+    {
+      group: 'Digital Assets CMS',
+      items: [
+        { id: 'website', label: 'Services Catalog', icon: Layers, count: adminServices.length },
+        { id: 'portfolio', label: 'Portfolio Projects', icon: FolderOpen, count: adminProjects.length },
+        { id: 'blog', label: 'Insights Blog', icon: BookOpen, count: adminBlogs.length },
+      ]
+    },
+    {
+      group: 'Academy LMS',
+      items: [
+        { id: 'training', label: 'LMS Academy', icon: GraduationCap, count: adminCourses.length },
+      ]
+    },
+    {
+      group: 'Enterprise CRM',
+      items: [
+        { id: 'clients', label: 'Clients CRM', icon: Landmark, count: CLIENT_INVOICES.length + CLIENT_TICKETS.length },
+      ]
+    },
+    {
+      group: 'Ecosystem Security',
+      items: [
+        { id: 'analytics', label: 'Intelligence Charts', icon: BarChart3 },
+        { id: 'notifications', label: 'Secure QR & Vault', icon: QrCode },
+        { id: 'emails', label: 'Brevo Email Console', icon: Mail },
+      ]
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 flex">
       
-      {/* Special Admin Sticky Navigation Header with 3 dots and system widgets */}
-      <header className="sticky top-0 z-50 bg-[#000E32] text-white border-b border-blue-900/40 shadow-xl px-4 py-3 sm:px-6 flex items-center justify-between no-print backdrop-blur-md bg-opacity-95">
-        <div className="flex items-center gap-3">
-          <Logo size="xs" showText={false} variant="light" className="p-1.5 bg-orange-600 rounded-xl" />
-          <div className="text-left">
-            <div className="flex items-center gap-1.5">
-              <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">DS Tech Suite</span>
-              <span className="px-1 py-0.2 bg-orange-600 text-white rounded text-[8px] font-mono font-bold uppercase">v2.1</span>
+      {/* 1. DESKTOP PERMANENT SIDEBAR & MOBILE SLIDEOUT SIDEBAR */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#000E32] text-white flex flex-col justify-between border-r border-blue-900/40 shadow-2xl transition-transform duration-300 ease-in-out md:translate-x-0 ${
+        isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        
+        {/* Sidebar Header & Brand Logo */}
+        <div className="p-4 border-b border-blue-900/20 shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <Logo size="xs" showText={false} variant="light" className="p-1.5 bg-orange-600 rounded-xl" />
+              <div className="text-left">
+                <div className="flex items-center gap-1">
+                  <span className="text-[9px] font-black uppercase tracking-widest text-orange-400">DS Tech Suite</span>
+                  <span className="px-1 py-0.2 bg-orange-600 text-white rounded text-[7px] font-mono font-bold">v2.5</span>
+                </div>
+                <h2 className="text-[9px] font-mono text-slate-300 flex items-center gap-0.5">
+                  <ShieldAlert size={9} className="text-orange-500 animate-pulse" />
+                  ADMIN CENTER
+                </h2>
+              </div>
             </div>
-            <h2 className="text-[10px] font-mono text-slate-300 flex items-center gap-1">
-              <ShieldAlert size={10} className="text-orange-500 animate-pulse" />
-              ADMIN CONTROL CENTER
-            </h2>
+            
+            {/* Close Mobile Sidebar */}
+            <button 
+              onClick={() => setIsMobileSidebarOpen(false)}
+              className="md:hidden p-1.5 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg cursor-pointer"
+            >
+              <X size={16} />
+            </button>
           </div>
         </div>
 
-        {/* Special Nav - Horizontal Tabs inside Header */}
-        <nav className="hidden xl:flex items-center gap-1">
-          {[
-            { id: 'recruitment', label: 'Recruitment', icon: Briefcase, count: applications.length },
-            { id: 'website', label: 'Website Catalog', icon: Layers, count: adminServices.length },
-            { id: 'portfolio', label: 'Portfolio', icon: FolderOpen, count: adminProjects.length },
-            { id: 'blog', label: 'Blogs', icon: BookOpen, count: adminBlogs.length },
-            { id: 'training', label: 'LMS Academy', icon: GraduationCap, count: adminCourses.length },
-            { id: 'clients', label: 'Clients', icon: Users, count: CLIENT_INVOICES.length + CLIENT_TICKETS.length },
-            { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-            { id: 'notifications', label: 'Secure QR & Vault', icon: QrCode }
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = adminModule === tab.id;
-            return (
+        {/* Sidebar Scrollable Navigation */}
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5 scrollbar-thin">
+          {sidebarTabs.map((group, gIdx) => (
+            <div key={gIdx} className="space-y-1">
+              <span className="px-3 text-[8px] font-black text-slate-500 uppercase tracking-widest block text-left">
+                {group.group}
+              </span>
+              <div className="space-y-0.5">
+                {group.items.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = adminModule === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      onClick={() => {
+                        setAdminModule(tab.id as any);
+                        setIsMobileSidebarOpen(false);
+                      }}
+                      className={`w-full px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center justify-between cursor-pointer ${
+                        isActive 
+                          ? 'bg-orange-600 text-white shadow-md' 
+                          : 'text-slate-300 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon size={13} />
+                        <span>{tab.label}</span>
+                      </div>
+                      {tab.count !== undefined && (
+                        <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold ${
+                          isActive ? 'bg-white/20 text-white' : 'bg-white/10 text-slate-400'
+                        }`}>
+                          {tab.count}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+
+          {/* Quick Actions Card inside Sidebar */}
+          <div className="mx-1 p-3 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-2 text-left">
+            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest block">ADMIN UTILITIES</span>
+            <div className="space-y-1.5">
               <button
-                key={tab.id}
-                onClick={() => setAdminModule(tab.id as any)}
-                className={`relative px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center gap-1.5 ${
-                  isActive 
-                    ? 'bg-orange-600 text-white shadow-md' 
-                    : 'text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
+                onClick={handleExportData}
+                className="w-full flex items-center gap-1.5 text-slate-400 hover:text-white text-[10px] transition-colors font-bold cursor-pointer"
               >
-                <Icon size={12} />
-                <span>{tab.label}</span>
-                {tab.count !== undefined && (
-                  <span className="px-1 py-0.2 bg-white/20 text-white rounded-full text-[9px] font-mono">
-                    {tab.count}
+                <FileDown size={11} className="text-indigo-400" />
+                <span>Backup Database (JSON)</span>
+              </button>
+              <button
+                onClick={handleExportSQLSchema}
+                className="w-full flex items-center gap-1.5 text-slate-400 hover:text-white text-[10px] transition-colors font-bold cursor-pointer"
+              >
+                <Database size={11} className="text-emerald-400" />
+                <span>Export SQL Schema</span>
+              </button>
+              <button
+                onClick={handleResetData}
+                className="w-full flex items-center gap-1.5 text-red-400 hover:text-red-300 text-[10px] transition-colors font-bold cursor-pointer"
+              >
+                <Trash2 size={11} className="text-red-500" />
+                <span>Reset to Default</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar Footer with Admin Profile Node */}
+        <div className="p-3 border-t border-blue-900/20 bg-[#000a24]/50 space-y-2.5 shrink-0">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-orange-600/20 border border-orange-500/30 flex items-center justify-center font-bold text-orange-400 text-xs shrink-0">
+              {adminUser?.fullName?.slice(0, 2) || 'AD'}
+            </div>
+            <div className="min-w-0 text-left">
+              <p className="text-[10px] font-black text-white truncate uppercase tracking-wide">
+                {adminUser?.fullName || 'Administrator'}
+              </p>
+              <p className="text-[8.5px] text-slate-500 truncate">
+                {adminUser?.email || 'admin@dstech.com'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              try {
+                localStorage.removeItem('isAdminLoggedIn');
+                localStorage.removeItem('adminUser');
+              } catch (e) {}
+              setIsAdminLoggedIn(false);
+              setAdminUser(null);
+            }}
+            className="w-full py-2 bg-red-950/40 hover:bg-red-900/40 border border-red-900/50 text-red-400 hover:text-red-350 rounded-xl text-[9px] font-extrabold uppercase tracking-widest transition-colors flex items-center justify-center gap-1 cursor-pointer"
+          >
+            <LogOut size={11} />
+            <span>Sign Out Workspace</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Mobile Sidebar backdrop */}
+      {isMobileSidebarOpen && (
+        <div 
+          onClick={() => setIsMobileSidebarOpen(false)}
+          className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-xs"
+        />
+      )}
+
+      {/* 2. MAIN SPACE CONTENT AREA */}
+      <div className="flex-1 md:pl-64 flex flex-col min-w-0">
+        
+        {/* Mobile Sticky Header */}
+        <header className="md:hidden sticky top-0 z-40 bg-[#000E32] text-white px-4 py-3 flex items-center justify-between border-b border-blue-900/40 shadow-lg no-print">
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white cursor-pointer"
+            >
+              <MoreVertical size={16} />
+            </button>
+            <Logo size="xs" showText={false} variant="light" className="p-1 bg-orange-600 rounded-lg" />
+            <span className="text-[10px] font-black uppercase tracking-wider text-orange-400">DS ADMIN</span>
+          </div>
+
+          <div className="flex items-center gap-1.5">
+            {/* Quick Language */}
+            <button
+              onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+              className="p-1.5 bg-white/5 rounded-lg text-xs font-bold"
+            >
+              {language.toUpperCase()}
+            </button>
+            {/* Quick Theme */}
+            <button
+              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+              className="p-1.5 bg-white/5 rounded-lg text-slate-300 hover:text-white"
+            >
+              {theme === 'light' ? <Moon size={12} /> : <Sun size={12} />}
+            </button>
+            {/* Back to Portal */}
+            <button
+              onClick={onBackToPortal}
+              className="p-1.5 bg-orange-600 rounded-lg text-white"
+              title="Return to Careers Portal"
+            >
+              <ArrowLeft size={12} />
+            </button>
+          </div>
+        </header>
+
+        {/* Floating System notification banner */}
+        <AnimatePresence>
+          {showAdminNotification && (
+            <motion.div
+              initial={{ opacity: 0, y: -40 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -40 }}
+              className="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-700 text-white py-2 px-4 rounded-full text-xs shadow-2xl z-50 flex items-center gap-2 font-mono"
+            >
+              <Sparkles size={12} className="text-orange-400 animate-spin" />
+              <span>{showAdminNotification}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Main Workspace Body Content */}
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-sans no-print">
+          
+          {/* Dynamic Breadcrumb Header Row */}
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl md:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm text-left"
+          >
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
+              <Logo size="sm" showText={false} variant="light" className="bg-[#000E32] p-2.5 rounded-2xl shrink-0 shadow-inner w-12 h-12 flex items-center justify-center" />
+              <div className="text-left space-y-1 w-full min-w-0">
+                <div className="inline-flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 px-2.5 py-0.5 rounded-full text-[10px] font-black border border-indigo-100 dark:border-indigo-900 w-max uppercase tracking-wider">
+                  <ShieldAlert size={11} />
+                  Super Admin Control Panel / {adminModule}
+                </div>
+                <h1 className="text-lg sm:text-2xl font-extrabold text-[#000E32] dark:text-white uppercase tracking-wide leading-tight break-words">
+                  {adminModule === 'recruitment' ? 'Recruitment Console' :
+                   adminModule === 'website' ? 'Website Catalog Console' :
+                   adminModule === 'portfolio' ? 'Portfolio Case Studies' :
+                   adminModule === 'blog' ? 'Insights Blog Node' :
+                   adminModule === 'training' ? 'LMS Academy Console' :
+                   adminModule === 'clients' ? 'CRM Client Registry' :
+                   adminModule === 'analytics' ? 'Analytical Intelligence' :
+                   adminModule === 'emails' ? 'Email Queue & Logs' : 'Secure QR & Cloud R2 Vault'}
+                </h1>
+                <p className="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs leading-relaxed max-w-2xl font-medium">
+                  {adminModule === 'recruitment' ? 'Filter and manage applicants, schedule dynamic multi-modal video screening nodes, and dispatch cryptographic WebAuthn challenges.' :
+                   adminModule === 'website' ? 'Coordinate published landing-page catalog service structures, capabilities matrix definitions, and structural database rows.' :
+                   adminModule === 'portfolio' ? 'Review published case study lists, developer profiles, technology matrices, and localized catalog assets.' :
+                   adminModule === 'blog' ? 'Compose industry perspectives, tech journals, structural updates, and draft candidate learning items.' :
+                   adminModule === 'training' ? 'Manage curriculum courses, chapter lists, masterclass guide documents, and final graduate credentials.' :
+                   adminModule === 'clients' ? 'Monitor corporate client invoices, SLA support tickets, active client profiles, and payment ledger trails.' :
+                   adminModule === 'analytics' ? 'Review graphical system metrics, user action flows, WebAuthn verification tallies, and local DB logs.' :
+                   adminModule === 'emails' ? 'Audit Brevo transactional templates, dispatch queues, failed delivery retry logs, and template variables.' :
+                   'Manage applicant physical credential badges, read dynamic QR scans, and review the WebAuthn security credential vault.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full lg:w-auto shrink-0 border-t border-slate-100 dark:border-slate-800 pt-3 lg:border-none lg:pt-0">
+              {/* Language Selection */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsAdminLangDropdownOpen(!isAdminLangDropdownOpen)}
+                  className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-transparent flex items-center gap-1.5 text-xs font-black cursor-pointer"
+                >
+                  <Globe size={13} className="text-indigo-400" />
+                  <span className="font-mono uppercase font-black">{language}</span>
+                </button>
+                {isAdminLangDropdownOpen && (
+                  <div className="absolute right-0 mt-2 w-32 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden p-1 z-50 text-xs">
+                    {[
+                      { code: 'en', flag: '🇺🇸', label: 'English' },
+                      { code: 'ar', flag: '🇸🇦', label: 'العربية' }
+                    ].map((lang) => (
+                      <button
+                        key={lang.code}
+                        onClick={() => {
+                          setLanguage(lang.code);
+                          setIsAdminLangDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-2 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+                          language === lang.code ? 'bg-orange-600 text-white' : 'text-slate-300 hover:bg-white/5'
+                        }`}
+                      >
+                        <span>{lang.flag}</span>
+                        <span>{lang.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Theme Selector */}
+              <button
+                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-transparent cursor-pointer"
+                title="Toggle Theme"
+              >
+                {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
+              </button>
+
+              {/* Notifications bell */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                type="button"
+                onClick={() => setIsNotifCenterOpen(true)}
+                className="relative p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors border border-transparent shadow-sm shrink-0 flex items-center justify-center cursor-pointer"
+                title="Notifications Center"
+              >
+                <Bell size={14} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white ring-2 ring-white dark:ring-slate-900 animate-pulse">
+                    {unreadCount}
                   </span>
                 )}
-              </button>
-            );
-          })}
-        </nav>
+              </motion.button>
 
-        {/* Right side admin controls */}
-        <div className="flex items-center gap-2">
-          {/* Back to Portal Quick Trigger */}
-          <button
-            onClick={onBackToPortal}
-            className="hidden md:flex items-center gap-1 px-3 py-1.5 bg-white/10 hover:bg-white/15 text-slate-200 hover:text-white rounded-xl text-xs font-bold transition-all border border-white/10 cursor-pointer"
-          >
-            <ArrowLeft size={12} />
-            <span>Careers Portal</span>
-          </button>
-
-          {/* Special Admin Language Selector */}
-          <div className="relative">
-            <button
-              onClick={() => setIsAdminLangDropdownOpen(!isAdminLangDropdownOpen)}
-              className="p-2 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl border border-white/5 flex items-center gap-1 text-xs cursor-pointer"
-              title="Admin Translation Node"
-            >
-              <Globe size={13} className="text-indigo-400" />
-              <span className="font-mono uppercase font-black">{language}</span>
-            </button>
-            {isAdminLangDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-32 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden p-1 z-50 text-xs">
-                {[
-                  { code: 'en', flag: '🇺🇸', label: 'English' },
-                  { code: 'ar', flag: '🇸🇦', label: 'العربية' }
-                ].map((lang) => (
-                  <button
-                    key={lang.code}
-                    onClick={() => {
-                      setLanguage(lang.code);
-                      setIsAdminLangDropdownOpen(false);
-                    }}
-                    className={`w-full text-left px-2 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
-                      language === lang.code ? 'bg-orange-600 text-white' : 'text-slate-300 hover:bg-white/5'
-                    }`}
-                  >
-                    <span>{lang.flag}</span>
-                    <span>{lang.label}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Theme Selector directly in Admin Header */}
-          <button
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            className="p-2 bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl border border-white/5 cursor-pointer"
-            title="Toggle Admin Theme"
-          >
-            {theme === 'light' ? <Moon size={13} /> : <Sun size={13} />}
-          </button>
-
-          {/* Custom "3 Dots" Menu Button */}
-          <div className="relative">
-            <button
-              onClick={() => setIsThreeDotsOpen(!isThreeDotsOpen)}
-              className={`p-2 rounded-xl transition-all border cursor-pointer ${
-                isThreeDotsOpen 
-                  ? 'bg-orange-600 text-white border-orange-500' 
-                  : 'bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border-white/5'
-              }`}
-              title="Quick Administration Options"
-            >
-              <MoreVertical size={14} />
-            </button>
-
-            {/* Dropdown Options */}
-            {isThreeDotsOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-850 rounded-2xl shadow-2xl p-2 z-50 text-xs space-y-1 text-slate-300 divide-y divide-slate-800">
-                <div className="px-3 py-1.5 text-[10px] text-slate-500 font-bold uppercase tracking-widest">
-                  Administrative Utilities
-                </div>
-                <div className="py-1 space-y-0.5">
-                  <button
-                    onClick={handleExportData}
-                    className="w-full text-left px-3 py-2 hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2 text-slate-200 cursor-pointer"
-                  >
-                    <FileDown size={13} className="text-indigo-400" />
-                    <div className="text-left">
-                      <p className="font-bold">Backup Database (JSON)</p>
-                      <p className="text-[9px] text-slate-500">Download customized catalog states</p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={handleExportSQLSchema}
-                    className="w-full text-left px-3 py-2 hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2 text-slate-200 cursor-pointer"
-                  >
-                    <Database size={13} className="text-emerald-400" />
-                    <div className="text-left">
-                      <p className="font-bold text-emerald-300">Export SQL Schema (D1)</p>
-                      <p className="text-[9px] text-slate-500">Fully-structured SQL script for Cloudflare</p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setShowSQLSchemaModal(true);
-                      setIsThreeDotsOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2 text-slate-200 cursor-pointer"
-                  >
-                    <FileText size={13} className="text-cyan-400" />
-                    <div className="text-left">
-                      <p className="font-bold text-cyan-300">View SQL Schema Box</p>
-                      <p className="text-[9px] text-slate-500">Copy or inspect structured schema box</p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setShowDeploymentGuideModal(true);
-                      setGuidePage(0);
-                      setIsThreeDotsOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-2 hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2 text-slate-200 cursor-pointer animate-pulse"
-                  >
-                    <BookOpen size={13} className="text-amber-400" />
-                    <div className="text-left">
-                      <p className="font-bold text-amber-300">Deployment Guide</p>
-                      <p className="text-[9px] text-slate-500">Teacher & student interactive book</p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={handleResetData}
-                    className="w-full text-left px-3 py-2 hover:bg-red-950/20 rounded-lg transition-colors flex items-center gap-2 text-red-400 hover:text-red-300 cursor-pointer"
-                  >
-                    <Trash2 size={13} className="text-red-500" />
-                    <div className="text-left">
-                      <p className="font-bold">Reset Catalogs to Default</p>
-                      <p className="text-[9px] text-red-500/80">Revert custom services & portfolios</p>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={handleForceDispatchSync}
-                    className="w-full text-left px-3 py-2 hover:bg-white/5 rounded-lg transition-colors flex items-center gap-2 text-slate-200 cursor-pointer"
-                  >
-                    <RefreshCw size={13} className="text-orange-400" />
-                    <div className="text-left">
-                      <p className="font-bold">Force Storage Event Dispatch</p>
-                      <p className="text-[9px] text-slate-500">Sync state to careers portal tab</p>
-                    </div>
-                  </button>
-                </div>
-                <div className="pt-1 px-3 py-2 text-[10px] text-slate-500">
-                  <div className="flex justify-between">
-                    <span>Host Connection:</span>
-                    <span className="text-emerald-400 font-mono">LIVE OK</span>
-                  </div>
-                  <div className="flex justify-between mt-0.5">
-                    <span>Cached Storage:</span>
-                    <span className="text-orange-400 font-mono">ACTIVE</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
-
-      {/* Floating System notification banner */}
-      <AnimatePresence>
-        {showAdminNotification && (
-          <motion.div
-            initial={{ opacity: 0, y: -40 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -40 }}
-            className="fixed top-16 left-1/2 -translate-x-1/2 bg-slate-900 border border-slate-700 text-white py-2 px-4 rounded-full text-xs shadow-2xl z-50 flex items-center gap-2 font-mono"
-          >
-            <Sparkles size={12} className="text-orange-400 animate-spin" />
-            <span>{showAdminNotification}</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div className="w-full max-w-7xl mx-auto px-4 py-8 space-y-8 font-sans no-print">
-        {/* Dynamic Header Row */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 25 }}
-          className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-white dark:bg-slate-900 p-4 sm:p-5 md:p-6 rounded-2xl md:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm"
-        >
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
-          <Logo size="sm" showText={false} variant="light" className="bg-[#000E32] p-2.5 rounded-2xl shrink-0 shadow-inner w-12 h-12 flex items-center justify-center" />
-          <div className="text-left space-y-1 w-full min-w-0">
-            <div className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full text-[10px] font-bold border border-indigo-100 w-max">
-              <ShieldAlert size={12} />
-              Super Admin Control Node
+              {/* Refresh Button */}
+              <motion.button
+                whileHover={{ scale: 1.05, rotate: 15 }}
+                whileTap={{ scale: 0.95 }}
+                type="button"
+                onClick={fetchApplications}
+                className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors border border-transparent shadow-sm shrink-0 flex items-center justify-center cursor-pointer"
+                title="Refresh Records"
+              >
+                <RefreshCw size={14} />
+              </motion.button>
+              
+              {/* Scan QR Badge */}
+              <motion.button
+                whileHover={{ scale: 1.03, y: -1 }}
+                whileTap={{ scale: 0.97 }}
+                type="button"
+                onClick={() => setIsScannerOpen(true)}
+                className="flex-1 sm:flex-none py-2 px-3 bg-[#000E32] hover:bg-slate-900 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                title="Scan QR"
+              >
+                <QrCode size={13} className="text-orange-400 animate-pulse" />
+                <span className="whitespace-nowrap">Scan QR Badge</span>
+              </motion.button>
+              
+              {/* Back to Portal */}
+              <motion.button
+                whileHover={{ scale: 1.03, y: -1 }}
+                whileTap={{ scale: 0.97 }}
+                type="button"
+                onClick={onBackToPortal}
+                className="flex-1 sm:flex-none py-2 px-4 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1 cursor-pointer"
+              >
+                <ArrowLeft size={13} className="shrink-0" />
+                <span className="whitespace-nowrap">Careers Portal</span>
+              </motion.button>
             </div>
-            <h1 className="text-lg sm:text-2xl font-extrabold text-[#000E32] uppercase tracking-wide leading-tight break-words">
-              {adminModule === 'recruitment' ? 'Recruitment Console' :
-               adminModule === 'website' ? 'Website Catalog Console' :
-               adminModule === 'portfolio' ? 'Portfolio Case Studies' :
-               adminModule === 'blog' ? 'Insights Blog Node' :
-               adminModule === 'training' ? 'LMS Academy Console' :
-               adminModule === 'clients' ? 'CRM Client Registry' :
-               adminModule === 'analytics' ? 'Analytical Intelligence' : 'Secure QR & Cloud R2 Vault'}
-            </h1>
-            <p className="text-slate-500 text-[11px] sm:text-xs leading-relaxed max-w-2xl">
-              Enterprise management suite: coordinate database states, vocational course content, candidate portfolios, and invoice ledgers interactively.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full lg:w-auto shrink-0 border-t border-slate-100 pt-3 lg:border-none lg:pt-0">
-          <motion.button
-            whileHover={{ scale: 1.05, rotate: 15 }}
-            whileTap={{ scale: 0.95 }}
-            type="button"
-            onClick={fetchApplications}
-            className="p-2.5 sm:p-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-colors border border-slate-200 shadow-sm shrink-0 flex items-center justify-center"
-            title="Refresh Database Records"
-          >
-            <RefreshCw size={15} />
-          </motion.button>
+          </motion.div>
           
-          <motion.button
-            whileHover={{ scale: 1.03, y: -2 }}
-            whileTap={{ scale: 0.97 }}
-            type="button"
-            onClick={() => setIsScannerOpen(true)}
-            className="flex-1 sm:flex-none py-2.5 px-3 sm:px-4 bg-[#000E32] hover:bg-slate-900 text-white font-extrabold text-[10px] min-[375px]:text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 min-[375px]:gap-2"
-            title="Scan Applicant QR Code Badge"
-          >
-            <QrCode size={14} className="text-orange-400 animate-pulse" />
-            <span className="whitespace-nowrap">Scan QR Badge</span>
-          </motion.button>
-          
-          <motion.button
-            whileHover={{ scale: 1.03, y: -2 }}
-            whileTap={{ scale: 0.97 }}
-            type="button"
-            onClick={onBackToPortal}
-            className="flex-1 sm:flex-none py-2.5 px-3 sm:px-5 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-extrabold text-[10px] min-[375px]:text-xs uppercase tracking-wider rounded-xl transition-all duration-300 shadow-md shadow-orange-600/10 flex items-center justify-center gap-1.5 min-[375px]:gap-2"
-          >
-            <ArrowLeft size={14} className="shrink-0" />
-            <span className="whitespace-nowrap">Careers Portal</span>
-          </motion.button>
-        </div>
-      </motion.div>
-
-      {/* Super Admin Module Tab Bar */}
-      <div className="bg-slate-100 dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200 dark:border-slate-800 flex overflow-x-auto scrollbar-none gap-1.5 shadow-sm no-print">
-        <button
-          onClick={() => setAdminModule('recruitment')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${
-            adminModule === 'recruitment'
-              ? 'bg-[#000E32] text-white dark:bg-orange-600 shadow'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
-          }`}
-        >
-          <Briefcase size={14} />
-          <span>Recruitment ({applications.length})</span>
-        </button>
-
-        <button
-          onClick={() => setAdminModule('website')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${
-            adminModule === 'website'
-              ? 'bg-[#000E32] text-white dark:bg-orange-600 shadow'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
-          }`}
-        >
-          <Layers size={14} />
-          <span>Website ({adminServices.length})</span>
-        </button>
-
-        <button
-          onClick={() => setAdminModule('portfolio')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${
-            adminModule === 'portfolio'
-              ? 'bg-[#000E32] text-white dark:bg-orange-600 shadow'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
-          }`}
-        >
-          <FolderOpen size={14} />
-          <span>Portfolio ({adminProjects.length})</span>
-        </button>
-
-        <button
-          onClick={() => setAdminModule('blog')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${
-            adminModule === 'blog'
-              ? 'bg-[#000E32] text-white dark:bg-orange-600 shadow'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
-          }`}
-        >
-          <BookOpen size={14} />
-          <span>Blog ({adminBlogs.length})</span>
-        </button>
-
-        <button
-          onClick={() => setAdminModule('training')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${
-            adminModule === 'training'
-              ? 'bg-[#000E32] text-white dark:bg-orange-600 shadow'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
-          }`}
-        >
-          <GraduationCap size={14} />
-          <span>LMS Training ({adminCourses.length})</span>
-        </button>
-
-        <button
-          onClick={() => setAdminModule('clients')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${
-            adminModule === 'clients'
-              ? 'bg-[#000E32] text-white dark:bg-orange-600 shadow'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
-          }`}
-        >
-          <Landmark size={14} />
-          <span>Clients CRM</span>
-        </button>
-
-        <button
-          onClick={() => setAdminModule('analytics')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${
-            adminModule === 'analytics'
-              ? 'bg-[#000E32] text-white dark:bg-orange-600 shadow'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
-          }`}
-        >
-          <BarChart3 size={14} />
-          <span>Analytics</span>
-        </button>
-
-        <button
-          onClick={() => setAdminModule('notifications')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider transition-all duration-200 whitespace-nowrap flex items-center gap-2 ${
-            adminModule === 'notifications'
-              ? 'bg-[#000E32] text-white dark:bg-orange-600 shadow'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
-          }`}
-        >
-          <QrCode size={14} />
-          <span>Secure QR & Vault</span>
-        </button>
-      </div>
+          {/* Main workspace slot is loaded dynamically based on adminModule */}
 
       {adminModule === 'recruitment' && (
         <>
@@ -4948,6 +5104,10 @@ export default {
         </div>
       )}
 
+      {adminModule === 'emails' && (
+        <BrevoEmailDashboard />
+      )}
+
       {/* Dynamic QR Code scanner modal */}
       <ApplicationQRScanner
         isOpen={isScannerOpen}
@@ -5433,8 +5593,15 @@ database_id = "60ce292c-a702-401c-891c-400e80a75828"`}
           </motion.div>
         )}
       </AnimatePresence>
+      
+      <NotificationCenter 
+        isOpen={isNotifCenterOpen} 
+        onClose={() => setIsNotifCenterOpen(false)} 
+        role="admin" 
+      />
 
     </div>
   </div>
+</div>
 );
 };

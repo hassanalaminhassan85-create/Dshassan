@@ -1,6 +1,6 @@
 {
   "name": "DS Tech Career Application Portal",
   "description": "Interactive job application form and official appointment agreement signing portal with dual electronic signatures, passport upload, and real-time document rendering for DS Tech & Digital Marketing Agency.",
-  "requestFramePermissions": ["camera", "microphone", "geolocation"],
+  "requestFramePermissions": ["camera", "microphone", "geolocation", "publickey-credentials-create", "publickey-credentials-get"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

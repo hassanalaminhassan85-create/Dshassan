@@ -420,7 +420,7 @@ export default function App() {
       className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans selection:bg-orange-500 selection:text-white transition-colors duration-300"
     >
       {/* Upper Navigation Header Bar */}
-      {!isAdminView && !isUserLoggedIn && (
+      {!isAdminView && !isUserLoggedIn && activePage !== 'account' && (
         <header className="no-print bg-white/80 dark:bg-slate-900/85 backdrop-blur-md border-b border-indigo-100/50 dark:border-slate-800 sticky top-0 z-50 shadow-sm px-4 py-3 sm:px-6 sm:py-3.5 flex flex-col lg:flex-row gap-3 lg:gap-4 justify-between items-center transition-colors duration-300 animate-fade-in">
           
           {/* Logo Container and Mobile Controls (Language + Theme + Menu Toggle) */}
@@ -1139,7 +1139,13 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 className="w-full"
               >
-                <UserDashboard onLoginStatusChange={setIsUserLoggedIn} />
+                <UserDashboard 
+                  onLoginStatusChange={setIsUserLoggedIn} 
+                  onBackToPortal={() => {
+                    setActivePage('home');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }} 
+                />
               </motion.div>
              ) : !isApplying ? (
               <motion.div
@@ -1468,7 +1474,7 @@ export default function App() {
       </main>
 
       {/* Document bottom footer info */}
-      {!isUserLoggedIn && (
+      {!isUserLoggedIn && !isAdminView && activePage !== 'account' && (
         <footer className="no-print bg-slate-900 text-slate-400 border-t border-slate-800 mt-auto pt-16 pb-12 px-6 md:px-12 relative overflow-hidden font-sans">
         {/* Decorative ambient background light */}
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none" />

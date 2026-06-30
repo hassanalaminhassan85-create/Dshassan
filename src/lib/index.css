@@ -79,3 +79,13 @@
     opacity: .85;
   }
 }
+
+/* Elegant Light Mode Base Typographic Hierarchy */
+html:not(.dark) body {
+  color: #334155;
+  transition: color 0.3s ease;
+}
+
+html:not(.dark) .text-muted {
+  color: #64748b;
+}

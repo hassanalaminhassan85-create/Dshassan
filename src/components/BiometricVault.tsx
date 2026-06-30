@@ -291,7 +291,10 @@ export const BiometricVault: React.FC<{ application?: any }> = ({ application })
         onSuccess={handleBiometricSuccess}
         onCancel={() => setIsBiometricPromptOpen(false)}
         title="Biometric Document Decryption"
-        subtitle="Verify fingerprint or Face ID to unlock sensitive credentials and contracts"
+        subtitle="Verify biometric key credentials to decrypt and unlock sensitive files"
+        mode="verify"
+        userId={application?.id || 'usr-demo'}
+        email={application?.personalInfo?.emailAddress || 'candidate2026@dstech.com'}
       />
     </div>
   );

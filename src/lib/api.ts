@@ -317,3 +317,129 @@ export async function apiInitializeCourses(items: any[]): Promise<any> {
   if (!res.ok) throw new Error('Failed to initialize courses.');
   return res.json();
 }
+
+// --- Notification API Client Helpers ---
+
+export interface NotificationRecord {
+  id: string;
+  title: string;
+  message: string;
+  type: string;
+  priority: 'high' | 'medium' | 'low';
+  userId: string;
+  recipientRole: 'admin' | 'candidate' | 'recruiter';
+  image: string;
+  createdAt: string;
+  read: number; // 0 or 1
+  actionUrl: string;
+  metadata: string; // JSON string
+  expiresAt: string;
+}
+
+export interface GetNotificationsResponse {
+  notifications: NotificationRecord[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export async function apiGetNotifications(params: {
+  userId: string;
+  role: 'admin' | 'candidate' | 'recruiter';
+  type?: string;
+  priority?: 'high' | 'medium' | 'low';
+  search?: string;
+  sort?: 'newest' | 'oldest' | 'unread' | 'read';
+  page?: number;
+  limit?: number;
+}): Promise<GetNotificationsResponse> {
+  const queryParams = new URLSearchParams();
+  queryParams.append('userId', params.userId);
+  queryParams.append('role', params.role);
+  if (params.type) queryParams.append('type', params.type);
+  if (params.priority) queryParams.append('priority', params.priority);
+  if (params.search) queryParams.append('search', params.search);
+  if (params.sort) queryParams.append('sort', params.sort);
+  if (params.page) queryParams.append('page', String(params.page));
+  if (params.limit) queryParams.append('limit', String(params.limit));
+
+  const res = await fetch(`/api/notifications?${queryParams.toString()}`);
+  if (!res.ok) throw new Error('Failed to fetch notifications.');
+  return res.json();
+}
+
+export async function apiCreateNotification(notification: {
+  title: string;
+  message: string;
+  type: string;
+  priority?: 'high' | 'medium' | 'low';
+  userId: string;
+  recipientRole: 'admin' | 'candidate' | 'recruiter';
+  image?: string;
+  actionUrl?: string;
+  metadata?: any;
+}): Promise<NotificationRecord> {
+  const res = await fetch('/api/notifications', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(notification),
+  });
+  if (!res.ok) throw new Error('Failed to create notification.');
+  return res.json();
+}
+
+export async function apiMarkNotificationRead(id: string, read: boolean = true): Promise<NotificationRecord> {
+  const res = await fetch(`/api/notifications/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ read }),
+  });
+  if (!res.ok) throw new Error('Failed to update notification status.');
+  return res.json();
+}
+
+export async function apiMarkAllNotificationsRead(userId: string, role: 'admin' | 'candidate' | 'recruiter'): Promise<{ success: boolean }> {
+  const res = await fetch(`/api/notifications/mark-all-read?userId=${userId}&role=${role}`, {
+    method: 'PATCH',
+  });
+  if (!res.ok) throw new Error('Failed to mark all notifications as read.');
+  return res.json();
+}
+
+export async function apiDeleteNotification(id: string): Promise<{ success: boolean }> {
+  const res = await fetch(`/api/notifications/${id}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to delete notification.');
+  return res.json();
+}
+
+export async function apiDeleteAllNotifications(userId: string, role: 'admin' | 'candidate' | 'recruiter'): Promise<{ success: boolean }> {
+  const res = await fetch(`/api/notifications?userId=${userId}&role=${role}`, {
+    method: 'DELETE',
+  });
+  if (!res.ok) throw new Error('Failed to clear notifications.');
+  return res.json();
+}
+
+export async function apiGetUnreadNotificationsCount(userId: string, role: 'admin' | 'candidate' | 'recruiter'): Promise<{ count: number }> {
+  const res = await fetch(`/api/notifications/count/unread?userId=${userId}&role=${role}`);
+  if (!res.ok) throw new Error('Failed to fetch unread count.');
+  return res.json();
+}
+
+export async function apiSaveFcmToken(tokenParams: {
+  userId: string;
+  fcmToken: string;
+  deviceName?: string;
+  deviceType?: string;
+}): Promise<{ success: boolean }> {
+  const res = await fetch('/api/fcm-tokens', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(tokenParams),
+  });
+  if (!res.ok) throw new Error('Failed to register FCM token.');
+  return res.json();
+}
+
