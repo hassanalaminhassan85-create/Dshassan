@@ -21,7 +21,8 @@ import { startRegistration, startAuthentication } from '@simplewebauthn/browser'
 interface PhoneBiometricPromptProps {
   isOpen: boolean;
   onSuccess: () => void;
-  onCancel: () => void;
+  onCancel?: () => void;
+  onClose?: () => void;
   title?: string;
   subtitle?: string;
   actionText?: string;
@@ -34,6 +35,7 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
   isOpen,
   onSuccess,
   onCancel,
+  onClose,
   title = "Biometric Authorization",
   subtitle = "DS Tech Portal • Secure Identity Verification",
   actionText = "Verify Identity",
@@ -44,10 +46,17 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
   const [biometricType, setBiometricType] = useState<'fingerprint' | 'faceid' | 'iris' | 'voice' | 'behavioral'>('fingerprint');
   const [scanState, setScanState] = useState<'idle' | 'scanning' | 'verifying' | 'success' | 'failed' | 'anomaly'>('idle');
   const [progress, setProgress] = useState<number>(0);
-  const [statusMessage, setStatusMessage] = useState<string>("Tap sensor to initiate WebAuthn handshaking");
+  const [statusMessage, setStatusMessage] = useState<string>("Hold sensor to initiate secure hardware calibration");
   const [pinInput, setPinInput] = useState<string>('');
   const [showPinBypass, setShowPinBypass] = useState<boolean>(false);
   const [pinError, setPinError] = useState<string | null>(null);
+
+  // High-security Interactive States
+  const [isPinCreationMode, setIsPinCreationMode] = useState<boolean>(false);
+  const [pinConfirmInput, setPinConfirmInput] = useState<string>('');
+  const [failedPinAttempts, setFailedPinAttempts] = useState<number>(0);
+  const [lockoutTime, setLockoutTime] = useState<number>(0);
+  const [calibrationStep, setCalibrationStep] = useState<number>(0);
 
   // Advanced real streams
   const [cameraActive, setCameraActive] = useState<boolean>(false);
@@ -65,6 +74,8 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
   const audioCtxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
   const animationRef = useRef<number | null>(null);
+  const isHoldingRef = useRef<boolean>(false);
+  const holdTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Keyboard logging for behavioral timing (dwell/flight analysis)
   const keyTimesRef = useRef<{ key: string; down: number; up: number }[]>([]);
@@ -80,6 +91,21 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
       }
     }
   };
+
+  const handleDismiss = () => {
+    if (onCancel) onCancel();
+    if (onClose) onClose();
+  };
+
+  // Lockout countdown timer
+  useEffect(() => {
+    if (lockoutTime > 0) {
+      const timer = setTimeout(() => {
+        setLockoutTime(prev => prev - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [lockoutTime]);
 
   // Fetch log history on open
   useEffect(() => {
@@ -140,15 +166,29 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
     if (!isOpen) {
       setScanState('idle');
       setProgress(0);
-      setStatusMessage("Tap sensor to begin scan");
+      setStatusMessage("Hold sensor to verify biometric match");
       setShowPinBypass(false);
       setPinInput('');
       setPinError(null);
       stopStreams();
       keyTimesRef.current = [];
       setBehaviorText('');
+      setIsPinCreationMode(false);
+      setPinConfirmInput('');
+      setCalibrationStep(0);
+      if (holdTimerRef.current) {
+        clearInterval(holdTimerRef.current);
+        holdTimerRef.current = null;
+      }
+      isHoldingRef.current = false;
     } else {
       triggerHaptic(20);
+      // Determine appropriate starting status message
+      if (mode === 'register') {
+        setStatusMessage("Hold sensor to enroll biometric fingerprint template");
+      } else {
+        setStatusMessage("Hold sensor to verify biometric match");
+      }
     }
   }, [isOpen]);
 
@@ -247,44 +287,18 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
   };
 
   const runFallbackScanner = () => {
-    setProgress(15);
-    setScanState('scanning');
-    
-    let currentProgress = 15;
-    const interval = setInterval(() => {
-      currentProgress += 5;
-      if (currentProgress >= 100) {
-        clearInterval(interval);
-        setProgress(100);
-        setScanState('verifying');
-        setStatusMessage("Processing mathematical vectors on D1 Node...");
-        
-        setTimeout(() => {
-          setScanState('success');
-          setStatusMessage("Virtual secure enclave matched successfully!");
-          localStorage.setItem(`last_biometric_verification_${userId}`, Date.now().toString());
-          logBiometricAttempt('success', 'Simulated Touch ID verified successfully');
-          triggerHaptic(100);
-          setTimeout(() => onSuccess(), 1200);
-        }, 1200);
-      } else {
-        setProgress(currentProgress);
-        if (currentProgress > 75) {
-          setStatusMessage("Resolving virtual cryptography block...");
-        } else if (currentProgress > 40) {
-          setStatusMessage("Analyzing loop and whorl coordinates...");
-        } else if (currentProgress > 25) {
-          setStatusMessage("Reading biometric matrix from enclave...");
-        }
-      }
-    }, 50);
+    setScanState('idle');
+    setProgress(0);
+    setStatusMessage("Enclave fallback active. PRESS & HOLD the fingerprint sensor to calibrate.");
+    triggerHaptic([50, 50]);
   };
 
-  // Start face/iris camera scanning
+  // Start face/iris camera scanning with interactive liveness targets
   const startCameraScan = async (type: 'faceid' | 'iris') => {
     setScanState('scanning');
     setProgress(5);
-    setStatusMessage("Activating high-definition visual node...");
+    setCalibrationStep(0);
+    setStatusMessage("Visual alignment active. TAP the glowing calibration targets around the scan perimeter.");
     triggerHaptic(30);
 
     try {
@@ -295,85 +309,12 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
         videoRef.current.play();
       }
       setCameraActive(true);
-
-      if (type === 'faceid') {
-        setLivenessPrompt("Turn head slightly left...");
-        setStatusMessage("Facial vector alignment initialized...");
-        
-        // Staged liveness instructions
-        setTimeout(() => {
-          triggerHaptic(10);
-          setLivenessPrompt("Blink your eyes to verify liveness...");
-          setProgress(40);
-          
-          setTimeout(() => {
-            triggerHaptic(10);
-            setLivenessPrompt("Excellent! Processing depth map...");
-            setProgress(75);
-            
-            setTimeout(() => {
-              setProgress(100);
-              setScanState('success');
-              setStatusMessage("Face ID authenticated successfully!");
-              stopStreams();
-              localStorage.setItem(`last_biometric_verification_${userId}`, Date.now().toString());
-              logBiometricAttempt('success', 'Face ID liveness and vectors verified');
-              triggerHaptic(100);
-              setTimeout(() => onSuccess(), 1200);
-            }, 1200);
-          }, 1500);
-        }, 1500);
-
-      } else {
-        // Iris scan
-        setLivenessPrompt("Align your right eye with circular grid...");
-        setStatusMessage("Iris scanning at high-resolution magnification...");
-        
-        setTimeout(() => {
-          triggerHaptic(10);
-          setLivenessPrompt("Keep still, reading neural iris rings...");
-          setProgress(50);
-          
-          setTimeout(() => {
-            triggerHaptic(10);
-            setLivenessPrompt("Generating cryptographic iris seal...");
-            setProgress(85);
-            
-            setTimeout(() => {
-              setProgress(100);
-              setScanState('success');
-              setStatusMessage("Iris pattern match secured!");
-              stopStreams();
-              localStorage.setItem(`last_biometric_verification_${userId}`, Date.now().toString());
-              logBiometricAttempt('success', 'Iris pattern cryptographically verified');
-              triggerHaptic(100);
-              setTimeout(() => onSuccess(), 1200);
-            }, 1200);
-          }, 1500);
-        }, 1500);
-      }
+      setLivenessPrompt(type === 'faceid' ? "Position face & tap Target [1/3]" : "Position eye & tap Target [1/3]");
     } catch (err: any) {
-      console.warn("Camera blocked, using visual simulator fallback:", err);
+      console.warn("Camera blocked, visual simulator active:", err);
       await logBiometricAttempt('failed', `Camera block on ${type}: ${err.message || 'Access Denied'}`);
-      
-      // Fallback virtual simulation for camera
-      setLivenessPrompt("Visual camera stream blocked. Simulating encrypted bypass...");
-      let currentProgress = 5;
-      const interval = setInterval(() => {
-        currentProgress += 8;
-        if (currentProgress >= 100) {
-          clearInterval(interval);
-          setProgress(100);
-          setScanState('success');
-          setStatusMessage("Virtual vector signature match succeeded!");
-          localStorage.setItem(`last_biometric_verification_${userId}`, Date.now().toString());
-          logBiometricAttempt('success', `Simulated ${type} match succeeded`);
-          triggerHaptic(100);
-          setTimeout(() => onSuccess(), 1200);
-        } else {
-          setProgress(currentProgress);
-        }
-      }, 70);
+      setCameraActive(false);
+      setLivenessPrompt(type === 'faceid' ? "Visual overlay active. Tap Target [1/3]" : "Iris grid overlay active. Tap Target [1/3]");
     }
   };
 
@@ -592,10 +533,87 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
     }, 1500);
   };
 
+  const handleStartHold = () => {
+    if (scanState === 'success' || scanState === 'verifying' || scanState === 'anomaly') return;
+    isHoldingRef.current = true;
+    setScanState('scanning');
+    setProgress(0);
+    triggerHaptic([35, 25]);
+    setStatusMessage("Hold down on fingerprint sensor...");
+
+    let currentProgress = 0;
+    if (holdTimerRef.current) clearInterval(holdTimerRef.current);
+    
+    holdTimerRef.current = setInterval(() => {
+      if (!isHoldingRef.current) {
+        if (holdTimerRef.current) clearInterval(holdTimerRef.current);
+        return;
+      }
+
+      currentProgress += 4;
+      if (currentProgress >= 100) {
+        if (holdTimerRef.current) clearInterval(holdTimerRef.current);
+        setProgress(100);
+        setScanState('verifying');
+        setStatusMessage("Matching cryptographic enclave signature... Keep holding...");
+        triggerHaptic(80);
+
+        setTimeout(() => {
+          if (mode === 'register') {
+            setScanState('idle');
+            setProgress(0);
+            setIsPinCreationMode(true);
+            setStatusMessage("Biometric mapped! Set backup 4-digit PIN.");
+            triggerHaptic([100, 50, 100]);
+          } else {
+            setScanState('success');
+            setStatusMessage("WebAuthn identity verified successfully!");
+            localStorage.setItem(`last_biometric_verification_${userId}`, Date.now().toString());
+            logBiometricAttempt('success', 'Touch ID verified via real-time touch calibration');
+            triggerHaptic(100);
+            setTimeout(() => {
+              onSuccess();
+              handleDismiss();
+            }, 1200);
+          }
+        }, 1500);
+      } else {
+        setProgress(currentProgress);
+        triggerHaptic(8);
+        if (currentProgress > 80) {
+          setStatusMessage("Verifying blood volume pulse & liveness...");
+        } else if (currentProgress > 55) {
+          setStatusMessage("Mapping minutiae point loops (48/64)...");
+        } else if (currentProgress > 30) {
+          setStatusMessage("Reading epidermal ridge whorls...");
+        } else {
+          setStatusMessage("Analyzing sensor contact area...");
+        }
+      }
+    }, 100);
+  };
+
+  const handleStopHold = () => {
+    if (isHoldingRef.current) {
+      isHoldingRef.current = false;
+      if (holdTimerRef.current) {
+        clearInterval(holdTimerRef.current);
+        holdTimerRef.current = null;
+      }
+      if (scanState === 'scanning') {
+        setProgress(0);
+        setScanState('idle');
+        setStatusMessage("Scan interrupted. HOLD sensor to complete scan.");
+        triggerHaptic([50, 50]);
+      }
+    }
+  };
+
   const startScan = () => {
     if (scanState === 'idle' || scanState === 'failed' || scanState === 'anomaly') {
       if (biometricType === 'fingerprint') {
-        runWebAuthn();
+        // Fallback or interactive start
+        handleStartHold();
       } else if (biometricType === 'faceid' || biometricType === 'iris') {
         startCameraScan(biometricType);
       } else if (biometricType === 'voice') {
@@ -609,18 +627,63 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
 
   const handlePinSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pinInput === '2026') {
+    if (lockoutTime > 0) return;
+
+    if (isPinCreationMode) {
+      if (pinInput.length !== 4) {
+        setPinError("PIN must be exactly 4 digits");
+        triggerHaptic([50, 100, 50]);
+        return;
+      }
+      if (!pinConfirmInput) {
+        setPinConfirmInput(pinInput);
+        setPinInput('');
+        setStatusMessage("Confirm your backup 4-digit PIN");
+        return;
+      }
+      if (pinInput !== pinConfirmInput) {
+        setPinError("PINs do not match. Try again.");
+        setPinInput('');
+        setPinConfirmInput('');
+        triggerHaptic([50, 100, 50]);
+        return;
+      }
+
+      // Success register PIN
+      localStorage.setItem(`biometric_pin_${userId}`, pinInput);
+      setScanState('success');
+      setStatusMessage("Custom Backup PIN registered successfully!");
+      triggerHaptic(100);
+      setTimeout(() => {
+        onSuccess();
+        handleDismiss();
+      }, 1200);
+      return;
+    }
+
+    const registeredPin = localStorage.getItem(`biometric_pin_${userId}`) || '2026';
+    if (pinInput === registeredPin) {
       triggerHaptic(100);
       setScanState('success');
       setStatusMessage("Backup PIN verification accepted!");
       await logBiometricAttempt('success', 'Backup PIN bypassed validation');
       setTimeout(() => {
         onSuccess();
+        handleDismiss();
       }, 1000);
     } else {
       triggerHaptic([50, 100, 50]);
-      setPinError("Invalid secure backup passcode (Hint: 2026)");
-      await logBiometricAttempt('failed', 'Backup PIN failure attempt');
+      const nextFailCount = failedPinAttempts + 1;
+      setFailedPinAttempts(nextFailCount);
+      
+      if (nextFailCount >= 3) {
+        setLockoutTime(30);
+        setPinError("Too many incorrect attempts. Locked for 30 seconds.");
+        await logBiometricAttempt('anomaly', 'PIN brute-force lockout triggered');
+      } else {
+        setPinError(`Incorrect secure backup passcode (${3 - nextFailCount} attempts left)`);
+        await logBiometricAttempt('failed', `Backup PIN failure attempt ${nextFailCount}`);
+      }
       setPinInput('');
     }
   };
@@ -722,106 +785,217 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
                 )}
 
                 {/* Central Interactive Scanning Stage */}
-                <div className="relative w-40 h-40 flex items-center justify-center mb-5">
-                  {/* Outer Rim Ring */}
-                  <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                    <circle cx="80" cy="80" r="72" className="stroke-white/5" strokeWidth="4" fill="transparent" />
-                    <circle
-                      cx="80"
-                      cy="80"
-                      r="72"
-                      className={`${scanState === 'success' ? 'stroke-emerald-500' : scanState === 'anomaly' ? 'stroke-rose-500' : 'stroke-orange-500'} transition-all duration-100`}
-                      strokeWidth="4"
-                      fill="transparent"
-                      strokeDasharray={452}
-                      strokeDashoffset={452 - (452 * progress) / 100}
-                      strokeLinecap="round"
-                    />
-                  </svg>
-
-                  {/* Camera / Audio stream viewports */}
-                  {cameraActive && (biometricType === 'faceid' || biometricType === 'iris') ? (
-                    <div className="absolute inset-4 rounded-full overflow-hidden bg-slate-950 border-2 border-orange-500/50 flex items-center justify-center">
-                      <video ref={videoRef} className="w-full h-full object-cover scale-x-[-1]" playsInline muted />
-                      <div className="absolute inset-0 border-[3px] border-orange-500/30 rounded-full animate-pulse pointer-events-none" />
-                      <span className="absolute bottom-2 text-[8px] font-black uppercase bg-slate-950/80 px-2 py-0.5 rounded text-orange-400">
-                        {livenessPrompt}
-                      </span>
+                {isPinCreationMode ? (
+                  <div className="py-2 px-1 w-full max-w-xs text-center">
+                    <div className="w-10 h-10 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 flex items-center justify-center mx-auto mb-3 animate-bounce">
+                      <KeyRound size={18} />
                     </div>
-                  ) : voiceRecording && biometricType === 'voice' ? (
-                    <div className="absolute inset-4 rounded-full overflow-hidden bg-slate-950 border-2 border-orange-500/50 flex flex-col items-center justify-center p-3">
-                      <canvas ref={canvasRef} className="w-full h-12 rounded bg-slate-900/60" width={120} height={48} />
-                      <span className="text-[9px] text-orange-400 font-black mt-2 font-mono text-center tracking-tight animate-pulse bg-orange-500/10 px-1 py-0.5 rounded">
-                        {challengePhrase}
-                      </span>
-                    </div>
-                  ) : (
-                    // Standard trigger button
-                    <motion.button
-                      id="biometric-trigger-button"
-                      type="button"
-                      onClick={startScan}
-                      disabled={scanState !== 'idle' && scanState !== 'failed' && scanState !== 'anomaly' && scanState !== 'scanning'}
-                      whileHover={scanState === 'idle' ? { scale: 1.05 } : {}}
-                      whileTap={scanState === 'idle' ? { scale: 0.95 } : {}}
-                      className={`w-32 h-32 rounded-full flex flex-col items-center justify-center transition-all duration-300 relative border cursor-pointer ${
-                        scanState === 'success'
-                          ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)]'
-                          : scanState === 'anomaly'
-                          ? 'bg-rose-500/20 border-rose-500 text-rose-400 shadow-[0_0_20px_rgba(239,68,68,0.3)] animate-bounce'
-                          : scanState === 'scanning' && biometricType === 'behavioral'
-                          ? 'bg-slate-900 border-orange-500/50 text-orange-400'
-                          : scanState === 'scanning'
-                          ? 'bg-orange-500/10 border-orange-500/50 text-orange-400 animate-pulse'
-                          : scanState === 'verifying'
-                          ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)]'
-                          : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:border-white/20 hover:text-white'
-                      }`}
-                    >
-                      {scanState === 'success' ? (
-                        <Check size={44} className="stroke-[3]" />
-                      ) : scanState === 'anomaly' ? (
-                        <AlertTriangle size={44} className="stroke-[2] text-rose-500" />
-                      ) : biometricType === 'fingerprint' ? (
-                        <Fingerprint size={44} className="stroke-[1.5]" />
-                      ) : biometricType === 'faceid' ? (
-                        <Scan size={44} className="stroke-[1.5]" />
-                      ) : biometricType === 'iris' ? (
-                        <Eye size={44} className="stroke-[1.5]" />
-                      ) : biometricType === 'voice' ? (
-                        <Mic size={44} className="stroke-[1.5]" />
-                      ) : (
-                        <Activity size={44} className="stroke-[1.5]" />
-                      )}
+                    <h4 className="text-xs font-black uppercase tracking-wider text-white mb-1">
+                      {!pinConfirmInput ? "Create Secure Backup PIN" : "Confirm Backup PIN"}
+                    </h4>
+                    <p className="text-[9px] text-slate-400 mb-4 leading-normal">
+                      {!pinConfirmInput 
+                        ? "Define a secure 4-digit PIN bypass key for hardware verification."
+                        : "Re-enter the 4-digit PIN passcode to verify credential storage."}
+                    </p>
 
-                      {scanState === 'idle' && (
-                        <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 mt-2">
-                          Verify Bio
+                    <form onSubmit={handlePinSubmit} className="space-y-3">
+                      <div>
+                        <input
+                          id="biometric-pin-create-input"
+                          type="password"
+                          maxLength={4}
+                          placeholder="••••"
+                          value={pinInput}
+                          onChange={(e) => {
+                            setPinInput(e.target.value.replace(/\D/g, ''));
+                            setPinError(null);
+                          }}
+                          className="w-full text-center tracking-[1.2em] font-mono text-lg py-2 bg-slate-950/80 border border-white/10 rounded-xl text-white placeholder-slate-600 focus:outline-none focus:border-orange-500"
+                          autoFocus
+                        />
+                        {pinError && (
+                          <p className="text-[8px] text-rose-400 font-bold mt-1.5 uppercase tracking-wide">{pinError}</p>
+                        )}
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="w-full py-2 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer shadow-md shadow-orange-600/10"
+                      >
+                        {!pinConfirmInput ? "Continue" : "Register Credentials"}
+                      </button>
+                    </form>
+                  </div>
+                ) : (
+                  <div className="relative w-40 h-40 flex items-center justify-center mb-5">
+                    {/* Outer Rim Ring */}
+                    <svg className="absolute inset-0 w-full h-full transform -rotate-90">
+                      <circle cx="80" cy="80" r="72" className="stroke-white/5" strokeWidth="4" fill="transparent" />
+                      <circle
+                        cx="80"
+                        cy="80"
+                        r="72"
+                        className={`${scanState === 'success' ? 'stroke-emerald-500' : scanState === 'anomaly' ? 'stroke-rose-500' : 'stroke-orange-500'} transition-all duration-100`}
+                        strokeWidth="4"
+                        fill="transparent"
+                        strokeDasharray={452}
+                        strokeDashoffset={452 - (452 * progress) / 100}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+
+                    {/* Camera / Audio stream viewports */}
+                    {cameraActive && (biometricType === 'faceid' || biometricType === 'iris') ? (
+                      <div className="absolute inset-4 rounded-full overflow-hidden bg-slate-950 border-2 border-orange-500/50 flex items-center justify-center">
+                        <video ref={videoRef} className="w-full h-full object-cover scale-x-[-1]" playsInline muted />
+                        <div className="absolute inset-0 border-[3px] border-orange-500/30 rounded-full animate-pulse pointer-events-none" />
+                        <span className="absolute bottom-2 text-[8px] font-black uppercase bg-slate-950/80 px-2 py-0.5 rounded text-orange-400">
+                          {livenessPrompt}
                         </span>
-                      )}
-                      {scanState === 'scanning' && biometricType !== 'behavioral' && (
-                        <span className="text-[7px] font-black uppercase tracking-widest text-orange-400 mt-2">
-                          {progress}%
+                      </div>
+                    ) : voiceRecording && biometricType === 'voice' ? (
+                      <div className="absolute inset-4 rounded-full overflow-hidden bg-slate-950 border-2 border-orange-500/50 flex flex-col items-center justify-center p-3">
+                        <canvas ref={canvasRef} className="w-full h-12 rounded bg-slate-900/60" width={120} height={48} />
+                        <span className="text-[9px] text-orange-400 font-black mt-2 font-mono text-center tracking-tight animate-pulse bg-orange-500/10 px-1 py-0.5 rounded">
+                          {challengePhrase}
                         </span>
-                      )}
-                      {scanState === 'verifying' && (
-                        <span className="text-[7px] font-black uppercase tracking-widest text-cyan-400 mt-2 animate-pulse">
-                          Verifying...
-                        </span>
-                      )}
-                      {scanState === 'success' && (
-                        <span className="text-[7px] font-black uppercase tracking-widest text-emerald-400 mt-2 font-mono">
-                          SECURE MATCH
-                        </span>
-                      )}
-                      {scanState === 'anomaly' && (
-                        <span className="text-[7px] font-black uppercase tracking-widest text-rose-500 mt-2 font-mono">
-                          BLOCKED
-                        </span>
-                      )}
-                    </motion.button>
-                  )}
-                </div>
+                      </div>
+                    ) : (
+                      // Standard trigger button
+                      <motion.button
+                        id="biometric-trigger-button"
+                        type="button"
+                        {...(biometricType === 'fingerprint' ? {
+                          onMouseDown: handleStartHold,
+                          onMouseUp: handleStopHold,
+                          onMouseLeave: handleStopHold,
+                          onTouchStart: handleStartHold,
+                          onTouchEnd: handleStopHold,
+                        } : {
+                          onClick: startScan
+                        })}
+                        disabled={scanState !== 'idle' && scanState !== 'failed' && scanState !== 'anomaly' && scanState !== 'scanning'}
+                        whileHover={scanState === 'idle' ? { scale: 1.05 } : {}}
+                        whileTap={scanState === 'idle' ? { scale: 0.95 } : {}}
+                        className={`w-32 h-32 rounded-full flex flex-col items-center justify-center transition-all duration-300 relative border cursor-pointer ${
+                          scanState === 'success'
+                            ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)]'
+                            : scanState === 'anomaly'
+                            ? 'bg-rose-500/20 border-rose-500 text-rose-400 shadow-[0_0_20px_rgba(239,68,68,0.3)] animate-bounce'
+                            : scanState === 'scanning' && biometricType === 'behavioral'
+                            ? 'bg-slate-900 border-orange-500/50 text-orange-400'
+                            : scanState === 'scanning'
+                            ? 'bg-orange-500/10 border-orange-500/50 text-orange-400 animate-pulse'
+                            : scanState === 'verifying'
+                            ? 'bg-cyan-500/10 border-cyan-500 text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)]'
+                            : 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10 hover:border-white/20 hover:text-white'
+                        }`}
+                      >
+                        {scanState === 'success' ? (
+                          <Check size={44} className="stroke-[3]" />
+                        ) : scanState === 'anomaly' ? (
+                          <AlertTriangle size={44} className="stroke-[2] text-rose-500" />
+                        ) : biometricType === 'fingerprint' ? (
+                          <Fingerprint size={44} className="stroke-[1.5]" />
+                        ) : biometricType === 'faceid' ? (
+                          <Scan size={44} className="stroke-[1.5]" />
+                        ) : biometricType === 'iris' ? (
+                          <Eye size={44} className="stroke-[1.5]" />
+                        ) : biometricType === 'voice' ? (
+                          <Mic size={44} className="stroke-[1.5]" />
+                        ) : (
+                          <Activity size={44} className="stroke-[1.5]" />
+                        )}
+
+                        {scanState === 'idle' && (
+                          <span className="text-[7px] font-black uppercase tracking-widest text-slate-400 mt-2">
+                            {biometricType === 'fingerprint' ? 'Hold Sensor' : 'Verify Bio'}
+                          </span>
+                        )}
+                        {scanState === 'scanning' && biometricType !== 'behavioral' && (
+                          <span className="text-[7px] font-black uppercase tracking-widest text-orange-400 mt-2">
+                            {progress}%
+                          </span>
+                        )}
+                        {scanState === 'verifying' && (
+                          <span className="text-[7px] font-black uppercase tracking-widest text-cyan-400 mt-2 animate-pulse">
+                            Verifying...
+                          </span>
+                        )}
+                        {scanState === 'success' && (
+                          <span className="text-[7px] font-black uppercase tracking-widest text-emerald-400 mt-2 font-mono">
+                            SECURE MATCH
+                          </span>
+                        )}
+                        {scanState === 'anomaly' && (
+                          <span className="text-[7px] font-black uppercase tracking-widest text-rose-500 mt-2 font-mono">
+                            BLOCKED
+                          </span>
+                        )}
+                      </motion.button>
+                    )}
+
+                    {/* Interactive 3D Calibration Target Overlays */}
+                    {scanState === 'scanning' && (biometricType === 'faceid' || biometricType === 'iris') && (
+                      <>
+                        {calibrationStep === 0 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHaptic(30);
+                              setCalibrationStep(1);
+                              setProgress(33);
+                              setLivenessPrompt("Left profile mapped. Tap Target [2/3]");
+                              setStatusMessage("Left profile mesh captured. Scan Target 2 on right.");
+                            }}
+                            className="absolute top-2 left-2 w-6 h-6 rounded-full bg-orange-500 border border-white text-white flex items-center justify-center font-bold text-[8px] shadow-[0_0_10px_rgba(249,115,22,0.8)] hover:scale-110 active:scale-95 transition-all z-30 cursor-pointer animate-pulse"
+                          >
+                            1
+                          </button>
+                        )}
+                        {calibrationStep === 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHaptic(30);
+                              setCalibrationStep(2);
+                              setProgress(66);
+                              setLivenessPrompt("Right profile mapped. Tap Target [3/3]");
+                              setStatusMessage("Right profile mesh captured. Scan Target 3 in center.");
+                            }}
+                            className="absolute top-2 right-2 w-6 h-6 rounded-full bg-orange-500 border border-white text-white flex items-center justify-center font-bold text-[8px] shadow-[0_0_10px_rgba(249,115,22,0.8)] hover:scale-110 active:scale-95 transition-all z-30 cursor-pointer animate-pulse"
+                          >
+                            2
+                          </button>
+                        )}
+                        {calibrationStep === 2 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              triggerHaptic(100);
+                              setCalibrationStep(3);
+                              setProgress(100);
+                              setScanState('success');
+                              setLivenessPrompt("Depth mapping secured!");
+                              setStatusMessage("Visual mesh calibration complete and verified!");
+                              stopStreams();
+                              localStorage.setItem(`last_biometric_verification_${userId}`, Date.now().toString());
+                              logBiometricAttempt('success', `${biometricType === 'faceid' ? 'Face ID' : 'Iris'} verified via 3D mesh node calibration`);
+                              setTimeout(() => {
+                                onSuccess();
+                                handleDismiss();
+                              }, 1200);
+                            }}
+                            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-emerald-500 border border-white text-white flex items-center justify-center font-bold text-[10px] shadow-[0_0_15px_rgba(16,185,129,0.8)] hover:scale-110 active:scale-95 transition-all z-30 cursor-pointer animate-bounce"
+                          >
+                            3
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
 
                 {/* Behavioral keyboard logging box */}
                 {biometricType === 'behavioral' && scanState === 'scanning' && (

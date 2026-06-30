@@ -591,10 +591,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
   return (
     <div id="user-dashboard-root" className={`w-full min-h-screen transition-colors duration-500 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} flex items-center justify-center p-3 sm:p-6 md:p-8 font-sans relative overflow-hidden`}>
       {/* Decorative background lights */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-6xl bg-white dark:bg-slate-900/40 backdrop-blur-2xl border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10 animate-fade-in">
+      <div className="w-full max-w-6xl bg-white dark:bg-[#0c1220] border border-slate-200 dark:border-white/15 rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10 animate-fade-in">
         
         {/* LEFT COLUMN: CANDIDATE BRANDING & STATS PANEL */}
         <div className="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-[#000E32] to-slate-950 p-6 sm:p-8 flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-white/10 text-left relative min-h-[350px] lg:min-h-[600px] text-white">
@@ -661,31 +661,31 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
         </div>
 
         {/* RIGHT COLUMN: DYNAMIC AUTH FORMS */}
-        <div className="col-span-12 lg:col-span-7 p-4 sm:p-6 md:p-8 flex flex-col justify-center bg-slate-50/50 dark:bg-black/10">
+        <div className="col-span-12 lg:col-span-7 p-4 sm:p-6 md:p-8 flex flex-col justify-center bg-slate-50 dark:bg-[#070b14]">
           
           {/* Mobile Return to Portal Bar */}
-          <div className="lg:hidden flex items-center justify-between mb-4 bg-slate-100 dark:bg-white/5 px-3 py-2 rounded-xl border border-slate-200/50 dark:border-white/5">
+          <div className="lg:hidden flex items-center justify-between mb-4 bg-slate-100 dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10">
             <button
               type="button"
               onClick={onBackToPortal || (() => { window.location.href = '/'; })}
-              className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
             >
               <ArrowLeft size={11} /> Return to Portal
             </button>
             <div className="flex items-center gap-1.5">
-              <Logo size="xs" variant="dark" />
+              <Logo size="xs" variant={isDarkMode ? "light" : "dark"} />
             </div>
           </div>
 
-          <div className="flex justify-between items-center mb-6 border-b border-slate-200 dark:border-white/5 pb-4">
+          <div className="flex justify-between items-center mb-6 border-b border-slate-200 dark:border-white/10 pb-4">
             <div className="space-y-1 text-left">
-              <h2 className="text-sm sm:text-base font-black text-[#000E32] dark:text-white uppercase tracking-wide">
+              <h2 className="text-sm sm:text-base font-black text-[#000E32] dark:text-slate-100 uppercase tracking-wide">
                 {authState === 'welcome' && "Candidate Gateway"}
                 {authState === 'login' && "Authorize Candidate Session"}
                 {authState === 'register' && "Register Candidate Instance"}
                 {authState === 'forgot_password' && "Restore Credentials Portal"}
               </h2>
-              <p className="text-[10px] sm:text-[11px] text-slate-400">
+              <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-300 font-medium">
                 {authState === 'welcome' && "Initiate your premium recruitment onboarding stream"}
                 {authState === 'login' && "Sign in with registered credentials or hardware lock keys"}
                 {authState === 'register' && "Configure candidate identity parameters & career targets"}
@@ -695,7 +695,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
             <button
               type="button"
               onClick={() => { setIsDarkMode(!isDarkMode); triggerHaptic(10); }}
-              className="p-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 transition-all text-slate-500 dark:text-slate-400"
+              className="p-2 rounded-xl border border-slate-200 dark:border-white/15 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-slate-500 dark:text-slate-200"
               title="Toggle theme mode"
             >
               {isDarkMode ? <Sun size={13} className="text-orange-400" /> : <Moon size={13} className="text-indigo-400" />}
@@ -714,24 +714,24 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
               className="max-w-xl mx-auto text-center py-6 md:py-10 space-y-6"
             >
               <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-orange-500/10 text-orange-400 border border-orange-400/20">
+                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-orange-500/15 text-orange-500 dark:text-orange-400 border border-orange-400/30">
                   <Sparkles size={11} className="animate-spin-slow" />
                   Premium Auth Gateway
                 </div>
                 <h2 className="text-xl md:text-3xl font-black tracking-tight leading-tight text-[#000E32] dark:text-white">
                   Unlock the Most Advanced Recruitment Experience.
                 </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                <p className="text-xs text-slate-650 dark:text-slate-200 max-w-md mx-auto leading-relaxed">
                   Connect premium Firebase identity locks directly to Cloudflare Pages D1, generate career blueprints, and sync parameters securely.
                 </p>
               </div>
 
               {/* Demo auto-fill option */}
-              <div className="bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-2xl p-4 max-w-sm mx-auto space-y-2.5">
-                <h3 className="text-[10px] font-black uppercase tracking-wider text-orange-500 dark:text-orange-400 flex items-center justify-center gap-1.5">
+              <div className="bg-slate-100 dark:bg-[#121c38] border border-slate-200 dark:border-white/10 rounded-2xl p-4 max-w-sm mx-auto space-y-2.5 shadow-sm">
+                <h3 className="text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400 flex items-center justify-center gap-1.5">
                   <Zap size={12} /> Tester Convenience Portal
                 </h3>
-                <p className="text-[9px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                <p className="text-[10px] text-slate-650 dark:text-slate-200 font-semibold leading-relaxed">
                   Skip manual typing and instantly inject premium preset values (Ngozi Balogun, AI Integrations Engineer) into the onboarding stream.
                 </p>
                 <button
@@ -778,9 +778,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                     <UserPlus className="text-indigo-400" size={18} />
                     Onboarding Registration
                   </h2>
-                  <p className="text-[10px] text-slate-400 font-medium">Create your candidate profile in a single unified step</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-300 font-semibold">Create your candidate profile in a single unified step</p>
                 </div>
-                <span className="text-[9px] font-mono font-bold text-indigo-500 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-xl uppercase tracking-wider">
+                <span className="text-[9px] font-mono font-bold text-indigo-500 dark:text-indigo-400 bg-indigo-500/15 px-2.5 py-1 rounded-xl uppercase tracking-wider">
                   Fast Track Mode
                 </span>
               </div>
@@ -806,51 +806,51 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                   {/* LEFT INPUTS COLUMN */}
                   <div className="space-y-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Full Legal Name</label>
+                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Full Legal Name</label>
                       <div className="relative">
-                        <User className="absolute left-3.5 top-3 text-slate-400" size={15} />
+                        <User className="absolute left-3.5 top-3 text-slate-600 dark:text-indigo-400" size={15} />
                         <input
                           type="text"
                           required
                           value={fullName}
                           onChange={e => setFullName(e.target.value)}
                           placeholder="e.g. Ngozi Balogun"
-                          className="w-full bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl py-2.5 pl-11 pr-4 text-xs text-slate-800 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                          className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-350 dark:border-slate-600 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Email Address</label>
+                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Email Address</label>
                       <div className="relative">
-                        <Mail className="absolute left-3.5 top-3 text-slate-400" size={15} />
+                        <Mail className="absolute left-3.5 top-3 text-slate-600 dark:text-indigo-400" size={15} />
                         <input
                           type="email"
                           required
                           value={email}
                           onChange={e => setEmail(e.target.value)}
                           placeholder="e.g. candidate@dstech.com"
-                          className="w-full bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl py-2.5 pl-11 pr-4 text-xs text-slate-800 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                          className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-350 dark:border-slate-600 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Password Passcode</label>
+                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Password Passcode</label>
                       <div className="relative">
-                        <Key className="absolute left-3.5 top-3 text-slate-400" size={15} />
+                        <Key className="absolute left-3.5 top-3 text-slate-600 dark:text-indigo-400" size={15} />
                         <input
                           type={showPassword ? "text" : "password"}
                           required
                           value={password}
                           onChange={e => setPassword(e.target.value)}
                           placeholder="••••••••"
-                          className="w-full bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl py-2.5 pl-11 pr-11 text-xs text-slate-800 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                          className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-350 dark:border-slate-600 rounded-xl py-2.5 pl-11 pr-11 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                          className="absolute right-3.5 top-3.5 text-slate-500 hover:text-slate-700 dark:hover:text-white"
                         >
                           {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                         </button>
@@ -861,40 +861,40 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                   {/* RIGHT INPUTS COLUMN */}
                   <div className="space-y-3">
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Ecosystem Role</label>
+                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Ecosystem Role</label>
                       <select
                          value={selectedRole}
                          onChange={e => setSelectedRole(e.target.value as any)}
-                         className="w-full bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl py-2.5 px-4 text-xs text-slate-800 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                         className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-350 dark:border-slate-600 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                       >
-                        <option value="Applicant">Applicant / Candidate</option>
-                        <option value="Recruiter">Recruiter / Employer</option>
-                        <option value="Admin">Administrator</option>
+                        <option value="Applicant" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Applicant / Candidate</option>
+                        <option value="Recruiter" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Recruiter / Employer</option>
+                        <option value="Admin" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Administrator</option>
                       </select>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Target Agency Role</label>
+                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Target Agency Role</label>
                       <select
                         value={targetRole}
                         onChange={e => setTargetRole(e.target.value)}
-                        className="w-full bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl py-2.5 px-4 text-xs text-slate-800 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                        className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-350 dark:border-slate-600 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
                       >
-                        <option value="AI Integrations Engineer">AI Integrations Engineer</option>
-                        <option value="Full-Stack Developer">Full-Stack Developer</option>
-                        <option value="Cloud Architect">Cloud Infrastructure Architect</option>
-                        <option value="WebAuthn Cryptographer">Security & Biometrics Cryptographer</option>
+                        <option value="AI Integrations Engineer" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">AI Integrations Engineer</option>
+                        <option value="Full-Stack Developer" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Full-Stack Developer</option>
+                        <option value="Cloud Architect" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Cloud Infrastructure Architect</option>
+                        <option value="WebAuthn Cryptographer" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Security & Biometrics Cryptographer</option>
                       </select>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Initial Core Skills</label>
+                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Initial Core Skills</label>
                       <textarea
                         value={initialSkills}
                         onChange={e => setInitialSkills(e.target.value)}
                         placeholder="e.g. React, TypeScript, Node.js, Fast API"
                         rows={2}
-                        className="w-full bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl py-2 px-3 text-xs text-slate-800 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none"
+                        className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-350 dark:border-slate-600 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 resize-none placeholder:text-slate-500 dark:placeholder:text-slate-400"
                       />
                     </div>
                   </div>
@@ -902,18 +902,18 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                 </div>
 
                 {/* Integrated Hardware Biometrics Row at Bottom */}
-                <div className="p-3 bg-slate-100 dark:bg-slate-950/40 border border-slate-200/50 dark:border-white/5 rounded-2xl flex items-start gap-3">
+                <div className="p-3 bg-slate-100 dark:bg-[#121c38] border border-slate-200/50 dark:border-white/10 rounded-2xl flex items-start gap-3 shadow-sm">
                   <div className="bg-indigo-500/10 p-2 rounded-xl border border-indigo-500/20 text-indigo-400 shrink-0">
                     <Fingerprint size={18} />
                   </div>
                   <div className="space-y-1 flex-1 text-left">
                     <div className="flex items-center justify-between">
                       <h4 className="font-extrabold text-[#000E32] dark:text-white text-[11px] uppercase tracking-wider">Secure Biometrics Ledger</h4>
-                      <span className="text-[8px] font-mono font-bold bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-2 py-0.5 rounded-lg uppercase tracking-wide">
+                      <span className="text-[8px] font-mono font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg uppercase tracking-wide">
                         Auto Enabled
                       </span>
                     </div>
-                    <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-normal font-medium">
+                    <p className="text-[10px] text-slate-650 dark:text-slate-200 leading-normal font-semibold">
                       Your biometric lock will be registered. This securely binds FaceID / Fingerprint gestures to allow passwordless single-touch sessions on this device.
                     </p>
                   </div>
@@ -1018,23 +1018,23 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
 
               <form onSubmit={handleLoginSubmit} className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Registered Email</label>
+                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200 block">Registered Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-3 text-slate-400" size={15} />
+                    <Mail className="absolute left-3.5 top-3 text-slate-500 dark:text-indigo-400" size={15} />
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder="e.g. candidate@dstech.com"
-                      className="w-full bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl py-2.5 pl-11 pr-4 text-xs text-slate-800 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                      className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-200 dark:border-slate-700/60 rounded-xl py-2.5 pl-11 pr-4 text-xs text-slate-800 dark:text-slate-50 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Password</label>
+                    <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200 block">Password</label>
                     <button 
                       type="button" 
                       onClick={() => setAuthState('forgot_password')}
@@ -1042,19 +1042,19 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                     >Forgot Password?</button>
                   </div>
                   <div className="relative">
-                    <Key className="absolute left-3.5 top-3 text-slate-400" size={15} />
+                    <Key className="absolute left-3.5 top-3 text-slate-500 dark:text-indigo-400" size={15} />
                     <input
                       type={showPassword ? "text" : "password"}
                       required
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-slate-100 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-xl py-2.5 pl-11 pr-11 text-xs text-slate-800 dark:text-slate-100 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                      className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-200 dark:border-slate-700/60 rounded-xl py-2.5 pl-11 pr-11 text-xs text-slate-800 dark:text-slate-50 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                      className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-white"
                     >
                       {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
@@ -1169,16 +1169,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
 
               <form onSubmit={handleForgotPassword} className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Registered Email</label>
+                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200 block">Registered Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-3 text-slate-400" size={15} />
+                    <Mail className="absolute left-3.5 top-3 text-slate-500 dark:text-indigo-400" size={15} />
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder="candidate@dstech.com"
-                      className="w-full bg-slate-100 dark:bg-black/40 border border-slate-200 dark:border-white/10 rounded-xl py-2.5 pl-11 pr-4 text-xs text-indigo-900 dark:text-indigo-200 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                      className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-200 dark:border-slate-700/60 rounded-xl py-2.5 pl-11 pr-4 text-xs text-slate-800 dark:text-slate-50 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                   </div>
                 </div>
