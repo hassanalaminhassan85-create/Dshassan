@@ -374,7 +374,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     sqlLines.push("DROP TABLE IF EXISTS client_projects;");
     sqlLines.push("DROP TABLE IF EXISTS course_lessons;");
     sqlLines.push("DROP TABLE IF EXISTS courses;");
+    sqlLines.push("DROP TABLE IF EXISTS blogs;");
     sqlLines.push("DROP TABLE IF EXISTS blog_posts;");
+    sqlLines.push("DROP TABLE IF EXISTS portfolio;");
     sqlLines.push("DROP TABLE IF EXISTS portfolio_projects;");
     sqlLines.push("DROP TABLE IF EXISTS services;");
     sqlLines.push("DROP TABLE IF EXISTS job_applications;");
@@ -401,51 +403,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     sqlLines.push("-- Table: services");
     sqlLines.push("CREATE TABLE services (");
     sqlLines.push("    id TEXT PRIMARY KEY,");
-    sqlLines.push("    name TEXT NOT NULL,");
-    sqlLines.push("    price TEXT,");
-    sqlLines.push("    description TEXT,");
-    sqlLines.push("    image TEXT,");
-    sqlLines.push("    url TEXT,");
-    sqlLines.push("    category TEXT NOT NULL");
+    sqlLines.push("    data_json TEXT NOT NULL");
     sqlLines.push(");\n");
 
-    sqlLines.push("-- Table: portfolio_projects");
-    sqlLines.push("CREATE TABLE portfolio_projects (");
+    sqlLines.push("-- Table: portfolio");
+    sqlLines.push("CREATE TABLE portfolio (");
     sqlLines.push("    id TEXT PRIMARY KEY,");
-    sqlLines.push("    title TEXT NOT NULL,");
-    sqlLines.push("    category TEXT NOT NULL,");
-    sqlLines.push("    client TEXT,");
-    sqlLines.push("    date TEXT,");
-    sqlLines.push("    description TEXT,");
-    sqlLines.push("    image TEXT,");
-    sqlLines.push("    stats TEXT,");
-    sqlLines.push("    tags TEXT -- JSON array of strings");
+    sqlLines.push("    data_json TEXT NOT NULL");
     sqlLines.push(");\n");
 
-    sqlLines.push("-- Table: blog_posts");
-    sqlLines.push("CREATE TABLE blog_posts (");
+    sqlLines.push("-- Table: blogs");
+    sqlLines.push("CREATE TABLE blogs (");
     sqlLines.push("    id TEXT PRIMARY KEY,");
-    sqlLines.push("    title TEXT NOT NULL,");
-    sqlLines.push("    category TEXT NOT NULL,");
-    sqlLines.push("    author TEXT NOT NULL,");
-    sqlLines.push("    date TEXT NOT NULL,");
-    sqlLines.push("    description TEXT,");
-    sqlLines.push("    content TEXT,");
-    sqlLines.push("    read_time TEXT,");
-    sqlLines.push("    tags TEXT, -- JSON array of strings");
-    sqlLines.push("    image TEXT");
+    sqlLines.push("    data_json TEXT NOT NULL");
     sqlLines.push(");\n");
 
     sqlLines.push("-- Table: courses");
     sqlLines.push("CREATE TABLE courses (");
     sqlLines.push("    id TEXT PRIMARY KEY,");
-    sqlLines.push("    title TEXT NOT NULL,");
-    sqlLines.push("    description TEXT,");
-    sqlLines.push("    image TEXT,");
-    sqlLines.push("    duration TEXT,");
-    sqlLines.push("    level TEXT,");
-    sqlLines.push("    price TEXT,");
-    sqlLines.push("    category TEXT NOT NULL");
+    sqlLines.push("    data_json TEXT NOT NULL");
     sqlLines.push(");\n");
 
     sqlLines.push("-- Table: course_lessons");
@@ -774,9 +750,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     sqlLines.push(");\n");
 
     sqlLines.push("-- Relational & Query Performance Indexes");
-    sqlLines.push("CREATE INDEX idx_services_category ON services(category);");
-    sqlLines.push("CREATE INDEX idx_portfolio_category ON portfolio_projects(category);");
-    sqlLines.push("CREATE INDEX idx_blog_category ON blog_posts(category);");
     sqlLines.push("CREATE INDEX idx_lessons_course ON course_lessons(course_id);");
     sqlLines.push("CREATE INDEX idx_invoices_status ON invoices(status);");
     sqlLines.push("CREATE INDEX idx_tickets_status ON support_tickets(status);");
@@ -798,30 +771,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     sqlLines.push("-- Seeds: services");
     adminServices.forEach((svc: any) => {
-      sqlLines.push(`INSERT INTO services (id, name, price, description, image, url, category) VALUES (${escapeStr(svc.id)}, ${escapeStr(svc.name)}, ${escapeStr(svc.price)}, ${escapeStr(svc.description)}, ${escapeStr(svc.image)}, ${escapeStr(svc.url)}, ${escapeStr(svc.category)});`);
+      sqlLines.push(`INSERT INTO services (id, data_json) VALUES (${escapeStr(svc.id)}, ${escapeJSON(svc)});`);
     });
     sqlLines.push("");
 
-    sqlLines.push("-- Seeds: portfolio_projects");
+    sqlLines.push("-- Seeds: portfolio");
     adminProjects.forEach((proj: any) => {
-      sqlLines.push(`INSERT INTO portfolio_projects (id, title, category, client, date, description, image, stats, tags) VALUES (${escapeStr(proj.id)}, ${escapeStr(proj.title)}, ${escapeStr(proj.category)}, ${escapeStr(proj.client)}, ${escapeStr(proj.date)}, ${escapeStr(proj.description)}, ${escapeStr(proj.image)}, ${escapeStr(proj.stats)}, ${escapeJSON(proj.tags)});`);
+      sqlLines.push(`INSERT INTO portfolio (id, data_json) VALUES (${escapeStr(proj.id)}, ${escapeJSON(proj)});`);
     });
     sqlLines.push("");
 
-    sqlLines.push("-- Seeds: blog_posts");
+    sqlLines.push("-- Seeds: blogs");
     adminBlogs.forEach((blog: any) => {
-      sqlLines.push(`INSERT INTO blog_posts (id, title, category, author, date, description, content, read_time, tags, image) VALUES (${escapeStr(blog.id)}, ${escapeStr(blog.title)}, ${escapeStr(blog.category)}, ${escapeStr(blog.author)}, ${escapeStr(blog.date)}, ${escapeStr(blog.description)}, ${escapeStr(blog.content)}, ${escapeStr(blog.readTime)}, ${escapeJSON(blog.tags)}, ${escapeStr(blog.image)});`);
+      sqlLines.push(`INSERT INTO blogs (id, data_json) VALUES (${escapeStr(blog.id)}, ${escapeJSON(blog)});`);
     });
     sqlLines.push("");
 
     sqlLines.push("-- Seeds: courses");
     adminCourses.forEach((course: any) => {
-      sqlLines.push(`INSERT INTO courses (id, title, description, image, duration, level, price, category) VALUES (${escapeStr(course.id)}, ${escapeStr(course.title)}, ${escapeStr(course.description)}, ${escapeStr(course.image)}, ${escapeStr(course.duration)}, ${escapeStr(course.level)}, ${escapeStr(course.price)}, ${escapeStr(course.category)});`);
-      if (course.lessons && Array.isArray(course.lessons)) {
-        course.lessons.forEach((lesson: any) => {
-          sqlLines.push(`INSERT INTO course_lessons (id, course_id, title, duration, is_free, video_url, content) VALUES (${escapeStr(lesson.id)}, ${escapeStr(course.id)}, ${escapeStr(lesson.title)}, ${escapeStr(lesson.duration)}, ${escapeNum(lesson.isFree)}, ${escapeStr(lesson.videoUrl)}, ${escapeStr(lesson.content)});`);
-        });
-      }
+      sqlLines.push(`INSERT INTO courses (id, data_json) VALUES (${escapeStr(course.id)}, ${escapeJSON(course)});`);
     });
     sqlLines.push("");
 
@@ -5336,11 +5304,27 @@ export default {
                 </div>
               </div>
 
+              {/* Prominent Cloudflare D1 Console Notice & Guidelines */}
+              <div className="mx-6 my-4 p-4 bg-rose-950/50 border border-rose-800/80 rounded-2xl flex flex-col sm:flex-row items-start gap-3 text-rose-200">
+                <ShieldAlert size={20} className="text-rose-400 shrink-0 mt-0.5" />
+                <div className="space-y-1 text-left">
+                  <h4 className="font-extrabold text-xs uppercase tracking-wider text-rose-300">
+                    ⚠️ CRITICAL CLOUDFLARE CONSOLE RULE
+                  </h4>
+                  <p className="text-[10px] leading-relaxed text-rose-200/90">
+                    Do <strong>NOT</strong> paste terminal shell commands (like <code className="bg-rose-950 px-1.5 py-0.5 rounded border border-rose-900/60 font-mono text-[9px] text-rose-300 font-bold">npx wrangler ...</code>) into Cloudflare's web SQL Console! Doing so causes syntax errors.
+                  </p>
+                  <p className="text-[10px] leading-relaxed text-rose-300/90">
+                    <strong>To use the Cloudflare Website Console:</strong> Click the <strong className="text-white bg-slate-800 px-1 py-0.5 rounded border border-slate-700">Copy Schema</strong> button on the right to copy the <strong>pure SQL script</strong>. Go to your Cloudflare Dashboard &rarr; <strong>D1 Databases</strong> &rarr; select your database &rarr; click <strong>"Console"</strong>, paste the copied SQL text directly, and click <strong>Execute</strong>.
+                  </p>
+                </div>
+              </div>
+
               {/* Alert Note Panel */}
-              <div className="px-6 py-3.5 bg-slate-950/40 border-b border-slate-850 text-[11px] text-slate-400 flex items-center gap-2.5">
+              <div className="px-6 py-3 bg-slate-950/40 border-b border-slate-850 text-[11px] text-slate-400 flex items-center gap-2.5">
                 <span className="flex-shrink-0 w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
                 <span>
-                  <strong>Tip:</strong> Copy or download this script and execute it inside your <strong>Cloudflare D1 console</strong>, or run <code className="bg-slate-950 py-0.5 px-1.5 rounded border border-slate-800 font-mono text-[10px] text-cyan-300">npx wrangler d1 execute YOUR_DB --file=schema.sql</code>.
+                  <strong>Tip:</strong> If you prefer local PC terminal deployment, save this schema into a local file named <code className="bg-slate-900 py-0.5 px-1 rounded text-cyan-300 font-mono text-[10px]">schema.sql</code> and execute: <code className="bg-slate-900 py-0.5 px-1.5 rounded border border-slate-800 font-mono text-[10px] text-cyan-300">npx wrangler d1 execute YOUR_DB_NAME --remote --file=schema.sql</code>.
                 </span>
               </div>
 

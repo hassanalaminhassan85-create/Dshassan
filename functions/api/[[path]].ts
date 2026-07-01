@@ -29,8 +29,105 @@ function broadcastSyncEvent(event: any) {
   }
 }
 
+async function ensureDatabaseTables(db: any) {
+  if (!db) return;
+  
+  const queries = [
+    `CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      full_name TEXT,
+      role TEXT DEFAULT 'Applicant',
+      created_at TEXT NOT NULL
+    );`,
+    
+    `CREATE TABLE IF NOT EXISTS passkeys (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      public_key TEXT NOT NULL,
+      counter INTEGER DEFAULT 0,
+      transports TEXT,
+      created_at TEXT NOT NULL
+    );`,
+    
+    `CREATE TABLE IF NOT EXISTS biometric_logs (
+      id TEXT PRIMARY KEY,
+      user_id TEXT,
+      email TEXT,
+      biometric_type TEXT,
+      status TEXT,
+      message TEXT,
+      user_agent TEXT,
+      created_at TEXT NOT NULL
+    );`,
+    
+    `CREATE TABLE IF NOT EXISTS scan_history (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      applicant_id TEXT,
+      applicant_name TEXT,
+      scanned_at TEXT NOT NULL,
+      secure_r2_url TEXT,
+      safety_status TEXT
+    );`,
+    
+    `CREATE TABLE IF NOT EXISTS applications (
+      id TEXT PRIMARY KEY,
+      data_json TEXT NOT NULL
+    );`,
+
+    `CREATE TABLE IF NOT EXISTS services (
+      id TEXT PRIMARY KEY,
+      data_json TEXT NOT NULL
+    );`,
+
+    `CREATE TABLE IF NOT EXISTS portfolio (
+      id TEXT PRIMARY KEY,
+      data_json TEXT NOT NULL
+    );`,
+
+    `CREATE TABLE IF NOT EXISTS blogs (
+      id TEXT PRIMARY KEY,
+      data_json TEXT NOT NULL
+    );`,
+
+    `CREATE TABLE IF NOT EXISTS courses (
+      id TEXT PRIMARY KEY,
+      data_json TEXT NOT NULL
+    );`
+  ];
+
+  for (const query of queries) {
+    try {
+      await db.prepare(query).run();
+    } catch (err) {
+      console.error("Bootstrapper table error:", err);
+    }
+  }
+
+  // Insert default user seed if none exists
+  try {
+    const check = await db.prepare("SELECT COUNT(*) as count FROM users").all();
+    if (check && check.results && check.results[0] && check.results[0].count === 0) {
+      await db.prepare(
+        "INSERT INTO users (id, email, full_name, role, created_at) VALUES (?, ?, ?, ?, ?)"
+      ).bind('usr-demo', 'candidate2026@dstech.com', 'candidate2026', 'Applicant', new Date().toISOString()).run();
+    }
+  } catch (err) {
+    console.error("Bootstrapper seed error:", err);
+  }
+}
+
 export async function onRequest(context: { request: Request; env: any; params: any }) {
   const { request, env } = context;
+  
+  // Run auto-bootstrapper to ensure tables exist
+  try {
+    await ensureDatabaseTables(env.DB);
+  } catch (e) {
+    console.error("Auto bootstrap failed:", e);
+  }
+
   const url = new URL(request.url);
   const path = url.pathname;
   const method = request.method;
