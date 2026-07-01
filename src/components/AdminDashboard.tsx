@@ -391,7 +391,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     sqlLines.push("DROP TABLE IF EXISTS fcm_tokens;");
     sqlLines.push("DROP TABLE IF EXISTS email_logs;");
     sqlLines.push("DROP TABLE IF EXISTS email_queue;");
-    sqlLines.push("DROP TABLE IF EXISTS email_templates;\n");
+    sqlLines.push("DROP TABLE IF EXISTS email_templates;");
+    sqlLines.push("DROP TABLE IF EXISTS passkeys;");
+    sqlLines.push("DROP TABLE IF EXISTS users;");
+    sqlLines.push("DROP TABLE IF EXISTS biometric_logs;");
+    sqlLines.push("DROP TABLE IF EXISTS scan_history;");
+    sqlLines.push("DROP TABLE IF EXISTS applications;\n");
 
     sqlLines.push("-- Table: services");
     sqlLines.push("CREATE TABLE services (");
@@ -640,6 +645,55 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     sqlLines.push("    timestamp TEXT NOT NULL");
     sqlLines.push(");\n");
 
+    sqlLines.push("-- Table: users");
+    sqlLines.push("CREATE TABLE users (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    email TEXT UNIQUE NOT NULL,");
+    sqlLines.push("    full_name TEXT,");
+    sqlLines.push("    role TEXT DEFAULT 'Applicant',");
+    sqlLines.push("    created_at TEXT NOT NULL");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: passkeys");
+    sqlLines.push("CREATE TABLE passkeys (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    user_id TEXT NOT NULL,");
+    sqlLines.push("    public_key TEXT NOT NULL,");
+    sqlLines.push("    counter INTEGER DEFAULT 0,");
+    sqlLines.push("    transports TEXT,");
+    sqlLines.push("    created_at TEXT NOT NULL,");
+    sqlLines.push("    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: biometric_logs");
+    sqlLines.push("CREATE TABLE biometric_logs (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    user_id TEXT,");
+    sqlLines.push("    email TEXT,");
+    sqlLines.push("    biometric_type TEXT,");
+    sqlLines.push("    status TEXT,");
+    sqlLines.push("    message TEXT,");
+    sqlLines.push("    user_agent TEXT,");
+    sqlLines.push("    created_at TEXT NOT NULL");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: scan_history");
+    sqlLines.push("CREATE TABLE scan_history (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    user_id TEXT NOT NULL,");
+    sqlLines.push("    applicant_id TEXT,");
+    sqlLines.push("    applicant_name TEXT,");
+    sqlLines.push("    scanned_at TEXT NOT NULL,");
+    sqlLines.push("    secure_r2_url TEXT,");
+    sqlLines.push("    safety_status TEXT");
+    sqlLines.push(");\n");
+
+    sqlLines.push("-- Table: applications");
+    sqlLines.push("CREATE TABLE applications (");
+    sqlLines.push("    id TEXT PRIMARY KEY,");
+    sqlLines.push("    data_json TEXT NOT NULL");
+    sqlLines.push(");\n");
+
     sqlLines.push("-- Table: notifications");
     sqlLines.push("CREATE TABLE notifications (");
     sqlLines.push("    id TEXT PRIMARY KEY,");
@@ -870,6 +924,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     sqlLines.push("\n-- Seeds: career_constellations");
     sqlLines.push("INSERT INTO career_constellations (id, candidate_id, skills_matrix_json, retention_prediction_pct, screening_matrix_hash, last_updated) VALUES ('const-01', 'usr-demo', '{\"react\":95,\"typescript\":90,\"tailwindcss\":92,\"node\":85,\"system_architecture\":88}', 94.8, 'SCREEN-MX-0XF1E2D3C4B5A6', '2027-03-25T14:00:00Z');");
     sqlLines.push("INSERT INTO career_constellations (id, candidate_id, skills_matrix_json, retention_prediction_pct, screening_matrix_hash, last_updated) VALUES ('const-02', 'usr-ngozi', '{\"react\":88,\"typescript\":85,\"marketing\":95,\"seo\":92,\"ai_prompting\":90}', 91.2, 'SCREEN-MX-0X2D3C4B5A6F1E', '2027-03-26T15:30:00Z');");
+
+    sqlLines.push("\n-- Seeds: users");
+    sqlLines.push("INSERT INTO users (id, email, full_name, role, created_at) VALUES ('usr-demo', 'candidate2026@dstech.com', 'candidate2026', 'Applicant', '2026-07-01T14:29:55.228Z');");
+
+    sqlLines.push("\n-- Seeds: applications");
+    applications.forEach((app: any) => {
+      sqlLines.push(`INSERT INTO applications (id, data_json) VALUES (${escapeStr(app.id)}, ${escapeJSON(app)});`);
+    });
+
+    sqlLines.push("\n-- Seeds: scan_history");
+    if (scanHistory && scanHistory.length > 0) {
+      scanHistory.forEach((rec: any) => {
+        sqlLines.push(`INSERT INTO scan_history (id, user_id, applicant_id, applicant_name, scanned_at, secure_r2_url, safety_status) VALUES (${escapeStr(rec.id)}, ${escapeStr(rec.user_id || 'anonymous')}, ${escapeStr(rec.applicant_id)}, ${escapeStr(rec.applicant_name)}, ${escapeStr(rec.scanned_at)}, ${escapeStr(rec.secure_r2_url)}, ${escapeStr(rec.safety_status)});`);
+      });
+    } else {
+      sqlLines.push("INSERT INTO scan_history (id, user_id, applicant_id, applicant_name, scanned_at, secure_r2_url, safety_status) VALUES ('scan_init_demo', 'anonymous', 'seed-hassan-demo', 'David Alao Chibuzor', '2026-07-01T13:06:13.109Z', 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=192&h=192&fit=crop&auto=format', 'safe');");
+    }
+
+    sqlLines.push("\n-- Seeds: biometric_logs");
+    sqlLines.push("INSERT INTO biometric_logs (id, user_id, email, biometric_type, status, message, user_agent, created_at) VALUES ('log_8o9sib87o', 'usr-demo', 'candidate2026@dstech.com', 'platform', 'success', 'Logged in via simulated biometric passkey signature (Preview Mode)', 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36', '2026-07-01T14:29:55.228Z');");
 
     sqlLines.push("\n-- =====================================================================");
     sqlLines.push("-- DATABASE SEEDING COMPLETED SUCCESSFULLY");
