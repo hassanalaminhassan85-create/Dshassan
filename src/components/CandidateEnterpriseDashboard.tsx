@@ -7,7 +7,7 @@ import {
   ChevronDown, Settings, Bell, Share2, Download, MessageSquare, AlertCircle,
   TrendingUp, Wallet, Shield, Users, HelpCircle, Activity, Globe, Send, Play,
   Smartphone, Eye, Award, Lock, FileText, Ban, Trash2, Edit3, Fingerprint, RefreshCw,
-  Heart, Zap, Star
+  Heart, Zap, Star, Menu, X, Sun, Moon
 } from 'lucide-react';
 import { CandidateEnterpriseSettings } from './CandidateEnterpriseSettings';
 import { useNotifications } from './NotificationProvider';
@@ -109,6 +109,161 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
     { id: 2, text: "WebAuthn key D1 validation completed", type: 'info', time: "10m ago" },
     { id: 3, text: "New skill gap identified in AWS serverless", type: 'warning', time: "2h ago" }
   ]);
+
+  // Interactive page states
+  // Page 6: Personality & Culture Fit states
+  const [cultureAnswers, setCultureAnswers] = useState<Record<string, number>>({
+    openness: 8,
+    conscientiousness: 7,
+    extraversion: 6,
+    agreeableness: 8,
+    stability: 7
+  });
+  const [cultureMatchScore, setCultureMatchScore] = useState<number | null>(null);
+  const [mbtiType, setMbtiType] = useState<string>('INTJ');
+
+  // Page 7: Market Intelligence states
+  const [marketExpYears, setMarketExpYears] = useState<number>(3);
+  const [remoteRatio, setRemoteRatio] = useState<number>(80);
+  const [marketRoleSel, setMarketRoleSel] = useState<string>('AI Integrations Engineer');
+
+  // Page 9: Voice Assistant states
+  const [simulatedVoiceText, setSimulatedVoiceText] = useState<string>('');
+  const [voiceAuditResult, setVoiceAuditResult] = useState<any | null>(null);
+  const [isVoiceAuditing, setIsVoiceAuditing] = useState<boolean>(false);
+
+  // Page 11: Job Hunting Agent states
+  const [jobAgentTargetSalary, setJobAgentTargetSalary] = useState<number>(145000);
+  const [jobAgentStack, setJobAgentStack] = useState<string>('React, Node, Cloudflare D1');
+  const [jobAgentActive, setJobAgentActive] = useState<boolean>(false);
+  const [jobAgentLogs, setJobAgentLogs] = useState<string[]>([
+    "AGENT_SYS: Idle. Configure parameters and click 'Start Agent'"
+  ]);
+
+  // Page 14: Salary Negotiation states
+  const [negoBaseOffer, setNegoBaseOffer] = useState<number>(120000);
+  const [negoEquityOffer, setNegoEquityOffer] = useState<number>(15000);
+  const [negoBonusOffer, setNegoBonusOffer] = useState<number>(10000);
+  const [negoTone, setNegoTone] = useState<string>('Collaborative');
+  const [negoScript, setNegoScript] = useState<string>('');
+
+  // Page 15: Portfolio SEO states
+  const [portfolioBioText, setPortfolioBioText] = useState<string>('I am a passionate software engineer specializing in backend systems, database performance, and building modern web applications with React.');
+  const [seoScore, setSeoScore] = useState<any | null>(null);
+
+  // Page 21: Advanced Threat Detection states
+  const [suspiciousJobOffer, setSuspiciousJobOffer] = useState<string>('We require you to send $250 for training materials and download Telegram for immediate onboarding. Earn $80 per hour with no experience necessary.');
+  const [threatAnalysis, setThreatAnalysis] = useState<any | null>(null);
+
+  // Page 6 action: MBTI & Big Five calculation
+  const runCultureMatch = () => {
+    const avg = (cultureAnswers.openness + cultureAnswers.conscientiousness + cultureAnswers.extraversion + cultureAnswers.agreeableness + cultureAnswers.stability) / 5;
+    // Calculate a score based on answers & MBTI compatibility
+    let mbtiBonus = mbtiType === 'INTJ' || mbtiType === 'ENTJ' || mbtiType === 'ENFP' ? 12 : 5;
+    const finalScore = Math.min(100, Math.round((avg * 10) + mbtiBonus));
+    setCultureMatchScore(finalScore);
+  };
+
+  // Page 9 action: Simulate Accent & Sentiment Audit
+  const runVoiceAudit = () => {
+    setIsVoiceAuditing(true);
+    setTimeout(() => {
+      setIsVoiceAuditing(false);
+      setVoiceAuditResult({
+        pacing: "135 words per minute (Optimal)",
+        stress: "12% (Exceptionally Low)",
+        empathy: "94% (Highly Collaborative)",
+        accentMatching: "98.2% DS Tech Corporate Benchmark matched"
+      });
+    }, 1200);
+  };
+
+  // Page 11 action: Toggle job agent
+  useEffect(() => {
+    let agentTimer: any;
+    if (jobAgentActive) {
+      agentTimer = setInterval(() => {
+        const mockLogLines = [
+          `[Agent] Querying tech roles matching '${jobAgentStack}'...`,
+          `[Agent] Found vacancy matching target salary >$${(jobAgentTargetSalary/1000).toFixed(0)}K/yr!`,
+          `[Agent] Customizing SEO keywords on applicant resume profile...`,
+          `[Agent] Submitted application package to DS Tech & Digital Agency partner database.`,
+          `[Agent] Scheduled screening chat simulation with recruiter bot.`
+        ];
+        const randomLine = mockLogLines[Math.floor(Math.random() * mockLogLines.length)];
+        setJobAgentLogs(prev => [`[${new Date().toLocaleTimeString()}] ${randomLine}`, ...prev.slice(0, 10)]);
+      }, 3000);
+    }
+    return () => clearInterval(agentTimer);
+  }, [jobAgentActive, jobAgentStack, jobAgentTargetSalary]);
+
+  // Page 14 action: Generate scripts
+  const runNegotiationAI = () => {
+    const counterBase = Math.round(negoBaseOffer * 1.15);
+    const counterEquity = Math.round(negoEquityOffer * 1.25);
+    const scriptTemplates: Record<string, string> = {
+      Collaborative: `Dear Recruitment Team,\n\nI am thrilled about the opportunity to join as a ${marketRoleSel}! I am very excited about your mission. Based on my advanced skillset and current market data showing heavy demand (+34.2%), I was hoping we could explore a starting base salary of $${counterBase.toLocaleString()} alongside $${counterEquity.toLocaleString()} in equity. I believe this better aligns with the value I will deliver from day one at the agency. Looking forward to your thoughts!\n\nBest regards,\n[Your Name]`,
+      Bold: `Hi Team,\n\nThank you for the competitive offer! I am highly motivated to join and immediately scale the Cloudflare D1 nodes. Given my unique specialized expertise, I would like to lock this in. If we can adjust the base compensation to $${counterBase.toLocaleString()} and bonus structure to $${(negoBonusOffer * 1.2).toLocaleString()}, I am ready to sign the contract immediately and begin onboarding next week!\n\nSincerely,\n[Your Name]`,
+      Direct: `Hello,\n\nI appreciate this package of starting compensation. To move forward with the appointment, my target base salary is $${counterBase.toLocaleString()}. If this adjustment fits within your departmental budget, please update the written agreement and I will return it signed.\n\nBest,\n[Your Name]`
+    };
+    setNegoScript(scriptTemplates[negoTone] || scriptTemplates.Collaborative);
+  };
+
+  // Page 15 action: SEO analysis
+  const runSeoAnalysis = () => {
+    const wordCount = portfolioBioText.split(/\s+/).filter(Boolean).length;
+    const suggestions = [];
+    let scoreVal = 65;
+
+    if (portfolioBioText.toLowerCase().includes('cloudflare') || portfolioBioText.toLowerCase().includes('d1') || portfolioBioText.toLowerCase().includes('database')) {
+      scoreVal += 15;
+    } else {
+      suggestions.push("Add Cloudflare D1 Node SQL references to boost agency score.");
+    }
+
+    if (portfolioBioText.toLowerCase().includes('react') || portfolioBioText.toLowerCase().includes('typescript')) {
+      scoreVal += 15;
+    } else {
+      suggestions.push("Integrate React / TypeScript keywords.");
+    }
+
+    if (wordCount < 20) {
+      scoreVal -= 15;
+      suggestions.push("Increase bio length to at least 30 words.");
+    }
+
+    setSeoScore({
+      score: Math.min(100, scoreVal),
+      keywordsCount: wordCount,
+      suggestions: suggestions.length > 0 ? suggestions : ["Your portfolio bio SEO is perfectly optimized for DS Tech!"]
+    });
+  };
+
+  // Page 21 action: Threat check
+  const runThreatCheck = () => {
+    let score = 5;
+    const flags = [];
+
+    if (suspiciousJobOffer.toLowerCase().includes('telegram') || suspiciousJobOffer.toLowerCase().includes('whatsapp')) {
+      score += 35;
+      flags.push("Requires communication on non-standard chat channels (Telegram/WhatsApp).");
+    }
+
+    if (suspiciousJobOffer.includes('$') && (suspiciousJobOffer.toLowerCase().includes('send') || suspiciousJobOffer.toLowerCase().includes('fee') || suspiciousJobOffer.toLowerCase().includes('materials'))) {
+      score += 45;
+      flags.push("Upfront payment required for training materials or hardware.");
+    }
+
+    if (suspiciousJobOffer.toLowerCase().includes('no experience') && (suspiciousJobOffer.toLowerCase().includes('$80') || suspiciousJobOffer.toLowerCase().includes('$100'))) {
+      score += 15;
+      flags.push("Unrealistic compensation relative to the experience required.");
+    }
+
+    setThreatAnalysis({
+      score: Math.min(100, score),
+      flags: flags.length > 0 ? flags : ["No critical threat signatures identified in this posting."]
+    });
+  };
   
   // Simulated WebSockets Feed
   const [wsLogs, setWsLogs] = useState<string[]>([
@@ -291,8 +446,234 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
   return (
     <div id="candidate-enterprise-dashboard-root" className={`min-h-screen flex flex-col md:flex-row transition-colors duration-500 text-xs ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} font-sans`}>
       
-      {/* SIDEBAR NAVIGATION - PERSISTENT ON DESKTOP */}
-      <aside id="dashboard-sidebar" className={`w-full md:w-80 shrink-0 border-r ${isDarkMode ? 'bg-slate-900/90 border-slate-800' : 'bg-white border-slate-200'} flex flex-col justify-between md:sticky md:top-0 md:h-screen z-40 transition-all`}>
+      {/* MOBILE STICKY TOP BAR */}
+      <header className={`md:hidden sticky top-0 z-40 w-full flex items-center justify-between px-4 py-3 border-b backdrop-blur-md transition-colors duration-300 ${isDarkMode ? 'bg-slate-900/90 border-slate-800 text-white' : 'bg-white/95 border-slate-200 text-slate-900'}`}>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsMobileNavOpen(true)}
+            className={`p-2 rounded-xl border transition-all ${isDarkMode ? 'border-slate-800 hover:bg-slate-800 text-slate-300' : 'border-slate-200 hover:bg-slate-100 text-slate-600'}`}
+          >
+            <Menu size={16} />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-gradient-to-br from-orange-500 to-indigo-600 rounded-lg shadow-md shrink-0">
+              <Sparkles size={12} className="text-white animate-pulse" />
+            </div>
+            <div>
+              <span className="font-extrabold text-[11px] tracking-tight block uppercase bg-gradient-to-r from-orange-500 to-indigo-500 bg-clip-text text-transparent">DS TECH HUB</span>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`p-2 rounded-xl border transition-all ${isDarkMode ? 'border-slate-800 hover:bg-slate-800 text-orange-400' : 'border-slate-200 hover:bg-slate-100 text-indigo-500'}`}
+          >
+            {isDarkMode ? <Sun size={12} /> : <Moon size={12} />}
+          </button>
+          <button
+            onClick={() => setIsNotifCenterOpen(true)}
+            className={`p-2 rounded-xl border relative transition-all ${isDarkMode ? 'border-slate-800 hover:bg-slate-800 text-slate-300' : 'border-slate-200 hover:bg-slate-100 text-slate-600'}`}
+          >
+            <Bell size={12} />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+            )}
+          </button>
+        </div>
+      </header>
+
+      {/* MOBILE NAV DRAWER OVERLAY */}
+      <AnimatePresence>
+        {isMobileNavOpen && (
+          <>
+            {/* Backdrop blur overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileNavOpen(false)}
+              className="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            />
+            {/* Slide-out Drawer */}
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className={`md:hidden fixed inset-y-0 left-0 w-72 z-50 border-r flex flex-col justify-between transition-colors duration-300 ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} shadow-2xl`}
+            >
+              {/* Drawer Header */}
+              <div className="p-4 border-b flex flex-col gap-3 relative">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-gradient-to-br from-orange-500 to-indigo-600 rounded-xl shadow-md">
+                      <Sparkles size={14} className="text-white animate-pulse" />
+                    </div>
+                    <div>
+                      <h2 className="font-black text-xs tracking-wider uppercase bg-gradient-to-r from-orange-400 to-indigo-400 bg-clip-text text-transparent">DS TECH HUB</h2>
+                      <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wider">DS Tech & Digital Agency</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setIsMobileNavOpen(false)}
+                    className={`p-1.5 rounded-lg border transition-all ${isDarkMode ? 'border-slate-800 hover:bg-slate-800 text-slate-400' : 'border-slate-200 hover:bg-slate-100 text-slate-500'}`}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+
+                {/* Global Search across all pages */}
+                <div className="relative mt-1">
+                  <Search size={14} className="absolute left-3 top-2.5 text-slate-400" />
+                  <input
+                    type="text"
+                    placeholder="Search 25 specialized pages..."
+                    value={searchQuery}
+                    onChange={e => setSearchQuery(e.target.value)}
+                    className={`w-full pl-9 pr-3 py-2 border rounded-xl text-[11px] focus:outline-none transition-all ${
+                      isDarkMode 
+                        ? 'bg-slate-950/40 border-slate-800 text-indigo-200 focus:border-indigo-500' 
+                        : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-600'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* Drawer Navigation items */}
+              <div className="flex-1 overflow-y-auto px-2.5 py-3 space-y-4">
+                {/* Favorites/Bookmarks Widget */}
+                {favorites.length > 0 && (
+                  <div className="space-y-1">
+                    <span className="px-2.5 text-[8px] font-black uppercase tracking-widest text-orange-400 flex items-center gap-1">
+                      <Star size={10} className="fill-orange-400 text-orange-400" /> Bookmarks
+                    </span>
+                    <div className={`grid grid-cols-2 gap-1.5 p-1.5 border rounded-2xl ${isDarkMode ? 'bg-slate-950/20 border-slate-800/80' : 'bg-slate-100/50 border-slate-200'}`}>
+                      {favorites.map(fId => {
+                        const pg = DASHBOARD_PAGES.find(p => p.id === fId);
+                        if (!pg) return null;
+                        const PgIcon = pg.icon;
+                        return (
+                          <button
+                            key={fId}
+                            onClick={() => navigateToPage(fId)}
+                            className={`p-2 rounded-xl text-left flex items-center gap-1.5 transition-all text-[10px] truncate ${activePageId === fId ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white'}`}
+                          >
+                            <PgIcon size={11} className="shrink-0" />
+                            <span className="truncate">{pg.title}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Category Lists */}
+                {(['core', 'intelligence', 'operations', 'risk', 'specialized'] as const).map(cat => {
+                  const catPages = filteredPages.filter(p => p.category === cat);
+                  if (catPages.length === 0) return null;
+                  
+                  const isExpanded = expandedCategory === cat;
+                  const catInfo = {
+                    core: { label: '1. Core Systems', icon: Compass, color: 'text-indigo-500' },
+                    intelligence: { label: '2. Insights & AI', icon: Cpu, color: 'text-amber-500' },
+                    operations: { label: '3. Autonomous Ops', icon: Zap, color: 'text-emerald-500' },
+                    risk: { label: '4. Predictive Risks', icon: AlertCircle, color: 'text-rose-500' },
+                    specialized: { label: '5. Future & Security', icon: Shield, color: 'text-orange-500' }
+                  }[cat];
+
+                  const CatIcon = catInfo.icon;
+
+                  return (
+                    <div key={cat} className={`space-y-1 rounded-2xl border overflow-hidden transition-all duration-300 shadow-sm ${isDarkMode ? 'bg-slate-900/40 border-slate-850' : 'bg-slate-100/35 border-slate-200'}`}>
+                      <button
+                        type="button"
+                        onClick={() => setExpandedCategory(isExpanded ? null : cat)}
+                        className={`w-full text-left px-3 py-2 flex items-center justify-between transition-all select-none ${
+                          isExpanded 
+                            ? 'bg-indigo-600/10 text-indigo-900 dark:text-indigo-200 font-extrabold border-b border-slate-200 dark:border-slate-800/60' 
+                            : 'hover:bg-slate-200/50 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-400 hover:text-indigo-950 dark:hover:text-white'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <CatIcon size={13} className={`${catInfo.color} shrink-0`} />
+                          <span className="truncate text-[10px] font-black uppercase tracking-wider">{catInfo.label}</span>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          <span className={`text-[8px] font-mono font-bold px-1.5 py-0.2 rounded ${isDarkMode ? 'bg-slate-850 text-slate-400' : 'bg-slate-200 text-slate-500'}`}>
+                            {catPages.length}
+                          </span>
+                          {isExpanded ? <ChevronDown size={11} className="text-slate-400" /> : <ChevronRight size={11} className="text-slate-400" />}
+                        </div>
+                      </button>
+
+                      <AnimatePresence initial={false}>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="px-1 py-1 space-y-0.5">
+                              {catPages.map(page => {
+                                const PageIcon = page.icon;
+                                const isPageActive = activePageId === page.id;
+                                return (
+                                  <div
+                                    key={page.id}
+                                    onClick={() => navigateToPage(page.id)}
+                                    className={`group flex items-center justify-between p-1.5 rounded-lg transition-all cursor-pointer ${
+                                      isPageActive 
+                                        ? 'bg-indigo-600 text-white font-extrabold shadow-md' 
+                                        : 'hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <PageIcon size={12} className={`shrink-0 ${isPageActive ? 'text-white' : 'text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white'}`} />
+                                      <span className="truncate text-[10px] font-medium">{page.title}</span>
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={(e) => toggleFavorite(page.id, e)}
+                                      className="opacity-40 group-hover:opacity-100 hover:scale-110 p-0.5 rounded transition-all"
+                                    >
+                                      <Star size={10} className={`${favorites.includes(page.id) ? 'fill-orange-400 text-orange-400' : 'text-slate-400'}`} />
+                                    </button>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Drawer Logs Footer */}
+              <div className={`p-3 border-t ${isDarkMode ? 'bg-slate-950/60' : 'bg-slate-100'}`}>
+                <div className="flex items-center justify-between mb-1 text-[8px] font-black uppercase tracking-widest text-emerald-500">
+                  <span className="flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live D1 Tunnel
+                  </span>
+                  <Activity size={10} />
+                </div>
+                <div className="bg-black/40 rounded-xl p-2 font-mono text-[8px] text-emerald-400 h-16 overflow-y-auto space-y-1">
+                  {wsLogs.slice(0, 3).map((log, index) => (
+                    <div key={index} className="truncate select-none">{log}</div>
+                  ))}
+                </div>
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* DESKTOP SIDEBAR NAVIGATION - PERSISTENT ON DESKTOP */}
+      <aside id="dashboard-sidebar" className={`hidden md:flex md:w-80 shrink-0 border-r ${isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200'} flex-col justify-between md:sticky md:top-0 md:h-screen z-40 transition-colors duration-300`}>
         
         {/* Sidebar Header */}
         <div className="p-4 border-b flex flex-col gap-3 relative">
@@ -302,18 +683,10 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
                 <Sparkles size={16} className="text-white animate-pulse" />
               </div>
               <div>
-                <h2 className="font-black text-xs tracking-wider uppercase bg-gradient-to-r from-orange-400 to-indigo-400 bg-clip-text text-transparent">DS Enterprise Core</h2>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">Quantum Candidate Suite</p>
+                <h2 className="font-black text-xs tracking-wider uppercase bg-gradient-to-r from-orange-400 to-indigo-400 bg-clip-text text-transparent">DS TECH HUB</h2>
+                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">DS Tech & Digital Agency</p>
               </div>
             </div>
-            
-            {/* Mobile Nav Close / Open Indicator */}
-            <button
-              onClick={() => setIsMobileNavOpen(!isMobileNavOpen)}
-              className="p-1.5 rounded-lg md:hidden border border-white/10 text-slate-400"
-            >
-              <LayoutGrid size={16} />
-            </button>
           </div>
 
           {/* Global Search across all pages */}
@@ -324,13 +697,17 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
               placeholder="Search 25 specialized pages..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-3 py-2 bg-black/20 border border-slate-700/50 rounded-xl text-[11px] focus:outline-none focus:border-indigo-500 text-indigo-200 transition-all"
+              className={`w-full pl-9 pr-3 py-2 border rounded-xl text-[11px] focus:outline-none transition-all ${
+                isDarkMode 
+                  ? 'bg-slate-950/40 border-slate-800 text-indigo-200 focus:border-indigo-500' 
+                  : 'bg-slate-50 border-slate-200 text-slate-900 focus:border-indigo-600'
+              }`}
             />
           </div>
         </div>
 
         {/* Sidebar Navigation Items */}
-        <div className={`flex-1 overflow-y-auto px-2.5 py-3 space-y-4 md:block ${isMobileNavOpen ? 'block' : 'hidden md:block'}`}>
+        <div className="flex-1 overflow-y-auto px-2.5 py-3 space-y-4">
           
           {/* Favorites/Bookmarks Widget */}
           {favorites.length > 0 && (
@@ -338,7 +715,7 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
               <span className="px-2.5 text-[8px] font-black uppercase tracking-widest text-orange-400 flex items-center gap-1">
                 <Star size={10} className="fill-orange-400 text-orange-400" /> Bookmarks
               </span>
-              <div className="grid grid-cols-2 gap-1.5 p-1 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl">
+              <div className={`grid grid-cols-2 gap-1.5 p-1.5 border rounded-2xl ${isDarkMode ? 'bg-slate-950/20 border-slate-800/80' : 'bg-slate-100/50 border-slate-200'}`}>
                 {favorites.map(fId => {
                   const pg = DASHBOARD_PAGES.find(p => p.id === fId);
                   if (!pg) return null;
@@ -347,7 +724,7 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
                     <button
                       key={fId}
                       onClick={() => navigateToPage(fId)}
-                      className={`p-2 rounded-xl text-left flex items-center gap-1.5 transition-all text-[10px] truncate ${activePageId === fId ? 'bg-indigo-600 text-white' : 'hover:bg-slate-800 text-slate-400 hover:text-white'}`}
+                      className={`p-2 rounded-xl text-left flex items-center gap-1.5 transition-all text-[10px] truncate ${activePageId === fId ? 'bg-indigo-600 text-white shadow-md' : 'hover:bg-slate-250 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white'}`}
                     >
                       <PgIcon size={11} className="shrink-0" />
                       <span className="truncate">{pg.title}</span>
@@ -364,28 +741,26 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
             if (catPages.length === 0) return null;
             
             const isExpanded = expandedCategory === cat;
-            
-            // Map category data to human readable labels and icons
             const catInfo = {
-              core: { label: '1. Core Systems', icon: Compass, color: 'text-indigo-400' },
-              intelligence: { label: '2. Insights & AI', icon: Cpu, color: 'text-amber-400' },
-              operations: { label: '3. Autonomous Ops', icon: Zap, color: 'text-emerald-400' },
-              risk: { label: '4. Predictive Risks', icon: AlertCircle, color: 'text-rose-400' },
-              specialized: { label: '5. Future & Security', icon: Shield, color: 'text-orange-400' }
+              core: { label: '1. Core Systems', icon: Compass, color: 'text-indigo-500' },
+              intelligence: { label: '2. Insights & AI', icon: Cpu, color: 'text-amber-500' },
+              operations: { label: '3. Autonomous Ops', icon: Zap, color: 'text-emerald-500' },
+              risk: { label: '4. Predictive Risks', icon: AlertCircle, color: 'text-rose-500' },
+              specialized: { label: '5. Future & Security', icon: Shield, color: 'text-orange-500' }
             }[cat];
 
             const CatIcon = catInfo.icon;
 
             return (
-              <div key={cat} className="space-y-1 bg-slate-150 dark:bg-slate-900/30 rounded-2xl border border-slate-200 dark:border-slate-800/80 overflow-hidden transition-all duration-300 shadow-sm">
+              <div key={cat} className={`space-y-1 border rounded-2xl overflow-hidden transition-all duration-300 shadow-sm ${isDarkMode ? 'bg-slate-900/40 border-slate-850' : 'bg-slate-100/35 border-slate-200'}`}>
                 {/* Accordion Trigger */}
                 <button
                   type="button"
                   onClick={() => setExpandedCategory(isExpanded ? null : cat)}
                   className={`w-full text-left px-3 py-2 flex items-center justify-between transition-all select-none ${
                     isExpanded 
-                      ? 'bg-indigo-600/15 border-b border-slate-200 dark:border-slate-800/60 text-indigo-900 dark:text-indigo-200 font-extrabold' 
-                      : 'hover:bg-slate-200/50 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-400 hover:text-indigo-950 dark:hover:text-white'
+                      ? 'bg-indigo-600/10 text-indigo-900 dark:text-indigo-200 font-extrabold border-b border-slate-200 dark:border-slate-800/60' 
+                      : 'hover:bg-slate-250 dark:hover:bg-slate-800/40 text-slate-700 dark:text-slate-400 hover:text-indigo-950 dark:hover:text-white'
                   }`}
                 >
                   <div className="flex items-center gap-2 min-w-0">
@@ -393,7 +768,7 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
                     <span className="truncate text-[10px] font-black uppercase tracking-wider">{catInfo.label}</span>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
-                    <span className="text-[8px] font-mono font-bold bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 px-1.5 py-0.2 rounded">
+                    <span className={`text-[8px] font-mono font-bold px-1.5 py-0.2 rounded ${isDarkMode ? 'bg-slate-850 text-slate-400' : 'bg-slate-200 text-slate-500'}`}>
                       {catPages.length}
                     </span>
                     {isExpanded ? (
@@ -424,7 +799,7 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
                               onClick={() => navigateToPage(page.id)}
                               className={`group flex items-center justify-between p-1.5 rounded-lg transition-all cursor-pointer ${
                                 isPageActive 
-                                  ? 'bg-indigo-600 text-white font-extrabold shadow-md shadow-indigo-600/15' 
+                                  ? 'bg-indigo-600 text-white font-extrabold shadow-md' 
                                   : 'hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                               }`}
                             >
@@ -454,7 +829,7 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
         </div>
 
         {/* Real-time WebSockets Monitor Log Footer */}
-        <div className={`p-3 border-t md:block ${isMobileNavOpen ? 'block' : 'hidden md:block'} ${isDarkMode ? 'bg-slate-950/60' : 'bg-slate-100'}`}>
+        <div className={`p-3 border-t ${isDarkMode ? 'bg-slate-950/60' : 'bg-slate-100'}`}>
           <div className="flex items-center justify-between mb-1.5 text-[8px] font-black uppercase tracking-widest text-emerald-400">
             <span className="flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live D1 Tunnel Feed
@@ -964,45 +1339,479 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
                   {/* Render Page-Specific customized previews */}
                   {activePageId === 6 && (
                     <div className="space-y-4">
-                      <p className="text-slate-400 text-[11px]">Big Five Assessment Metrics pairing for cultural fit. Optimal match target: Remote Work Team Dynamics.</p>
-                      <div className="h-60">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={personalityData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                            <XAxis dataKey="trait" stroke="#94a3b8" fontSize={10} />
-                            <YAxis stroke="#94a3b8" fontSize={10} />
-                            <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid #334155' }} />
-                            <Bar dataKey="score" fill="#6366f1" radius={[8, 8, 0, 0]}>
-                              {personalityData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={index === 0 || index === 1 ? '#f97316' : '#6366f1'} />
+                      <p className="text-slate-400 text-[11px] leading-relaxed">
+                        Big Five personality metrics and compatible MBTI pairing tool for DS Tech company culture integration.
+                      </p>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Interactive Sliders */}
+                        <div className="space-y-3 bg-black/20 p-4 rounded-xl border border-white/5">
+                          <h4 className="font-extrabold text-white text-[10px] uppercase">Big Five Traits (Self-Rating)</h4>
+                          {Object.keys(cultureAnswers).map(trait => (
+                            <div key={trait} className="space-y-1">
+                              <div className="flex justify-between text-[10px] text-slate-400">
+                                <span className="capitalize">{trait}</span>
+                                <span className="text-indigo-400 font-bold">{cultureAnswers[trait]}/10</span>
+                              </div>
+                              <input
+                                type="range"
+                                min="1"
+                                max="10"
+                                value={cultureAnswers[trait]}
+                                onChange={(e) => setCultureAnswers({ ...cultureAnswers, [trait]: parseInt(e.target.value) })}
+                                className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                              />
+                            </div>
+                          ))}
+                          <div className="space-y-1">
+                            <span className="text-[10px] text-slate-400 uppercase">MBTI Typology Match</span>
+                            <select
+                              value={mbtiType}
+                              onChange={(e) => setMbtiType(e.target.value)}
+                              className="w-full px-2 py-1.5 bg-slate-900 border border-slate-855 rounded text-xs text-white"
+                            >
+                              {['INTJ', 'ENTJ', 'INFJ', 'ENFP', 'INFP', 'INTP', 'ISTJ', 'ESTP'].map(t => (
+                                <option key={t} value={t}>{t}</option>
                               ))}
-                            </Bar>
-                          </BarChart>
-                        </ResponsiveContainer>
+                            </select>
+                          </div>
+                          <button
+                            onClick={runCultureMatch}
+                            className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase text-[10px] tracking-wider rounded-lg transition-all cursor-pointer"
+                          >
+                            Evaluate Culture Compatibility
+                          </button>
+                        </div>
+
+                        {/* Outcomes & radar chart */}
+                        <div className="space-y-4 bg-black/20 p-4 rounded-xl border border-white/5 flex flex-col justify-between">
+                          <div className="text-center py-6 space-y-2">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">DS Tech Agency Cultural Fit</span>
+                            <div className="text-4xl font-black text-orange-400 animate-pulse">
+                              {cultureMatchScore !== null ? `${cultureMatchScore}%` : '--'}
+                            </div>
+                            <p className="text-[10px] text-slate-300 italic px-2 leading-relaxed">
+                              {cultureMatchScore !== null 
+                                ? (cultureMatchScore >= 80 
+                                  ? "Excellent. You align closely with our collaborative, engineering-first culture!" 
+                                  : "Good alignment. Recommended areas of focus: remote teamwork synchronization.")
+                                : "Click 'Evaluate' to run real-time agency cultural fit analysis."}
+                            </p>
+                          </div>
+
+                          <div className="h-32">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={personalityData}>
+                                <XAxis dataKey="trait" stroke="#94a3b8" fontSize={8} />
+                                <Bar dataKey="score" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {activePageId === 7 && (
                     <div className="space-y-4">
-                      <p className="text-slate-400 text-[11px]">Salary Predictor ranges based on global candidate indices ($K / yr).</p>
-                      <div className="h-60">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={marketSalaryData}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
-                            <YAxis stroke="#94a3b8" fontSize={10} />
-                            <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid #334155' }} />
-                            <Area type="monotone" dataKey="Remote" stroke="#f97316" fill="#f97316" fillOpacity={0.15} />
-                            <Area type="monotone" dataKey="Hybrid" stroke="#6366f1" fill="#6366f1" fillOpacity={0.05} />
-                          </AreaChart>
-                        </ResponsiveContainer>
+                      <p className="text-slate-400 text-[11px] leading-relaxed">
+                        Projected salary ranges based on global candidate indices, remote adjustments, and live DS Tech engineering requirements.
+                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Interactive Sliders */}
+                        <div className="space-y-4 bg-black/20 p-4 rounded-xl border border-white/5">
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[10px] text-slate-400">
+                              <span>Candidate Experience (Years)</span>
+                              <span className="text-indigo-400 font-bold">{marketExpYears} yrs</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="0"
+                              max="15"
+                              value={marketExpYears}
+                              onChange={(e) => setMarketExpYears(parseInt(e.target.value))}
+                              className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <div className="flex justify-between text-[10px] text-slate-400">
+                              <span>Remote Working Ratio Target</span>
+                              <span className="text-indigo-400 font-bold">{remoteRatio}% Remote</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="0"
+                              max="100"
+                              step="10"
+                              value={remoteRatio}
+                              onChange={(e) => setRemoteRatio(parseInt(e.target.value))}
+                              className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <span className="text-[10px] text-slate-400 uppercase">Target Digital Role</span>
+                            <select
+                              value={marketRoleSel}
+                              onChange={(e) => setMarketRoleSel(e.target.value)}
+                              className="w-full px-2 py-1.5 bg-slate-900 border border-slate-855 rounded text-xs text-white"
+                            >
+                              {['AI Integrations Engineer', 'React Frontend Specialist', 'Full Stack Node Engineer', 'Cloud Architect'].map(r => (
+                                <option key={r} value={r}>{r}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="p-3 bg-indigo-500/10 rounded-xl border border-indigo-500/20">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[10px] font-extrabold uppercase text-indigo-300">Live DS Tech Vacancy</span>
+                              <span className="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[8px] font-black uppercase rounded">Hot</span>
+                            </div>
+                            <p className="text-[10px] text-white font-extrabold mt-1">Senior {marketRoleSel} Role</p>
+                            <span className="text-[9px] text-slate-400 block mt-0.5">Budget: $135K - $160K base compensation.</span>
+                          </div>
+                        </div>
+
+                        {/* Chart range outcome */}
+                        <div className="space-y-3 bg-black/20 p-4 rounded-xl border border-white/5 flex flex-col justify-between">
+                          <div className="text-center py-4">
+                            <span className="text-[10px] text-slate-400 font-bold uppercase block">Projected Total Target Compensation</span>
+                            <div className="text-3xl font-black text-emerald-400 mt-1">
+                              ${Math.round(95000 + (marketExpYears * 6500) + (remoteRatio * 200)).toLocaleString()} / yr
+                            </div>
+                            <span className="text-[9px] text-slate-500 block">Based on live index benchmarks inside Cloudflare D1 nodes.</span>
+                          </div>
+
+                          <div className="h-32">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <AreaChart data={marketSalaryData}>
+                                <Area type="monotone" dataKey="Remote" stroke="#f97316" fill="#f97316" fillOpacity={0.1} />
+                                <Area type="monotone" dataKey="Hybrid" stroke="#6366f1" fill="#6366f1" fillOpacity={0.05} />
+                              </AreaChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activePageId === 9 && (
+                    <div className="space-y-4">
+                      <p className="text-slate-400 text-[11px] leading-relaxed">
+                        Interactive simulated accent coaching and audio feedback module for DS Tech client-facing operations.
+                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3 bg-black/20 p-4 rounded-xl border border-white/5">
+                          <h4 className="font-extrabold text-white text-[10px] uppercase">Simulate Voice/Speech Audit</h4>
+                          <textarea
+                            placeholder="Enter speech script or click 'Run simulated speech audit' to parse default transcript..."
+                            value={simulatedVoiceText}
+                            onChange={(e) => setSimulatedVoiceText(e.target.value)}
+                            rows={3}
+                            className="w-full p-2.5 bg-slate-900 border border-slate-855 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
+                          />
+                          <button
+                            onClick={runVoiceAudit}
+                            disabled={isVoiceAuditing}
+                            className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase text-[10px] tracking-wider rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                          >
+                            {isVoiceAuditing ? (
+                              <>
+                                <RefreshCw size={12} className="animate-spin" /> Analyzing voice frequencies...
+                              </>
+                            ) : (
+                              <>
+                                <Mic size={12} /> Run Speech & Accent Audit
+                              </>
+                            )}
+                          </button>
+                        </div>
+
+                        <div className="space-y-3 bg-black/20 p-4 rounded-xl border border-white/5">
+                          <h4 className="font-extrabold text-white text-[10px] uppercase">Auditory Diagnosis Output</h4>
+                          {voiceAuditResult ? (
+                            <div className="space-y-2 font-mono text-[10px] text-indigo-300">
+                              <div className="flex justify-between border-b border-white/5 pb-1">
+                                <span>Pacing Rating:</span>
+                                <span className="text-white font-bold">{voiceAuditResult.pacing}</span>
+                              </div>
+                              <div className="flex justify-between border-b border-white/5 pb-1">
+                                <span>Laryngeal Stress:</span>
+                                <span className="text-emerald-400 font-bold">{voiceAuditResult.stress}</span>
+                              </div>
+                              <div className="flex justify-between border-b border-white/5 pb-1">
+                                <span>Empathy Rating:</span>
+                                <span className="text-emerald-400 font-bold">{voiceAuditResult.empathy}</span>
+                              </div>
+                              <div className="flex justify-between pb-1">
+                                <span>Accent Match Score:</span>
+                                <span className="text-orange-400 font-bold">{voiceAuditResult.accentMatching}</span>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-slate-500 text-center py-8 text-[10px] italic">
+                              No voice diagnosis loaded. Run speech audit to see real-time laryngeal/stress telemetry.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activePageId === 11 && (
+                    <div className="space-y-4">
+                      <p className="text-slate-400 text-[11px] leading-relaxed">
+                        Configure target thresholds and watch the autonomous job agent query boards, construct custom cover letters, and log updates.
+                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3 bg-black/20 p-4 rounded-xl border border-white/5">
+                          <h4 className="font-extrabold text-white text-[10px] uppercase">Agent Autonomous Settings</h4>
+                          
+                          <div className="space-y-1">
+                            <span className="text-[10px] text-slate-400">Target Base Salary limit ($/yr)</span>
+                            <input
+                              type="number"
+                              value={jobAgentTargetSalary}
+                              onChange={(e) => setJobAgentTargetSalary(parseInt(e.target.value) || 120000)}
+                              className="w-full px-2 py-1.5 bg-slate-900 border border-slate-855 rounded text-xs text-white"
+                            />
+                          </div>
+
+                          <div className="space-y-1">
+                            <span className="text-[10px] text-slate-400">Target Skill Stack Keywords</span>
+                            <input
+                              type="text"
+                              value={jobAgentStack}
+                              onChange={(e) => setJobAgentStack(e.target.value)}
+                              className="w-full px-2 py-1.5 bg-slate-900 border border-slate-855 rounded text-xs text-white"
+                            />
+                          </div>
+
+                          <button
+                            onClick={() => setJobAgentActive(!jobAgentActive)}
+                            className={`w-full py-2 font-black uppercase text-[10px] tracking-wider rounded-lg transition-all cursor-pointer ${
+                              jobAgentActive 
+                                ? 'bg-red-600 hover:bg-red-500 text-white' 
+                                : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                            }`}
+                          >
+                            {jobAgentActive ? 'Dormant Agent (Stop Job Hunting)' : 'Initialize Autonomous Agent'}
+                          </button>
+                        </div>
+
+                        <div className="space-y-2 bg-black/20 p-4 rounded-xl border border-white/5 flex flex-col justify-between">
+                          <div className="flex justify-between items-center border-b border-white/5 pb-1.5">
+                            <h4 className="font-extrabold text-white text-[10px] uppercase">Agent Operational Log</h4>
+                            <span className={`w-2 h-2 rounded-full ${jobAgentActive ? 'bg-emerald-500 animate-ping' : 'bg-red-500'}`} />
+                          </div>
+                          
+                          <div className="bg-slate-955/40 p-2 border border-slate-855 rounded-xl h-28 overflow-y-auto font-mono text-[9px] text-emerald-400/90 space-y-1">
+                            {jobAgentLogs.map((log, lIdx) => (
+                              <div key={lIdx} className="leading-relaxed">{log}</div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activePageId === 14 && (
+                    <div className="space-y-4">
+                      <p className="text-slate-400 text-[11px] leading-relaxed">
+                        Input compensation offer packages to generate strategic counter-offers and highly persuasive negotiation scripts.
+                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3 bg-black/20 p-4 rounded-xl border border-white/5">
+                          <h4 className="font-extrabold text-white text-[10px] uppercase">Current Written Offer Parameters</h4>
+                          
+                          <div className="grid grid-cols-3 gap-2">
+                            <div className="space-y-1">
+                              <span className="text-[9px] text-slate-400 block">Base ($)</span>
+                              <input
+                                type="number"
+                                value={negoBaseOffer}
+                                onChange={(e) => setNegoBaseOffer(parseInt(e.target.value) || 100000)}
+                                className="w-full px-2 py-1 bg-slate-900 border border-slate-855 rounded text-[10px] text-white"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-[9px] text-slate-400 block">Equity ($)</span>
+                              <input
+                                type="number"
+                                value={negoEquityOffer}
+                                onChange={(e) => setNegoEquityOffer(parseInt(e.target.value) || 10000)}
+                                className="w-full px-2 py-1 bg-slate-900 border border-slate-855 rounded text-[10px] text-white"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-[9px] text-slate-400 block">Bonus ($)</span>
+                              <input
+                                type="number"
+                                value={negoBonusOffer}
+                                onChange={(e) => setNegoBonusOffer(parseInt(e.target.value) || 5000)}
+                                className="w-full px-2 py-1 bg-slate-900 border border-slate-855 rounded text-[10px] text-white"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <span className="text-[10px] text-slate-400">Negotiation Language Tone</span>
+                            <select
+                              value={negoTone}
+                              onChange={(e) => setNegoTone(e.target.value)}
+                              className="w-full px-2 py-1.5 bg-slate-900 border border-slate-855 rounded text-xs text-white"
+                            >
+                              <option value="Collaborative">Collaborative & Soft-Powered</option>
+                              <option value="Bold">Bold & Highly Competent</option>
+                              <option value="Direct">Direct & Executive Standard</option>
+                            </select>
+                          </div>
+
+                          <button
+                            onClick={runNegotiationAI}
+                            className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase text-[10px] tracking-wider rounded-lg transition-all cursor-pointer"
+                          >
+                            Generate Negotiation Script
+                          </button>
+                        </div>
+
+                        <div className="space-y-2 bg-black/20 p-4 rounded-xl border border-white/5 flex flex-col justify-between">
+                          <h4 className="font-extrabold text-white text-[10px] uppercase">Custom Negotiation Script Draft</h4>
+                          {negoScript ? (
+                            <div className="relative">
+                              <pre className="p-2.5 bg-slate-950/60 border border-slate-855 rounded-xl h-28 overflow-y-auto font-sans text-[10px] text-slate-300 leading-relaxed whitespace-pre-wrap select-text">
+                                {negoScript}
+                              </pre>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(negoScript);
+                                  alert("Script copied to clipboard!");
+                                }}
+                                className="absolute bottom-2 right-2 px-2 py-1 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase text-[8px] tracking-wider rounded cursor-pointer"
+                              >
+                                Copy Script
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="text-slate-500 text-center py-8 text-[10px] italic">
+                              Click 'Generate' to output custom negotiation emails mapped to target DS Tech ratios.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activePageId === 15 && (
+                    <div className="space-y-4">
+                      <p className="text-slate-400 text-[11px] leading-relaxed">
+                        Analyze your portfolio descriptions, bios, and LinkedIn taglines to maximize matching probability scores in local D1 repositories.
+                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3 bg-black/20 p-4 rounded-xl border border-white/5">
+                          <h4 className="font-extrabold text-white text-[10px] uppercase">Applicant Bio/SEO Tagline Input</h4>
+                          <textarea
+                            value={portfolioBioText}
+                            onChange={(e) => setPortfolioBioText(e.target.value)}
+                            rows={3}
+                            className="w-full p-2.5 bg-slate-900 border border-slate-855 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
+                          />
+                          <button
+                            onClick={runSeoAnalysis}
+                            className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase text-[10px] tracking-wider rounded-lg transition-all cursor-pointer"
+                          >
+                            Quantify SEO & Github Density
+                          </button>
+                        </div>
+
+                        <div className="space-y-2 bg-black/20 p-4 rounded-xl border border-white/5 flex flex-col justify-between">
+                          <h4 className="font-extrabold text-white text-[10px] uppercase">SEO Audit Report</h4>
+                          {seoScore ? (
+                            <div className="space-y-2 text-[10px]">
+                              <div className="flex justify-between items-center">
+                                <span className="text-slate-400 font-bold uppercase">Candidate Index Match:</span>
+                                <span className="text-orange-400 font-black text-xs">{seoScore.score}% Optimal</span>
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-slate-400 font-bold">Optimization Actions:</span>
+                                <ul className="list-disc pl-4 space-y-1 text-[9px] text-indigo-300">
+                                  {seoScore.suggestions.map((s: string, idx: number) => (
+                                    <li key={idx}>{s}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-slate-500 text-center py-8 text-[10px] italic">
+                              Click 'Quantify' to run semantic SEO keyword extraction.
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activePageId === 21 && (
+                    <div className="space-y-4">
+                      <p className="text-slate-400 text-[11px] leading-relaxed">
+                        Paste suspicious recruiters messages, salary posting descriptions, or onboarding terms to detect fraudulent and phishing hazards.
+                      </p>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-3 bg-black/20 p-4 rounded-xl border border-white/5">
+                          <h4 className="font-extrabold text-white text-[10px] uppercase">suspicious message text</h4>
+                          <textarea
+                            value={suspiciousJobOffer}
+                            onChange={(e) => setSuspiciousJobOffer(e.target.value)}
+                            rows={3}
+                            className="w-full p-2.5 bg-slate-900 border border-slate-855 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500"
+                          />
+                          <button
+                            onClick={runThreatCheck}
+                            className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase text-[10px] tracking-wider rounded-lg transition-all cursor-pointer"
+                          >
+                            Analyze Scam Probability
+                          </button>
+                        </div>
+
+                        <div className="space-y-2 bg-black/20 p-4 rounded-xl border border-white/5 flex flex-col justify-between">
+                          <h4 className="font-extrabold text-white text-[10px] uppercase">Threat signature scorecard</h4>
+                          {threatAnalysis ? (
+                            <div className="space-y-2 text-[10px]">
+                              <div className="flex justify-between items-center">
+                                <span className="text-slate-400 font-bold uppercase">Scam Scorecard Rating:</span>
+                                <span className={`font-black text-xs ${threatAnalysis.score > 30 ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                  {threatAnalysis.score}% Threat Potential
+                                </span>
+                              </div>
+                              <div className="space-y-1">
+                                <span className="text-slate-400 font-bold">Identified Risk Markers:</span>
+                                <ul className="list-disc pl-4 space-y-1 text-[9px] text-rose-300">
+                                  {threatAnalysis.flags.map((f: string, idx: number) => (
+                                    <li key={idx}>{f}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="text-slate-500 text-center py-8 text-[10px] italic">
+                              Click 'Analyze' to scan text against risk indices.
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {/* Standard Catch-All visually detailed panel */}
-                  {activePageId !== 6 && activePageId !== 7 && (
+                  {activePageId !== 6 && activePageId !== 7 && activePageId !== 9 && activePageId !== 11 && activePageId !== 14 && activePageId !== 15 && activePageId !== 21 && (
                     <div className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div className="p-4 bg-white/5 rounded-2xl border border-white/5">

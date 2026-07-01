@@ -902,18 +902,47 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   };
 
   // Premium Admin Tool: Copy structured Cloudflare D1 SQL schema code to clipboard
+  const fallbackCopyText = (text: string) => {
+    try {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.top = "0";
+      textArea.style.left = "0";
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      const successful = document.execCommand('copy');
+      document.body.removeChild(textArea);
+      if (successful) {
+        setCopiedSQL(true);
+        setTimeout(() => setCopiedSQL(false), 2000);
+      } else {
+        alert("Please select and copy manually.");
+      }
+    } catch (err) {
+      console.error("Fallback copy failed:", err);
+      alert("Please copy manually from the code box.");
+    }
+  };
+
   const handleCopySQL = () => {
     try {
       const code = generateSQLSchemaString();
-      navigator.clipboard.writeText(code)
-        .then(() => {
-          setCopiedSQL(true);
-          setTimeout(() => setCopiedSQL(false), 2000);
-        })
-        .catch(err => {
-          console.error("Failed to copy!", err);
-          alert("Failed to copy schema to clipboard.");
-        });
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code)
+          .then(() => {
+            setCopiedSQL(true);
+            setTimeout(() => setCopiedSQL(false), 2000);
+          })
+          .catch(err => {
+            console.warn("Clipboard API failed, trying fallback:", err);
+            fallbackCopyText(code);
+          });
+      } else {
+        fallbackCopyText(code);
+      }
     } catch (err) {
       console.error(err);
       alert("Failed to copy SQL schema.");
@@ -1539,13 +1568,25 @@ export default {
               </h5>
               <p className="text-[10px] text-slate-500 mt-0.5">Contains custom schema layouts and active catalog data seed statements.</p>
             </div>
-            <button
-              onClick={handleExportSQLSchema}
-              className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold rounded-lg text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
-            >
-              <Download size={12} />
-              <span>Export SQL (.sql)</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={() => {
+                  setSqlCode(generateSQLSchemaString());
+                  setShowSQLSchemaModal(true);
+                }}
+                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg text-[11px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all shadow-md active:scale-95 cursor-pointer border border-slate-700"
+              >
+                <Code size={12} className="text-cyan-400" />
+                <span>View & Copy</span>
+              </button>
+              <button
+                onClick={handleExportSQLSchema}
+                className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold rounded-lg text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 transition-all shadow-md active:scale-95 cursor-pointer"
+              >
+                <Download size={12} />
+                <span>Export SQL (.sql)</span>
+              </button>
+            </div>
           </div>
         </div>
       )
@@ -2072,6 +2113,16 @@ export default {
               >
                 <FileDown size={11} className="text-indigo-400" />
                 <span>Backup Database (JSON)</span>
+              </button>
+              <button
+                onClick={() => {
+                  setSqlCode(generateSQLSchemaString());
+                  setShowSQLSchemaModal(true);
+                }}
+                className="w-full flex items-center gap-1.5 text-slate-400 hover:text-white text-[10px] transition-colors font-bold cursor-pointer"
+              >
+                <Code size={11} className="text-cyan-400" />
+                <span>View & Copy SQL (D1)</span>
               </button>
               <button
                 onClick={handleExportSQLSchema}

@@ -377,6 +377,50 @@ export async function onRequest(context: { request: Request; env: any; params: a
     }
 
     // ==========================================
+    // 2.1 FIREBASE PROFILE SYNCHRONIZATION
+    // ==========================================
+
+    if (path === '/api/auth/sync-firebase' && method === 'POST') {
+      const body = await request.json();
+      const { firebaseUid, email, fullName, role } = body;
+
+      if (!firebaseUid || !email) {
+        return new Response(JSON.stringify({ error: "Missing required identifier: firebaseUid and email" }), { status: 400, headers });
+      }
+
+      // Upsert into users table
+      await env.DB.prepare(
+        "INSERT OR REPLACE INTO users (id, email, full_name, role, created_at) VALUES (?, ?, ?, ?, ?)"
+      ).bind(
+        firebaseUid,
+        email,
+        fullName || email.split('@')[0],
+        role || 'Applicant',
+        new Date().toISOString()
+      ).run();
+
+      const user = {
+        id: firebaseUid,
+        email,
+        fullName: fullName || email.split('@')[0],
+        role: role || 'Applicant'
+      };
+
+      // Set session cookie
+      headers.append('Set-Cookie', `dstech_session=${btoa(JSON.stringify(user))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
+
+      // Broadcast profile sync success
+      broadcastSyncEvent({
+        type: 'PROFILE_SYNC',
+        userId: firebaseUid,
+        email,
+        message: `Profile synchronized for ${fullName || email}`
+      });
+
+      return new Response(JSON.stringify({ success: true, user }), { headers });
+    }
+
+    // ==========================================
     // 3. SECURITY LOGS & ATTEMPTS AUDITING
     // ==========================================
 

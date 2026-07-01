@@ -156,7 +156,7 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
       await fetchSecurityLogs();
 
     } catch (err: any) {
-      console.error("WebAuthn Failure:", err);
+      console.warn("WebAuthn Handled Exception (Biometric Prompt Fallback Active):", err);
       
       let friendlyError = err.message || "An unexpected error occurred during WebAuthn verification.";
       
@@ -250,7 +250,12 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
   useEffect(() => {
     if (isOpen) {
       fetchSecurityLogs();
-      const isInsideIframe = typeof window !== 'undefined' && window.self !== window.top;
+      let isInsideIframe = false;
+      try {
+        isInsideIframe = typeof window !== 'undefined' && window.self !== window.top;
+      } catch (e) {
+        isInsideIframe = true;
+      }
       setIsSandbox(isInsideIframe);
 
       if (isInsideIframe) {
