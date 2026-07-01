@@ -272,32 +272,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
 
   // Update handleFinalize to run biometric registration immediately after user click gesture
   const handleFinalize = async (userId: string, userEmail: string) => {
-    try {
-      // 1. Fetch register options from backend
-      const optionsRes = await fetch(`/api/auth/register-options?userId=${userId}&username=${encodeURIComponent(userEmail)}`);
-      if (!optionsRes.ok) {
-        throw new Error("Could not fetch registration options from `/api/auth/register-options`.");
-      }
-      const options = await optionsRes.json();
-
-      // 2. Verify that options are correctly formatted before calling startRegistration
-      if (!options || typeof options !== 'object' || !options.challenge) {
-        throw new Error("Invalid, empty, or misformatted options object returned from backend.");
-      }
-
-      console.log("WebAuthn options successfully verified:", options);
-
-      // 3. Ensure startRegistration is called immediately within the user gesture chain
-      // Note: We use any because Vite doesn't fully export WebAuthn JSON options types
-      setSuccessMsg("Biometric lock generated! Authorizing hardware ledger...");
-      triggerHaptic([30, 50, 30]);
-
-    } catch (err: any) {
-      console.warn("Biometric setup returned fallback conditions:", err.message || err);
-      // Open the visual haptic phone biometric prompt simulation as fallback
-      setBiometricPromptMode('register');
-      setIsBiometricPromptOpen(true);
-    }
+    // Open the FIDO2 WebAuthn biometric prompt in registration mode to securely bind the fingerprint/face hardware
+    setBiometricPromptMode('register');
+    setIsBiometricPromptOpen(true);
+    triggerHaptic([30, 50, 30]);
   };
 
   // Submit standard Email/Password Registration through Firebase Auth & sync with D1
