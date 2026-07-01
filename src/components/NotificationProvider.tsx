@@ -12,7 +12,6 @@ import {
   apiSaveFcmToken,
   NotificationRecord
 } from '../lib/api';
-import { apiSubscribeToRealtimeSync } from '../lib/api';
 
 export interface ToastItem {
   id: string;
@@ -208,37 +207,54 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // Subscribe to backend Real-time SSE channel
   useEffect(() => {
-    const unsubscribe = apiSubscribeToRealtimeSync((data: any) => {
-      // Check if event indicates a new notification was created
-      if (data.type === 'NOTIFICATION_CREATED' && data.notification) {
-        const notif = data.notification as NotificationRecord;
+    const eventSource = new EventSource('/api/events');
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
         
-        const isTargetAdmin = notif.recipientRole === 'admin' && userRoleRef.current === 'admin';
-        const isTargetUser = notif.recipientRole === 'candidate' && notif.userId === userIdRef.current;
-        
-        if (isTargetAdmin || isTargetUser) {
-          // Add to dynamic onscreen toast queue
-          addToast({
-            title: notif.title,
-            message: notif.message,
-            type: notif.type,
-            priority: notif.priority,
-            image: notif.image,
-            actionUrl: notif.actionUrl
-          });
+        // Trigger a global state update for any data synchronization events
+        if (data.type === 'NOTIFICATIONS_UPDATED' || data.type?.includes('SYNC') || data.type?.includes('CREATED') || data.type?.includes('UPDATED') || data.type?.includes('DELETED')) {
+          refreshNotificationsList();
           
-          // Add to history list in-app
-          setNotifications(prev => [notif, ...prev]);
-          setUnreadCount(prev => prev + 1);
+          // Dispatch a custom event globally so other dashboard components/listeners can refresh their state
+          window.dispatchEvent(new CustomEvent('realtime-sync', { detail: data }));
         }
-      } else if (data.type === 'NOTIFICATIONS_UPDATED') {
-        // Reload notifications list to keep full sync
-        refreshNotificationsList();
+
+        // Handle dynamically created notifications for the toast queue
+        if (data.type === 'NOTIFICATION_CREATED' && data.notification) {
+          const notif = data.notification as NotificationRecord;
+          
+          const isTargetAdmin = notif.recipientRole === 'admin' && userRoleRef.current === 'admin';
+          const isTargetUser = notif.recipientRole === 'candidate' && notif.userId === userIdRef.current;
+          
+          if (isTargetAdmin || isTargetUser) {
+            // Add to dynamic onscreen toast queue
+            addToast({
+              title: notif.title,
+              message: notif.message,
+              type: notif.type,
+              priority: notif.priority,
+              image: notif.image,
+              actionUrl: notif.actionUrl
+            });
+            
+            // Add to history list in-app
+            setNotifications(prev => [notif, ...prev]);
+            setUnreadCount(prev => prev + 1);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to parse SSE event payload:', e);
       }
-    });
+    };
+
+    eventSource.onerror = (err) => {
+      console.warn('Real-time connection to /api/events disrupted. Retrying automatically...', err);
+    };
 
     return () => {
-      unsubscribe();
+      eventSource.close();
     };
   }, [addToast, refreshNotificationsList]);
 

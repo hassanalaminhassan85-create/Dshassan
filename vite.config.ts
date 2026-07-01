@@ -88,13 +88,18 @@ function readDB() {
   }
   try {
     const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+    if (!data.applications) data.applications = [];
+    if (!data.scan_history) data.scan_history = [];
     if (!data.services) data.services = [];
     if (!data.portfolio) data.portfolio = [];
     if (!data.blogs) data.blogs = [];
     if (!data.courses) data.courses = [];
+    if (!data.users) data.users = [];
+    if (!data.passkeys) data.passkeys = [];
+    if (!data.biometric_logs) data.biometric_logs = [];
     return data;
   } catch (e) {
-    return { applications: [], scan_history: [], services: [], portfolio: [], blogs: [], courses: [] };
+    return { applications: [], scan_history: [], services: [], portfolio: [], blogs: [], courses: [], users: [], passkeys: [], biometric_logs: [] };
   }
 }
 
@@ -135,6 +140,36 @@ const mockDB = {
             if (normalizedSql.includes("FROM courses")) {
               return { results: db.courses || [] };
             }
+            if (normalizedSql.includes("FROM users WHERE email = ?")) {
+              const email = params[0];
+              const results = (db.users || []).filter((u: any) => u.email === email);
+              return { results };
+            }
+            if (normalizedSql.includes("FROM users WHERE id = ?")) {
+              const id = params[0];
+              const results = (db.users || []).filter((u: any) => u.id === id);
+              return { results };
+            }
+            if (normalizedSql.includes("FROM passkeys WHERE user_id = ?")) {
+              const userId = params[0];
+              const results = (db.passkeys || []).filter((p: any) => p.user_id === userId);
+              return { results };
+            }
+            if (normalizedSql.includes("FROM passkeys WHERE id = ?")) {
+              const id = params[0];
+              const results = (db.passkeys || []).filter((p: any) => p.id === id);
+              return { results };
+            }
+            if (normalizedSql.includes("FROM biometric_logs WHERE user_id = ?")) {
+              const userId = params[0];
+              const results = (db.biometric_logs || [])
+                .filter((l: any) => l.user_id === userId)
+                .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+              return { results };
+            }
+            if (normalizedSql.includes("FROM biometric_logs")) {
+              return { results: db.biometric_logs || [] };
+            }
             return { results: [] };
           },
           first: async () => {
@@ -163,6 +198,18 @@ const mockDB = {
               const id = params[0];
               const record = db.courses.find((r: any) => r.id === id);
               return record || null;
+            }
+            if (normalizedSql.includes("FROM users WHERE email = ?")) {
+              const email = params[0];
+              return (db.users || []).find((u: any) => u.email === email) || null;
+            }
+            if (normalizedSql.includes("FROM users WHERE id = ?")) {
+              const id = params[0];
+              return (db.users || []).find((u: any) => u.id === id) || null;
+            }
+            if (normalizedSql.includes("FROM passkeys WHERE id = ?")) {
+              const id = params[0];
+              return (db.passkeys || []).find((p: any) => p.id === id) || null;
             }
             return null;
           },
@@ -248,6 +295,36 @@ const mockDB = {
               writeDB(db);
               return { success: true };
             }
+            if (normalizedSql.includes("INSERT OR REPLACE INTO users")) {
+              const [id, email, full_name, role, created_at] = params;
+              db.users = (db.users || []).filter((u: any) => u.id !== id);
+              db.users.push({ id, email, full_name, role, created_at });
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("INSERT OR REPLACE INTO passkeys")) {
+              const [id, user_id, public_key, counter, transports, created_at] = params;
+              db.passkeys = (db.passkeys || []).filter((p: any) => p.id !== id);
+              db.passkeys.push({ id, user_id, public_key, counter, transports, created_at });
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("UPDATE passkeys SET counter = ?")) {
+              const [counter, id] = params;
+              const record = (db.passkeys || []).find((p: any) => p.id === id);
+              if (record) {
+                record.counter = counter;
+                writeDB(db);
+              }
+              return { success: true };
+            }
+            if (normalizedSql.includes("INSERT INTO biometric_logs")) {
+              const [id, user_id, email, biometric_type, status, message, user_agent, created_at] = params;
+              if (!db.biometric_logs) db.biometric_logs = [];
+              db.biometric_logs.unshift({ id, user_id, email, biometric_type, status, message, user_agent, created_at });
+              writeDB(db);
+              return { success: true };
+            }
             return { success: true };
           }
         };
@@ -271,6 +348,15 @@ const mockDB = {
         }
         if (normalizedSql.includes("FROM courses")) {
           return { results: db.courses || [] };
+        }
+        if (normalizedSql.includes("FROM users")) {
+          return { results: db.users || [] };
+        }
+        if (normalizedSql.includes("FROM passkeys")) {
+          return { results: db.passkeys || [] };
+        }
+        if (normalizedSql.includes("FROM biometric_logs")) {
+          return { results: db.biometric_logs || [] };
         }
         return { results: [] };
       },

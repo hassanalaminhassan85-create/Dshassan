@@ -117,7 +117,7 @@ export async function apiAnalyzeCandidate(applicationData: any): Promise<{
 
 // Start a real-time Server-Sent Events connection for instant multi-screen syncing
 export function apiSubscribeToRealtimeSync(onEvent: (data: any) => void): () => void {
-  const eventSource = new EventSource('/api/real-time/sync');
+  const eventSource = new EventSource('/api/events');
 
   eventSource.onmessage = (event) => {
     try {
@@ -442,4 +442,46 @@ export async function apiSaveFcmToken(tokenParams: {
   if (!res.ok) throw new Error('Failed to register FCM token.');
   return res.json();
 }
+
+export interface BiometricLogRecord {
+  id: string;
+  user_id: string;
+  email: string;
+  biometric_type: string;
+  status: 'success' | 'failed' | 'warning' | 'pending';
+  message: string;
+  user_agent: string;
+  created_at: string;
+}
+
+export async function apiGetBiometricLogs(userId: string): Promise<BiometricLogRecord[]> {
+  const res = await fetch(`/api/auth/biometric-logs?userId=${encodeURIComponent(userId)}`);
+  if (!res.ok) {
+    throw new Error('Failed to fetch biometric auditing logs.');
+  }
+  return res.json();
+}
+
+export async function apiLogBiometricAttempt(params: {
+  userId?: string;
+  email?: string;
+  biometricType?: string;
+  status: 'success' | 'failed' | 'warning' | 'pending';
+  message: string;
+  userAgent?: string;
+}): Promise<{ success: boolean }> {
+  const res = await fetch('/api/auth/biometric-attempt-log', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ...params,
+      userAgent: params.userAgent || navigator.userAgent
+    })
+  });
+  if (!res.ok) {
+    throw new Error('Failed to record biometric event log.');
+  }
+  return res.json();
+}
+
 
