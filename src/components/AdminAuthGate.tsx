@@ -27,9 +27,6 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Default security passcode to prevent unauthorized sign-ups
-  const ADMIN_SECRET_PASSCODE = "admin2026";
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
@@ -39,7 +36,7 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({
     setLoading(true);
     setErrorMsg(null);
     try {
-      // Try to login via API
+      // Login via secure backend endpoint
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -48,29 +45,11 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({
 
       if (res.ok) {
         const data = await res.json();
-        // Set admin token / preferences check
         onAuthSuccess({ email: data.email, fullName: data.fullName || 'Administrator' });
         return;
       }
 
-      // Check local storage accounts fallback
-      const savedAdmins = localStorage.getItem('local_admins');
-      if (savedAdmins) {
-        const list = JSON.parse(savedAdmins);
-        const match = list.find((a: any) => a.email.toLowerCase() === email.toLowerCase() && a.password === password);
-        if (match) {
-          onAuthSuccess({ email: match.email, fullName: match.fullName });
-          return;
-        }
-      }
-
-      // Default fallback account for convenience
-      if (email.toLowerCase() === 'admin@dstech.com' && password === 'admin2026') {
-        onAuthSuccess({ email: 'admin@dstech.com', fullName: 'Hassan Al-Amin' });
-        return;
-      }
-
-      const errData = await res.json().catch(() => ({ error: 'Invalid credentials or database error.' }));
+      const errData = await res.json().catch(() => ({ error: 'Invalid credentials or authorization database error.' }));
       throw new Error(errData.error || 'Incorrect admin email or password.');
     } catch (err: any) {
       setErrorMsg(err.message || 'Authorization failed.');
@@ -86,17 +65,12 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({
       return;
     }
 
-    if (securityPasscode !== ADMIN_SECRET_PASSCODE) {
-      setErrorMsg("Invalid Admin Security Passcode. Access denied.");
-      return;
-    }
-
     setLoading(true);
     setErrorMsg(null);
     setSuccessMsg(null);
 
     try {
-      // Call backend register API
+      // Call secure backend register API with securityPasscode payload for server-side verification
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -104,6 +78,7 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({
           email,
           password,
           fullName,
+          securityPasscode,
           preferences: { isAdmin: true }
         }),
       });
@@ -114,37 +89,13 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({
       }
 
       const data = await res.json();
-
-      // Store locally as backup
-      const savedAdmins = localStorage.getItem('local_admins');
-      const list = savedAdmins ? JSON.parse(savedAdmins) : [];
-      list.push({ email, password, fullName });
-      localStorage.setItem('local_admins', JSON.stringify(list));
-
-      setSuccessMsg("Admin registration successful! Loading workspace...");
+      setSuccessMsg("Admin registration verified! Initializing secure workspace...");
       setTimeout(() => {
         onAuthSuccess({ email: data.email, fullName: data.fullName });
       }, 1500);
 
     } catch (err: any) {
-      // Fallback register locally if server-side database is in a custom container state
-      const savedAdmins = localStorage.getItem('local_admins');
-      const list = savedAdmins ? JSON.parse(savedAdmins) : [];
-      const exists = list.some((a: any) => a.email.toLowerCase() === email.toLowerCase());
-      
-      if (exists) {
-        setErrorMsg("Admin email already registered.");
-        setLoading(false);
-        return;
-      }
-
-      list.push({ email, password, fullName });
-      localStorage.setItem('local_admins', JSON.stringify(list));
-
-      setSuccessMsg("Database fallback active: Local Admin registration successful!");
-      setTimeout(() => {
-        onAuthSuccess({ email, fullName });
-      }, 1500);
+      setErrorMsg(err.message || 'Registration authorization failed.');
     } finally {
       setLoading(false);
     }

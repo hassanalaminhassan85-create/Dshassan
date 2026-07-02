@@ -81,6 +81,26 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
       setStatusMessage("Contacting device's secure enclave...");
       triggerHaptic(30);
 
+      // Secure Domain Guard: WebAuthn strictly relies on proper rpId domains (alihsan.online) and HTTPS
+      if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+        const protocol = window.location.protocol;
+        
+        if (protocol !== 'https:' && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+          throw {
+            name: 'SecurityError',
+            message: `Unsecured Origin: WebAuthn requires a secure HTTPS protocol connection. Current protocol: ${protocol}`
+          };
+        }
+        
+        if (hostname !== 'alihsan.online' && hostname !== 'localhost' && hostname !== '127.0.0.1' && !hostname.endsWith('.gitpod.io') && !hostname.endsWith('.webcontainer.io')) {
+          throw {
+            name: 'SecurityError',
+            message: `RP ID Domain Mismatch: alihsan.online biometrics are locked to the target domain 'alihsan.online'. Current hostname: '${hostname}'. Please connect to https://alihsan.online to verify standard hardware enclaves.`
+          };
+        }
+      }
+
       const isRegistration = mode === 'register';
 
       if (isRegistration) {
@@ -162,13 +182,17 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
       
       // Map common errors to clear and friendly security warnings
       if (err.name === 'SecurityError' || (err.message && (err.message.includes('publickey-credentials-get') || err.message.includes('publickey-credentials-create') || err.message.includes('Permissions Policy') || err.message.includes('feature is not enabled')))) {
-        friendlyError = "Iframe Sandbox Restriction: Your browser blocks biometric scans in previews. Click 'Open in New Tab' in the top right to register/use real passkeys, or click the emerald 'Sandbox Bypass' button below to simulate it inside this sandbox!";
+        friendlyError = err.message && err.message.includes('RP ID Domain Mismatch') 
+          ? err.message 
+          : "Iframe Sandbox Restriction: Your browser blocks biometric scans in previews. Click 'Open in New Tab' in the top right to register/use real passkeys, or click the emerald 'Sandbox Bypass' button below to simulate it inside this sandbox!";
       } else if (err.name === 'NotAllowedError') {
-        friendlyError = "Biometric scan canceled by the user, or hardware timeout occurred.";
+        friendlyError = "Biometric scan canceled by user (NotAllowedError), hardware timeout reached, or origin 'https://alihsan.online' does not match the configured relying party ID.";
+      } else if (err.name === 'TimeoutError') {
+        friendlyError = "Cryptographic session expired (TimeoutError). The secure enclave did not receive a response within the allocated window.";
       } else if (err.name === 'NotSupportedError') {
-        friendlyError = "Your browser or hardware does not support WebAuthn / Passkeys.";
+        friendlyError = "Your browser or hardware does not support WebAuthn / FIDO2 Passkeys. Make sure you are in a secure HTTPS context.";
       } else if (err.name === 'InvalidStateError') {
-        friendlyError = "This device is already registered under your candidate profile.";
+        friendlyError = "This device credential is already bound to your candidate profile on the D1 ledger.";
       }
 
       setScanState('failed');
@@ -182,7 +206,7 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
         email,
         biometricType: 'passkey',
         status: 'failed',
-        message: `WebAuthn ${mode} failure: ${err.name} - ${err.message}`
+        message: `WebAuthn ${mode} failure: ${err.name || 'Error'} - ${err.message || 'unknown'}`
       });
 
       await fetchSecurityLogs();

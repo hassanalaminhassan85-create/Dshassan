@@ -74,6 +74,11 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
   // Password visibility
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
+  // Secure 2-Phase Email OTP Signup States
+  const [isOtpPending, setIsOtpPending] = useState<boolean>(false);
+  const [otpInput, setOtpInput] = useState<string>('');
+  const [otpDebugMessage, setOtpDebugMessage] = useState<string | null>(null);
+
   // Onboarding registration steps
   const [registerStep, setRegisterStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -278,7 +283,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
     triggerHaptic([30, 50, 30]);
   };
 
-  // Submit standard Email/Password Registration through Firebase Auth & sync with D1
+  // Submit standard Email/Password Registration through D1 Backend with Phase 1 Email OTP dispatch
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -287,45 +292,32 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
     triggerHaptic([10, 30, 10]);
 
     try {
-      let uid = 'local_usr_' + Math.random().toString(36).substring(2, 11);
-      let userObj = {
-        uid,
-        email,
-        displayName: fullName,
-        photoURL: "",
-        providerData: [{ providerId: "email" }]
-      };
+      const res = await fetch('/api/auth/otp-generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          fullName,
+          password,
+          role: selectedRole
+        })
+      });
 
-      try {
-        // 1. Create User in Firebase Auth
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        uid = userCredential.user.uid;
-        userObj = {
-          uid: userCredential.user.uid,
-          email: userCredential.user.email || email,
-          displayName: userCredential.user.displayName || fullName,
-          photoURL: userCredential.user.photoURL || "",
-          providerData: userCredential.user.providerData
-        } as any;
-        
-        // 2. Update display name
-        await updateProfile(userCredential.user, {
-          displayName: fullName
-        });
-      } catch (fbErr: any) {
-        console.warn("Firebase email signup error, falling back to secure D1 storage local account:", fbErr);
-        setSuccessMsg("Authorizing secure local sandbox account (Firebase provider fallback)...");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to generate verification passcode.");
       }
 
-      // 3. Store role locally to preserve across synchronization cycles
-      localStorage.setItem(`role_${uid}`, selectedRole);
-
-      // 4. Sync User details to Cloudflare D1
-      await syncUserWithD1(userObj as any, selectedRole, true);
-      
-      // 5. Finalize WebAuthn biometric simulation
-      await handleFinalize(uid, email);
-      
+      const data = await res.json();
+      if (data.success) {
+        setIsOtpPending(true);
+        if (data.otp) {
+          setOtpDebugMessage(data.otp);
+        } else {
+          setOtpDebugMessage(null);
+        }
+        setSuccessMsg("Phase 1 Complete: A secure 6-digit OTP has been sent to your email.");
+      }
     } catch (err: any) {
       console.error("Standard sign up failure:", err);
       setAuthError(err.message || "Failed to create account. Email might be in use.");
@@ -334,7 +326,57 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
     }
   };
 
-  // Submit standard Email/Password Login through Firebase Auth & sync with D1
+  // Phase 2 Email OTP Cryptographic Verification and Account Activation
+  const handleOtpVerifySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setAuthError(null);
+    setSuccessMsg(null);
+    triggerHaptic([15, 30, 15]);
+
+    try {
+      const res = await fetch('/api/auth/otp-verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp: otpInput })
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Invalid OTP code. Cryptographic verification failed.");
+      }
+
+      const data = await res.json();
+      if (data.success) {
+        setSuccessMsg(data.message || "OTP Verified! Profile has been activated on the D1 ledger.");
+        
+        const activatedUser = {
+          id: data.user.userId,
+          email: data.user.email,
+          fullName: data.user.fullName,
+          role: data.user.role
+        };
+        setCurrentUser(activatedUser);
+        localStorage.setItem('currentUser', JSON.stringify(activatedUser));
+
+        // Enlist WebAuthn Biometric registration immediately following verification success
+        await handleFinalize(data.user.userId, data.user.email);
+
+        setIsOtpPending(false);
+        setOtpInput('');
+        setOtpDebugMessage(null);
+
+        // Fetch career roadmap
+        fetchAiRoadmap(data.user.fullName, targetRole, initialSkills);
+      }
+    } catch (err: any) {
+      setAuthError(err.message || "OTP validation failed.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Submit standard Email/Password Login through Secure D1 Backend and sync session
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -343,34 +385,45 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
     triggerHaptic(15);
 
     try {
-      let uid = '';
-      let userObj = null;
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
 
-      try {
-        // 1. Sign in via Firebase Auth
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
-        uid = userCredential.user.uid;
-        userObj = userCredential.user;
-      } catch (fbErr: any) {
-        console.warn("Firebase sign in error, checking local D1 database fallback:", fbErr);
-        setSuccessMsg("Bypassed network limits. Authorizing secure local sandbox session...");
-        uid = 'local_usr_' + btoa(email).substring(0, 10).replace(/=/g, '');
-        userObj = {
-          uid,
-          email,
-          displayName: email.split('@')[0],
-          photoURL: "",
-          providerData: [{ providerId: "email" }]
-        };
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Incorrect email or passcode. Authorization denied.");
       }
 
-      // 2. Read role setting if any
-      const savedRole = localStorage.getItem(`role_${uid}`) || selectedRole;
+      const data = await res.json();
       
-      // 3. Sync details with D1
-      await syncUserWithD1(userObj as any, savedRole);
+      const userObj = {
+        id: data.userId,
+        email: data.email,
+        fullName: data.fullName,
+        role: data.role
+      };
       
-      setBiometricLinked(true); // Pre-enable biometric linked
+      setCurrentUser(userObj);
+      localStorage.setItem('currentUser', JSON.stringify(userObj));
+
+      if (data.role === 'Admin') {
+        setSuccessMsg("Welcome Admin! Transferring to Decentralized Enterprise Dashboard...");
+        setTimeout(() => {
+          window.history.pushState(null, '', '/admin');
+          window.dispatchEvent(new Event('popstate'));
+        }, 1500);
+      } else if (data.role === 'Recruiter') {
+        setSuccessMsg(`Welcome Recruiter ${data.fullName}! Accessing Candidate Command Panel...`);
+        setAuthState('dashboard');
+      } else {
+        setSuccessMsg(`Welcome ${data.fullName}! Mapping adaptive career success enclaves...`);
+        setAuthState('dashboard');
+        fetchAiRoadmap(data.fullName, targetRole, initialSkills);
+      }
+
+      setBiometricLinked(true);
       
     } catch (err: any) {
       console.error("Sign in failed:", err);
@@ -841,12 +894,14 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                 <div>
                   <h2 className="text-base font-black flex items-center gap-2 text-[#000E32] dark:text-white">
                     <UserPlus className="text-indigo-400" size={18} />
-                    Onboarding Registration
+                    {isOtpPending ? "Email OTP Verification" : "Onboarding Registration"}
                   </h2>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-300 font-semibold">Create your candidate profile in a single unified step</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-300 font-semibold">
+                    {isOtpPending ? "Verify your email to activate candidate profile" : "Create your candidate profile in a single unified step"}
+                  </p>
                 </div>
                 <span className="text-[9px] font-mono font-bold text-indigo-500 dark:text-indigo-400 bg-indigo-500/15 px-2.5 py-1 rounded-xl uppercase tracking-wider">
-                  Fast Track Mode
+                  {isOtpPending ? "Security Handshake" : "Fast Track Mode"}
                 </span>
               </div>
 
@@ -864,140 +919,210 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                 </div>
               )}
 
-              <form onSubmit={handleRegisterSubmit} className="space-y-4">
-                {/* 2-Column Grid for compact layout */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  
-                  {/* LEFT INPUTS COLUMN */}
-                  <div className="space-y-3">
+              {isOtpPending ? (
+                /* PHASE 2 SECURE OTP VERIFICATION FORM */
+                <form onSubmit={handleOtpVerifySubmit} className="space-y-4">
+                  <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl space-y-3">
                     <div className="space-y-1">
-                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Full Legal Name</label>
+                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">
+                        Enter 6-Digit Secure OTP Passcode
+                      </label>
                       <div className="relative">
-                        <User className="absolute left-3.5 top-3 text-slate-600 dark:text-indigo-400" size={15} />
+                        <Lock className="absolute left-3.5 top-3 text-slate-600 dark:text-indigo-400" size={15} />
                         <input
                           type="text"
                           required
-                          value={fullName}
-                          onChange={e => setFullName(e.target.value)}
-                          placeholder="e.g. Ngozi Balogun"
-                          className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
+                          maxLength={6}
+                          value={otpInput}
+                          onChange={e => setOtpInput(e.target.value.replace(/\D/g, ''))}
+                          placeholder="e.g. 123456"
+                          className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-mono font-bold tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                         />
                       </div>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-normal font-semibold">
+                        We have dispatched an email containing your temporary cryptographically generated 6-digit passcode. Check your inbox for alihsan.online notifications.
+                      </p>
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Email Address</label>
-                      <div className="relative">
-                        <Mail className="absolute left-3.5 top-3 text-slate-600 dark:text-indigo-400" size={15} />
-                        <input
-                          type="email"
-                          required
-                          value={email}
-                          onChange={e => setEmail(e.target.value)}
-                          placeholder="e.g. candidate@dstech.com"
-                          className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Password Passcode</label>
-                      <div className="relative">
-                        <Key className="absolute left-3.5 top-3 text-slate-600 dark:text-indigo-400" size={15} />
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          required
-                          value={password}
-                          onChange={e => setPassword(e.target.value)}
-                          placeholder="••••••••"
-                          className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 pl-11 pr-11 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                        />
+                    {otpDebugMessage && (
+                      <div className="p-3 bg-indigo-500/15 border border-indigo-500/30 rounded-xl space-y-2">
+                        <div className="flex items-center gap-1.5 text-indigo-400 text-[10px] font-black uppercase tracking-wider">
+                          <Sparkles size={12} className="animate-pulse" /> Sandbox Mode Indicator
+                        </div>
+                        <p className="text-[10px] text-slate-300 font-semibold leading-relaxed">
+                          Since BREVO_API_KEY is not configured in this preview instance, the secure OTP code has been logged below for tester verification:
+                        </p>
                         <button
                           type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3.5 top-3.5 text-slate-500 hover:text-slate-700 dark:hover:text-white"
+                          onClick={() => { setOtpInput(otpDebugMessage); triggerHaptic(10); }}
+                          className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-mono font-bold rounded-lg transition-all cursor-pointer"
                         >
-                          {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                          Code: {otpDebugMessage} <span className="opacity-50">(Click to auto-fill)</span>
                         </button>
                       </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => { setIsOtpPending(false); setAuthError(null); setSuccessMsg(null); triggerHaptic(10); }}
+                      className="flex-1 py-3 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer text-center"
+                    >
+                      Back to details
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || otpInput.length < 6}
+                      className="flex-[2] py-3 bg-gradient-to-r from-orange-600 to-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-xl hover:shadow-xl hover:shadow-indigo-500/15 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      {isSubmitting ? (
+                        <RefreshCw size={14} className="animate-spin" />
+                      ) : (
+                        <>
+                          <ShieldCheck size={14} /> Verify & Activate Profile
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* PHASE 1 DETAILS REGISTRATION FORM */
+                <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                  {/* 2-Column Grid for compact layout */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    {/* LEFT INPUTS COLUMN */}
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Full Legal Name</label>
+                        <div className="relative">
+                          <User className="absolute left-3.5 top-3 text-slate-600 dark:text-indigo-400" size={15} />
+                          <input
+                            type="text"
+                            required
+                            value={fullName}
+                            onChange={e => setFullName(e.target.value)}
+                            placeholder="e.g. Ngozi Balogun"
+                            className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Email Address</label>
+                        <div className="relative">
+                          <Mail className="absolute left-3.5 top-3 text-slate-600 dark:text-indigo-400" size={15} />
+                          <input
+                            type="email"
+                            required
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            placeholder="e.g. candidate@dstech.com"
+                            className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Password Passcode</label>
+                        <div className="relative">
+                          <Key className="absolute left-3.5 top-3 text-slate-600 dark:text-indigo-400" size={15} />
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            required
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                            className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 pl-11 pr-11 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3.5 top-3.5 text-slate-500 hover:text-slate-700 dark:hover:text-white"
+                          >
+                            {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* RIGHT INPUTS COLUMN */}
+                    <div className="space-y-3">
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Ecosystem Role</label>
+                        <select
+                           value={selectedRole}
+                           onChange={e => setSelectedRole(e.target.value as any)}
+                           className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+                        >
+                          <option value="Applicant" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Applicant / Candidate</option>
+                          <option value="Recruiter" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Recruiter / Employer</option>
+                          <option value="Admin" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Administrator</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Target Agency Role</label>
+                        <select
+                          value={targetRole}
+                          onChange={e => setTargetRole(e.target.value)}
+                          className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
+                        >
+                          <option value="AI Integrations Engineer" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">AI Integrations Engineer</option>
+                          <option value="Full-Stack Developer" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Full-Stack Developer</option>
+                          <option value="Cloud Architect" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Cloud Infrastructure Architect</option>
+                          <option value="WebAuthn Cryptographer" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Security & Biometrics Cryptographer</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Initial Core Skills</label>
+                        <textarea
+                          value={initialSkills}
+                          onChange={e => setInitialSkills(e.target.value)}
+                          placeholder="e.g. React, TypeScript, Node.js, Fast API"
+                          rows={2}
+                          className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 resize-none placeholder:text-slate-500 dark:placeholder:text-slate-400"
+                        />
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Integrated Hardware Biometrics Row at Bottom */}
+                  <div className="p-3 bg-slate-100 dark:bg-[#121c38] border border-slate-200/50 dark:border-white/10 rounded-2xl flex items-start gap-3 shadow-sm">
+                    <div className="bg-indigo-500/10 p-2 rounded-xl border border-indigo-500/20 text-indigo-400 shrink-0">
+                      <Fingerprint size={18} />
+                    </div>
+                    <div className="space-y-1 flex-1 text-left">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-extrabold text-[#000E32] dark:text-white text-[11px] uppercase tracking-wider">Secure Biometrics Ledger</h4>
+                        <span className="text-[8px] font-mono font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg uppercase tracking-wide">
+                          Auto Enabled
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-600 dark:text-slate-200 leading-normal font-semibold">
+                        Your biometric lock will be registered. This securely binds FaceID / Fingerprint gestures to allow passwordless single-touch sessions on this device.
+                      </p>
                     </div>
                   </div>
 
-                  {/* RIGHT INPUTS COLUMN */}
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Ecosystem Role</label>
-                      <select
-                         value={selectedRole}
-                         onChange={e => setSelectedRole(e.target.value as any)}
-                         className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
-                      >
-                        <option value="Applicant" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Applicant / Candidate</option>
-                        <option value="Recruiter" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Recruiter / Employer</option>
-                        <option value="Admin" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Administrator</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Target Agency Role</label>
-                      <select
-                        value={targetRole}
-                        onChange={e => setTargetRole(e.target.value)}
-                        className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
-                      >
-                        <option value="AI Integrations Engineer" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">AI Integrations Engineer</option>
-                        <option value="Full-Stack Developer" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Full-Stack Developer</option>
-                        <option value="Cloud Architect" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Cloud Infrastructure Architect</option>
-                        <option value="WebAuthn Cryptographer" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Security & Biometrics Cryptographer</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Initial Core Skills</label>
-                      <textarea
-                        value={initialSkills}
-                        onChange={e => setInitialSkills(e.target.value)}
-                        placeholder="e.g. React, TypeScript, Node.js, Fast API"
-                        rows={2}
-                        className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 resize-none placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                      />
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* Integrated Hardware Biometrics Row at Bottom */}
-                <div className="p-3 bg-slate-100 dark:bg-[#121c38] border border-slate-200/50 dark:border-white/10 rounded-2xl flex items-start gap-3 shadow-sm">
-                  <div className="bg-indigo-500/10 p-2 rounded-xl border border-indigo-500/20 text-indigo-400 shrink-0">
-                    <Fingerprint size={18} />
-                  </div>
-                  <div className="space-y-1 flex-1 text-left">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-extrabold text-[#000E32] dark:text-white text-[11px] uppercase tracking-wider">Secure Biometrics Ledger</h4>
-                      <span className="text-[8px] font-mono font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg uppercase tracking-wide">
-                        Auto Enabled
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-slate-600 dark:text-slate-200 leading-normal font-semibold">
-                      Your biometric lock will be registered. This securely binds FaceID / Fingerprint gestures to allow passwordless single-touch sessions on this device.
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-3 bg-gradient-to-r from-orange-600 to-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-xl hover:shadow-xl hover:shadow-indigo-500/15 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-                >
-                  {isSubmitting ? (
-                    <RefreshCw size={14} className="animate-spin" />
-                  ) : (
-                    <>
-                      <ShieldCheck size={14} /> Finalize & Create Account
-                    </>
-                  )}
-                </button>
-              </form>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-3 bg-gradient-to-r from-orange-600 to-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-xl hover:shadow-xl hover:shadow-indigo-500/15 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSubmitting ? (
+                      <RefreshCw size={14} className="animate-spin" />
+                    ) : (
+                      <>
+                        <ShieldCheck size={14} /> Finalize & Create Account
+                      </>
+                    )}
+                  </button>
+                </form>
+              )}
 
               {/* Google Federated Sign In inside Signup */}
               <div className="relative flex py-1 items-center">

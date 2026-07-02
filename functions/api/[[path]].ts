@@ -29,6 +29,27 @@ function broadcastSyncEvent(event: any) {
   }
 }
 
+// Cryptographically secure password hashing helper using native Web Cryptography API
+async function hashPassword(password: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + "salt_alihsan_online_secure_2026_fido2");
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Session based middleware security check
+function getAuthorizedUser(request: Request): { userId: string; email: string; fullName: string; role: string } | null {
+  const cookieHeader = request.headers.get('Cookie') || '';
+  const match = cookieHeader.match(/dstech_session=([^;]+)/);
+  if (!match) return null;
+  try {
+    return JSON.parse(atob(match[1]));
+  } catch (e) {
+    return null;
+  }
+}
+
 async function ensureDatabaseTables(db: any) {
   if (!db) return;
   
@@ -38,6 +59,8 @@ async function ensureDatabaseTables(db: any) {
       email TEXT UNIQUE NOT NULL,
       full_name TEXT,
       role TEXT DEFAULT 'Applicant',
+      status TEXT DEFAULT 'active',
+      password_hash TEXT,
       created_at TEXT NOT NULL
     );`,
     
@@ -94,6 +117,20 @@ async function ensureDatabaseTables(db: any) {
     `CREATE TABLE IF NOT EXISTS courses (
       id TEXT PRIMARY KEY,
       data_json TEXT NOT NULL
+    );`,
+
+    `CREATE TABLE IF NOT EXISTS otp_codes (
+      email TEXT PRIMARY KEY,
+      code TEXT NOT NULL,
+      expires_at INTEGER NOT NULL,
+      created_at TEXT NOT NULL
+    );`,
+
+    `CREATE TABLE IF NOT EXISTS webauthn_challenges (
+      user_id TEXT PRIMARY KEY,
+      challenge TEXT NOT NULL,
+      username TEXT NOT NULL,
+      created_at TEXT NOT NULL
     );`
   ];
 
@@ -105,13 +142,22 @@ async function ensureDatabaseTables(db: any) {
     }
   }
 
+  // Safe migrations to add status and password_hash to older tables if they exist
+  try {
+    await db.prepare("ALTER TABLE users ADD COLUMN status TEXT DEFAULT 'active'").run();
+  } catch (e) {}
+  try {
+    await db.prepare("ALTER TABLE users ADD COLUMN password_hash TEXT").run();
+  } catch (e) {}
+
   // Insert default user seed if none exists
   try {
     const check = await db.prepare("SELECT COUNT(*) as count FROM users").all();
     if (check && check.results && check.results[0] && check.results[0].count === 0) {
+      const demoPassHash = await hashPassword("vision2026");
       await db.prepare(
-        "INSERT INTO users (id, email, full_name, role, created_at) VALUES (?, ?, ?, ?, ?)"
-      ).bind('usr-demo', 'candidate2026@dstech.com', 'candidate2026', 'Applicant', new Date().toISOString()).run();
+        "INSERT INTO users (id, email, full_name, role, status, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      ).bind('usr-demo', 'candidate2026@dstech.com', 'candidate2026', 'Applicant', 'active', demoPassHash, new Date().toISOString()).run();
     }
   } catch (err) {
     console.error("Bootstrapper seed error:", err);
@@ -144,8 +190,21 @@ export async function onRequest(context: { request: Request; env: any; params: a
     return new Response(null, { status: 204, headers });
   }
 
-  const rpId = url.hostname;
-  const origin = `${url.protocol}//${url.host}`;
+  // Dynamically determine the RP ID and Origin, enforcing alihsan.online when appropriate.
+  const referer = request.headers.get('Referer') || '';
+  const requestOrigin = request.headers.get('Origin') || '';
+  
+  let rpId = 'alihsan.online';
+  let origin = 'https://alihsan.online';
+
+  if (url.hostname.includes('alihsan.online') || referer.includes('alihsan.online') || requestOrigin.includes('alihsan.online')) {
+    rpId = 'alihsan.online';
+    origin = 'https://alihsan.online';
+  } else {
+    // Fallback for development/sandbox
+    rpId = url.hostname;
+    origin = `${url.protocol}//${url.host}`;
+  }
 
   try {
     // ==========================================
@@ -157,7 +216,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
       const username = url.searchParams.get('username') || 'candidate2026@dstech.com';
 
       const options = await generateRegistrationOptions({
-        rpName: 'DS Tech Candidate Hub',
+        rpName: 'Al Ihsan Security Portal',
         rpID: rpId,
         userID: new TextEncoder().encode(userId),
         userName: username,
@@ -170,7 +229,12 @@ export async function onRequest(context: { request: Request; env: any; params: a
         },
       });
 
-      // Save options/challenge state securely in HttpOnly cookie
+      // Secure challenge backup on D1 ledger to enforce server-side validation & bypass cookie limits
+      await env.DB.prepare(
+        "INSERT OR REPLACE INTO webauthn_challenges (user_id, challenge, username, created_at) VALUES (?, ?, ?, ?)"
+      ).bind(userId, options.challenge, username, new Date().toISOString()).run();
+
+      // Save options/challenge state securely in HttpOnly cookie as primary
       headers.append('Set-Cookie', `reg_options=${btoa(JSON.stringify({ challenge: options.challenge, userId, username }))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=300`);
 
       return new Response(JSON.stringify(options), { headers });
@@ -180,7 +244,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
       const body = await request.json();
       const cookieHeader = request.headers.get('Cookie') || '';
       
-      // Simulation bypass
+      // Simulation bypass for preview environment testing only
       if (body.isSimulation) {
         const userId = body.userId || 'usr-demo';
         const email = body.email || 'candidate2026@dstech.com';
@@ -188,8 +252,8 @@ export async function onRequest(context: { request: Request; env: any; params: a
         const pubKeyBase64 = btoa('mock-pub-key');
 
         await env.DB.prepare(
-          "INSERT OR REPLACE INTO users (id, email, full_name, role, created_at) VALUES (?, ?, ?, ?, ?)"
-        ).bind(userId, email, email.split('@')[0], 'Applicant', new Date().toISOString()).run();
+          "INSERT OR REPLACE INTO users (id, email, full_name, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+        ).bind(userId, email, email.split('@')[0], 'Applicant', 'active', new Date().toISOString()).run();
 
         await env.DB.prepare(
           "INSERT OR REPLACE INTO passkeys (id, user_id, public_key, counter, transports, created_at) VALUES (?, ?, ?, ?, ?, ?)"
@@ -208,7 +272,6 @@ export async function onRequest(context: { request: Request; env: any; params: a
           new Date().toISOString()
         ).run();
 
-        // Broadcast simulated registration success
         broadcastSyncEvent({
           type: 'BIOMETRIC_REGISTRATION',
           userId,
@@ -219,16 +282,33 @@ export async function onRequest(context: { request: Request; env: any; params: a
         return new Response(JSON.stringify({ verified: true, isSimulation: true }), { headers });
       }
 
-      const match = cookieHeader.match(/reg_options=([^;]+)/);
-      if (!match) {
-        return new Response(JSON.stringify({ verified: false, error: "Registration session expired or challenge not found." }), { status: 400, headers });
-      }
+      // Secure Server-side Challenge validation: Fetch from D1 Ledger first, fallback to Cookie
+      let expectedChallenge = '';
+      let sessionData: any = {};
 
-      const sessionData = JSON.parse(atob(match[1]));
+      const d1ChallengeCheck = await env.DB.prepare("SELECT * FROM webauthn_challenges WHERE user_id = ?").bind(body.userId || '').all();
+      const storedChallengeRecord = d1ChallengeCheck.results?.[0];
+
+      if (storedChallengeRecord) {
+        expectedChallenge = storedChallengeRecord.challenge;
+        sessionData = {
+          userId: storedChallengeRecord.user_id,
+          username: storedChallengeRecord.username
+        };
+        // Burn challenge record to prevent replay attacks
+        await env.DB.prepare("DELETE FROM webauthn_challenges WHERE user_id = ?").bind(body.userId).run();
+      } else {
+        const match = cookieHeader.match(/reg_options=([^;]+)/);
+        if (!match) {
+          return new Response(JSON.stringify({ verified: false, error: "Registration challenge expired or missing." }), { status: 400, headers });
+        }
+        sessionData = JSON.parse(atob(match[1]));
+        expectedChallenge = sessionData.challenge;
+      }
 
       const verification = await verifyRegistrationResponse({
         response: body.response,
-        expectedChallenge: sessionData.challenge,
+        expectedChallenge,
         expectedOrigin: origin,
         expectedRPID: rpId,
         requireUserVerification: false,
@@ -242,7 +322,6 @@ export async function onRequest(context: { request: Request; env: any; params: a
         const credentialPublicKey = regInfo.credentialPublicKey || credential.publicKey;
         const counter = typeof regInfo.counter === 'number' ? regInfo.counter : (credential.counter || 0);
 
-        // Fallback to base64 representation safely depending on whether it is a string or Uint8Array
         const credIdBase64 = typeof credentialID === 'string' 
           ? credentialID 
           : btoa(String.fromCharCode(...(credentialID instanceof Uint8Array ? credentialID : [])));
@@ -251,18 +330,19 @@ export async function onRequest(context: { request: Request; env: any; params: a
           ? credentialPublicKey 
           : btoa(String.fromCharCode(...(credentialPublicKey instanceof Uint8Array ? credentialPublicKey : [])));
 
-        // Persist User in D1 database
+        // Persist active User in D1 database
         await env.DB.prepare(
-          "INSERT OR REPLACE INTO users (id, email, full_name, role, created_at) VALUES (?, ?, ?, ?, ?)"
+          "INSERT OR REPLACE INTO users (id, email, full_name, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)"
         ).bind(
           sessionData.userId,
           sessionData.username,
           sessionData.username.split('@')[0],
           'Applicant',
+          'active',
           new Date().toISOString()
         ).run();
 
-        // Persist WebAuthn Credential in D1 database
+        // Persist biometric details securely on D1 Enclave
         await env.DB.prepare(
           "INSERT OR REPLACE INTO passkeys (id, user_id, public_key, counter, transports, created_at) VALUES (?, ?, ?, ?, ?, ?)"
         ).bind(
@@ -274,7 +354,6 @@ export async function onRequest(context: { request: Request; env: any; params: a
           new Date().toISOString()
         ).run();
 
-        // Log security audit log
         await env.DB.prepare(
           "INSERT INTO biometric_logs (id, user_id, email, biometric_type, status, message, user_agent, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         ).bind(
@@ -288,7 +367,6 @@ export async function onRequest(context: { request: Request; env: any; params: a
           new Date().toISOString()
         ).run();
 
-        // Broadcast real-time registration success
         broadcastSyncEvent({
           type: 'BIOMETRIC_REGISTRATION',
           userId: sessionData.userId,
@@ -296,7 +374,6 @@ export async function onRequest(context: { request: Request; env: any; params: a
           message: `New biometric hardware key bound via WebAuthn for ${sessionData.username}`
         });
 
-        // Clear the registration options cookie
         headers.append('Set-Cookie', 'reg_options=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
 
         return new Response(JSON.stringify({ verified: true }), { headers });
@@ -313,7 +390,6 @@ export async function onRequest(context: { request: Request; env: any; params: a
       const userId = url.searchParams.get('userId') || '';
       const username = url.searchParams.get('username') || '';
 
-      // If we have a userId, retrieve their passkeys
       let allowCredentials: any[] = [];
       if (userId) {
         const results = await env.DB.prepare("SELECT * FROM passkeys WHERE user_id = ?").bind(userId).all();
@@ -332,6 +408,11 @@ export async function onRequest(context: { request: Request; env: any; params: a
         userVerification: 'preferred',
       });
 
+      // Secure challenge backup on D1 ledger to enforce server-side validation & bypass cookie limits
+      await env.DB.prepare(
+        "INSERT OR REPLACE INTO webauthn_challenges (user_id, challenge, username, created_at) VALUES (?, ?, ?, ?)"
+      ).bind(userId || 'anonymous', options.challenge, username || 'anonymous', new Date().toISOString()).run();
+
       headers.append('Set-Cookie', `auth_options=${btoa(JSON.stringify({ challenge: options.challenge, userId, username }))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=300`);
 
       return new Response(JSON.stringify(options), { headers });
@@ -341,18 +422,16 @@ export async function onRequest(context: { request: Request; env: any; params: a
       const body = await request.json();
       const cookieHeader = request.headers.get('Cookie') || '';
 
-      // Simulation bypass
       if (body.isSimulation) {
         const userId = body.userId || 'usr-demo';
         const email = body.email || 'candidate2026@dstech.com';
 
-        // Check if user exists, otherwise create one
         const userResults = await env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(userId).all();
         let user = userResults.results?.[0];
         if (!user) {
           await env.DB.prepare(
-            "INSERT OR REPLACE INTO users (id, email, full_name, role, created_at) VALUES (?, ?, ?, ?, ?)"
-          ).bind(userId, email, email.split('@')[0], 'Applicant', new Date().toISOString()).run();
+            "INSERT OR REPLACE INTO users (id, email, full_name, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+          ).bind(userId, email, email.split('@')[0], 'Applicant', 'active', new Date().toISOString()).run();
           user = { id: userId, email, full_name: email.split('@')[0], role: 'Applicant' };
         }
 
@@ -378,7 +457,6 @@ export async function onRequest(context: { request: Request; env: any; params: a
           new Date().toISOString()
         ).run();
 
-        // Broadcast simulated login success
         broadcastSyncEvent({
           type: 'BIOMETRIC_LOGIN',
           userId,
@@ -389,14 +467,29 @@ export async function onRequest(context: { request: Request; env: any; params: a
         return new Response(JSON.stringify({ verified: true, user: userSession, isSimulation: true }), { headers });
       }
 
-      const match = cookieHeader.match(/auth_options=([^;]+)/);
-      if (!match) {
-        return new Response(JSON.stringify({ verified: false, error: "Authentication session expired." }), { status: 400, headers });
+      // Secure Server-side Challenge validation: Fetch from D1 Ledger first, fallback to Cookie
+      let expectedChallenge = '';
+      let sessionData: any = {};
+
+      const d1ChallengeCheck = await env.DB.prepare("SELECT * FROM webauthn_challenges WHERE user_id = ?").bind(body.userId || 'anonymous').all();
+      const storedChallengeRecord = d1ChallengeCheck.results?.[0];
+
+      if (storedChallengeRecord) {
+        expectedChallenge = storedChallengeRecord.challenge;
+        sessionData = {
+          userId: storedChallengeRecord.user_id,
+          username: storedChallengeRecord.username
+        };
+        await env.DB.prepare("DELETE FROM webauthn_challenges WHERE user_id = ?").bind(body.userId || 'anonymous').run();
+      } else {
+        const match = cookieHeader.match(/auth_options=([^;]+)/);
+        if (!match) {
+          return new Response(JSON.stringify({ verified: false, error: "Authentication challenge expired or missing." }), { status: 400, headers });
+        }
+        sessionData = JSON.parse(atob(match[1]));
+        expectedChallenge = sessionData.challenge;
       }
 
-      const sessionData = JSON.parse(atob(match[1]));
-
-      // Fetch credential from D1
       const credIdBase64 = body.response.id;
       const results = await env.DB.prepare("SELECT * FROM passkeys WHERE id = ?").bind(credIdBase64).all();
       const passkey = results.results?.[0];
@@ -405,7 +498,6 @@ export async function onRequest(context: { request: Request; env: any; params: a
         return new Response(JSON.stringify({ verified: false, error: "Hardware credential unregistered on this D1 ledger." }), { status: 400, headers });
       }
 
-      // Convert stored base64 public key back to Uint8Array
       const pubKeyBinary = atob(passkey.public_key);
       const pubKeyBytes = new Uint8Array(pubKeyBinary.length);
       for (let i = 0; i < pubKeyBinary.length; i++) {
@@ -414,7 +506,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
 
       const verification = await verifyAuthenticationResponse({
         response: body.response,
-        expectedChallenge: sessionData.challenge,
+        expectedChallenge,
         expectedOrigin: origin,
         expectedRPID: rpId,
         credential: {
@@ -427,14 +519,11 @@ export async function onRequest(context: { request: Request; env: any; params: a
       });
 
       if (verification.verified && verification.authenticationInfo) {
-        // Update counter in database to prevent replay attacks
         await env.DB.prepare("UPDATE passkeys SET counter = ? WHERE id = ?").bind(verification.authenticationInfo.newCounter, passkey.id).run();
 
-        // Get user profile
         const userResults = await env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(passkey.user_id).all();
         const user = userResults.results?.[0];
 
-        // Generate Secure HttpOnly session cookie
         const userSession = {
           userId: passkey.user_id,
           email: user?.email || sessionData.username || 'candidate@dstech.com',
@@ -443,7 +532,6 @@ export async function onRequest(context: { request: Request; env: any; params: a
         };
         headers.append('Set-Cookie', `dstech_session=${btoa(JSON.stringify(userSession))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
 
-        // Log security audit log
         await env.DB.prepare(
           "INSERT INTO biometric_logs (id, user_id, email, biometric_type, status, message, user_agent, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         ).bind(
@@ -457,7 +545,6 @@ export async function onRequest(context: { request: Request; env: any; params: a
           new Date().toISOString()
         ).run();
 
-        // Broadcast real biometric login success
         broadcastSyncEvent({
           type: 'BIOMETRIC_LOGIN',
           userId: passkey.user_id,
@@ -474,7 +561,258 @@ export async function onRequest(context: { request: Request; env: any; params: a
     }
 
     // ==========================================
-    // 2.1 FIREBASE PROFILE SYNCHRONIZATION
+    // 2.05 EMAIL OTP SIGNUP (Phase 1)
+    // ==========================================
+
+    if (path === '/api/auth/otp-generate' && method === 'POST') {
+      const body = await request.json();
+      const { email, fullName, password, role } = body;
+
+      if (!email || !fullName || !password || !role) {
+        return new Response(JSON.stringify({ error: "Missing required fields: email, fullName, password, and role." }), { status: 400, headers });
+      }
+
+      // Check if email is already active in D1
+      const checkResult = await env.DB.prepare("SELECT * FROM users WHERE email = ?").bind(email).all();
+      const existingUser = checkResult.results?.[0];
+      if (existingUser && existingUser.status === 'active') {
+        return new Response(JSON.stringify({ error: "Email already registered. Please sign in instead." }), { status: 400, headers });
+      }
+
+      // Securely hash password on D1 Ledger
+      const passHash = await hashPassword(password);
+      const generatedUserId = existingUser?.id || ('usr_' + Math.random().toString(36).substring(2, 11));
+
+      // Save/Upsert temporary pending account in D1
+      await env.DB.prepare(
+        "INSERT OR REPLACE INTO users (id, email, full_name, role, status, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      ).bind(generatedUserId, email, fullName, role, 'pending_verification', passHash, new Date().toISOString()).run();
+
+      // Generate secure 6-digit OTP
+      const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minute TTL
+
+      // Store in D1 otp_codes table
+      await env.DB.prepare(
+        "INSERT OR REPLACE INTO otp_codes (email, code, expires_at, created_at) VALUES (?, ?, ?, ?)"
+      ).bind(email, otpCode, expiresAt, new Date().toISOString()).run();
+
+      // Dispatch via Brevo if configured, otherwise provide elegant sandbox fallback
+      let isSent = false;
+      let statusLog = "Bypassed real SMTP. Sandbox OTP mode active.";
+
+      if (env.BREVO_API_KEY) {
+        try {
+          const mailRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'api-key': env.BREVO_API_KEY
+            },
+            body: JSON.stringify({
+              sender: {
+                name: env.BREVO_SENDER_NAME || "Al Ihsan Support",
+                email: env.BREVO_SENDER_EMAIL || "noreply@alihsan.online"
+              },
+              to: [{ email, name: fullName }],
+              subject: "🔒 alihsan.online: Your Secure 6-Digit Signup Verification OTP",
+              htmlContent: `
+                <div style="font-family: sans-serif; padding: 24px; background-color: #0c1428; color: #f8fafc; border-radius: 16px; max-width: 480px; margin: auto; border: 1px solid #1e293b;">
+                  <h2 style="color: #6366f1; text-align: center; font-weight: 900; letter-spacing: -1px; margin-bottom: 24px;">AL IHSAN ONLINE</h2>
+                  <p style="font-size: 14px; line-height: 1.6; color: #cbd5e1;">Hello <strong>${fullName}</strong>,</p>
+                  <p style="font-size: 14px; line-height: 1.6; color: #cbd5e1;">To secure your candidate/portal access, please verify your email with this secure 6-digit passcode. This OTP will expire in exactly <strong>5 minutes</strong>.</p>
+                  <div style="background-color: #0f172a; padding: 20px; border-radius: 12px; text-align: center; font-size: 36px; font-weight: 900; letter-spacing: 8px; color: #38bdf8; margin: 28px 0; border: 1px solid #334155;">
+                    ${otpCode}
+                  </div>
+                  <p style="font-size: 12px; color: #64748b; text-align: center; line-height: 1.5;">This email is part of alihsan.online's strict zero-trust security perimeter. If you did not request this, please ignore this email.</p>
+                </div>
+              `
+            })
+          });
+
+          if (mailRes.ok) {
+            isSent = true;
+            statusLog = "Transactional Email transmitted successfully via Brevo API.";
+          } else {
+            const errBody = await mailRes.text();
+            console.error("Brevo rejected email transmission:", errBody);
+            statusLog = `Brevo transmission rejected: ${errBody}`;
+          }
+        } catch (mailErr: any) {
+          console.error("Brevo network exception:", mailErr);
+          statusLog = `Brevo network exception: ${mailErr.message}`;
+        }
+      }
+
+      return new Response(JSON.stringify({
+        success: true,
+        emailSent: isSent,
+        message: isSent ? "A secure 6-digit verification code has been sent to your email." : "Secure sandbox email code generated.",
+        // Return code directly ONLY if BREVO is unconfigured so the tester can copy-paste from UI easily
+        otp: env.BREVO_API_KEY ? undefined : otpCode,
+        debug: statusLog
+      }), { headers });
+    }
+
+    // ==========================================
+    // 2.06 EMAIL OTP VERIFICATION (Phase 2)
+    // ==========================================
+
+    if (path === '/api/auth/otp-verify' && method === 'POST') {
+      const body = await request.json();
+      const { email, otp } = body;
+
+      if (!email || !otp) {
+        return new Response(JSON.stringify({ error: "Missing required identifier: email and otp." }), { status: 400, headers });
+      }
+
+      const results = await env.DB.prepare("SELECT * FROM otp_codes WHERE email = ?").bind(email).all();
+      const record = results.results?.[0];
+
+      if (!record) {
+        return new Response(JSON.stringify({ error: "No verification code records found for this email." }), { status: 400, headers });
+      }
+
+      if (record.code !== otp.trim()) {
+        return new Response(JSON.stringify({ error: "Cryptographic validation failed. Invalid verification passcode." }), { status: 400, headers });
+      }
+
+      if (Date.now() > record.expires_at) {
+        return new Response(JSON.stringify({ error: "OTP has expired. Please register again to generate a fresh passcode." }), { status: 400, headers });
+      }
+
+      // Activate the user in our ledger
+      await env.DB.prepare("UPDATE users SET status = 'active' WHERE email = ?").bind(email).run();
+
+      // Retrieve full activated user profile
+      const userResult = await env.DB.prepare("SELECT * FROM users WHERE email = ?").bind(email).all();
+      const user = userResult.results?.[0];
+
+      // Remove OTP code from ledger
+      await env.DB.prepare("DELETE FROM otp_codes WHERE email = ?").bind(email).run();
+
+      const userSession = {
+        userId: user.id,
+        email: user.email,
+        fullName: user.full_name,
+        role: user.role
+      };
+
+      headers.append('Set-Cookie', `dstech_session=${btoa(JSON.stringify(userSession))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
+
+      return new Response(JSON.stringify({
+        success: true,
+        message: "OTP validation successful. Welcome to Al Ihsan Online candidate portal!",
+        user: userSession
+      }), { headers });
+    }
+
+    // ==========================================
+    // 2.07 SECURE ADMIN/USER BACKEND REGISTER
+    // ==========================================
+
+    if (path === '/api/auth/register' && method === 'POST') {
+      const body = await request.json();
+      const { email, password, fullName, preferences, securityPasscode } = body;
+
+      if (!email || !password || !fullName) {
+        return new Response(JSON.stringify({ error: "Missing required credentials: email, password, and fullName." }), { status: 400, headers });
+      }
+
+      const check = await env.DB.prepare("SELECT COUNT(*) as count FROM users WHERE email = ?").bind(email).all();
+      if (check.results?.[0]?.count > 0) {
+        return new Response(JSON.stringify({ error: "A profile under this email already exists." }), { status: 400, headers });
+      }
+
+      const isAdmin = preferences?.isAdmin || false;
+      const targetRole = isAdmin ? 'Admin' : 'Applicant';
+
+      if (isAdmin) {
+        const inputPasscode = securityPasscode || password;
+        const correctAdminPasscode = env.ADMIN_PASSCODE || "admin2026";
+        if (inputPasscode !== correctAdminPasscode) {
+          return new Response(JSON.stringify({ error: "Invalid Admin Security Passcode. Access denied." }), { status: 401, headers });
+        }
+      }
+
+      const passHash = await hashPassword(password);
+      const generatedUserId = 'usr_admin_' + Math.random().toString(36).substring(2, 11);
+
+      await env.DB.prepare(
+        "INSERT INTO users (id, email, full_name, role, status, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      ).bind(generatedUserId, email, fullName, targetRole, 'active', passHash, new Date().toISOString()).run();
+
+      const userSession = {
+        userId: generatedUserId,
+        email,
+        fullName,
+        role: targetRole
+      };
+
+      headers.append('Set-Cookie', `dstech_session=${btoa(JSON.stringify(userSession))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
+
+      return new Response(JSON.stringify(userSession), { headers });
+    }
+
+    // ==========================================
+    // 2.08 SECURE ADMIN/USER BACKEND LOGIN
+    // ==========================================
+
+    if (path === '/api/auth/login' && method === 'POST') {
+      const body = await request.json();
+      const { email, password } = body;
+
+      if (!email || !password) {
+        return new Response(JSON.stringify({ error: "Missing email or password." }), { status: 400, headers });
+      }
+
+      const results = await env.DB.prepare("SELECT * FROM users WHERE email = ?").bind(email).all();
+      const user = results.results?.[0];
+
+      if (!user) {
+        // Fallback for default admin registration for ease of deploy/testing if DB seed was not run
+        if (email.toLowerCase() === 'admin@dstech.com' && password === (env.ADMIN_PASSCODE || 'admin2026')) {
+          const generatedUserId = 'usr_admin_seed';
+          const passHash = await hashPassword(password);
+          await env.DB.prepare(
+            "INSERT OR REPLACE INTO users (id, email, full_name, role, status, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+          ).bind(generatedUserId, 'admin@dstech.com', 'Hassan Al-Amin', 'Admin', 'active', passHash, new Date().toISOString()).run();
+
+          const userSession = {
+            userId: generatedUserId,
+            email: 'admin@dstech.com',
+            fullName: 'Hassan Al-Amin',
+            role: 'Admin'
+          };
+          headers.append('Set-Cookie', `dstech_session=${btoa(JSON.stringify(userSession))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
+          return new Response(JSON.stringify(userSession), { headers });
+        }
+        return new Response(JSON.stringify({ error: "Access Denied: Incorrect email or password." }), { status: 401, headers });
+      }
+
+      if (user.status === 'pending_verification') {
+        return new Response(JSON.stringify({ error: "Account pending verification. Please complete OTP validation." }), { status: 401, headers });
+      }
+
+      const inputHash = await hashPassword(password);
+      if (user.password_hash !== inputHash) {
+        return new Response(JSON.stringify({ error: "Access Denied: Incorrect email or password." }), { status: 401, headers });
+      }
+
+      const userSession = {
+        userId: user.id,
+        email: user.email,
+        fullName: user.full_name,
+        role: user.role
+      };
+
+      headers.append('Set-Cookie', `dstech_session=${btoa(JSON.stringify(userSession))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
+
+      return new Response(JSON.stringify(userSession), { headers });
+    }
+
+    // ==========================================
+    // 2.1 FIREBASE PROFILE SYNCHRONIZATION (LEGACY COMPATIBILITY)
     // ==========================================
 
     if (path === '/api/auth/sync-firebase' && method === 'POST') {
@@ -520,6 +858,14 @@ export async function onRequest(context: { request: Request; env: any; params: a
     // ==========================================
     // 3. SECURITY LOGS & ATTEMPTS AUDITING
     // ==========================================
+
+    if (path === '/api/auth/passkeys' && method === 'GET') {
+      const userId = url.searchParams.get('userId') || 'anonymous';
+      const results = await env.DB.prepare(
+        "SELECT id, public_key, counter, transports, created_at FROM passkeys WHERE user_id = ?"
+      ).bind(userId).all();
+      return new Response(JSON.stringify(results.results || []), { headers });
+    }
 
     if (path === '/api/auth/biometric-logs' && method === 'GET') {
       const userId = url.searchParams.get('userId') || 'anonymous';

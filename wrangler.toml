@@ -7,6 +7,16 @@ pages_build_output_dir = "dist"
 NODE_VERSION = "22"
 # GEMINI_API_KEY can be set via Cloudflare dashboard or Wrangler Secrets: npx wrangler secret put GEMINI_API_KEY
 
+# PRODUCTION SECRETS AND ENVIRONMENT VARIABLES
+# Note: DO NOT hardcode secret keys here. Use wrangler secret command to set them:
+# npx wrangler secret put BREVO_API_KEY
+# npx wrangler secret put ADMIN_PASSCODE
+# npx wrangler secret put JWT_SECRET
+
+# BREVO_API_KEY = "xkeysib-..."
+# ADMIN_PASSCODE = "..."
+# JWT_SECRET = "super-secret-cryptographic-signing-key"
+
 # 1. Cloudflare D1 Relational SQL Database Binding
 [[d1_databases]]
 binding = "DB"
