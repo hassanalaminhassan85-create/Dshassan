@@ -246,7 +246,7 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
     }
   };
 
-  // Automatically trigger WebAuthn on modal opening
+  // Initialize state and check for Sandbox on opening
   useEffect(() => {
     if (isOpen) {
       fetchSecurityLogs();
@@ -258,11 +258,11 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
       }
       setIsSandbox(isInsideIframe);
 
+      setScanState('idle');
       if (isInsideIframe) {
-        setScanState('idle');
         setStatusMessage("Iframe sandbox preview detected. Secure WebAuthn requires a top-level context (click 'Open in New Tab' above) or a simulated handshake.");
       } else {
-        runWebAuthn();
+        setStatusMessage("Device secure enclave ready. Place your finger on the sensor or click 'Start Biometric Scan' to authorize standard hardware credentials.");
       }
     } else {
       setScanState('idle');
@@ -347,7 +347,14 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
               </svg>
 
               {/* Icon Holder */}
-              <div className="w-24 h-24 rounded-full bg-slate-950/95 border border-white/10 flex items-center justify-center shadow-inner">
+              <button 
+                onClick={isSandbox ? runSimulation : runWebAuthn}
+                disabled={scanState === 'scanning' || scanState === 'success'}
+                className={`w-24 h-24 rounded-full bg-slate-950/95 border border-white/10 flex flex-col items-center justify-center shadow-inner hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer ${
+                  scanState === 'scanning' ? 'cursor-not-allowed opacity-85' : ''
+                }`}
+                title="Tap to scan biometrics"
+              >
                 {scanState === 'scanning' && (
                   <motion.div
                     animate={{ scale: [1, 1.1, 1] }}
@@ -370,71 +377,85 @@ export const PhoneBiometricPrompt: React.FC<PhoneBiometricPromptProps> = ({
                   <motion.div
                     initial={{ scale: 0.5, y: -5 }}
                     animate={{ scale: 1, y: 0 }}
-                    className="text-rose-400"
+                    className="text-rose-400 flex flex-col items-center justify-center"
                   >
-                    <AlertTriangle size={42} />
+                    <AlertTriangle size={36} />
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-rose-500 mt-1">Tap to retry</span>
                   </motion.div>
                 )}
                 {scanState === 'idle' && (
-                  <div className="text-slate-500 flex flex-col items-center">
-                    <Lock size={38} className={isSandbox ? "text-indigo-400 animate-pulse" : ""} />
+                  <div className="text-slate-500 flex flex-col items-center justify-center hover:text-indigo-400 transition-colors">
+                    <Fingerprint size={38} className={isSandbox ? "text-indigo-400 animate-pulse" : "text-slate-400"} />
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-slate-500 mt-1">Tap to scan</span>
                   </div>
                 )}
-              </div>
-            </div>
-
-            {/* Status Information */}
-            <div className="space-y-1.5 max-w-sm px-4">
-              <h4 className="font-extrabold text-xs uppercase tracking-wide text-white">
-                {scanState === 'scanning' && "Native OS Biometric Active"}
-                {scanState === 'success' && "Verification Complete"}
-                {scanState === 'failed' && "Enclave Handshake Blocked"}
-                {scanState === 'idle' && "Standby Mode"}
-              </h4>
-              <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
-                {statusMessage}
-              </p>
-            </div>
-
-            {/* Cryptographic Error Panel */}
-            {errorMessage && (
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-xs p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-[9px] font-mono leading-normal text-center"
-              >
-                {errorMessage}
-              </motion.div>
-            )}
-          </div>
-
-          {/* Action Footer */}
-          <div className="w-full border-t border-white/5 pt-4 flex flex-col gap-2.5">
-            <div className="flex gap-3 w-full">
-              <button
-                onClick={handleDismiss}
-                className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all cursor-pointer"
-              >
-                Cancel Handshake
               </button>
-              {(scanState === 'failed' || (isSandbox && scanState === 'idle')) && (
-                <button
-                  onClick={runWebAuthn}
-                  className="flex-1 py-2.5 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 hover:text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-indigo-500/20"
-                >
-                  <RefreshCw size={11} /> {scanState === 'failed' ? "Retry WebAuthn" : "Try Real WebAuthn"}
-                </button>
-              )}
             </div>
-            {(scanState === 'failed' || (isSandbox && scanState === 'idle')) && (
-              <button
-                onClick={runSimulation}
-                className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-emerald-600/20 animate-pulse"
-              >
-                <Cpu size={11} /> Sandbox Bypass: Simulate Passkey
-              </button>
-            )}
-          </div>
+ 
+             {/* Status Information */}
+             <div className="space-y-1.5 max-w-sm px-4">
+               <h4 className="font-extrabold text-xs uppercase tracking-wide text-white">
+                 {scanState === 'scanning' && "Native OS Biometric Active"}
+                 {scanState === 'success' && "Verification Complete"}
+                 {scanState === 'failed' && "Enclave Handshake Blocked"}
+                 {scanState === 'idle' && "Standby Mode"}
+               </h4>
+               <p className="text-[10px] text-slate-400 font-medium leading-relaxed">
+                 {statusMessage}
+               </p>
+             </div>
+ 
+             {/* Cryptographic Error Panel */}
+             {errorMessage && (
+               <motion.div 
+                 initial={{ opacity: 0, y: 10 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 className="w-full max-w-xs p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-[9px] font-mono leading-normal text-center"
+               >
+                 {errorMessage}
+               </motion.div>
+             )}
+           </div>
+ 
+           {/* Action Footer */}
+           <div className="w-full border-t border-white/5 pt-4 flex flex-col gap-2.5">
+             {scanState !== 'scanning' && scanState !== 'success' && (
+               <div className="w-full">
+                 {isSandbox ? (
+                   <button
+                     onClick={runSimulation}
+                     className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-emerald-600/20"
+                   >
+                     <Cpu size={14} /> Sandbox Bypass: Simulate Passkey
+                   </button>
+                 ) : (
+                   <button
+                     onClick={runWebAuthn}
+                     className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-indigo-600/20"
+                   >
+                     <Fingerprint size={14} /> Start Biometric Scan
+                   </button>
+                 )}
+               </div>
+             )}
+ 
+             <div className="flex gap-3 w-full">
+               <button
+                 onClick={handleDismiss}
+                 className="flex-1 py-2.5 bg-white/5 hover:bg-white/10 text-slate-300 font-black text-[9px] uppercase tracking-widest rounded-xl transition-all cursor-pointer"
+               >
+                 Cancel Handshake
+               </button>
+               {isSandbox && scanState !== 'scanning' && scanState !== 'success' && (
+                 <button
+                   onClick={runWebAuthn}
+                   className="flex-1 py-2.5 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 hover:text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-indigo-500/20"
+                 >
+                   <RefreshCw size={11} /> Try Real WebAuthn
+                 </button>
+               )}
+             </div>
+           </div>
         </div>
 
         {/* Right Side: High-Fidelity Security Ledger (Audit Logs) */}

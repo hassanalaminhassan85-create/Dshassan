@@ -314,8 +314,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
         });
       } catch (fbErr: any) {
         console.warn("Firebase email signup error, falling back to secure D1 storage local account:", fbErr);
-        if (fbErr.code === 'auth/unauthorized-domain' || fbErr.code === 'auth/network-request-failed' || fbErr.message?.includes('unauthorized') || fbErr.message?.includes('network')) {
-          setSuccessMsg("Authorizing secure local sandbox account...");
+        if (
+          fbErr.code === 'auth/unauthorized-domain' || 
+          fbErr.code === 'auth/network-request-failed' || 
+          fbErr.code === 'auth/operation-not-allowed' || 
+          fbErr.message?.includes('unauthorized') || 
+          fbErr.message?.includes('network') || 
+          fbErr.message?.includes('operation-not-allowed') || 
+          fbErr.message?.includes('not-allowed')
+        ) {
+          setSuccessMsg("Authorizing secure local sandbox account (Firebase provider fallback)...");
         } else {
           throw fbErr;
         }
@@ -357,7 +365,18 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
         userObj = userCredential.user;
       } catch (fbErr: any) {
         console.warn("Firebase sign in error, checking local D1 database fallback:", fbErr);
-        if (fbErr.code === 'auth/unauthorized-domain' || fbErr.code === 'auth/network-request-failed' || fbErr.code === 'auth/user-not-found' || fbErr.code === 'auth/wrong-password' || fbErr.message?.includes('unauthorized') || fbErr.message?.includes('found') || fbErr.message?.includes('network')) {
+        if (
+          fbErr.code === 'auth/unauthorized-domain' || 
+          fbErr.code === 'auth/network-request-failed' || 
+          fbErr.code === 'auth/user-not-found' || 
+          fbErr.code === 'auth/wrong-password' || 
+          fbErr.code === 'auth/operation-not-allowed' || 
+          fbErr.message?.includes('unauthorized') || 
+          fbErr.message?.includes('found') || 
+          fbErr.message?.includes('network') || 
+          fbErr.message?.includes('operation-not-allowed') || 
+          fbErr.message?.includes('not-allowed')
+        ) {
           setSuccessMsg("Bypassed network limits. Authorizing secure local sandbox session...");
           uid = 'local_usr_' + btoa(email).substring(0, 10).replace(/=/g, '');
           userObj = {
