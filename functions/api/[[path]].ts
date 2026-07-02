@@ -815,6 +815,19 @@ export async function onRequest(context: { request: Request; env: any; params: a
     // 2.1 FIREBASE PROFILE SYNCHRONIZATION (LEGACY COMPATIBILITY)
     // ==========================================
 
+    if (path === '/api/auth/check-email' && method === 'GET') {
+      const emailParam = url.searchParams.get('email') || '';
+      if (!emailParam) {
+        return new Response(JSON.stringify({ error: "Missing email parameter" }), { status: 400, headers });
+      }
+      const results = await env.DB.prepare("SELECT * FROM users WHERE email = ?").bind(emailParam).all();
+      const user = results.results?.[0];
+      return new Response(JSON.stringify({
+        exists: !!user,
+        user: user ? { id: user.id, email: user.email, fullName: user.full_name, role: user.role } : null
+      }), { headers });
+    }
+
     if (path === '/api/auth/sync-firebase' && method === 'POST') {
       const body = await request.json();
       const { firebaseUid, email, fullName, role } = body;
@@ -823,36 +836,59 @@ export async function onRequest(context: { request: Request; env: any; params: a
         return new Response(JSON.stringify({ error: "Missing required identifier: firebaseUid and email" }), { status: 400, headers });
       }
 
-      // Upsert into users table
-      await env.DB.prepare(
-        "INSERT OR REPLACE INTO users (id, email, full_name, role, created_at) VALUES (?, ?, ?, ?, ?)"
-      ).bind(
-        firebaseUid,
-        email,
-        fullName || email.split('@')[0],
-        role || 'Applicant',
-        new Date().toISOString()
-      ).run();
+      // Check if user already exists with this email to avoid duplicates or overwriting
+      const checkResult = await env.DB.prepare("SELECT * FROM users WHERE email = ?").bind(email).all();
+      const existingUser = checkResult.results?.[0];
 
-      const user = {
-        id: firebaseUid,
-        email,
-        fullName: fullName || email.split('@')[0],
-        role: role || 'Applicant'
-      };
+      let finalUser;
+      let alreadyExists = false;
+
+      if (existingUser) {
+        alreadyExists = true;
+        finalUser = {
+          id: existingUser.id,
+          email: existingUser.email,
+          fullName: existingUser.full_name,
+          role: existingUser.role
+        };
+      } else {
+        // Create new user profile as requested
+        const nameToUse = fullName || email.split('@')[0];
+        const roleToUse = role || 'Applicant';
+        
+        await env.DB.prepare(
+          "INSERT INTO users (id, email, full_name, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+        ).bind(
+          firebaseUid,
+          email,
+          nameToUse,
+          roleToUse,
+          'active',
+          new Date().toISOString()
+        ).run();
+
+        finalUser = {
+          id: firebaseUid,
+          email,
+          fullName: nameToUse,
+          role: roleToUse
+        };
+      }
 
       // Set session cookie
-      headers.append('Set-Cookie', `dstech_session=${btoa(JSON.stringify(user))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
+      headers.append('Set-Cookie', `dstech_session=${btoa(JSON.stringify(finalUser))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
 
       // Broadcast profile sync success
       broadcastSyncEvent({
         type: 'PROFILE_SYNC',
-        userId: firebaseUid,
+        userId: finalUser.id,
         email,
-        message: `Profile synchronized for ${fullName || email}`
+        message: alreadyExists 
+          ? `Profile authenticated for existing user ${finalUser.fullName}`
+          : `New user profile created and registered for ${finalUser.fullName}`
       });
 
-      return new Response(JSON.stringify({ success: true, user }), { headers });
+      return new Response(JSON.stringify({ success: true, user: finalUser, exists: alreadyExists }), { headers });
     }
 
     // ==========================================
