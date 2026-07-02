@@ -791,539 +791,177 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
   }
 
   return (
-    <div id="user-dashboard-root" className={`w-full min-h-screen transition-colors duration-500 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} flex items-center justify-center p-3 sm:p-6 md:p-8 font-sans relative overflow-hidden`}>
-      {/* Decorative background lights */}
+    <div id="user-dashboard-root" className={`w-full min-h-screen transition-colors duration-500 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} flex items-center justify-center p-4 sm:p-6 md:p-8 font-sans relative overflow-hidden`}>
+      {/* Decorative background ambient glow */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="w-full max-w-6xl bg-white dark:bg-[#0c1220] border border-slate-200 dark:border-white/15 rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10 animate-fade-in">
+      {/* SINGLE UNIFIED POLISHED CARD */}
+      <div className="w-full max-w-xl bg-white dark:bg-[#0c1220] border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl overflow-hidden relative z-10 animate-fade-in p-6 sm:p-8 md:p-10 flex flex-col gap-6">
         
-        {/* LEFT COLUMN: CANDIDATE BRANDING & STATS PANEL */}
-        <div className="hidden lg:flex lg:col-span-5 bg-gradient-to-br from-[#000E32] to-slate-950 p-6 sm:p-8 flex-col justify-between border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-white/10 text-left relative min-h-[350px] lg:min-h-[600px] text-white">
-          <div className="absolute inset-0 bg-radial-gradient from-orange-500/5 to-transparent opacity-50 pointer-events-none" />
+        {/* BRAND HEADER */}
+        <div className="flex flex-col items-center text-center gap-3">
+          <Logo size="md" variant={isDarkMode ? 'light' : 'dark'} className="mx-auto" />
+          <div className="h-px w-16 bg-gradient-to-r from-transparent via-indigo-500/40 to-transparent my-1" />
           
-          <div className="relative z-10 space-y-6">
-            <div className="flex items-center gap-3">
-              <Logo size="sm" variant="light" />
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black font-mono uppercase tracking-widest bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
+              <Sparkles size={11} className="animate-spin-slow" /> DS Tech Onboarding Node
             </div>
-
-            <div className="h-px bg-gradient-to-r from-indigo-500/40 to-transparent" />
-
-            <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-bold uppercase tracking-widest bg-orange-500/10 text-orange-400 border border-orange-400/20">
-                <Sparkles size={11} className="animate-spin-slow" /> Authorized Candidate Node
-              </div>
-              <h3 className="text-lg sm:text-2xl font-black text-white leading-tight font-sans">
-                Elevate Your Tech Career Journey.
-              </h3>
-              <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed font-medium">
-                Welcome to the DS Tech Agency Onboarding Center. Sign up or verify session to activate your career telemetry and configure real-time roadmap modules.
-              </p>
-            </div>
-
-            {/* Feature bullets */}
-            <div className="space-y-3 pt-2">
-              {[
-                { title: "Dynamic Career Roadmap", desc: "Interactive 12-month timeline milestones synced to Firebase locks." },
-                { title: "Quantum Skill Benchmarking", desc: "Instantly gauge gap analysis matching leading vacancies." },
-                { title: "Biometric Hardware Security", desc: "Authenticate securely with hardware-level biometric keys." }
-              ].map((f, i) => (
-                <div key={i} className="flex gap-2.5 items-start">
-                  <CheckCircle2 size={13} className="text-indigo-400 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="text-[10px] font-extrabold text-white block leading-tight">{f.title}</span>
-                    <span className="text-[9px] text-slate-400 block mt-0.5">{f.desc}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Stats and Home link at the bottom of the left column */}
-          <div className="relative z-10 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-8 lg:mt-0">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-[8px] font-bold uppercase text-slate-400 block">Active Candidates</span>
-                <span className="text-base font-black text-indigo-400">12,480+</span>
-              </div>
-              <div>
-                <span className="text-[8px] font-bold uppercase text-slate-400 block">Match Accuracy</span>
-                <span className="text-base font-black text-orange-400">94.8%</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={onBackToPortal || (() => { window.location.href = '/'; })}
-              className="px-3 py-2 bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 hover:border-slate-600 text-slate-300 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <ArrowLeft size={10} /> Return to Portal
-            </button>
+            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-2 leading-relaxed">
+              {authState === 'welcome' && "Begin your premium tech career recruitment and dynamic mapping onboarding."}
+              {authState === 'login' && "Sign in to access your customized growth roadmap and biometrics vault."}
+              {authState === 'register' && (isOtpPending ? "Verify your email security token" : "Create your candidate profile and establish career objectives.")}
+              {authState === 'forgot_password' && "Request a secure system reset token for account restoration."}
+            </p>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: DYNAMIC AUTH FORMS */}
-        <div className="col-span-12 lg:col-span-7 p-4 sm:p-6 md:p-8 flex flex-col justify-center bg-slate-50 dark:bg-[#070b14]">
-          
-          {/* Mobile Return to Portal Bar */}
-          <div className="lg:hidden flex items-center justify-between mb-4 bg-slate-100 dark:bg-slate-900 px-3 py-2.5 rounded-xl border border-slate-200 dark:border-white/10">
+        {/* CONTROLS: TABS FOR SWITCHING LOGIN / REGISTER (ONLY shown during login or register state) */}
+        {(authState === 'login' || authState === 'register') && (
+          <div className="flex bg-slate-100 dark:bg-[#121c33] p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 shadow-inner">
             <button
               type="button"
-              onClick={onBackToPortal || (() => { window.location.href = '/'; })}
-              className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+              onClick={() => { setAuthState('login'); setAuthError(null); setSuccessMsg(null); triggerHaptic(10); }}
+              className={`flex-1 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
+                authState === 'login'
+                  ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-md font-extrabold'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
             >
-              <ArrowLeft size={11} /> Return to Portal
+              Sign In
             </button>
-            <div className="flex items-center gap-1.5">
-              <Logo size="xs" variant={isDarkMode ? "light" : "dark"} />
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center mb-6 border-b border-slate-200 dark:border-white/10 pb-4">
-            <div className="space-y-1 text-left">
-              <h2 className="text-sm sm:text-base font-black text-[#000E32] dark:text-slate-100 uppercase tracking-wide">
-                {authState === 'welcome' && "Candidate Gateway"}
-                {authState === 'login' && "Authorize Candidate Session"}
-                {authState === 'register' && "Register Candidate Instance"}
-                {authState === 'forgot_password' && "Restore Credentials Portal"}
-              </h2>
-              <p className="text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-300 font-medium">
-                {authState === 'welcome' && "Initiate your premium recruitment onboarding stream"}
-                {authState === 'login' && "Sign in with registered credentials or hardware lock keys"}
-                {authState === 'register' && "Configure candidate identity parameters & career targets"}
-                {authState === 'forgot_password' && "Request security code to reset account access key"}
-              </p>
-            </div>
             <button
               type="button"
-              onClick={() => { setIsDarkMode(!isDarkMode); triggerHaptic(10); }}
-              className="p-2 rounded-xl border border-slate-200 dark:border-white/15 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all text-slate-500 dark:text-slate-200"
-              title="Toggle theme mode"
+              onClick={() => { setAuthState('register'); setAuthError(null); setSuccessMsg(null); triggerHaptic(10); }}
+              className={`flex-1 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
+                authState === 'register'
+                  ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-md font-extrabold'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
             >
-              {isDarkMode ? <Sun size={13} className="text-orange-400" /> : <Moon size={13} className="text-indigo-400" />}
+              Create Account
             </button>
           </div>
+        )}
 
-          <AnimatePresence mode="wait">
+        {/* FEEDBACK NOTIFICATION ALERTS */}
+        {authError && (
+          <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-600 dark:text-rose-400 text-xs font-semibold flex items-center gap-2.5 shadow-sm text-left animate-shake">
+            <AlertCircle size={15} className="shrink-0" />
+            <span>{authError}</span>
+          </div>
+        )}
+
+        {successMsg && (
+          <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2.5 shadow-sm text-left animate-fade-in">
+            <CheckCircle2 size={15} className="shrink-0" />
+            <span>{successMsg}</span>
+          </div>
+        )}
+
+        <AnimatePresence mode="wait">
           
-          {/* WELCOME / LANDING SELECTOR */}
+          {/* STATE 1: WELCOME SCREEN */}
           {authState === 'welcome' && (
             <motion.div
               key="welcome-screen"
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="max-w-xl mx-auto text-center py-6 md:py-10 space-y-6"
+              exit={{ opacity: 0, y: -15 }}
+              className="space-y-6 flex flex-col items-center text-center"
             >
-              <div className="space-y-3">
-                <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-orange-500/15 text-orange-500 dark:text-orange-400 border border-orange-400/30">
-                  <Sparkles size={11} className="animate-spin-slow" />
-                  Premium Auth Gateway
-                </div>
-                <h2 className="text-xl md:text-3xl font-black tracking-tight leading-tight text-[#000E32] dark:text-white">
-                  Unlock the Most Advanced Recruitment Experience.
-                </h2>
-                <p className="text-xs text-slate-600 dark:text-slate-200 max-w-md mx-auto leading-relaxed">
-                  Connect premium Firebase identity locks directly to Cloudflare Pages D1, generate career blueprints, and sync parameters securely.
-                </p>
-              </div>
-
-              {/* Demo auto-fill option */}
-              <div className="bg-slate-100 dark:bg-[#121c38] border border-slate-200 dark:border-white/10 rounded-2xl p-4 max-w-sm mx-auto space-y-2.5 shadow-sm">
-                <h3 className="text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400 flex items-center justify-center gap-1.5">
-                  <Zap size={12} /> Tester Convenience Portal
+              {/* Tester Convenience Section */}
+              <div className="w-full bg-slate-50 dark:bg-[#11192d] border border-slate-200/60 dark:border-white/5 rounded-2xl p-5 space-y-3.5 shadow-sm">
+                <h3 className="text-xs font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center justify-center gap-1.5 font-mono">
+                  <Zap size={13} className="animate-pulse" /> Sandbox Convenience Portal
                 </h3>
-                <p className="text-[10px] text-slate-600 dark:text-slate-200 font-semibold leading-relaxed">
-                  Skip manual typing and instantly inject premium preset values (Ngozi Balogun, AI Integrations Engineer) into the onboarding stream.
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-sm mx-auto">
+                  Instantly load high-fidelity candidate presets (Ngozi Balogun, AI Integrations Engineer) to preview portal features immediately.
                 </p>
                 <button
                   type="button"
                   onClick={handleLoadDemoUser}
-                  className="w-full py-2 bg-gradient-to-r from-orange-600 to-indigo-600 hover:shadow-lg hover:shadow-indigo-500/10 text-white font-black text-[9px] uppercase tracking-widest rounded-xl transition-all cursor-pointer"
+                  className="w-full py-2.5 bg-gradient-to-r from-orange-600 to-indigo-600 hover:shadow-lg hover:shadow-indigo-500/10 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                 >
                   🚀 Auto-Load Presets & Proceed
                 </button>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+              {/* Navigation Action Buttons */}
+              <div className="w-full flex flex-col sm:flex-row gap-3 pt-2">
                 <button
                   type="button"
                   onClick={() => { setAuthState('register'); triggerHaptic(10); }}
-                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-md hover:shadow-indigo-500/15 transition-all flex items-center gap-2 cursor-pointer w-full sm:w-auto justify-center"
+                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs uppercase tracking-widest rounded-xl shadow-md hover:shadow-indigo-500/15 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <UserPlus size={14} /> Create Account
                 </button>
                 <button
                   type="button"
                   onClick={() => { setAuthState('login'); triggerHaptic(10); }}
-                  className="px-6 py-2.5 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center gap-2 cursor-pointer w-full sm:w-auto justify-center"
+                  className="flex-1 py-3 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 font-extrabold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Lock size={14} className="text-orange-400" /> Standard Login
+                  <Lock size={14} className="text-orange-400" /> Sign In
                 </button>
               </div>
+
+              {/* Simple Back button */}
+              <button
+                type="button"
+                onClick={onBackToPortal || (() => { window.location.href = '/'; })}
+                className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex items-center gap-1.5 mt-2 cursor-pointer"
+              >
+                <ArrowLeft size={11} /> Return to Home Portal
+              </button>
             </motion.div>
           )}
 
-          {/* REGISTER SINGLE-PAGE ONBOARDING FLOW */}
-          {authState === 'register' && (
-            <motion.div
-              key="register-screen"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              className="w-full max-w-xl mx-auto space-y-4 text-left"
-            >
-              {/* Compact Header */}
-              <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-3">
-                <div>
-                  <h2 className="text-base font-black flex items-center gap-2 text-[#000E32] dark:text-white">
-                    <UserPlus className="text-indigo-400" size={18} />
-                    {isOtpPending ? "Email OTP Verification" : "Onboarding Registration"}
-                  </h2>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-300 font-semibold">
-                    {isOtpPending ? "Verify your email to activate candidate profile" : "Create your candidate profile in a single unified step"}
-                  </p>
-                </div>
-                <span className="text-[9px] font-mono font-bold text-indigo-500 dark:text-indigo-400 bg-indigo-500/15 px-2.5 py-1 rounded-xl uppercase tracking-wider">
-                  {isOtpPending ? "Security Handshake" : "Fast Track Mode"}
-                </span>
-              </div>
-
-              {authError && (
-                <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-500 dark:text-rose-400 text-xs font-semibold flex items-center gap-2">
-                  <AlertCircle size={15} />
-                  <span>{authError}</span>
-                </div>
-              )}
-
-              {successMsg && (
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2">
-                  <CheckCircle2 size={15} />
-                  <span>{successMsg}</span>
-                </div>
-              )}
-
-              {isOtpPending ? (
-                /* PHASE 2 SECURE OTP VERIFICATION FORM */
-                <form onSubmit={handleOtpVerifySubmit} className="space-y-4">
-                  <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl space-y-3">
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">
-                        Enter 6-Digit Secure OTP Passcode
-                      </label>
-                      <div className="relative">
-                        <Lock className="absolute left-3.5 top-3 text-slate-600 dark:text-indigo-400" size={15} />
-                        <input
-                          type="text"
-                          required
-                          maxLength={6}
-                          value={otpInput}
-                          onChange={e => setOtpInput(e.target.value.replace(/\D/g, ''))}
-                          placeholder="e.g. 123456"
-                          className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-mono font-bold tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                        />
-                      </div>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-normal font-semibold">
-                        We have dispatched an email containing your temporary cryptographically generated 6-digit passcode. Check your inbox for alihsan.online notifications.
-                      </p>
-                    </div>
-
-                    {otpDebugMessage && (
-                      <div className="p-3 bg-indigo-500/15 border border-indigo-500/30 rounded-xl space-y-2">
-                        <div className="flex items-center gap-1.5 text-indigo-400 text-[10px] font-black uppercase tracking-wider">
-                          <Sparkles size={12} className="animate-pulse" /> Sandbox Mode Indicator
-                        </div>
-                        <p className="text-[10px] text-slate-300 font-semibold leading-relaxed">
-                          Since BREVO_API_KEY is not configured in this preview instance, the secure OTP code has been logged below for tester verification:
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => { setOtpInput(otpDebugMessage); triggerHaptic(10); }}
-                          className="inline-flex items-center gap-1 px-3 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-mono font-bold rounded-lg transition-all cursor-pointer"
-                        >
-                          Code: {otpDebugMessage} <span className="opacity-50">(Click to auto-fill)</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => { setIsOtpPending(false); setAuthError(null); setSuccessMsg(null); triggerHaptic(10); }}
-                      className="flex-1 py-3 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer text-center"
-                    >
-                      Back to details
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting || otpInput.length < 6}
-                      className="flex-[2] py-3 bg-gradient-to-r from-orange-600 to-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-xl hover:shadow-xl hover:shadow-indigo-500/15 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-                    >
-                      {isSubmitting ? (
-                        <RefreshCw size={14} className="animate-spin" />
-                      ) : (
-                        <>
-                          <ShieldCheck size={14} /> Verify & Activate Profile
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                /* PHASE 1 DETAILS REGISTRATION FORM */
-                <form onSubmit={handleRegisterSubmit} className="space-y-4">
-                  {/* 2-Column Grid for compact layout */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    {/* LEFT INPUTS COLUMN */}
-                    <div className="space-y-3">
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Full Legal Name</label>
-                        <div className="relative">
-                          <User className="absolute left-3.5 top-3 text-slate-600 dark:text-indigo-400" size={15} />
-                          <input
-                            type="text"
-                            required
-                            value={fullName}
-                            onChange={e => setFullName(e.target.value)}
-                            placeholder="e.g. Ngozi Balogun"
-                            className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Email Address</label>
-                        <div className="relative">
-                          <Mail className="absolute left-3.5 top-3 text-slate-600 dark:text-indigo-400" size={15} />
-                          <input
-                            type="email"
-                            required
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            placeholder="e.g. candidate@dstech.com"
-                            className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Password Passcode</label>
-                        <div className="relative">
-                          <Key className="absolute left-3.5 top-3 text-slate-600 dark:text-indigo-400" size={15} />
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            required
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 pl-11 pr-11 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3.5 top-3.5 text-slate-500 hover:text-slate-700 dark:hover:text-white"
-                          >
-                            {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* RIGHT INPUTS COLUMN */}
-                    <div className="space-y-3">
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Ecosystem Role</label>
-                        <select
-                           value={selectedRole}
-                           onChange={e => setSelectedRole(e.target.value as any)}
-                           className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
-                        >
-                          <option value="Applicant" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Applicant / Candidate</option>
-                          <option value="Recruiter" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Recruiter / Employer</option>
-                          <option value="Admin" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Administrator</option>
-                        </select>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Target Agency Role</label>
-                        <select
-                          value={targetRole}
-                          onChange={e => setTargetRole(e.target.value)}
-                          className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"
-                        >
-                          <option value="AI Integrations Engineer" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">AI Integrations Engineer</option>
-                          <option value="Full-Stack Developer" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Full-Stack Developer</option>
-                          <option value="Cloud Architect" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Cloud Infrastructure Architect</option>
-                          <option value="WebAuthn Cryptographer" className="bg-white dark:bg-[#0c1428] text-slate-800 dark:text-slate-100">Security & Biometrics Cryptographer</option>
-                        </select>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-slate-100 block">Initial Core Skills</label>
-                        <textarea
-                          value={initialSkills}
-                          onChange={e => setInitialSkills(e.target.value)}
-                          placeholder="e.g. React, TypeScript, Node.js, Fast API"
-                          rows={2}
-                          className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-300 dark:border-slate-600 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 resize-none placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                        />
-                      </div>
-                    </div>
-
-                  </div>
-
-                  {/* Integrated Hardware Biometrics Row at Bottom */}
-                  <div className="p-3 bg-slate-100 dark:bg-[#121c38] border border-slate-200/50 dark:border-white/10 rounded-2xl flex items-start gap-3 shadow-sm">
-                    <div className="bg-indigo-500/10 p-2 rounded-xl border border-indigo-500/20 text-indigo-400 shrink-0">
-                      <Fingerprint size={18} />
-                    </div>
-                    <div className="space-y-1 flex-1 text-left">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-extrabold text-[#000E32] dark:text-white text-[11px] uppercase tracking-wider">Secure Biometrics Ledger</h4>
-                        <span className="text-[8px] font-mono font-bold bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-lg uppercase tracking-wide">
-                          Auto Enabled
-                        </span>
-                      </div>
-                      <p className="text-[10px] text-slate-600 dark:text-slate-200 leading-normal font-semibold">
-                        Your biometric lock will be registered. This securely binds FaceID / Fingerprint gestures to allow passwordless single-touch sessions on this device.
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-3 bg-gradient-to-r from-orange-600 to-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-xl hover:shadow-xl hover:shadow-indigo-500/15 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-                  >
-                    {isSubmitting ? (
-                      <RefreshCw size={14} className="animate-spin" />
-                    ) : (
-                      <>
-                        <ShieldCheck size={14} /> Finalize & Create Account
-                      </>
-                    )}
-                  </button>
-                </form>
-              )}
-
-              {/* Google Federated Sign In inside Signup */}
-              <div className="relative flex py-1 items-center">
-                <div className="flex-grow border-t border-slate-200 dark:border-white/10" />
-                <span className="flex-shrink mx-4 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Or Signup With</span>
-                <div className="flex-grow border-t border-slate-200 dark:border-white/10" />
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between bg-slate-100 dark:bg-black/30 border border-slate-200 dark:border-white/5 p-2 rounded-xl text-[10px] font-bold text-slate-400">
-                  <span>GOOGLE SIGN-IN FLOW:</span>
-                  <div className="flex gap-2">
-                    <button 
-                      type="button" 
-                      onClick={() => setGoogleSignInMethod('popup')}
-                      className={`px-2 py-1 rounded-lg border transition-all uppercase text-[8px] font-black ${googleSignInMethod === 'popup' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-transparent border-slate-300 dark:border-white/10'}`}
-                    >Popup</button>
-                    <button 
-                      type="button" 
-                      onClick={() => setGoogleSignInMethod('redirect')}
-                      className={`px-2 py-1 rounded-lg border transition-all uppercase text-[8px] font-black ${googleSignInMethod === 'redirect' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-transparent border-slate-300 dark:border-white/10'}`}
-                    >Redirect</button>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleGoogleSignIn}
-                  className="w-full py-3 bg-slate-100 dark:bg-white/5 border border-slate-300 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <svg className="h-4 w-4 mr-1.5" viewBox="0 0 24 24">
-                    <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.68 14.94 1 12 1 7.24 1 3.23 3.73 1.34 7.68l3.75 2.91C6.01 7.2 8.78 5.04 12 5.04z" />
-                    <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.47h6.44c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.39-4.88 3.39-8.5z" />
-                    <path fill="#FBBC05" d="M5.09 10.59c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29L1.34 7.68C.49 9.38 0 11.28 0 13.3s.49 3.92 1.34 5.62l3.75-2.91c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29z" />
-                    <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.66-2.84c-1.01.68-2.31 1.09-4.3 1.09-3.22 0-5.99-2.16-6.91-5.55l-3.75 2.91C3.23 20.27 7.24 23 12 23z" />
-                  </svg>
-                  <span>Continue with Google</span>
-                </button>
-              </div>
-
-              <div className="pt-4 border-t border-slate-200 dark:border-white/5 text-center">
-                <button
-                  type="button"
-                  onClick={() => { setAuthState('login'); triggerHaptic(10); }}
-                  className="text-[10px] font-black uppercase tracking-wider text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
-                >
-                  Already registered? Jump to secure login
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* STANDARD PASSWORD & BIOMETRIC LOGIN */}
+          {/* STATE 2: LOGIN FORM */}
           {authState === 'login' && (
             <motion.div
               key="login-screen"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              className="w-full max-w-md mx-auto space-y-6 text-left"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="space-y-5"
             >
-              <div>
-                <h2 className="text-base font-black flex items-center gap-2 text-[#000E32] dark:text-white">
-                  <Lock className="text-orange-500" size={18} />
-                  Authorize Session
-                </h2>
-                <p className="text-[10px] text-slate-400 font-medium">Standard passwords or hardware-level key handshakes</p>
-              </div>
-
-              {authError && (
-                <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-500 dark:text-rose-400 text-xs font-semibold flex items-center gap-2">
-                  <AlertCircle size={15} />
-                  <span>{authError}</span>
-                </div>
-              )}
-
-              {successMsg && (
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2">
-                  <CheckCircle2 size={15} />
-                  <span>{successMsg}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleLoginSubmit} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200 block">Registered Email</label>
+              <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Registered Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-3 text-slate-500 dark:text-indigo-400" size={15} />
+                    <Mail className="absolute left-3.5 top-3 text-slate-400 dark:text-indigo-400" size={15} />
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      placeholder="e.g. candidate@dstech.com"
-                      className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-200 dark:border-slate-700/60 rounded-xl py-2.5 pl-11 pr-4 text-xs text-slate-800 dark:text-slate-50 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                      placeholder="candidate@dstech.com"
+                      className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200 block">Password</label>
+                    <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Password</label>
                     <button 
                       type="button" 
-                      onClick={() => setAuthState('forgot_password')}
-                      className="text-[9px] font-black uppercase text-indigo-500 dark:text-indigo-400 hover:underline"
-                    >Forgot Password?</button>
+                      onClick={() => { setAuthState('forgot_password'); triggerHaptic(10); }}
+                      className="text-xs font-black text-indigo-600 dark:text-indigo-400 hover:underline"
+                    >
+                      Forgot Password?
+                    </button>
                   </div>
                   <div className="relative">
-                    <Key className="absolute left-3.5 top-3 text-slate-500 dark:text-indigo-400" size={15} />
+                    <Key className="absolute left-3.5 top-3 text-slate-400 dark:text-indigo-400" size={15} />
                     <input
                       type={showPassword ? "text" : "password"}
                       required
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-200 dark:border-slate-700/60 rounded-xl py-2.5 pl-11 pr-11 text-xs text-slate-800 dark:text-slate-50 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                      className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-11 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                     <button
                       type="button"
@@ -1338,121 +976,309 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-md hover:scale-[1.01]"
                 >
-                  {isSubmitting ? <RefreshCw size={14} className="animate-spin" /> : "Verify Session"}
+                  {isSubmitting ? <RefreshCw size={14} className="animate-spin" /> : "Sign In"}
                 </button>
               </form>
 
-              {/* Biometric Login alternative */}
-              <div className="relative flex py-2 items-center">
+              {/* SSO Divider */}
+              <div className="relative flex py-1 items-center">
                 <div className="flex-grow border-t border-slate-200 dark:border-white/10" />
-                <span className="flex-shrink mx-4 text-[9px] font-bold text-slate-400 uppercase tracking-widest">Or Connect with</span>
+                <span className="flex-shrink mx-4 text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono">Or Continue With</span>
                 <div className="flex-grow border-t border-slate-200 dark:border-white/10" />
               </div>
 
+              {/* SSO Action Options */}
               <div className="space-y-3">
-                <div className="flex items-center justify-between bg-slate-100 dark:bg-black/30 border border-slate-200 dark:border-white/5 p-2 rounded-xl text-[10px] font-bold text-slate-400">
-                  <span>GOOGLE SIGN-IN FLOW:</span>
-                  <div className="flex gap-2">
-                    <button 
-                      type="button" 
-                      onClick={() => setGoogleSignInMethod('popup')}
-                      className={`px-2 py-1 rounded-lg border transition-all uppercase text-[8px] font-black ${googleSignInMethod === 'popup' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-transparent border-slate-300 dark:border-white/10'}`}
-                    >Popup</button>
-                    <button 
-                      type="button" 
-                      onClick={() => setGoogleSignInMethod('redirect')}
-                      className={`px-2 py-1 rounded-lg border transition-all uppercase text-[8px] font-black ${googleSignInMethod === 'redirect' ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-transparent border-slate-300 dark:border-white/10'}`}
-                    >Redirect</button>
-                  </div>
-                </div>
-
+                {/* Unified, gorgeous, high-contrast Continue with Google button */}
                 <button
                   type="button"
                   onClick={handleGoogleSignIn}
-                  className="w-full py-3 bg-slate-100 dark:bg-white/5 border border-slate-300 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-800 dark:text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3 bg-white dark:bg-[#080d1a] hover:bg-slate-50 dark:hover:bg-[#11192e] border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm hover:scale-[1.01]"
                 >
-                  <svg className="h-4 w-4 mr-1.5" viewBox="0 0 24 24">
+                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
                     <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.68 14.94 1 12 1 7.24 1 3.23 3.73 1.34 7.68l3.75 2.91C6.01 7.2 8.78 5.04 12 5.04z" />
                     <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.47h6.44c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.39-4.88 3.39-8.5z" />
                     <path fill="#FBBC05" d="M5.09 10.59c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29L1.34 7.68C.49 9.38 0 11.28 0 13.3s.49 3.92 1.34 5.62l3.75-2.91c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29z" />
                     <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.66-2.84c-1.01.68-2.31 1.09-4.3 1.09-3.22 0-5.99-2.16-6.91-5.55l-3.75 2.91C3.23 20.27 7.24 23 12 23z" />
                   </svg>
-                  <span>Continue with Google</span>
+                  <span className="text-slate-800 dark:text-white font-extrabold">Continue with Google</span>
                 </button>
 
+                {/* Biometrics login block */}
                 <button
                   type="button"
                   onClick={handleBiometricLogin}
-                  className="w-full py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer hover:shadow-lg hover:shadow-orange-500/10"
+                  className="w-full py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer hover:shadow-lg hover:shadow-orange-500/10 hover:scale-[1.01]"
                 >
                   <Fingerprint size={16} /> Scan FaceID / Fingerprint
                 </button>
               </div>
 
-              <div className="pt-4 border-t border-slate-200 dark:border-white/5 text-center flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={() => { setAuthState('register'); triggerHaptic(10); }}
-                  className="text-[10px] font-black uppercase tracking-wider text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
-                >
-                  Create onboarding account
-                </button>
+              {/* Simple Back to Welcome link */}
+              <div className="pt-2 text-center">
                 <button
                   type="button"
                   onClick={() => { setAuthState('welcome'); triggerHaptic(10); }}
-                  className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                  className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
                 >
-                  Return
+                  Back to Hub Home
                 </button>
               </div>
             </motion.div>
           )}
 
-          {/* FORGOT PASSWORD SCREEN */}
+          {/* STATE 3: CREATE ACCOUNT (REGISTER) */}
+          {authState === 'register' && (
+            <motion.div
+              key="register-screen"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="space-y-5"
+            >
+              {isOtpPending ? (
+                /* PHASE 2: OTP CRYPTOGRAPHIC ACTIVATION */
+                <form onSubmit={handleOtpVerifySubmit} className="space-y-4 text-left">
+                  <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl space-y-3.5">
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block mb-1">
+                        Enter 6-Digit OTP Verification Code
+                      </label>
+                      <div className="relative">
+                        <Lock className="absolute left-3.5 top-3 text-slate-400 dark:text-indigo-400" size={15} />
+                        <input
+                          type="text"
+                          required
+                          maxLength={6}
+                          value={otpInput}
+                          onChange={e => setOtpInput(e.target.value.replace(/\D/g, ''))}
+                          placeholder="e.g. 123456"
+                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-mono font-black tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                        />
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                        A dynamic security verification code has been generated and dispatched to your email address. Please insert it above.
+                      </p>
+                    </div>
+
+                    {otpDebugMessage && (
+                      <div className="p-3.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl space-y-2">
+                        <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider font-mono">
+                          <Sparkles size={12} className="animate-pulse" /> Preview Auto-Fill Code
+                        </div>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-normal">
+                          For sandbox testing purposes, you may use this verification code immediately:
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => { setOtpInput(otpDebugMessage); triggerHaptic(10); }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-mono font-bold rounded-lg transition-all cursor-pointer"
+                        >
+                          Code: {otpDebugMessage} <span className="opacity-75 font-sans">(Click to autofill)</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => { setIsOtpPending(false); setAuthError(null); setSuccessMsg(null); triggerHaptic(10); }}
+                      className="flex-1 py-3 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 font-extrabold text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer text-center"
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting || otpInput.length < 6}
+                      className="flex-[2] py-3 bg-gradient-to-r from-orange-600 to-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-xl hover:shadow-xl hover:shadow-indigo-500/15 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                    >
+                      {isSubmitting ? (
+                        <RefreshCw size={14} className="animate-spin" />
+                      ) : (
+                        <>
+                          <ShieldCheck size={14} /> Verify & Activate Account
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                /* PHASE 1: DETAILS INTAKE FORM */
+                <form onSubmit={handleRegisterSubmit} className="space-y-4 text-left">
+                  {/* Two-column layout in desktop for details, neat and simple */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    
+                    {/* Column 1: Core credentials */}
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Full Legal Name</label>
+                        <div className="relative">
+                          <User className="absolute left-3.5 top-3 text-slate-400 dark:text-indigo-400" size={15} />
+                          <input
+                            type="text"
+                            required
+                            value={fullName}
+                            onChange={e => setFullName(e.target.value)}
+                            placeholder="Ngozi Balogun"
+                            className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Email Address</label>
+                        <div className="relative">
+                          <Mail className="absolute left-3.5 top-3 text-slate-400 dark:text-indigo-400" size={15} />
+                          <input
+                            type="email"
+                            required
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                            placeholder="candidate@dstech.com"
+                            className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Password</label>
+                        <div className="relative">
+                          <Key className="absolute left-3.5 top-3 text-slate-400 dark:text-indigo-400" size={15} />
+                          <input
+                            type={showPassword ? "text" : "password"}
+                            required
+                            value={password}
+                            onChange={e => setPassword(e.target.value)}
+                            placeholder="••••••••"
+                            className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-11 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                          >
+                            {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Column 2: Profile mapping context */}
+                    <div className="space-y-3">
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Account Type</label>
+                        <select
+                          value={selectedRole}
+                          onChange={e => setSelectedRole(e.target.value as any)}
+                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
+                        >
+                          <option value="Applicant">Applicant / Candidate</option>
+                          <option value="Recruiter">Recruiter / Employer</option>
+                          <option value="Admin">Administrator</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Target Role</label>
+                        <select
+                          value={targetRole}
+                          onChange={e => setTargetRole(e.target.value)}
+                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
+                        >
+                          <option value="AI Integrations Engineer">AI Integrations Engineer</option>
+                          <option value="Full-Stack Developer">Full-Stack Developer</option>
+                          <option value="Cloud Architect">Cloud Infrastructure Architect</option>
+                          <option value="WebAuthn Cryptographer">Security & Biometrics Specialist</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Your Core Skills</label>
+                        <textarea
+                          value={initialSkills}
+                          onChange={e => setInitialSkills(e.target.value)}
+                          placeholder="React, TypeScript, Node.js..."
+                          rows={2}
+                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                        />
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Biometric Enablement callout */}
+                  <div className="p-3.5 bg-slate-50 dark:bg-[#11192d] border border-slate-200/50 dark:border-white/5 rounded-2xl flex items-start gap-3 shadow-sm">
+                    <div className="bg-indigo-500/10 p-2 rounded-xl border border-indigo-500/20 text-indigo-500 dark:text-indigo-400 shrink-0">
+                      <Fingerprint size={18} />
+                    </div>
+                    <div className="space-y-0.5 flex-1 text-left">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-bold text-slate-800 dark:text-white text-xs">WebAuthn Key Registry</h4>
+                        <span className="text-[9px] font-black font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded uppercase tracking-wider">Active</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal">
+                        FIDO2 hardware biometric key registration is auto-enrolled to protect your professional ledger profiles.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-md hover:scale-[1.01]"
+                  >
+                    {isSubmitting ? <RefreshCw size={14} className="animate-spin" /> : "Create Account"}
+                  </button>
+
+                  {/* Google register option */}
+                  <div className="relative flex py-1 items-center">
+                    <div className="flex-grow border-t border-slate-200 dark:border-white/10" />
+                    <span className="flex-shrink mx-4 text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono">Or Register With</span>
+                    <div className="flex-grow border-t border-slate-200 dark:border-white/10" />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleGoogleSignIn}
+                    className="w-full py-3 bg-white dark:bg-[#080d1a] hover:bg-slate-50 dark:hover:bg-[#11192e] border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm hover:scale-[1.01]"
+                  >
+                    <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
+                      <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.68 14.94 1 12 1 7.24 1 3.23 3.73 1.34 7.68l3.75 2.91C6.01 7.2 8.78 5.04 12 5.04z" />
+                      <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.47h6.44c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.39-4.88 3.39-8.5z" />
+                      <path fill="#FBBC05" d="M5.09 10.59c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29L1.34 7.68C.49 9.38 0 11.28 0 13.3s.49 3.92 1.34 5.62l3.75-2.91c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29z" />
+                      <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.66-2.84c-1.01.68-2.31 1.09-4.3 1.09-3.22 0-5.99-2.16-6.91-5.55l-3.75 2.91C3.23 20.27 7.24 23 12 23z" />
+                    </svg>
+                    <span className="text-slate-800 dark:text-white font-extrabold">Continue with Google</span>
+                  </button>
+                </form>
+              )}
+            </motion.div>
+          )}
+
+          {/* STATE 4: PASSWORD RESET */}
           {authState === 'forgot_password' && (
             <motion.div
               key="forgot-password"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              className="w-full max-w-md mx-auto space-y-6 text-left"
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              className="space-y-5 text-left"
             >
-              <div>
-                <h2 className="text-base font-black flex items-center gap-2 text-[#000E32] dark:text-white">
-                  <Mail className="text-indigo-500" size={18} />
-                  Restore Access key
-                </h2>
-                <p className="text-[10px] text-slate-400 font-medium">Verify your email to refresh your credentials</p>
-              </div>
-
-              {authError && (
-                <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-500 dark:text-rose-400 text-xs font-semibold flex items-center gap-2">
-                  <AlertCircle size={15} />
-                  <span>{authError}</span>
-                </div>
-              )}
-
-              {successMsg && (
-                <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-600 dark:text-emerald-400 text-xs font-semibold flex items-center gap-2">
-                  <CheckCircle2 size={15} />
-                  <span>{successMsg}</span>
-                </div>
-              )}
-
               <form onSubmit={handleForgotPassword} className="space-y-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200 block">Registered Email</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Registered Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-3 text-slate-500 dark:text-indigo-400" size={15} />
+                    <Mail className="absolute left-3.5 top-3 text-slate-400 dark:text-indigo-400" size={15} />
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder="candidate@dstech.com"
-                      className="w-full bg-slate-100 dark:bg-[#0c1428] border border-slate-200 dark:border-slate-700/60 rounded-xl py-2.5 pl-11 pr-4 text-xs text-slate-800 dark:text-slate-50 font-semibold focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                      className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                     />
                   </div>
                 </div>
@@ -1460,24 +1286,26 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-md hover:scale-[1.01]"
                 >
-                  {isSubmitting ? <RefreshCw size={14} className="animate-spin" /> : "Dispatch Reset Link"}
+                  {isSubmitting ? <RefreshCw size={14} className="animate-spin" /> : "Send Reset Link"}
                 </button>
               </form>
 
-              <div className="text-center">
+              <div className="text-center pt-2">
                 <button
                   type="button"
-                  onClick={() => setAuthState('login')}
-                  className="text-[10px] font-black uppercase text-indigo-500 dark:text-indigo-400 hover:underline"
-                >Back to login</button>
+                  onClick={() => { setAuthState('login'); triggerHaptic(10); }}
+                  className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                >
+                  Back to login
+                </button>
               </div>
             </motion.div>
           )}
+
         </AnimatePresence>
       </div>
-    </div>
 
     <PhoneBiometricPrompt
       isOpen={isBiometricPromptOpen}
@@ -1496,96 +1324,96 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 15 }}
             transition={{ duration: 0.2 }}
-            className="w-full max-w-sm bg-white dark:bg-[#0c1428] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-6 text-left relative overflow-hidden"
+            className="w-full max-w-md bg-white dark:bg-[#0c1428] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-6 text-left relative overflow-hidden"
           >
             {chooserStatus === 'select' ? (
               <>
                 {/* Header: Google branding and clean layout */}
                 <div className="flex flex-col items-center text-center pb-4 border-b border-slate-100 dark:border-white/5">
-                  <svg className="h-6 w-6 mb-2" viewBox="0 0 24 24">
+                  <svg className="h-7 w-7 mb-2.5" viewBox="0 0 24 24">
                     <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.68 14.94 1 12 1 7.24 1 3.23 3.73 1.34 7.68l3.75 2.91C6.01 7.2 8.78 5.04 12 5.04z" />
                     <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.47h6.44c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.39-4.88 3.39-8.5z" />
                     <path fill="#FBBC05" d="M5.09 10.59c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29L1.34 7.68C.49 9.38 0 11.28 0 13.3s.49 3.92 1.34 5.62l3.75-2.91c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29z" />
                     <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.66-2.84c-1.01.68-2.31 1.09-4.3 1.09-3.22 0-5.99-2.16-6.91-5.55l-3.75 2.91C3.23 20.27 7.24 23 12 23z" />
                   </svg>
-                  <h3 className="text-sm font-extrabold text-slate-800 dark:text-slate-100 uppercase tracking-wider">Choose an account</h3>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1">to continue to <span className="font-bold text-indigo-500">alihsan.online</span></p>
+                  <h3 className="text-lg font-bold text-slate-950 dark:text-slate-50">Choose an Account</h3>
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">to continue to <span className="font-semibold text-indigo-600 dark:text-indigo-400">alihsan.online</span></p>
                 </div>
 
                 {/* List of Accounts */}
-                <div className="mt-4 space-y-2.5 max-h-[240px] overflow-y-auto pr-1">
+                <div className="mt-4 space-y-3 max-h-[260px] overflow-y-auto pr-1">
                   {/* 1. User's Main Registered Email (Dynamic from workspace/browser context) */}
                   <button
                     onClick={() => handleSelectGoogleEmail("hassanalaminhassan85@gmail.com", "Hassan Al-Amin")}
-                    className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-left group cursor-pointer"
+                    className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-left group cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-7 w-7 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white flex items-center justify-center font-black text-xs">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white flex items-center justify-center font-bold text-sm">
                         H
                       </div>
                       <div>
-                        <span className="text-[10px] font-extrabold text-slate-800 dark:text-slate-100 block group-hover:text-indigo-400 transition-colors">Hassan Al-Amin</span>
-                        <span className="text-[9px] text-slate-400 dark:text-slate-500 block">hassanalaminhassan85@gmail.com</span>
+                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100 block group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Hassan Al-Amin</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 block">hassanalaminhassan85@gmail.com</span>
                       </div>
                     </div>
-                    <ChevronRight size={14} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                    <ChevronRight size={16} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
                   </button>
 
                   {/* 2. Ngozi Balogun */}
                   <button
                     onClick={() => handleSelectGoogleEmail("ngozi.balogun@dstech.com", "Ngozi Balogun")}
-                    className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-left group cursor-pointer"
+                    className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-left group cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-7 w-7 rounded-full bg-gradient-to-tr from-emerald-500 to-emerald-600 text-white flex items-center justify-center font-black text-xs">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-emerald-500 to-emerald-600 text-white flex items-center justify-center font-bold text-sm">
                         N
                       </div>
                       <div>
-                        <span className="text-[10px] font-extrabold text-slate-800 dark:text-slate-100 block group-hover:text-emerald-400 transition-colors">Ngozi Balogun</span>
-                        <span className="text-[9px] text-slate-400 dark:text-slate-500 block">ngozi.balogun@dstech.com</span>
+                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100 block group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Ngozi Balogun</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 block">ngozi.balogun@dstech.com</span>
                       </div>
                     </div>
-                    <ChevronRight size={14} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                    <ChevronRight size={16} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
                   </button>
 
                   {/* 3. Demo Candidate */}
                   <button
                     onClick={() => handleSelectGoogleEmail("candidate2026@dstech.com", "Demo Candidate")}
-                    className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-left group cursor-pointer"
+                    className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-left group cursor-pointer"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="h-7 w-7 rounded-full bg-gradient-to-tr from-amber-500 to-amber-600 text-white flex items-center justify-center font-black text-xs">
+                      <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-amber-500 to-amber-600 text-white flex items-center justify-center font-bold text-sm">
                         C
                       </div>
                       <div>
-                        <span className="text-[10px] font-extrabold text-slate-800 dark:text-slate-100 block group-hover:text-amber-400 transition-colors">Demo Candidate</span>
-                        <span className="text-[9px] text-slate-400 dark:text-slate-500 block">candidate2026@dstech.com</span>
+                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100 block group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Demo Candidate</span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 block">candidate2026@dstech.com</span>
                       </div>
                     </div>
-                    <ChevronRight size={14} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                    <ChevronRight size={16} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
                   </button>
 
                   {/* Custom Add Account Options */}
                   {showCustomGoogleInput ? (
-                    <div className="p-3 border border-indigo-500/30 rounded-xl space-y-2.5 bg-indigo-500/5">
-                      <span className="text-[9px] font-extrabold text-indigo-400 uppercase tracking-wider block">Add Google Account</span>
+                    <div className="p-4 border border-indigo-500/30 rounded-xl space-y-3 bg-indigo-500/5">
+                      <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block">Add Account</span>
                       <input
                         type="email"
-                        placeholder="Enter any Gmail/Email"
+                        placeholder="Enter Google account email"
                         value={customGoogleEmail}
                         onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                        className="w-full px-3 py-1.5 text-[10px] font-semibold bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        className="w-full px-3 py-2 text-sm font-semibold bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                       />
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleSelectGoogleEmail(customGoogleEmail)}
-                          className="flex-1 py-1 bg-indigo-600 hover:bg-indigo-500 text-white text-[8px] font-black uppercase tracking-widest rounded-md"
+                          className="flex-1 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold uppercase tracking-widest rounded-md"
                         >
                           Confirm
                         </button>
                         <button
                           onClick={() => setShowCustomGoogleInput(false)}
-                          className="px-2 py-1 bg-slate-200 dark:bg-white/5 text-slate-700 dark:text-slate-300 text-[8px] font-black uppercase tracking-widest rounded-md"
+                          className="px-3 py-1.5 bg-slate-200 dark:bg-white/5 text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-widest rounded-md"
                         >
                           Cancel
                         </button>
@@ -1594,10 +1422,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                   ) : (
                     <button
                       onClick={() => setShowCustomGoogleInput(true)}
-                      className="w-full flex items-center justify-center gap-2 p-2.5 rounded-xl border border-dashed border-slate-300 dark:border-white/10 hover:border-indigo-400 hover:bg-indigo-500/5 transition-all text-center cursor-pointer"
+                      className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-slate-300 dark:border-white/10 hover:border-indigo-400 hover:bg-indigo-500/5 transition-all text-center cursor-pointer"
                     >
-                      <UserPlus size={12} className="text-indigo-400" />
-                      <span className="text-[9px] font-extrabold text-indigo-400 uppercase tracking-widest">Use another account</span>
+                      <UserPlus size={14} className="text-indigo-500 dark:text-indigo-400" />
+                      <span className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest">Use another account</span>
                     </button>
                   )}
                 </div>
@@ -1606,15 +1434,15 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                 <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 text-center space-y-3">
                   <button
                     onClick={triggerRealGoogleSignIn}
-                    className="w-full py-2 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800/80 dark:to-slate-800 text-slate-800 dark:text-slate-200 text-[9px] font-black uppercase tracking-wider rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800/80 dark:to-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold uppercase tracking-wider rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-1.5"
                   >
-                    <Sparkles size={11} className="text-indigo-400 animate-pulse" />
-                    Authenticate with Real Google Account
+                    <Sparkles size={13} className="text-indigo-500 animate-pulse" />
+                    Connect Real Google Account
                   </button>
                   
                   <button
                     onClick={() => setIsGoogleChooserOpen(false)}
-                    className="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                    className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors block w-full text-center"
                   >
                     Close Chooser
                   </button>
@@ -1622,44 +1450,44 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
               </>
             ) : chooserStatus === 'checking' ? (
               <div className="flex flex-col items-center justify-center py-10 space-y-4 text-center">
-                <svg className="h-8 w-8 animate-bounce" viewBox="0 0 24 24">
+                <svg className="h-10 w-10 animate-bounce" viewBox="0 0 24 24">
                   <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.68 14.94 1 12 1 7.24 1 3.23 3.73 1.34 7.68l3.75 2.91C6.01 7.2 8.78 5.04 12 5.04z" />
                   <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.47h6.44c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.39-4.88 3.39-8.5z" />
                 </svg>
                 <div className="space-y-2">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-slate-800 dark:text-slate-100">Verifying Email</h4>
-                  <p className="text-[10px] text-indigo-400 font-bold font-mono">{chooserEmail}</p>
+                  <h4 className="text-sm font-bold uppercase tracking-widest text-slate-800 dark:text-slate-100">Verifying Email</h4>
+                  <p className="text-sm text-indigo-600 dark:text-indigo-400 font-bold font-mono">{chooserEmail}</p>
                 </div>
                 <div className="w-12 h-1 border-t-2 border-indigo-500 border-solid rounded-full animate-spin"></div>
-                <p className="text-[9px] text-slate-400">Checking the secure decentralization ledger...</p>
+                <p className="text-xs text-slate-500">Checking registry database...</p>
               </div>
             ) : chooserStatus === 'exists' ? (
-              <div className="flex flex-col items-center justify-center py-10 space-y-4 text-center animate-pulse">
-                <div className="h-10 w-10 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full flex items-center justify-center">
-                  <AlertCircle size={22} className="animate-bounce" />
+              <div className="flex flex-col items-center justify-center py-10 space-y-4 text-center">
+                <div className="h-12 w-12 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full flex items-center justify-center">
+                  <AlertCircle size={24} className="animate-bounce" />
                 </div>
                 <div className="space-y-2">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-amber-500">ALREADY EXIST</h4>
-                  <p className="text-[10px] text-slate-400">An account with <span className="font-extrabold text-slate-300">{chooserEmail}</span> is already registered.</p>
+                  <h4 className="text-sm font-bold uppercase tracking-widest text-amber-500">Account Already Exists</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">An account with <span className="font-bold text-slate-800 dark:text-slate-200">{chooserEmail}</span> is already registered.</p>
                 </div>
-                <p className="text-[10px] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-extrabold uppercase px-3 py-1.5 rounded-lg tracking-wider">
-                  Authenticating Existing Profile...
+                <p className="text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-lg tracking-wider">
+                  Signing in automatically...
                 </p>
-                <p className="text-[8px] text-slate-500">Logging you in automatically. Please wait.</p>
+                <p className="text-xs text-slate-400">Please wait a moment.</p>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-10 space-y-4 text-center">
-                <div className="h-10 w-10 bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center">
-                  <UserPlus size={20} className="animate-pulse" />
+                <div className="h-12 w-12 bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center">
+                  <UserPlus size={24} className="animate-pulse" />
                 </div>
                 <div className="space-y-2">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-indigo-400">NO ACCOUNT FOUND</h4>
-                  <p className="text-[10px] text-slate-400">Creating a brand new candidate profile for <span className="font-extrabold text-slate-300">{chooserEmail}</span></p>
+                  <h4 className="text-sm font-bold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">Account Not Found</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Creating a brand new candidate profile for <span className="font-bold text-slate-800 dark:text-slate-200">{chooserEmail}</span></p>
                 </div>
-                <div className="w-16 h-1 bg-indigo-900 rounded-full overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-r from-orange-500 to-indigo-500 origin-left animate-[pulse_1.5s_infinite]"></div>
+                <div className="w-16 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-orange-500 to-indigo-500 origin-left animate-[pulse_1.5s_infinite]"></div>
                 </div>
-                <p className="text-[9px] text-slate-400">Registering secure biometrics and setting up environment...</p>
+                <p className="text-xs text-slate-400">Setting up your onboarding environment...</p>
               </div>
             )}
           </motion.div>
