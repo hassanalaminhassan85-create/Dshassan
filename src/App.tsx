@@ -1377,7 +1377,7 @@ export default function App() {
                       </div>
 
                       {/* GPS Verification with Map-like Coordinate Tag */}
-                      <div className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl p-2.5 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-400 gap-2">
+                      <div className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl p-2.5 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-300 gap-2">
                         <div className="flex items-center gap-1.5 font-medium">
                           <Globe size={13} className="text-[#000E32] dark:text-orange-400 animate-spin-slow shrink-0" />
                           <span className="text-[11px]">{t.hqGps}</span>
@@ -1432,7 +1432,7 @@ export default function App() {
                     <div className="text-center max-w-xl mx-auto space-y-1.5">
                       <span className="font-hand text-xl text-orange-600 dark:text-orange-400 block">{t.journeySubtitle}</span>
                       <h3 className="text-lg font-bold text-[#000E32] dark:text-white uppercase tracking-wide font-serif">{t.journeyTitle}</h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">{t.journeyDesc}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-300">{t.journeyDesc}</p>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
@@ -1441,7 +1441,7 @@ export default function App() {
                           <span className="text-3xl font-black text-orange-500/15 font-mono leading-none">0{i + 1}</span>
                           <div className="space-y-1">
                             <h4 className="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wide font-serif">{milestone.label}</h4>
-                            <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed">{milestone.desc}</p>
+                            <p className="text-slate-500 dark:text-slate-300 text-[11px] leading-relaxed">{milestone.desc}</p>
                           </div>
                         </div>
                       ))}

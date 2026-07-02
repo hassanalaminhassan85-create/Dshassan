@@ -365,7 +365,7 @@ export const BrevoEmailDashboard: React.FC = () => {
           <h2 className="text-xl font-black uppercase text-[#000E32] dark:text-orange-500">
             Enterprise Email Integration
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 text-[11px] leading-relaxed max-w-2xl">
+          <p className="text-slate-500 dark:text-slate-300 text-[11px] leading-relaxed max-w-2xl">
             Real-time delivery pipelines, automatic retries, duplicate prevention filters, PWA email queues, and fully responsive glassmorphism templates configured with Brevo (Sendinblue) API.
           </p>
         </div>
@@ -429,7 +429,7 @@ export const BrevoEmailDashboard: React.FC = () => {
           {loading && !metrics ? (
             <div className="p-12 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl">
               <RefreshCw className="animate-spin mx-auto text-[#000E32] dark:text-orange-500 mb-2" size={24} />
-              <p className="text-slate-500 dark:text-slate-400">Computing transactional analytics from D1 database...</p>
+              <p className="text-slate-500 dark:text-slate-300">Computing transactional analytics from D1 database...</p>
             </div>
           ) : (
             <>
@@ -574,7 +574,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                       <div key={idx} className="flex items-center justify-between text-[11px]">
                         <div className="flex items-center gap-1.5">
                           <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />
-                          <span className="text-slate-500 dark:text-slate-400">{s.name}</span>
+                          <span className="text-slate-500 dark:text-slate-300">{s.name}</span>
                         </div>
                         <span className="font-extrabold">{s.value}</span>
                       </div>
@@ -596,7 +596,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                       return (
                         <div key={index} className="space-y-1">
                           <div className="flex justify-between text-[11px]">
-                            <span className="font-mono text-slate-600 dark:text-slate-400">{item.type.toUpperCase()}</span>
+                            <span className="font-mono text-slate-600 dark:text-slate-300">{item.type.toUpperCase()}</span>
                             <span className="font-bold">{item.count} dispatched</span>
                           </div>
                           <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
@@ -1006,10 +1006,10 @@ export const BrevoEmailDashboard: React.FC = () => {
                   {testTemplateType === 'welcome' && (
                     <>
                       <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-2">Welcome to DS Tech, {testRecipientName || "User"}! 🎉</h4>
-                      <p className="text-slate-500 dark:text-slate-400 text-[11px] mb-3">Your professional recruitment journey starts right here. DS Tech is Nigeria's premier elite technology career matchmaking and screening platform.</p>
+                      <p className="text-slate-500 dark:text-slate-300 text-[11px] mb-3">Your professional recruitment journey starts right here. DS Tech is Nigeria's premier elite technology career matchmaking and screening platform.</p>
                       <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl mb-4 border border-slate-150">
                         <strong className="block text-[#0f172a] dark:text-orange-500 mb-1">Next Steps:</strong>
-                        <ul className="list-disc pl-4 text-slate-500 space-y-1">
+                        <ul className="list-disc pl-4 text-slate-500 dark:text-slate-300 space-y-1">
                           <li>Complete detailed career constellation profile</li>
                           <li>Perform premium AI Screening interview</li>
                           <li>Unlock blockchain achievements</li>
@@ -1024,7 +1024,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                   {testTemplateType === 'verification' && (
                     <>
                       <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-2">Verify Your Email Address ✉️</h4>
-                      <p className="text-slate-500 dark:text-slate-400 text-[11px] mb-4">Please click the button below to verify your email address and activate your DS Tech account.</p>
+                      <p className="text-slate-500 dark:text-slate-300 text-[11px] mb-4">Please click the button below to verify your email address and activate your DS Tech account.</p>
                       <div className="text-center mb-4">
                         <span className="inline-block bg-[#2563eb] text-white px-5 py-2 rounded-lg font-bold">Verify Email Address</span>
                       </div>
@@ -1037,7 +1037,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                   {testTemplateType === 'password_reset' && (
                     <>
                       <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-2">Reset Your DS Tech Password 🔒</h4>
-                      <p className="text-slate-500 dark:text-slate-400 text-[11px] mb-4">We received a request to reset the password associated with your DS Tech account.</p>
+                      <p className="text-slate-500 dark:text-slate-300 text-[11px] mb-4">We received a request to reset the password associated with your DS Tech account.</p>
                       <div className="text-center mb-4">
                         <span className="inline-block bg-[#2563eb] text-white px-5 py-2 rounded-lg font-bold">Reset Password</span>
                       </div>

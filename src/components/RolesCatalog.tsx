@@ -45,7 +45,7 @@ export function RolesCatalog({ language, onSelectRole }: RolesCatalogProps) {
           <h2 className="text-2xl md:text-3xl font-black text-[#000E32] dark:text-white uppercase tracking-tight font-serif leading-none">
             {t.exploreHeading || 'Explore Accredited Positions'}
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 text-xs font-light">
+          <p className="text-slate-500 dark:text-slate-300 text-xs font-light">
             {t.exploreSubheading || 'Browse our catalog of 30+ official vacancies, filter by sector, and click on any position to start your accredited application.'}
           </p>
         </div>
@@ -131,7 +131,7 @@ export function RolesCatalog({ language, onSelectRole }: RolesCatalogProps) {
                       <CatIcon size={9} />
                       {catMeta.label.split(' & ')[0]}
                     </span>
-                    <span className="text-[10px] font-mono font-bold text-slate-400 dark:text-slate-500">
+                    <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-300">
                       ID: {role.id}
                     </span>
                   </div>
@@ -141,14 +141,14 @@ export function RolesCatalog({ language, onSelectRole }: RolesCatalogProps) {
                     <h3 className="font-extrabold text-slate-900 dark:text-white text-xs leading-snug tracking-tight font-serif group-hover:text-orange-500 transition-colors">
                       {role.title}
                     </h3>
-                    <p className="text-slate-500 dark:text-slate-400 text-[10px] leading-relaxed line-clamp-3">
+                    <p className="text-slate-500 dark:text-slate-300 text-[10px] leading-relaxed line-clamp-3">
                       {role.description}
                     </p>
                   </div>
 
                   {/* Skills tags list */}
                   <div className="space-y-1">
-                    <div className="text-[8px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-wider">
+                    <div className="text-[8px] uppercase font-black text-slate-500 dark:text-slate-300 tracking-wider">
                       {t.coreFocus}
                     </div>
                     <div className="flex flex-wrap gap-1">
@@ -162,7 +162,7 @@ export function RolesCatalog({ language, onSelectRole }: RolesCatalogProps) {
 
                   {/* Tools tags list */}
                   <div className="space-y-1">
-                    <div className="text-[8px] uppercase font-black text-slate-400 dark:text-slate-500 tracking-wider flex items-center gap-1">
+                    <div className="text-[8px] uppercase font-black text-slate-500 dark:text-slate-300 tracking-wider flex items-center gap-1">
                       <Wrench size={8} />
                       {t.toolsStack}
                     </div>
@@ -179,7 +179,7 @@ export function RolesCatalog({ language, onSelectRole }: RolesCatalogProps) {
                 {/* Footer section of Card */}
                 <div className="border-t border-slate-100 dark:border-slate-800/80 pt-3 mt-4 flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <span className="text-[8px] uppercase font-bold text-slate-400 dark:text-slate-500 block leading-none">{t.estimateAllowance}</span>
+                    <span className="text-[8px] uppercase font-bold text-slate-500 dark:text-slate-300 block leading-none">{t.estimateAllowance}</span>
                     <span className="text-xs font-mono font-bold text-orange-500 dark:text-orange-400 block mt-0.5">{role.estimatedSalary} <span className="text-[8px] text-slate-400 font-sans font-normal">/mo</span></span>
                   </div>
 
@@ -203,7 +203,7 @@ export function RolesCatalog({ language, onSelectRole }: RolesCatalogProps) {
             </div>
             <div className="space-y-0.5">
               <h4 className="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wide">{t.noVacancyFound}</h4>
-              <p className="text-slate-500 dark:text-slate-400 text-[11px]">{t.noVacancyDesc}</p>
+              <p className="text-slate-500 dark:text-slate-300 text-[11px]">{t.noVacancyDesc}</p>
             </div>
           </div>
         )}

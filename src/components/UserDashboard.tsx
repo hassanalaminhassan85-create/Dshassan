@@ -799,6 +799,26 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
       {/* SINGLE UNIFIED POLISHED CARD */}
       <div className="w-full max-w-xl bg-white dark:bg-[#0c1220] border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl overflow-hidden relative z-10 animate-fade-in p-6 sm:p-8 md:p-10 flex flex-col gap-6">
         
+        {/* LIGHT/DARK THEME TOGGLE BUTTON */}
+        <button
+          type="button"
+          onClick={() => { setIsDarkMode(!isDarkMode); triggerHaptic(10); }}
+          className="absolute top-4 right-4 p-2 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#121c33] text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all z-20 cursor-pointer shadow-sm flex items-center gap-1.5"
+          aria-label="Toggle Theme"
+        >
+          {isDarkMode ? (
+            <>
+              <Sun size={15} className="text-orange-500" />
+              <span className="text-[10px] font-black uppercase tracking-wider hidden sm:inline">Light Mode</span>
+            </>
+          ) : (
+            <>
+              <Moon size={15} className="text-indigo-500" />
+              <span className="text-[10px] font-black uppercase tracking-wider hidden sm:inline">Dark Mode</span>
+            </>
+          )}
+        </button>
+
         {/* BRAND HEADER */}
         <div className="flex flex-col items-center text-center gap-3">
           <Logo size="md" variant={isDarkMode ? 'light' : 'dark'} className="mx-auto" />
@@ -808,7 +828,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black font-mono uppercase tracking-widest bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
               <Sparkles size={11} className="animate-spin-slow" /> DS Tech Onboarding Node
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto mt-2 leading-relaxed">
+            <p className="text-xs text-slate-800 dark:text-slate-200 font-medium max-w-md mx-auto mt-2 leading-relaxed">
               {authState === 'welcome' && "Begin your premium tech career recruitment and dynamic mapping onboarding."}
               {authState === 'login' && "Sign in to access your customized growth roadmap and biometrics vault."}
               {authState === 'register' && (isOtpPending ? "Verify your email security token" : "Create your candidate profile and establish career objectives.")}
@@ -819,14 +839,14 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
 
         {/* CONTROLS: TABS FOR SWITCHING LOGIN / REGISTER (ONLY shown during login or register state) */}
         {(authState === 'login' || authState === 'register') && (
-          <div className="flex bg-slate-100 dark:bg-[#121c33] p-1 rounded-2xl border border-slate-200/50 dark:border-white/5 shadow-inner">
+          <div className="flex bg-slate-100 dark:bg-[#121c33] p-1 rounded-2xl border border-slate-200 dark:border-white/5 shadow-inner">
             <button
               type="button"
               onClick={() => { setAuthState('login'); setAuthError(null); setSuccessMsg(null); triggerHaptic(10); }}
               className={`flex-1 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
                 authState === 'login'
-                  ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-md font-extrabold'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                  ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-md'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
               Sign In
@@ -836,8 +856,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
               onClick={() => { setAuthState('register'); setAuthError(null); setSuccessMsg(null); triggerHaptic(10); }}
               className={`flex-1 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
                 authState === 'register'
-                  ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-md font-extrabold'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                  ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-md'
+                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100'
               }`}
             >
               Create Account
@@ -876,7 +896,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                 <h3 className="text-xs font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center justify-center gap-1.5 font-mono">
                   <Zap size={13} className="animate-pulse" /> Sandbox Convenience Portal
                 </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-sm mx-auto">
+                <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed max-w-sm mx-auto font-medium">
                   Instantly load high-fidelity candidate presets (Ngozi Balogun, AI Integrations Engineer) to preview portal features immediately.
                 </p>
                 <button
@@ -893,16 +913,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                 <button
                   type="button"
                   onClick={() => { setAuthState('register'); triggerHaptic(10); }}
-                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs uppercase tracking-widest rounded-xl shadow-md hover:shadow-indigo-500/15 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
+                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-md hover:shadow-indigo-500/15 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <UserPlus size={14} /> Create Account
                 </button>
                 <button
                   type="button"
                   onClick={() => { setAuthState('login'); triggerHaptic(10); }}
-                  className="flex-1 py-3 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 font-extrabold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-slate-200 font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Lock size={14} className="text-orange-400" /> Sign In
+                  <Lock size={14} className="text-orange-500 dark:text-orange-400" /> Sign In
                 </button>
               </div>
 
@@ -910,7 +930,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
               <button
                 type="button"
                 onClick={onBackToPortal || (() => { window.location.href = '/'; })}
-                className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors flex items-center gap-1.5 mt-2 cursor-pointer"
+                className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5 mt-2 cursor-pointer"
               >
                 <ArrowLeft size={11} /> Return to Home Portal
               </button>
@@ -928,23 +948,23 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
             >
               <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Registered Email</label>
+                  <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Registered Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-3 text-slate-400 dark:text-indigo-400" size={15} />
+                    <Mail className="absolute left-3.5 top-3.5 text-slate-500 dark:text-indigo-400" size={15} />
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder="candidate@dstech.com"
-                      className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                      className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Password</label>
+                    <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Password</label>
                     <button 
                       type="button" 
                       onClick={() => { setAuthState('forgot_password'); triggerHaptic(10); }}
@@ -954,19 +974,19 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                     </button>
                   </div>
                   <div className="relative">
-                    <Key className="absolute left-3.5 top-3 text-slate-400 dark:text-indigo-400" size={15} />
+                    <Key className="absolute left-3.5 top-3.5 text-slate-500 dark:text-indigo-400" size={15} />
                     <input
                       type={showPassword ? "text" : "password"}
                       required
                       value={password}
                       onChange={e => setPassword(e.target.value)}
                       placeholder="••••••••"
-                      className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-11 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                      className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-11 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                      className="absolute right-3.5 top-3.5 text-slate-500 hover:text-slate-800 dark:hover:text-white"
                     >
                       {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
@@ -984,9 +1004,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
 
               {/* SSO Divider */}
               <div className="relative flex py-1 items-center">
-                <div className="flex-grow border-t border-slate-200 dark:border-white/10" />
-                <span className="flex-shrink mx-4 text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono">Or Continue With</span>
-                <div className="flex-grow border-t border-slate-200 dark:border-white/10" />
+                <div className="flex-grow border-t border-slate-300 dark:border-white/10" />
+                <span className="flex-shrink mx-4 text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest font-mono">Or Continue With</span>
+                <div className="flex-grow border-t border-slate-300 dark:border-white/10" />
               </div>
 
               {/* SSO Action Options */}
@@ -995,7 +1015,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                 <button
                   type="button"
                   onClick={handleGoogleSignIn}
-                  className="w-full py-3 bg-white dark:bg-[#080d1a] hover:bg-slate-50 dark:hover:bg-[#11192e] border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm hover:scale-[1.01]"
+                  className="w-full py-3 bg-white dark:bg-[#080d1a] hover:bg-slate-50 dark:hover:bg-[#11192e] border border-slate-400 dark:border-slate-800 text-slate-900 dark:text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm hover:scale-[1.01]"
                 >
                   <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
                     <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.68 14.94 1 12 1 7.24 1 3.23 3.73 1.34 7.68l3.75 2.91C6.01 7.2 8.78 5.04 12 5.04z" />
@@ -1003,7 +1023,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                     <path fill="#FBBC05" d="M5.09 10.59c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29L1.34 7.68C.49 9.38 0 11.28 0 13.3s.49 3.92 1.34 5.62l3.75-2.91c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29z" />
                     <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.66-2.84c-1.01.68-2.31 1.09-4.3 1.09-3.22 0-5.99-2.16-6.91-5.55l-3.75 2.91C3.23 20.27 7.24 23 12 23z" />
                   </svg>
-                  <span className="text-slate-800 dark:text-white font-extrabold">Continue with Google</span>
+                  <span className="text-slate-900 dark:text-white font-extrabold">Continue with Google</span>
                 </button>
 
                 {/* Biometrics login block */}
@@ -1021,7 +1041,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                 <button
                   type="button"
                   onClick={() => { setAuthState('welcome'); triggerHaptic(10); }}
-                  className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors cursor-pointer"
+                  className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
                 >
                   Back to Hub Home
                 </button>
@@ -1043,11 +1063,11 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                 <form onSubmit={handleOtpVerifySubmit} className="space-y-4 text-left">
                   <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl space-y-3.5">
                     <div className="space-y-1.5">
-                      <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block mb-1">
+                      <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block mb-1">
                         Enter 6-Digit OTP Verification Code
                       </label>
                       <div className="relative">
-                        <Lock className="absolute left-3.5 top-3 text-slate-400 dark:text-indigo-400" size={15} />
+                        <Lock className="absolute left-3.5 top-3.5 text-slate-500 dark:text-indigo-400" size={15} />
                         <input
                           type="text"
                           required
@@ -1055,10 +1075,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                           value={otpInput}
                           onChange={e => setOtpInput(e.target.value.replace(/\D/g, ''))}
                           placeholder="e.g. 123456"
-                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-mono font-black tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-mono font-black tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                         />
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                      <p className="text-xs text-slate-800 dark:text-slate-300 font-medium leading-relaxed">
                         A dynamic security verification code has been generated and dispatched to your email address. Please insert it above.
                       </p>
                     </div>
@@ -1068,7 +1088,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                         <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider font-mono">
                           <Sparkles size={12} className="animate-pulse" /> Preview Auto-Fill Code
                         </div>
-                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-normal">
+                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-normal font-medium">
                           For sandbox testing purposes, you may use this verification code immediately:
                         </p>
                         <button
@@ -1086,7 +1106,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                     <button
                       type="button"
                       onClick={() => { setIsOtpPending(false); setAuthError(null); setSuccessMsg(null); triggerHaptic(10); }}
-                      className="flex-1 py-3 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 font-extrabold text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer text-center"
+                      className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-slate-200 font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer text-center"
                     >
                       Back
                     </button>
@@ -1114,51 +1134,51 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                     {/* Column 1: Core credentials */}
                     <div className="space-y-3">
                       <div className="space-y-1.5">
-                        <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Full Legal Name</label>
+                        <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Full Legal Name</label>
                         <div className="relative">
-                          <User className="absolute left-3.5 top-3 text-slate-400 dark:text-indigo-400" size={15} />
+                          <User className="absolute left-3.5 top-3.5 text-slate-500 dark:text-indigo-400" size={15} />
                           <input
                             type="text"
                             required
                             value={fullName}
                             onChange={e => setFullName(e.target.value)}
                             placeholder="Ngozi Balogun"
-                            className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                            className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Email Address</label>
+                        <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Email Address</label>
                         <div className="relative">
-                          <Mail className="absolute left-3.5 top-3 text-slate-400 dark:text-indigo-400" size={15} />
+                          <Mail className="absolute left-3.5 top-3.5 text-slate-500 dark:text-indigo-400" size={15} />
                           <input
                             type="email"
                             required
                             value={email}
                             onChange={e => setEmail(e.target.value)}
                             placeholder="candidate@dstech.com"
-                            className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                            className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                           />
                         </div>
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Password</label>
+                        <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Password</label>
                         <div className="relative">
-                          <Key className="absolute left-3.5 top-3 text-slate-400 dark:text-indigo-400" size={15} />
+                          <Key className="absolute left-3.5 top-3.5 text-slate-500 dark:text-indigo-400" size={15} />
                           <input
                             type={showPassword ? "text" : "password"}
                             required
                             value={password}
                             onChange={e => setPassword(e.target.value)}
                             placeholder="••••••••"
-                            className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-11 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                            className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-11 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                           />
                           <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                            className="absolute right-3.5 top-3.5 text-slate-500 hover:text-slate-800 dark:hover:text-white"
                           >
                             {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                           </button>
@@ -1169,40 +1189,40 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                     {/* Column 2: Profile mapping context */}
                     <div className="space-y-3">
                       <div className="space-y-1.5">
-                        <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Account Type</label>
+                        <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Account Type</label>
                         <select
                           value={selectedRole}
                           onChange={e => setSelectedRole(e.target.value as any)}
-                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
+                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
                         >
-                          <option value="Applicant">Applicant / Candidate</option>
-                          <option value="Recruiter">Recruiter / Employer</option>
-                          <option value="Admin">Administrator</option>
+                          <option value="Applicant" className="text-slate-900 dark:text-slate-100 font-bold bg-white dark:bg-[#0c1220]">Applicant / Candidate</option>
+                          <option value="Recruiter" className="text-slate-900 dark:text-slate-100 font-bold bg-white dark:bg-[#0c1220]">Recruiter / Employer</option>
+                          <option value="Admin" className="text-slate-900 dark:text-slate-100 font-bold bg-white dark:bg-[#0c1220]">Administrator</option>
                         </select>
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Target Role</label>
+                        <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Target Role</label>
                         <select
                           value={targetRole}
                           onChange={e => setTargetRole(e.target.value)}
-                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
+                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
                         >
-                          <option value="AI Integrations Engineer">AI Integrations Engineer</option>
-                          <option value="Full-Stack Developer">Full-Stack Developer</option>
-                          <option value="Cloud Architect">Cloud Infrastructure Architect</option>
-                          <option value="WebAuthn Cryptographer">Security & Biometrics Specialist</option>
+                          <option value="AI Integrations Engineer" className="text-slate-900 dark:text-slate-100 font-bold bg-white dark:bg-[#0c1220]">AI Integrations Engineer</option>
+                          <option value="Full-Stack Developer" className="text-slate-900 dark:text-slate-100 font-bold bg-white dark:bg-[#0c1220]">Full-Stack Developer</option>
+                          <option value="Cloud Architect" className="text-slate-900 dark:text-slate-100 font-bold bg-white dark:bg-[#0c1220]">Cloud Infrastructure Architect</option>
+                          <option value="WebAuthn Cryptographer" className="text-slate-900 dark:text-slate-100 font-bold bg-white dark:bg-[#0c1220]">Security & Biometrics Specialist</option>
                         </select>
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Your Core Skills</label>
+                        <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Your Core Skills</label>
                         <textarea
                           value={initialSkills}
                           onChange={e => setInitialSkills(e.target.value)}
                           placeholder="React, TypeScript, Node.js..."
                           rows={2}
-                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none placeholder:text-slate-500 dark:placeholder:text-slate-400"
                         />
                       </div>
                     </div>
@@ -1210,16 +1230,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                   </div>
 
                   {/* Biometric Enablement callout */}
-                  <div className="p-3.5 bg-slate-50 dark:bg-[#11192d] border border-slate-200/50 dark:border-white/5 rounded-2xl flex items-start gap-3 shadow-sm">
+                  <div className="p-3.5 bg-slate-50 dark:bg-[#11192d] border border-slate-300 dark:border-white/5 rounded-2xl flex items-start gap-3 shadow-sm">
                     <div className="bg-indigo-500/10 p-2 rounded-xl border border-indigo-500/20 text-indigo-500 dark:text-indigo-400 shrink-0">
                       <Fingerprint size={18} />
                     </div>
                     <div className="space-y-0.5 flex-1 text-left">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-bold text-slate-800 dark:text-white text-xs">WebAuthn Key Registry</h4>
+                        <h4 className="font-bold text-slate-900 dark:text-white text-xs">WebAuthn Key Registry</h4>
                         <span className="text-[9px] font-black font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded uppercase tracking-wider">Active</span>
                       </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal">
+                      <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-normal font-medium">
                         FIDO2 hardware biometric key registration is auto-enrolled to protect your professional ledger profiles.
                       </p>
                     </div>
@@ -1235,15 +1255,15 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
 
                   {/* Google register option */}
                   <div className="relative flex py-1 items-center">
-                    <div className="flex-grow border-t border-slate-200 dark:border-white/10" />
-                    <span className="flex-shrink mx-4 text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono">Or Register With</span>
-                    <div className="flex-grow border-t border-slate-200 dark:border-white/10" />
+                    <div className="flex-grow border-t border-slate-300 dark:border-white/10" />
+                    <span className="flex-shrink mx-4 text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest font-mono">Or Register With</span>
+                    <div className="flex-grow border-t border-slate-300 dark:border-white/10" />
                   </div>
 
                   <button
                     type="button"
                     onClick={handleGoogleSignIn}
-                    className="w-full py-3 bg-white dark:bg-[#080d1a] hover:bg-slate-50 dark:hover:bg-[#11192e] border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm hover:scale-[1.01]"
+                    className="w-full py-3 bg-white dark:bg-[#080d1a] hover:bg-slate-50 dark:hover:bg-[#11192e] border border-slate-400 dark:border-slate-800 text-slate-900 dark:text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm hover:scale-[1.01]"
                   >
                     <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
                       <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.68 14.94 1 12 1 7.24 1 3.23 3.73 1.34 7.68l3.75 2.91C6.01 7.2 8.78 5.04 12 5.04z" />
@@ -1251,7 +1271,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                       <path fill="#FBBC05" d="M5.09 10.59c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29L1.34 7.68C.49 9.38 0 11.28 0 13.3s.49 3.92 1.34 5.62l3.75-2.91c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29z" />
                       <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.66-2.84c-1.01.68-2.31 1.09-4.3 1.09-3.22 0-5.99-2.16-6.91-5.55l-3.75 2.91C3.23 20.27 7.24 23 12 23z" />
                     </svg>
-                    <span className="text-slate-800 dark:text-white font-extrabold">Continue with Google</span>
+                    <span className="text-slate-900 dark:text-white font-extrabold">Continue with Google</span>
                   </button>
                 </form>
               )}
@@ -1269,16 +1289,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
             >
               <form onSubmit={handleForgotPassword} className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-extrabold uppercase tracking-wide text-slate-700 dark:text-slate-300 block">Registered Email</label>
+                  <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Registered Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-3 text-slate-400 dark:text-indigo-400" size={15} />
+                    <Mail className="absolute left-3.5 top-3.5 text-slate-500 dark:text-indigo-400" size={15} />
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={e => setEmail(e.target.value)}
                       placeholder="candidate@dstech.com"
-                      className="w-full bg-white dark:bg-[#080d1a] border border-slate-300 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                      className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                     />
                   </div>
                 </div>
@@ -1337,7 +1357,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                     <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.66-2.84c-1.01.68-2.31 1.09-4.3 1.09-3.22 0-5.99-2.16-6.91-5.55l-3.75 2.91C3.23 20.27 7.24 23 12 23z" />
                   </svg>
                   <h3 className="text-lg font-bold text-slate-950 dark:text-slate-50">Choose an Account</h3>
-                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">to continue to <span className="font-semibold text-indigo-600 dark:text-indigo-400">alihsan.online</span></p>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">to continue to <span className="font-semibold text-indigo-600 dark:text-indigo-400">alihsan.online</span></p>
                 </div>
 
                 {/* List of Accounts */}
@@ -1353,7 +1373,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                       </div>
                       <div>
                         <span className="text-sm font-bold text-slate-900 dark:text-slate-100 block group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Hassan Al-Amin</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 block">hassanalaminhassan85@gmail.com</span>
+                        <span className="text-xs text-slate-600 dark:text-slate-300 font-medium block">hassanalaminhassan85@gmail.com</span>
                       </div>
                     </div>
                     <ChevronRight size={16} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
@@ -1370,7 +1390,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                       </div>
                       <div>
                         <span className="text-sm font-bold text-slate-900 dark:text-slate-100 block group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Ngozi Balogun</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 block">ngozi.balogun@dstech.com</span>
+                        <span className="text-xs text-slate-600 dark:text-slate-300 font-medium block">ngozi.balogun@dstech.com</span>
                       </div>
                     </div>
                     <ChevronRight size={16} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
@@ -1387,7 +1407,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                       </div>
                       <div>
                         <span className="text-sm font-bold text-slate-900 dark:text-slate-100 block group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Demo Candidate</span>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 block">candidate2026@dstech.com</span>
+                        <span className="text-xs text-slate-600 dark:text-slate-300 font-medium block">candidate2026@dstech.com</span>
                       </div>
                     </div>
                     <ChevronRight size={16} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
@@ -1442,7 +1462,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                   
                   <button
                     onClick={() => setIsGoogleChooserOpen(false)}
-                    className="text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors block w-full text-center"
+                    className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-colors block w-full text-center"
                   >
                     Close Chooser
                   </button>
@@ -1468,7 +1488,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                 </div>
                 <div className="space-y-2">
                   <h4 className="text-sm font-bold uppercase tracking-widest text-amber-500">Account Already Exists</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">An account with <span className="font-bold text-slate-800 dark:text-slate-200">{chooserEmail}</span> is already registered.</p>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">An account with <span className="font-bold text-slate-800 dark:text-slate-200">{chooserEmail}</span> is already registered.</p>
                 </div>
                 <p className="text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-lg tracking-wider">
                   Signing in automatically...
@@ -1482,7 +1502,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                 </div>
                 <div className="space-y-2">
                   <h4 className="text-sm font-bold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">Account Not Found</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Creating a brand new candidate profile for <span className="font-bold text-slate-800 dark:text-slate-200">{chooserEmail}</span></p>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">Creating a brand new candidate profile for <span className="font-bold text-slate-800 dark:text-slate-200">{chooserEmail}</span></p>
                 </div>
                 <div className="w-16 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                   <div className="h-full bg-gradient-to-r from-orange-500 to-indigo-500 origin-left animate-[pulse_1.5s_infinite]"></div>

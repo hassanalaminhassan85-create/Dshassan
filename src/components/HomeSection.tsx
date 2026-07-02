@@ -258,7 +258,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
 
       {/* 2. PARTNERS (TRUST LOGOS) */}
       <section className="max-w-6xl mx-auto px-6 text-center space-y-6">
-        <p className="text-slate-400 dark:text-slate-500 text-[10px] uppercase tracking-widest font-bold">
+        <p className="text-slate-500 dark:text-slate-300 text-[10px] uppercase tracking-widest font-bold">
           {t.trustSubtitle}
         </p>
         <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-12 opacity-85">
@@ -284,20 +284,20 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
           <h2 className="text-3xl md:text-4xl font-extrabold text-[#000E32] dark:text-white uppercase font-serif tracking-tight leading-tight">
             {t.missionVisionTitle}
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-xs md:text-sm leading-relaxed font-light">
+          <p className="text-slate-600 dark:text-slate-300 text-xs md:text-sm leading-relaxed font-light">
             {t.missionVisionDesc}
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
             <div className="p-4 bg-indigo-50/45 dark:bg-indigo-950/20 border border-indigo-100/30 dark:border-indigo-900/30 rounded-2xl space-y-2">
               <span className="text-xs uppercase tracking-wider font-extrabold text-indigo-600 dark:text-indigo-400 font-serif">{t.missionTitle}</span>
-              <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">
+              <p className="text-slate-500 dark:text-slate-300 text-xs leading-relaxed">
                 {t.missionDesc}
               </p>
             </div>
             <div className="p-4 bg-orange-50/45 dark:bg-orange-950/20 border border-orange-100/30 dark:border-orange-900/30 rounded-2xl space-y-2">
               <span className="text-xs uppercase tracking-wider font-extrabold text-orange-600 dark:text-orange-400 font-serif">{t.visionTitle}</span>
-              <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed">
+              <p className="text-slate-500 dark:text-slate-300 text-xs leading-relaxed">
                 {t.visionDesc}
               </p>
             </div>
@@ -352,7 +352,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                   <span className="text-[8px] font-mono tracking-widest text-orange-500 uppercase font-black block group-hover:animate-pulse">// INSTANT ACTION MATRIX</span>
                   <h3 className="font-extrabold text-[#000E32] dark:text-white text-sm uppercase tracking-wide font-serif">{feat.title}</h3>
                 </div>
-                <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed font-light">{feat.desc}</p>
+                <p className="text-slate-500 dark:text-slate-300 text-xs leading-relaxed font-light">{feat.desc}</p>
               </motion.div>
             ))}
           </div>
@@ -401,7 +401,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                 <div className="space-y-2">
                   <span className="text-[9px] font-mono tracking-widest uppercase text-indigo-500 dark:text-indigo-400 font-bold block">{svc.category}</span>
                   <h3 className="font-extrabold text-[#000E32] dark:text-white text-sm line-clamp-1 group-hover:text-orange-500 transition-colors font-serif uppercase">{svc.name}</h3>
-                  <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed line-clamp-2">{svc.description}</p>
+                  <p className="text-slate-500 dark:text-slate-300 text-xs leading-relaxed line-clamp-2">{svc.description}</p>
                 </div>
                 
                 <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800/80">
@@ -500,7 +500,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                 />
                 <div className="space-y-0.5">
                   <span className="text-xs font-extrabold text-[#000E32] dark:text-white block font-serif uppercase tracking-tight">{tst.clientName}</span>
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 block font-bold leading-none">{tst.role} • {tst.company}</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-300 block font-bold leading-none">{tst.role} • {tst.company}</span>
                 </div>
               </div>
             </motion.div>
@@ -523,7 +523,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                 ? '在线提交您的具体商务诉求，系统安全节点将分配专属客户经理，于15分钟内与您即时联系建联。' 
                 : 'Submit your inquiry and our consultant manager will schedule a 30-minute strategic branding and tech audit call.'}
             </p>
-            <div className="space-y-2 pt-2 text-xs font-bold text-slate-600 dark:text-slate-400">
+            <div className="space-y-2 pt-2 text-xs font-bold text-slate-600 dark:text-slate-300">
               <div className="flex items-center gap-2">
                 <Phone size={13} className="text-orange-500" />
                 <span>+234 902 348 9111</span>
@@ -544,7 +544,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
               >
                 <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400 font-bold">✓</div>
                 <span className="text-xs font-extrabold text-slate-800 dark:text-white block uppercase tracking-wide">{t.bookSuccess}</span>
-                <p className="text-slate-500 dark:text-slate-400 text-[10px] leading-relaxed">
+                <p className="text-slate-500 dark:text-slate-300 text-[10px] leading-relaxed">
                   {language === 'zh' ? '合规顾问正在快马加鞭为您定制方案，请保持通信畅通！' : 'Our manager will message your email within 24 hours.'}
                 </p>
               </motion.div>

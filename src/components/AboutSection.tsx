@@ -143,7 +143,7 @@ export const AboutSection: React.FC = () => {
               <div className="p-5 space-y-2">
                 <h3 className="font-extrabold text-slate-900 dark:text-white text-sm uppercase font-serif">{leader.name}</h3>
                 <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider block">{leader.role}</span>
-                <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed font-light">{leader.bio}</p>
+                <p className="text-slate-500 dark:text-slate-300 text-xs leading-relaxed font-light">{leader.bio}</p>
               </div>
             </div>
           ))}

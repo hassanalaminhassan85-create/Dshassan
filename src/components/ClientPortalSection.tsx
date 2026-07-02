@@ -61,7 +61,7 @@ export const ClientPortalSection: React.FC = () => {
           <h1 className="text-4xl md:text-5xl font-extrabold uppercase font-serif tracking-tight text-[#000E32] dark:text-white">
             Client <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500 font-extrabold italic">Dashboard</span>
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm leading-relaxed max-w-xl font-light">
+          <p className="text-slate-500 dark:text-slate-300 text-xs md:text-sm leading-relaxed max-w-xl font-light">
             Welcome back! Monitor your active CAC corporate incorporation status, review ad campaign conversions, download invoice sheets, and coordinate support tickets.
           </p>
         </div>
@@ -273,7 +273,7 @@ export const ClientPortalSection: React.FC = () => {
                 <button 
                   type="button" 
                   onClick={() => setIsNewTicketOpen(false)}
-                  className="px-4 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-lg text-[11px] font-bold uppercase"
+                  className="px-4 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-[11px] font-bold uppercase"
                 >
                   Cancel
                 </button>
@@ -310,7 +310,7 @@ export const ClientPortalSection: React.FC = () => {
                     {t.priority}
                   </span>
                 </div>
-                <p className="text-slate-500 dark:text-slate-400 text-[11px] font-light line-clamp-1">{t.lastMessage}</p>
+                <p className="text-slate-500 dark:text-slate-300 text-[11px] font-light line-clamp-1">{t.lastMessage}</p>
                 <div className="flex justify-between text-[9px] text-slate-400 font-bold">
                   <span className="font-mono">{t.date}</span>
                   <span className="uppercase text-orange-500">{t.status}</span>
