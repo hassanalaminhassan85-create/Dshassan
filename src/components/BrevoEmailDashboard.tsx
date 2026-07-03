@@ -1501,6 +1501,39 @@ const fcmToken = await getToken(messaging, {
                   <p className="text-slate-500 text-[11px]">The "HTML instead of JS" error occurred because <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">/firebase-messaging-sw.js</code> and <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">/manifest.json</code> were physically missing from the build. Vite fell back to rendering the default single page application index HTML.</p>
                   <p className="text-slate-500 text-[11px] mt-1"><strong>How we resolved it:</strong> We created both files physically inside the root <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">/public/</code> directory. During compilation, Vite copies them unchanged to the final build output directory (<code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">/dist</code>), ensuring they are served directly with the correct mime-types (<code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">application/javascript</code> and <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">application/json</code>).</p>
                 </div>
+
+                {/* Mobile Device Setup Guidelines */}
+                <div className="space-y-1.5 p-3.5 bg-amber-500/5 dark:bg-amber-500/10 border-amber-500/20 rounded-xl border">
+                  <span className="font-black text-[10px] text-amber-500 uppercase block">📱 4. Mobile Device Push Requirements</span>
+                  <p className="text-slate-500 text-[11px]">To see active pop-up notification banners on mobile phones, follow these requirements:</p>
+                  
+                  <div className="space-y-2 mt-2 text-[11px] list-none">
+                    <div className="bg-slate-100/50 dark:bg-slate-950/40 p-2.5 rounded border border-slate-200/50 dark:border-slate-800/80">
+                      <strong className="text-orange-500 block mb-0.5">⚠️ Iframe Constraint (Crucial)</strong>
+                      <p className="text-slate-500 text-[10.5px]">Browsers strictly block notification permission prompts inside nested frames. You <strong>MUST click "Open in New Tab"</strong> at the top-right of your AI Studio screen to open the app directly.</p>
+                    </div>
+
+                    <div className="bg-slate-100/50 dark:bg-slate-950/40 p-2.5 rounded border border-slate-200/50 dark:border-slate-800/80">
+                      <strong className="text-orange-500 block mb-0.5">🍏 Apple iOS (iPhone/iPad)</strong>
+                      <p className="text-slate-500 text-[10.5px] leading-relaxed">
+                        1. Open the direct app link in the native <strong>Safari</strong> browser.<br />
+                        2. Tap the <strong>Share</strong> icon on Safari's bottom toolbar.<br />
+                        3. Scroll down and choose <strong>"Add to Home Screen"</strong>.<br />
+                        4. Launch the newly installed <strong>Al Ihsan</strong> icon from your iPhone home screen.<br />
+                        5. Open this diagnostics tab inside the app and tap <strong>"Generate Device FCM Token"</strong> to grant notification authority.
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-100/50 dark:bg-slate-950/40 p-2.5 rounded border border-slate-200/50 dark:border-slate-800/80">
+                      <strong className="text-orange-500 block mb-0.5">🤖 Android (Samsung/Google/Xiaomi)</strong>
+                      <p className="text-slate-500 text-[10.5px] leading-relaxed">
+                        1. Open the direct app link inside <strong>Google Chrome</strong>.<br />
+                        2. Tap the browser's 3-dot menu and select <strong>"Install App"</strong> or <strong>"Add to Home Screen"</strong>.<br />
+                        3. Tap the <strong>"Generate Device FCM Token"</strong> button to permit and configure foreground/background push overlays.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

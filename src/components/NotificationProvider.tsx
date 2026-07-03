@@ -258,6 +258,36 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
   }, [addToast, refreshNotificationsList]);
 
+  // Listen for Firebase Cloud Messaging (FCM) Foreground Messages
+  useEffect(() => {
+    const handleFCMForeground = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const payload = customEvent.detail;
+      console.log('NotificationProvider received foreground FCM:', payload);
+      
+      const title = payload.notification?.title || payload.data?.title || 'New Push Notification';
+      const body = payload.notification?.body || payload.data?.body || 'You have received a new update';
+      const type = payload.data?.type || 'info';
+      const image = payload.notification?.image || payload.data?.image || payload.data?.icon;
+      
+      addToast({
+        title,
+        message: body,
+        type: type,
+        priority: 'high',
+        image: image
+      });
+      
+      // Refresh the application-level notifications history
+      refreshNotificationsList();
+    };
+
+    window.addEventListener('fcm-foreground-message', handleFCMForeground);
+    return () => {
+      window.removeEventListener('fcm-foreground-message', handleFCMForeground);
+    };
+  }, [addToast, refreshNotificationsList]);
+
   return (
     <NotificationContext.Provider value={{
       notifications,
