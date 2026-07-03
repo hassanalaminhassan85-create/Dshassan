@@ -28,5 +28,21 @@ messaging.setBackgroundMessageHandler(function(payload) {
     data: payload.data
   };
 
+  // Broadcast to all active clients (tabs/frontend) so they can show in-app alerts/toasts
+  if (self.clients) {
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function(clients) {
+      if (clients && clients.length > 0) {
+        clients.forEach(function(client) {
+          client.postMessage({
+            type: 'FCM_BG_NOTIFICATION',
+            payload: payload
+          });
+        });
+      }
+    }).catch(function(err) {
+      console.error('[firebase-messaging-sw.js] Failed to match clients:', err);
+    });
+  }
+
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });

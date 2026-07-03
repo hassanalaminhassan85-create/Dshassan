@@ -22,7 +22,20 @@ export function useFCM() {
 
   useEffect(() => {
     if (typeof window !== 'undefined' && 'Notification' in window) {
-      setPermission(Notification.permission);
+      const currentPermission = Notification.permission;
+      setPermission(currentPermission);
+      
+      if (currentPermission === 'granted') {
+        try {
+          const messaging = getMessaging(app);
+          onMessage(messaging, (payload) => {
+            console.log('Auto-registered Foreground Push Message Received:', payload);
+            window.dispatchEvent(new CustomEvent('fcm-foreground-message', { detail: payload }));
+          });
+        } catch (err) {
+          console.warn('FCM auto-foreground setup failed (this is expected if VAPID keys require manual resolution):', err);
+        }
+      }
     }
   }, []);
 

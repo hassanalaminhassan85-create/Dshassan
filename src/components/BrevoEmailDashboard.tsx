@@ -10,7 +10,7 @@ import {
   Mail, Send, Trash2, RefreshCw, BarChart3, ListFilter, Search, 
   ChevronLeft, ChevronRight, Download, Eye, CheckCircle2, AlertTriangle, 
   Info, Filter, Calendar, Percent, Clock, Inbox, Sparkles, X, PlusCircle, Check,
-  Copy, ShieldCheck, HelpCircle, FileJson, Server, Code
+  Copy, ShieldCheck, HelpCircle, FileJson, Server, Code, Bell
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -71,6 +71,8 @@ export const BrevoEmailDashboard: React.FC = () => {
   const { token: fcmToken, permission: fcmPermission, loading: fcmLoading, error: fcmError, requestPermissionAndGetToken } = useFCM();
   const [customVapidKey, setCustomVapidKey] = useState<string>('');
   const [copiedTextId, setCopiedTextId] = useState<string | null>(null);
+  const [isTestingNotification, setIsTestingNotification] = useState<boolean>(false);
+  const [testNotificationCountdown, setTestNotificationCountdown] = useState<number>(0);
 
   const handleCopyText = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -1234,6 +1236,90 @@ export const BrevoEmailDashboard: React.FC = () => {
                   </div>
                 </div>
               )}
+
+              {/* Local Notification Test Section */}
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800/60 space-y-3">
+                <div className="space-y-1">
+                  <h4 className="font-black text-xs uppercase text-orange-600 dark:text-orange-400 flex items-center gap-1.5">
+                    <Bell size={14} />
+                    <span>⚡ Test Local System Pop-Up Notification</span>
+                  </h4>
+                  <p className="text-[11.5px] text-slate-500 leading-relaxed">
+                    Verify if native push/pop-up banners actually work on this device. Tap the button below, then <strong>immediately lock your phone or go to your phone's home screen</strong>. A native system notification banner will pop up in exactly 3 seconds!
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={() => {
+                      if (fcmPermission !== 'granted') {
+                        Notification.requestPermission().then((perm) => {
+                          if (perm !== 'granted') {
+                            alert("Please grant notification permission when prompted to test native pop-ups.");
+                          } else {
+                            alert("Permission granted! Now tap the button again to trigger the test notification.");
+                            window.location.reload();
+                          }
+                        });
+                        return;
+                      }
+
+                      setIsTestingNotification(true);
+                      setTestNotificationCountdown(3);
+
+                      let currentCount = 3;
+                      const intervalId = setInterval(() => {
+                        currentCount -= 1;
+                        setTestNotificationCountdown(currentCount);
+                        if (currentCount <= 0) {
+                          clearInterval(intervalId);
+                        }
+                      }, 1000);
+
+                      setTimeout(async () => {
+                        try {
+                          const title = "Al Ihsan Online • Push Active! 🌟";
+                          const options = {
+                            body: "Test Successful! Your mobile device is fully configured to receive push notification banners from Al Ihsan.",
+                            icon: "https://alihsan.online/logo.png",
+                            badge: "https://alihsan.online/logo.png",
+                            vibrate: [200, 100, 200],
+                            tag: "fcm-test-pop-direct",
+                            renotify: true,
+                            requireInteraction: true
+                          };
+
+                          if ('serviceWorker' in navigator) {
+                            const registration = await navigator.serviceWorker.ready;
+                            await registration.showNotification(title, options);
+                          } else {
+                            new Notification(title, options);
+                          }
+                        } catch (err) {
+                          console.error("Local notification error:", err);
+                        } finally {
+                          setIsTestingNotification(false);
+                          setTestNotificationCountdown(0);
+                        }
+                      }, 3000);
+                    }}
+                    disabled={isTestingNotification}
+                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-black uppercase rounded-xl transition flex items-center justify-center gap-2 shrink-0 shadow-md"
+                  >
+                    {isTestingNotification ? (
+                      <>
+                        <Clock size={13} className="animate-spin" />
+                        <span>Triggering in {testNotificationCountdown}s... LOCK PHONE NOW!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles size={13} />
+                        <span>Trigger 3s Delayed System Pop-up</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 

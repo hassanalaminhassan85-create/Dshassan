@@ -288,6 +288,38 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
   }, [addToast, refreshNotificationsList]);
 
+  // Listen for background FCM events broadcasted by the Service Worker
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
+
+    const handleSWMessage = (event: MessageEvent) => {
+      console.log('NotificationProvider received message from Service Worker:', event.data);
+      if (event.data && event.data.type === 'FCM_BG_NOTIFICATION') {
+        const payload = event.data.payload;
+        const title = payload.notification?.title || payload.data?.title || 'Application Status Update';
+        const body = payload.notification?.body || payload.data?.body || 'You have received a new update';
+        const type = payload.data?.type || 'info';
+        const image = payload.notification?.image || payload.data?.image || payload.data?.icon;
+        
+        addToast({
+          title,
+          message: body,
+          type: type,
+          priority: 'high',
+          image: image
+        });
+
+        // Refresh the application-level notifications history
+        refreshNotificationsList();
+      }
+    };
+
+    navigator.serviceWorker.addEventListener('message', handleSWMessage);
+    return () => {
+      navigator.serviceWorker.removeEventListener('message', handleSWMessage);
+    };
+  }, [addToast, refreshNotificationsList]);
+
   return (
     <NotificationContext.Provider value={{
       notifications,
