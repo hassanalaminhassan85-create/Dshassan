@@ -1,18 +1,6 @@
 import { useState, useEffect } from 'react';
-import { initializeApp, getApp, getApps } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCAMd4TDpQKAh2yCU0j-Z2f107QKoSVWDA",
-  authDomain: "aesthetic-reference-fw1xt.firebaseapp.com",
-  projectId: "aesthetic-reference-fw1xt",
-  storageBucket: "aesthetic-reference-fw1xt.firebasestorage.app",
-  messagingSenderId: "1008870369485",
-  appId: "1:1008870369485:web:99325dfe52ae1f0da56184"
-};
-
-// Safe Firebase App Initialization
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+import { app } from '../lib/firebase';
 
 export function useFCM() {
   const [token, setToken] = useState<string | null>(null);

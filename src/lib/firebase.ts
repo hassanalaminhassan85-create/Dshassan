@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { 
   getAuth, 
   GoogleAuthProvider, 
@@ -17,16 +17,17 @@ import {
 const metaEnv = (import.meta as any).env || {};
 
 const firebaseConfig = {
-  apiKey: metaEnv.VITE_FIREBASE_API_KEY || "AIzaSyCAMd4TDpQKAh2yCU0j-Z2f107QKoSVWDA",
-  authDomain: metaEnv.VITE_FIREBASE_AUTH_DOMAIN || "aesthetic-reference-fw1xt.firebaseapp.com",
-  projectId: metaEnv.VITE_FIREBASE_PROJECT_ID || "aesthetic-reference-fw1xt",
-  storageBucket: metaEnv.VITE_FIREBASE_STORAGE_BUCKET || "aesthetic-reference-fw1xt.firebasestorage.app",
-  messagingSenderId: metaEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || "1008870369485",
-  appId: metaEnv.VITE_FIREBASE_APP_ID || "1:1008870369485:web:99325dfe52ae1f0da56184"
+  apiKey: metaEnv.VITE_FIREBASE_API_KEY || "AIzaSyAYtFDIILGV0ox-OuI_tki76KRcGnkai2M",
+  authDomain: metaEnv.VITE_FIREBASE_AUTH_DOMAIN || "dstech-154d5.firebaseapp.com",
+  projectId: metaEnv.VITE_FIREBASE_PROJECT_ID || "dstech-154d5",
+  storageBucket: metaEnv.VITE_FIREBASE_STORAGE_BUCKET || "dstech-154d5.firebasestorage.app",
+  messagingSenderId: metaEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || "214833293571",
+  appId: metaEnv.VITE_FIREBASE_APP_ID || "1:214833293571:web:d3c9f2e42e9c655a65e136",
+  measurementId: metaEnv.VITE_FIREBASE_MEASUREMENT_ID || "G-GZZGG6E7Y0"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase safely
+export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // Initialize Firebase Auth
 export const auth = getAuth(app);
