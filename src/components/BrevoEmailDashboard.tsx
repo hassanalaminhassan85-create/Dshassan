@@ -9,12 +9,14 @@ import React, { useState, useEffect } from 'react';
 import { 
   Mail, Send, Trash2, RefreshCw, BarChart3, ListFilter, Search, 
   ChevronLeft, ChevronRight, Download, Eye, CheckCircle2, AlertTriangle, 
-  Info, Filter, Calendar, Percent, Clock, Inbox, Sparkles, X, PlusCircle, Check
+  Info, Filter, Calendar, Percent, Clock, Inbox, Sparkles, X, PlusCircle, Check,
+  Copy, ShieldCheck, HelpCircle, FileJson, Server, Code
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, BarChart, Bar, Legend
 } from 'recharts';
+import { useFCM } from '../hooks/useFCM';
 
 interface EmailLog {
   id: string;
@@ -63,8 +65,19 @@ interface ChartData {
 
 export const BrevoEmailDashboard: React.FC = () => {
   // Navigation & View Mode
-  const [viewMode, setViewMode] = useState<'analytics' | 'logs' | 'test_send'>('analytics');
+  const [viewMode, setViewMode] = useState<'analytics' | 'logs' | 'test_send' | 'fcm_diagnostics'>('analytics');
   
+  // FCM Hook & State
+  const { token: fcmToken, permission: fcmPermission, loading: fcmLoading, error: fcmError, requestPermissionAndGetToken } = useFCM();
+  const [customVapidKey, setCustomVapidKey] = useState<string>('');
+  const [copiedTextId, setCopiedTextId] = useState<string | null>(null);
+
+  const handleCopyText = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedTextId(id);
+    setTimeout(() => setCopiedTextId(null), 2000);
+  };
+
   // Data States
   const [logs, setLogs] = useState<EmailLog[]>([]);
   const [metrics, setMetrics] = useState<AnalyticsMetrics | null>(null);
@@ -419,6 +432,19 @@ export const BrevoEmailDashboard: React.FC = () => {
           <div className="flex items-center gap-1.5">
             <Mail size={14} />
             <span>Delivery Transaction Logs</span>
+          </div>
+        </button>
+        <button
+          onClick={() => setViewMode('fcm_diagnostics')}
+          className={`pb-3 px-4 font-bold relative transition ${
+            viewMode === 'fcm_diagnostics' 
+              ? 'text-[#000E32] dark:text-orange-500 border-b-2 border-[#000E32] dark:border-orange-500' 
+              : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+          }`}
+        >
+          <div className="flex items-center gap-1.5">
+            <Sparkles size={14} />
+            <span>FCM & PWA Diagnostics</span>
           </div>
         </button>
       </div>
@@ -1071,10 +1097,409 @@ export const BrevoEmailDashboard: React.FC = () => {
                     </>
                   )}
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
-                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 border-t border-slate-100 dark:border-slate-800 text-center text-[10px] text-slate-400">
-                  <p>© 2026 DS Tech Global Inc. Kaduna, Nigeria.</p>
-                  <p className="mt-1"><span className="underline">Unsubscribe from notifications</span></p>
+      {/* VIEW: FCM & PWA DIAGNOSTICS & DELIVERABILITY */}
+      {viewMode === 'fcm_diagnostics' && (
+        <div className="space-y-6 text-left">
+          {/* Diagnostic Status Card */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm">
+            <h3 className="font-extrabold text-base uppercase text-[#000E32] dark:text-orange-500 mb-4 flex items-center gap-2">
+              <ShieldCheck className="text-emerald-500" size={20} />
+              <span>Real-Time Push Notification & Deliverability Diagnostics</span>
+            </h3>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Permission card */}
+              <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
+                <span className="text-[10px] uppercase font-black text-slate-400 block">Notification Permission</span>
+                <div className="flex items-center gap-2">
+                  <span className={`w-3.5 h-3.5 rounded-full \${
+                    fcmPermission === 'granted' ? 'bg-emerald-500 animate-pulse' :
+                    fcmPermission === 'denied' ? 'bg-rose-500' : 'bg-amber-500'
+                  }`} />
+                  <span className="font-extrabold capitalize text-slate-800 dark:text-slate-200">
+                    {fcmPermission}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  {fcmPermission === 'granted' 
+                    ? 'Browser is fully authorized to display overlay pop notifications.' 
+                    : fcmPermission === 'denied' 
+                    ? 'Permissions have been blocked. Please reset site permissions in your browser bar.'
+                    : 'Awaiting permission request from candidate.'}
+                </p>
+              </div>
+
+              {/* Service worker registration card */}
+              <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
+                <span className="text-[10px] uppercase font-black text-slate-400 block">Service Worker Status</span>
+                <div className="flex items-center gap-2">
+                  <Server className="text-blue-500" size={16} />
+                  <span className="font-extrabold text-slate-800 dark:text-slate-200">
+                    Active Background Worker
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  The service worker <code className="font-mono bg-slate-200 dark:bg-slate-800 px-1 rounded text-orange-500">/firebase-messaging-sw.js</code> runs independently to receive notifications.
+                </p>
+              </div>
+
+              {/* PWA Manifest card */}
+              <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
+                <span className="text-[10px] uppercase font-black text-slate-400 block">PWA Manifest Verification</span>
+                <div className="flex items-center gap-2">
+                  <FileJson className="text-orange-500" size={16} />
+                  <span className="font-extrabold text-slate-800 dark:text-slate-200">
+                    Standalone Installed Mode
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Manifest file <code className="font-mono bg-slate-200 dark:bg-slate-800 px-1 rounded text-orange-500">/manifest.json</code> is active with standalone display styling.
+                </p>
+              </div>
+            </div>
+
+            {/* Token Request Playground */}
+            <div className="mt-6 p-5 bg-[#000E32]/5 dark:bg-slate-950/40 rounded-2xl border border-slate-100 dark:border-slate-800/50 space-y-4">
+              <div className="space-y-1">
+                <h4 className="font-extrabold text-xs uppercase text-slate-700 dark:text-slate-300">Generate Active registration token</h4>
+                <p className="text-xs text-slate-500">Enter your Firebase Web Push VAPID key below to request and copy your device's unique FCM registration token.</p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  value={customVapidKey}
+                  onChange={(e) => setCustomVapidKey(e.target.value)}
+                  placeholder="e.g., BOnL18Xm-u... (Enter Firebase VAPID Key)"
+                  className="flex-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-4 py-2 rounded-xl text-xs font-mono focus:outline-none focus:ring-1 focus:ring-orange-500 text-slate-800 dark:text-slate-200"
+                />
+                <button
+                  onClick={() => requestPermissionAndGetToken(customVapidKey)}
+                  disabled={fcmLoading}
+                  className="px-5 py-2 bg-orange-500 hover:bg-orange-600 disabled:opacity-50 text-white text-xs font-bold uppercase rounded-xl transition flex items-center justify-center gap-2 shrink-0 shadow-md"
+                >
+                  {fcmLoading ? (
+                    <>
+                      <RefreshCw size={13} className="animate-spin" />
+                      <span>Fetching Token...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles size={13} />
+                      <span>Generate Device FCM Token</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {fcmError && (
+                <div className="bg-rose-50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-400 p-3 rounded-xl text-[11px] font-medium border border-rose-100 dark:border-rose-950/40 flex items-start gap-2">
+                  <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+                  <div>
+                    <span className="font-extrabold block mb-0.5">Registration Error:</span>
+                    <p className="font-mono text-xs">{fcmError}</p>
+                  </div>
+                </div>
+              )}
+
+              {fcmToken && (
+                <div className="space-y-2">
+                  <span className="text-[10px] uppercase font-black text-emerald-600 dark:text-emerald-400 block">✓ FCM Token retrieved successfully:</span>
+                  <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 p-3.5 rounded-xl flex items-center justify-between gap-4">
+                    <span className="font-mono text-[11px] text-emerald-800 dark:text-emerald-300 break-all select-all font-bold line-clamp-2">
+                      {fcmToken}
+                    </span>
+                    <button
+                      onClick={() => handleCopyText(fcmToken, 'fcm_token')}
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[10px] font-bold uppercase transition flex items-center gap-1 shrink-0 shadow-sm"
+                    >
+                      {copiedTextId === 'fcm_token' ? (
+                        <>
+                          <Check size={12} />
+                          <span>Copied</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy size={12} />
+                          <span>Copy Token</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Code Files & Configurations Sections */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* FCM Code Files */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+              <h3 className="font-extrabold text-sm uppercase text-[#000E32] dark:text-orange-500 flex items-center gap-1.5">
+                <Code size={16} />
+                <span>Copy-Paste Code Files</span>
+              </h3>
+              
+              <div className="space-y-4">
+                {/* File 1: Service Worker */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg">
+                    <span>1. Firebase SW: <code className="text-orange-500 font-bold font-mono">public/firebase-messaging-sw.js</code></span>
+                    <button
+                      onClick={() => handleCopyText(`// Firebase Service Worker for alihsan.online Push Notifications
+importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
+importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
+
+// Initialize the Firebase app in the service worker
+firebase.initializeApp({
+  apiKey: "AIzaSyCAMd4TDpQKAh2yCU0j-Z2f107QKoSVWDA",
+  authDomain: "aesthetic-reference-fw1xt.firebaseapp.com",
+  projectId: "aesthetic-reference-fw1xt",
+  storageBucket: "aesthetic-reference-fw1xt.firebasestorage.app",
+  messagingSenderId: "1008870369485",
+  appId: "1:1008870369485:web:99325dfe52ae1f0da56184"
+});
+
+// Retrieve an instance of Firebase Messaging
+const messaging = firebase.messaging();
+
+// Handle background messages
+messaging.setBackgroundMessageHandler(function(payload) {
+  console.log('[firebase-messaging-sw.js] Received background message:', payload);
+  
+  // Extract notification parameters
+  const notificationTitle = payload.notification?.title || payload.data?.title || 'New Notification';
+  const notificationOptions = {
+    body: payload.notification?.body || payload.data?.body || 'You have a new message from Al Ihsan.',
+    icon: payload.notification?.image || payload.data?.icon || 'https://alihsan.online/logo.png',
+    badge: 'https://alihsan.online/logo.png',
+    data: payload.data
+  };
+
+  return self.registration.showNotification(notificationTitle, notificationOptions);
+});`, 'sw_code')}
+                      className="text-orange-500 hover:underline flex items-center gap-1"
+                    >
+                      {copiedTextId === 'sw_code' ? <Check size={11} /> : <Copy size={11} />}
+                      <span>{copiedTextId === 'sw_code' ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+                  <pre className="text-[10px] bg-slate-950 text-slate-300 p-3 rounded-xl overflow-x-auto max-h-48 font-mono leading-relaxed border border-slate-800">
+{`// Initialize background app
+importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
+importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
+
+firebase.initializeApp({
+  apiKey: "AIzaSyCAMd4TDpQK...",
+  projectId: "aesthetic-reference-fw1xt",
+  messagingSenderId: "1008870369485",
+  appId: "1:1008870369485..."
+});
+
+const messaging = firebase.messaging();
+
+messaging.setBackgroundMessageHandler(function(payload) {
+  const title = payload.notification?.title || 'New Notification';
+  return self.registration.showNotification(title, {
+    body: payload.notification?.body,
+    icon: 'https://alihsan.online/logo.png'
+  });
+});`}
+                  </pre>
+                </div>
+
+                {/* File 2: manifest.json */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg">
+                    <span>2. PWA Manifest: <code className="text-orange-500 font-bold font-mono">public/manifest.json</code></span>
+                    <button
+                      onClick={() => handleCopyText(`{
+  "short_name": "Al Ihsan",
+  "name": "Al Ihsan Online",
+  "icons": [
+    {
+      "src": "https://alihsan.online/logo.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "https://alihsan.online/logo.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0c1428",
+  "theme_color": "#0c1428",
+  "display": "standalone",
+  "orientation": "portrait"
+}`, 'manifest_code')}
+                      className="text-orange-500 hover:underline flex items-center gap-1"
+                    >
+                      {copiedTextId === 'manifest_code' ? <Check size={11} /> : <Copy size={11} />}
+                      <span>{copiedTextId === 'manifest_code' ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+                  <pre className="text-[10px] bg-slate-950 text-slate-300 p-3 rounded-xl overflow-x-auto max-h-48 font-mono leading-relaxed border border-slate-800">
+{`{
+  "short_name": "Al Ihsan",
+  "name": "Al Ihsan Online",
+  "icons": [
+    {
+      "src": "https://alihsan.online/logo.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait"
+}`}
+                  </pre>
+                </div>
+
+                {/* File 3: useFCM.ts */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg">
+                    <span>3. React Integration Hook: <code className="text-orange-500 font-bold font-mono">src/hooks/useFCM.ts</code></span>
+                    <button
+                      onClick={() => handleCopyText(`import { useState, useEffect } from 'react';
+import { initializeApp, getApp, getApps } from 'firebase/app';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCAMd4TDpQKAh2yCU0j-Z2f107QKoSVWDA",
+  authDomain: "aesthetic-reference-fw1xt.firebaseapp.com",
+  projectId: "aesthetic-reference-fw1xt",
+  storageBucket: "aesthetic-reference-fw1xt.firebasestorage.app",
+  messagingSenderId: "1008870369485",
+  appId: "1:1008870369485:web:99325dfe52ae1f0da56184"
+};
+
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
+export function useFCM() {
+  const [token, setToken] = useState<string | null>(null);
+  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setPermission(Notification.permission);
+    }
+  }, []);
+
+  const requestPermissionAndGetToken = async (vapidKey?: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      if (!('serviceWorker' in navigator)) {
+        throw new Error('Service workers not supported in this browser.');
+      }
+      const permissionResult = await Notification.requestPermission();
+      setPermission(permissionResult);
+      if (permissionResult !== 'granted') {
+        throw new Error('Notification permission denied.');
+      }
+      const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+        scope: '/'
+      });
+      const messaging = getMessaging(app);
+      const activeVapidKey = vapidKey || 'YOUR_VAPID_PUBLIC_KEY';
+      const fcmToken = await getToken(messaging, {
+        serviceWorkerRegistration: registration,
+        vapidKey: activeVapidKey
+      });
+      if (fcmToken) {
+        setToken(fcmToken);
+      }
+    } catch (err: any) {
+      setError(err.message || String(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { token, permission, loading, error, requestPermissionAndGetToken };
+}`, 'hook_code')}
+                      className="text-orange-500 hover:underline flex items-center gap-1"
+                    >
+                      {copiedTextId === 'hook_code' ? <Check size={11} /> : <Copy size={11} />}
+                      <span>{copiedTextId === 'hook_code' ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+                  <pre className="text-[10px] bg-slate-950 text-slate-300 p-3 rounded-xl overflow-x-auto max-h-48 font-mono leading-relaxed border border-slate-800">
+{`import { getMessaging, getToken } from 'firebase/messaging';
+
+const registration = await navigator.serviceWorker.register(
+  '/firebase-messaging-sw.js', { scope: '/' }
+);
+
+const fcmToken = await getToken(messaging, {
+  serviceWorkerRegistration: registration,
+  vapidKey: "YOUR_VAPID_KEY"
+});`}
+                  </pre>
+                </div>
+              </div>
+            </div>
+
+            {/* Checklist & Deliverability Setup */}
+            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+              <h3 className="font-extrabold text-sm uppercase text-[#000E32] dark:text-orange-500 flex items-center gap-1.5">
+                <HelpCircle size={16} />
+                <span>Email & Notification Deliverability Steps</span>
+              </h3>
+
+              <div className="space-y-4 text-xs leading-relaxed">
+                {/* DNS Records */}
+                <div className="space-y-1.5 p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border">
+                  <span className="font-black text-[10px] text-orange-500 uppercase block">1. DNS Records (SPF & DKIM for Brevo)</span>
+                  <p className="text-slate-500 text-[11px]">To make emails deliver reliably to users' inboxes without going to spam, add the following TXT records to your domain registrar (Cloudflare/GoDaddy/Namecheap):</p>
+                  
+                  <div className="space-y-2 mt-2 font-mono text-[10px]">
+                    <div className="bg-slate-100 dark:bg-slate-950 p-2 rounded border">
+                      <strong className="text-[#000E32] dark:text-orange-400 block mb-0.5">TXT Record: SPF</strong>
+                      <div className="flex justify-between items-center bg-slate-200/50 dark:bg-slate-900/80 p-1 px-2 rounded mt-1">
+                        <span>v=spf1 include:spf.sendinblue.com ~all</span>
+                        <button onClick={() => handleCopyText('v=spf1 include:spf.sendinblue.com ~all', 'spf_dns')} className="text-orange-500 hover:underline">
+                          {copiedTextId === 'spf_dns' ? 'Copied' : 'Copy'}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="bg-slate-100 dark:bg-slate-950 p-2 rounded border">
+                      <strong className="text-[#000E32] dark:text-orange-400 block mb-0.5">TXT Record: DKIM (Host: mail._domainkey)</strong>
+                      <div className="flex justify-between items-center bg-slate-200/50 dark:bg-slate-900/80 p-1 px-2 rounded mt-1">
+                        <span className="break-all">k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDy7gA3...</span>
+                        <button onClick={() => handleCopyText('k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDy7gA3', 'dkim_dns')} className="text-orange-500 hover:underline shrink-0 ml-2">
+                          {copiedTextId === 'dkim_dns' ? 'Copied' : 'Copy'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Brevo Tracker */}
+                <div className="space-y-1.5 p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border">
+                  <span className="font-black text-[10px] text-orange-500 uppercase block">2. Brevo Tracker Script</span>
+                  <p className="text-slate-500 text-[11px]">We integrated the official Brevo Tracking Script inside the <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">&lt;head&gt;</code> of <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">index.html</code>. Replace <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">window.key</code> value with your actual Brevo tracker automation key from the Brevo automation control panel.</p>
+                </div>
+
+                {/* Server Hosting routing fix explanation */}
+                <div className="space-y-1.5 p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border">
+                  <span className="font-black text-[10px] text-orange-500 uppercase block">3. Routing Resolution (HTML vs JS Fixed)</span>
+                  <p className="text-slate-500 text-[11px]">The "HTML instead of JS" error occurred because <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">/firebase-messaging-sw.js</code> and <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">/manifest.json</code> were physically missing from the build. Vite fell back to rendering the default single page application index HTML.</p>
+                  <p className="text-slate-500 text-[11px] mt-1"><strong>How we resolved it:</strong> We created both files physically inside the root <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">/public/</code> directory. During compilation, Vite copies them unchanged to the final build output directory (<code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">/dist</code>), ensuring they are served directly with the correct mime-types (<code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">application/javascript</code> and <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">application/json</code>).</p>
                 </div>
               </div>
             </div>

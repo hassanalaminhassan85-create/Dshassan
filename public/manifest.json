@@ -1,0 +1,23 @@
+{
+  "short_name": "Al Ihsan",
+  "name": "Al Ihsan Online",
+  "icons": [
+    {
+      "src": "https://alihsan.online/logo.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "https://alihsan.online/logo.png",
+      "type": "image/png",
+      "sizes": "512x512",
+      "purpose": "any"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0c1428",
+  "theme_color": "#0c1428",
+  "display": "standalone",
+  "orientation": "portrait"
+}
