@@ -233,7 +233,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
       })
       .catch((err) => {
         if (err.code === 'auth/unauthorized-domain' || err.message?.includes('unauthorized-domain')) {
-          console.warn("Firebase redirect domain not authorized in current sandbox environment:", err);
+          setAuthError(`unauthorized-domain: Your domain 'alihsan.online' is not whitelisted in Firebase.`);
         } else {
           setAuthError(`Redirect authorization error: ${err.message}`);
         }
@@ -452,13 +452,20 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
         await syncUserWithD1(result.user, selectedRole);
       } catch (fbErr: any) {
         console.warn("Real Google popup blocked or failed, attempting standard redirect flow:", fbErr);
+        if (fbErr.code === 'auth/unauthorized-domain' || fbErr.message?.includes('unauthorized-domain')) {
+          throw fbErr; // throw immediately to trigger instructions and avoid broken redirect loops
+        }
         // Fallback to signInWithRedirect for maximum capability (e.g. inside sandboxed iframes or certain mobile browsers)
         localStorage.setItem('pre_redirect_role', selectedRole);
         await signInWithRedirect(auth, googleProvider);
       }
     } catch (err: any) {
       console.error("Google authentication failed:", err);
-      setAuthError(err.message || "Failed to complete Google authentication.");
+      if (err.code === 'auth/unauthorized-domain' || err.message?.includes('unauthorized-domain')) {
+        setAuthError("unauthorized-domain: Your domain 'alihsan.online' is not whitelisted in Firebase Auth.");
+      } else {
+        setAuthError(err.message || "Failed to complete Google authentication.");
+      }
     } finally {
       setAuthLoading(false);
     }
@@ -758,9 +765,41 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
 
         {/* FEEDBACK NOTIFICATION ALERTS */}
         {authError && (
-          <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-600 dark:text-rose-400 text-xs font-semibold flex items-center gap-2.5 shadow-sm text-left animate-shake">
-            <AlertCircle size={15} className="shrink-0" />
-            <span>{authError}</span>
+          <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-600 dark:text-rose-400 text-xs font-semibold flex flex-col gap-2 shadow-sm text-left animate-shake">
+            <div className="flex items-center gap-2.5">
+              <AlertCircle size={15} className="shrink-0" />
+              <span className="font-black uppercase tracking-wider text-rose-700 dark:text-rose-300">Firebase Domain Error</span>
+            </div>
+            {authError.includes('unauthorized-domain') ? (
+              <div className="mt-1 space-y-2.5 text-slate-700 dark:text-slate-300 font-normal leading-relaxed text-[11px] sm:text-xs">
+                <p className="font-semibold text-rose-600 dark:text-rose-400">
+                  Your custom domain <code className="bg-rose-500/10 px-1 py-0.5 rounded font-bold text-rose-500">alihsan.online</code> is not authorized in your Firebase Project yet.
+                </p>
+                <p>To enable Google Sign-In on your domain, please complete these simple steps in your Firebase Console:</p>
+                <ol className="list-decimal list-inside space-y-1.5 pl-1 font-medium">
+                  <li>
+                    Open the <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="text-indigo-600 dark:text-indigo-400 underline font-bold inline-flex items-center gap-0.5">Firebase Console <Sparkles size={10} className="inline" /></a>
+                  </li>
+                  <li>
+                    Select your project <strong className="text-indigo-600 dark:text-indigo-400">aesthetic-reference-fw1xt</strong>
+                  </li>
+                  <li>
+                    Go to <strong className="text-slate-900 dark:text-white">Authentication</strong> &rarr; <strong className="text-slate-900 dark:text-white">Settings</strong> &rarr; <strong className="text-slate-900 dark:text-white">Authorized domains</strong>
+                  </li>
+                  <li>
+                    Click <strong className="text-slate-900 dark:text-white">"Add domain"</strong> and type in: <code className="bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono font-bold text-slate-800 dark:text-slate-100">alihsan.online</code>
+                  </li>
+                  <li>
+                    Click <strong className="text-slate-900 dark:text-white">Save</strong>.
+                  </li>
+                </ol>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
+                  Once saved, Firebase will instantly authorize your domain and Google Sign-In will work perfectly!
+                </p>
+              </div>
+            ) : (
+              <span>{authError}</span>
+            )}
           </div>
         )}
 
