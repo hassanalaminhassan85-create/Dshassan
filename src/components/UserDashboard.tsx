@@ -776,29 +776,45 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
             {authError.includes('unauthorized-domain') ? (
               <div className="mt-1 space-y-2.5 text-slate-700 dark:text-slate-300 font-normal leading-relaxed text-[11px] sm:text-xs">
                 <p className="font-semibold text-rose-600 dark:text-rose-400">
-                  Your custom domain <code className="bg-rose-500/10 px-1 py-0.5 rounded font-bold text-rose-500">alihsan.online</code> is not authorized in your Firebase Project yet.
+                  Your custom domain <code className="bg-rose-500/10 px-1 py-0.5 rounded font-bold text-rose-500">alihsan.online</code> is not authorized in the currently active Firebase Project <code className="bg-rose-500/10 px-1 py-0.5 rounded font-bold text-rose-500 font-mono">{auth.app.options.projectId}</code> yet.
                 </p>
-                <p>To enable Google Sign-In on your domain, please complete these simple steps in your Firebase Console:</p>
-                <ol className="list-decimal list-inside space-y-1.5 pl-1 font-medium">
-                  <li>
-                    Open the <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="text-indigo-600 dark:text-indigo-400 underline font-bold inline-flex items-center gap-0.5">Firebase Console <Sparkles size={10} className="inline" /></a>
-                  </li>
-                  <li>
-                    Select your project <strong className="text-indigo-600 dark:text-indigo-400">aesthetic-reference-fw1xt</strong>
-                  </li>
-                  <li>
-                    Go to <strong className="text-slate-900 dark:text-white">Authentication</strong> &rarr; <strong className="text-slate-900 dark:text-white">Settings</strong> &rarr; <strong className="text-slate-900 dark:text-white">Authorized domains</strong>
-                  </li>
-                  <li>
-                    Click <strong className="text-slate-900 dark:text-white">"Add domain"</strong> and type in: <code className="bg-slate-100 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono font-bold text-slate-800 dark:text-slate-100">alihsan.online</code>
-                  </li>
-                  <li>
-                    Click <strong className="text-slate-900 dark:text-white">Save</strong>.
-                  </li>
-                </ol>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
-                  Once saved, Firebase will instantly authorize your domain and Google Sign-In will work perfectly!
+                
+                <p className="border-l-2 border-amber-500 pl-2 text-[10px] text-amber-600 dark:text-amber-400 font-medium">
+                  <strong>Important:</strong> You whitelisted your domain on your own project <code className="font-bold">dstech-154d5</code>, but this app is currently loading the default project <code className="font-bold">{auth.app.options.projectId}</code>. You have two choices below to fix this:
                 </p>
+
+                <div className="space-y-3 bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-200 dark:border-white/10 mt-2">
+                  <p className="font-bold text-[11px] uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Option A: Authorize your current active project (Recommended)</p>
+                  <ol className="list-decimal list-inside space-y-1.5 pl-1 font-medium text-[10.5px]">
+                    <li>
+                      Open the <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="text-indigo-600 dark:text-indigo-400 underline font-bold inline-flex items-center gap-0.5">Firebase Console <Sparkles size={10} className="inline" /></a>
+                    </li>
+                    <li>
+                      Select the project <strong className="text-indigo-600 dark:text-indigo-400">{auth.app.options.projectId}</strong> from your dashboard list.
+                    </li>
+                    <li>
+                      Go to <strong className="text-slate-900 dark:text-white">Authentication</strong> &rarr; <strong className="text-slate-900 dark:text-white">Settings</strong> &rarr; <strong className="text-slate-900 dark:text-white">Authorized domains</strong>
+                    </li>
+                    <li>
+                      Click <strong className="text-slate-900 dark:text-white">"Add domain"</strong> and type in: <code className="bg-slate-200 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono font-bold text-slate-800 dark:text-slate-100">alihsan.online</code> and click <strong className="text-slate-900 dark:text-white">Save</strong>.
+                    </li>
+                  </ol>
+                </div>
+
+                <div className="space-y-2 bg-slate-50 dark:bg-slate-900/40 p-3 rounded-xl border border-slate-200 dark:border-white/10">
+                  <p className="font-bold text-[11px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-sans">Option B: Switch app to your custom "dstech-154d5" project</p>
+                  <p className="text-[10.5px] font-normal leading-normal">
+                    If you prefer to use your own Firebase project, you can easily connect it by adding your Firebase API Keys inside the <strong className="text-slate-900 dark:text-white">AI Studio Settings {"→"} Secrets Panel</strong> as the following environment variables:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400 pl-1">
+                    <li>VITE_FIREBASE_API_KEY</li>
+                    <li>VITE_FIREBASE_AUTH_DOMAIN</li>
+                    <li>VITE_FIREBASE_PROJECT_ID</li>
+                    <li>VITE_FIREBASE_STORAGE_BUCKET</li>
+                    <li>VITE_FIREBASE_MESSAGING_SENDER_ID</li>
+                    <li>VITE_FIREBASE_APP_ID</li>
+                  </ul>
+                </div>
               </div>
             ) : (
               <span>{authError}</span>
