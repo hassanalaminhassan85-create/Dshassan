@@ -242,6 +242,36 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             // Add to history list in-app
             setNotifications(prev => [notif, ...prev]);
             setUnreadCount(prev => prev + 1);
+
+            // Fire native OS-level push notification if allowed
+            if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+              try {
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.ready.then((registration) => {
+                    registration.showNotification(notif.title, {
+                      body: notif.message,
+                      icon: notif.image || 'https://alihsan.online/logo.png',
+                      badge: 'https://alihsan.online/logo.png',
+                      vibrate: [200, 100, 200],
+                      tag: 'recruitment-update-' + notif.id,
+                      renotify: true
+                    } as any);
+                  }).catch(() => {
+                    new Notification(notif.title, {
+                      body: notif.message,
+                      icon: notif.image || 'https://alihsan.online/logo.png'
+                    });
+                  });
+                } else {
+                  new Notification(notif.title, {
+                    body: notif.message,
+                    icon: notif.image || 'https://alihsan.online/logo.png'
+                  });
+                }
+              } catch (err) {
+                console.warn('Native notification trigger failed:', err);
+              }
+            }
           }
         }
       } catch (e) {

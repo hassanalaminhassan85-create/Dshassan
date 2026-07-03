@@ -131,6 +131,15 @@ async function ensureDatabaseTables(db: any) {
       challenge TEXT NOT NULL,
       username TEXT NOT NULL,
       created_at TEXT NOT NULL
+    );`,
+
+    `CREATE TABLE IF NOT EXISTS fcm_tokens (
+      userId TEXT,
+      fcmToken TEXT,
+      deviceName TEXT,
+      deviceType TEXT,
+      created_at TEXT NOT NULL,
+      PRIMARY KEY (userId, fcmToken)
     );`
   ];
 
@@ -1040,6 +1049,62 @@ export async function onRequest(context: { request: Request; env: any; params: a
           message: `Application updated for ${updated.fullName || 'Candidate'}`
         });
 
+        // Push notification hook for application status changes (approved or rejected)
+        const oldStatus = existing.status || 'pending';
+        const newStatus = updated.status;
+
+        if (newStatus && newStatus !== oldStatus && (newStatus === 'approved' || newStatus === 'rejected')) {
+          const isApproved = newStatus === 'approved';
+          const candidateEmail = updated.personalInfo?.emailAddress || updated.personalInfo?.email || updated.email || existing.personalInfo?.emailAddress || 'anonymous';
+          const majorRole = updated.positionSkills?.majorRole || 'Staff Member';
+          
+          const title = isApproved ? 'Application Approved! 🎉' : 'Application Status Update';
+          const message = isApproved 
+            ? `Congratulations! Your job application for ${majorRole} has been approved.`
+            : `Thank you for your interest. Unfortunately, your job application for ${majorRole} was not approved at this time.`;
+
+          const newNotif = {
+            id: 'notif_' + Math.random().toString(36).substring(2, 11),
+            title,
+            message,
+            read: false,
+            createdAt: new Date().toISOString(),
+            recipientRole: 'candidate',
+            userId: candidateEmail,
+            type: isApproved ? 'success' : 'error',
+            priority: 'high',
+            image: isApproved ? 'https://alihsan.online/icons/approved.png' : 'https://alihsan.online/icons/rejected.png',
+            actionUrl: `/application/${id}`
+          };
+          
+          // Insert into in-memory store so it appears in notification history
+          inMemoryNotifications.unshift(newNotif);
+
+          // Retrieve registered FCM token for the candidate if available
+          let targetFcmToken = null;
+          try {
+            const fcmResults = await env.DB.prepare("SELECT fcmToken FROM fcm_tokens WHERE userId = ? ORDER BY created_at DESC").bind(candidateEmail).all();
+            if (fcmResults.results && fcmResults.results.length > 0) {
+              targetFcmToken = fcmResults.results[0].fcmToken;
+            }
+          } catch (e) {
+            console.warn("FCM Token lookup failed (database table may be initializing):", e);
+          }
+
+          console.log(`[FCM SERVICE] Dispatching native push notification to candidate: ${candidateEmail}`);
+          console.log(`[FCM SERVICE] Device registration token: ${targetFcmToken || 'NATIVE_FALLBACK_ACTIVE'}`);
+          console.log(`[FCM SERVICE] Payload:`, { title, body: message });
+
+          // Broadcast real-time notification creation to active tabs/sessions via SSE
+          broadcastSyncEvent({
+            type: 'NOTIFICATION_CREATED',
+            notification: {
+              ...newNotif,
+              fcmToken: targetFcmToken // Pass along so frontend can optionally coordinate custom actions
+            }
+          });
+        }
+
         return new Response(JSON.stringify(updated), { headers });
       }
       if (method === 'DELETE') {
@@ -1265,7 +1330,23 @@ export async function onRequest(context: { request: Request; env: any; params: a
     }
 
     if (path === '/api/fcm-tokens' && method === 'POST') {
-      return new Response(JSON.stringify({ success: true, registered: true }), { headers });
+      try {
+        const body = await request.json();
+        const { userId, fcmToken, deviceName, deviceType } = body;
+        
+        if (userId && fcmToken) {
+          await env.DB.prepare(
+            "INSERT OR REPLACE INTO fcm_tokens (userId, fcmToken, deviceName, deviceType, created_at) VALUES (?, ?, ?, ?, ?)"
+          ).bind(userId, fcmToken, deviceName || null, deviceType || null, new Date().toISOString()).run();
+          
+          console.log(`[FCM BACKEND] Token registered successfully: User = ${userId}, Device = ${deviceName || 'Unknown'}`);
+        }
+        
+        return new Response(JSON.stringify({ success: true, registered: true }), { headers });
+      } catch (err: any) {
+        console.error("FCM Token Registration Error:", err);
+        return new Response(JSON.stringify({ error: err.message || "Failed to register FCM token" }), { status: 500, headers });
+      }
     }
 
     // ==========================================

@@ -7,12 +7,14 @@ import {
   ChevronDown, Settings, Bell, Share2, Download, MessageSquare, AlertCircle,
   TrendingUp, Wallet, Shield, Users, HelpCircle, Activity, Globe, Send, Play,
   Smartphone, Eye, Award, Lock, FileText, Ban, Trash2, Edit3, Fingerprint, RefreshCw,
-  Heart, Zap, Star, Menu, X, Sun, Moon
+  Heart, Zap, Star, Menu, X, Sun, Moon, Clock, Key, Copy
 } from 'lucide-react';
+import { useFCM } from '../hooks/useFCM';
 import { CandidateEnterpriseSettings } from './CandidateEnterpriseSettings';
 import { useNotifications } from './NotificationProvider';
 import { NotificationCenter } from './NotificationCenter';
 import { startRegistration } from '@simplewebauthn/browser';
+import { apiSaveFcmToken } from '../lib/api';
 
 // Recharts for stunning data visualizations
 import {
@@ -67,7 +69,8 @@ const DASHBOARD_PAGES: DashboardPage[] = [
   { id: 23, title: "Hyper-Personalized Learning System", category: "specialized", icon: Eye, description: "Adaptive curriculum generator, spaced repetition tracker, and flashcards.", tags: ["learning", "education", "spaced"] },
   { id: 24, title: "Advanced Biometric Security", category: "specialized", icon: Fingerprint, description: "Continuous behavioral biometric monitoring and WebAuthn device logs.", tags: ["biometric", "security", "webauthn"] },
   { id: 25, title: "Brain-Computer Interface (BCI)", category: "specialized", icon: Cpu, description: "Simulated EEG-based cognitive assessments, mental loads, and focal metrics.", tags: ["brain", "eeg", "cognitive"] },
-  { id: 26, title: "Comprehensive Settings Console", category: "specialized", icon: Settings, description: "12 major settings categories, backup & restore, global search, and audit logging.", tags: ["settings", "admin", "config"] }
+  { id: 26, title: "Comprehensive Settings Console", category: "specialized", icon: Settings, description: "12 major settings categories, backup & restore, global search, and audit logging.", tags: ["settings", "admin", "config"] },
+  { id: 27, title: "Push Notifications & PWA Diagnostics", category: "specialized", icon: Bell, description: "Verify real-time system notifications, register device token, and test active foreground/background push overlays.", tags: ["fcm", "notifications", "pwa", "diagnostics"] }
 ];
 
 // Sample languages
@@ -88,7 +91,29 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
   isDarkMode,
   setIsDarkMode
 }) => {
+  const { token: fcmToken, permission: fcmPermission, loading: fcmLoading, error: fcmError, requestPermissionAndGetToken } = useFCM();
+  const [customVapidKey, setCustomVapidKey] = useState<string>('');
+  const [copiedTextId, setCopiedTextId] = useState<string | null>(null);
+  const [isTestingNotification, setIsTestingNotification] = useState<boolean>(false);
+  const [testNotificationCountdown, setTestNotificationCountdown] = useState<number>(0);
+
   const { unreadCount, registerUser } = useNotifications();
+
+  // Automatically register device FCM token with backend
+  useEffect(() => {
+    if (fcmToken) {
+      apiSaveFcmToken({
+        userId: currentUser?.email || 'anonymous',
+        fcmToken: fcmToken,
+        deviceName: navigator.userAgent.split(' ')[0] || 'Web Browser',
+        deviceType: window.innerWidth < 768 ? 'mobile' : 'desktop'
+      }).then(() => {
+        console.log('Device FCM token successfully registered on backend:', fcmToken);
+      }).catch((err) => {
+        console.error('Failed to auto-register device FCM token on backend:', err);
+      });
+    }
+  }, [fcmToken, currentUser]);
   const [isNotifCenterOpen, setIsNotifCenterOpen] = useState<boolean>(false);
   const [activePageId, setActivePageId] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -1520,8 +1545,231 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
             />
           )}
 
+          {/* PAGE 27: PUSH NOTIFICATIONS & PWA DIAGNOSTICS */}
+          {activePageId === 27 && (
+            <div className="space-y-6 animate-fade-in text-left text-xs">
+              {/* Header Status Bar */}
+              <div className="bg-gradient-to-r from-[#000E32] to-indigo-950 p-6 rounded-3xl border border-blue-900/30 text-white relative overflow-hidden shadow-lg">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-orange-500/10 rounded-full filter blur-3xl pointer-events-none" />
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="space-y-2 max-w-xl">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
+                      </span>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-orange-400">
+                        Firebase Cloud Messaging (FCM) Integration Node
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-extrabold uppercase tracking-wide flex items-center gap-2">
+                      <Bell size={20} className="text-orange-500 animate-bounce" />
+                      <span>Push Notifications & PWA Diagnostics</span>
+                    </h3>
+                    <p className="text-slate-300 text-[11px] leading-relaxed">
+                      This diagnostic hub verifies native pop-up/push banner compliance on your mobile smartphone or desktop browser. Ensure you never miss live recruitment offers, interview schedules, or credential updates from Al Ihsan.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status and Action Panel */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* FCM Token Generation Card */}
+                <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-5 space-y-4">
+                  <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <Zap size={16} className="text-amber-400" />
+                    <h4 className="font-extrabold text-xs uppercase text-slate-200">Device Token Registration</h4>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center bg-black/30 p-3 rounded-xl border border-white/5">
+                      <span className="text-slate-400">Notification Permission:</span>
+                      <span className={`font-black uppercase text-[10px] px-2 py-0.5 rounded-full ${
+                        fcmPermission === 'granted' 
+                          ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25' 
+                          : fcmPermission === 'denied' 
+                          ? 'bg-rose-500/15 text-rose-400 border border-rose-500/25' 
+                          : 'bg-amber-500/15 text-amber-400 border border-amber-500/25'
+                      }`}>
+                        {fcmPermission}
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-slate-400 block font-bold">Your Device's Secure FCM Token:</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          readOnly
+                          value={fcmLoading ? 'Resolving token...' : fcmToken || 'No token generated yet. Tap Register below.'}
+                          className="flex-1 bg-black/40 border border-white/10 rounded-xl px-3 py-2 font-mono text-[10px] text-slate-300 focus:outline-none"
+                        />
+                        {fcmToken && (
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(fcmToken);
+                              setCopiedTextId('fcm_token');
+                              setTimeout(() => setCopiedTextId(null), 2000);
+                            }}
+                            className="p-2.5 bg-slate-800 hover:bg-slate-750 text-slate-300 hover:text-white rounded-xl border border-white/5 transition"
+                            title="Copy FCM Token"
+                          >
+                            {copiedTextId === 'fcm_token' ? <CheckCircle2 size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                          </button>
+                        )}
+                      </div>
+                      {fcmError && (
+                        <p className="text-[10px] text-rose-400 mt-1 font-mono">⚠️ Error: {fcmError}</p>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={requestPermissionAndGetToken}
+                      disabled={fcmLoading}
+                      className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-extrabold uppercase rounded-xl transition flex items-center justify-center gap-2 shadow-md shadow-indigo-600/15 cursor-pointer"
+                    >
+                      {fcmLoading ? (
+                        <>
+                          <RefreshCw size={13} className="animate-spin" />
+                          <span>Generating Secure Token...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Key size={13} />
+                          <span>Generate Device FCM Token</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Local Push Test Card */}
+                <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-5 space-y-4">
+                  <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <Sparkles size={16} className="text-emerald-400 animate-pulse" />
+                    <h4 className="font-extrabold text-xs uppercase text-slate-200">Local System Pop-up Banner Test</h4>
+                  </div>
+
+                  <p className="text-slate-400 leading-relaxed text-[11px]">
+                    Validate whether native system banners can pop up over your lock screen or home screen. Tap the button below, then <strong className="text-orange-400">immediately lock your phone or go to your home screen</strong>. A test notification will fire in exactly 3 seconds!
+                  </p>
+
+                  <div className="pt-2">
+                    <button
+                      onClick={() => {
+                        if (fcmPermission !== 'granted') {
+                          Notification.requestPermission().then((perm) => {
+                            if (perm !== 'granted') {
+                              alert("Please grant notification permission when prompted to test native pop-ups.");
+                            } else {
+                              alert("Permission granted! Now tap the button again to trigger the test notification.");
+                              window.location.reload();
+                            }
+                          });
+                          return;
+                        }
+
+                        setIsTestingNotification(true);
+                        setTestNotificationCountdown(3);
+
+                        let currentCount = 3;
+                        const intervalId = setInterval(() => {
+                          currentCount -= 1;
+                          setTestNotificationCountdown(currentCount);
+                          if (currentCount <= 0) {
+                            clearInterval(intervalId);
+                          }
+                        }, 1000);
+
+                        setTimeout(async () => {
+                          try {
+                            const title = "Al Ihsan Online • Push Active! 🌟";
+                            const options = {
+                              body: "Test Successful! Your mobile device is fully configured to receive push notification banners from Al Ihsan.",
+                              icon: "https://alihsan.online/logo.png",
+                              badge: "https://alihsan.online/logo.png",
+                              vibrate: [200, 100, 200],
+                              tag: "fcm-test-pop-direct",
+                              renotify: true,
+                              requireInteraction: true
+                            };
+
+                            if ('serviceWorker' in navigator) {
+                              const registration = await navigator.serviceWorker.ready;
+                              await registration.showNotification(title, options);
+                            } else {
+                              new Notification(title, options);
+                            }
+                          } catch (err) {
+                            console.error("Local notification error:", err);
+                          } finally {
+                            setIsTestingNotification(false);
+                            setTestNotificationCountdown(0);
+                          }
+                        }, 3000);
+                      }}
+                      disabled={isTestingNotification}
+                      className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-black uppercase rounded-xl transition flex items-center justify-center gap-2 shrink-0 shadow-md cursor-pointer"
+                    >
+                      {isTestingNotification ? (
+                        <>
+                          <Clock size={13} className="animate-spin" />
+                          <span>Triggering in {testNotificationCountdown}s... LOCK NOW!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={13} />
+                          <span>Trigger 3s Delayed System Pop-up</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Requirements & Installation Section */}
+              <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-5 space-y-4">
+                <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+                  <Smartphone size={16} className="text-indigo-400" />
+                  <h4 className="font-extrabold text-xs uppercase text-slate-200">📱 Mobile Operating System PWA Requirements</h4>
+                </div>
+
+                <p className="text-slate-400 leading-relaxed text-[11px]">
+                  iOS and Android operating systems enforce strict sandboxing. To receive system-level push notification banners (even when the app or Safari is closed), you <strong className="text-orange-400">must install Al Ihsan on your device's Home Screen</strong>. Follow these instructions:
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-black/30 p-4 rounded-xl border border-white/5 space-y-2">
+                    <span className="font-black text-[10px] text-amber-500 uppercase block">🍏 Apple iOS (iPhone & iPad)</span>
+                    <ol className="list-decimal pl-4 space-y-1.5 text-slate-400 text-[10.5px] leading-relaxed">
+                      <li>Open the direct app link in the native <strong className="text-white">Safari</strong> browser.</li>
+                      <li>Tap the <strong className="text-white">Share</strong> icon on Safari's bottom toolbar.</li>
+                      <li>Scroll down and select <strong className="text-white">"Add to Home Screen"</strong>.</li>
+                      <li>Launch the newly installed <strong className="text-white">Al Ihsan</strong> icon from your iPhone home screen.</li>
+                      <li>Open this diagnostics tab inside the app and tap <strong className="text-white">"Generate Device FCM Token"</strong> to grant notification authority.</li>
+                    </ol>
+                  </div>
+
+                  <div className="bg-black/30 p-4 rounded-xl border border-white/5 space-y-2">
+                    <span className="font-black text-[10px] text-emerald-400 uppercase block">🤖 Google Android</span>
+                    <ol className="list-decimal pl-4 space-y-1.5 text-slate-400 text-[10.5px] leading-relaxed">
+                      <li>Open the direct app link in <strong className="text-white">Google Chrome</strong> browser.</li>
+                      <li>Tap the <strong className="text-white">Menu (3-dots)</strong> button in the top-right corner.</li>
+                      <li>Select <strong className="text-white">"Install app"</strong> or <strong className="text-white">"Add to Home screen"</strong>.</li>
+                      <li>Launch the installed application from your phone's launcher.</li>
+                      <li>Open this diagnostics tab inside the app and tap <strong className="text-white">"Generate Device FCM Token"</strong> to grant notification authority.</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* FALLBACK PANEL RENDER FOR ALL OTHER 20 DYNAMIC PAGES */}
-          {activePageId > 5 && activePageId !== 26 && (
+          {activePageId > 5 && activePageId !== 26 && activePageId !== 27 && (
             <div id={`dynamic-page-${activePageId}`} className="space-y-6">
               
               {/* Alert / Notification regarding specialized prototype status */}
