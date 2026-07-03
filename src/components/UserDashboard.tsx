@@ -444,20 +444,23 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
     triggerHaptic(20);
     setAuthLoading(true);
 
+    const isIframe = window.self !== window.top;
+
     try {
-      // First try standard Firebase signInWithPopup
-      try {
+      if (!isIframe) {
+        // If not in an iframe (e.g., loaded directly in a browser on alihsan.online),
+        // we use signInWithRedirect directly. This guarantees it works on mobile devices
+        // and completely bypasses browser popup blockers that silently swallow popups.
+        console.log("Direct access detected: Initiating high-compatibility redirect flow...");
+        localStorage.setItem('pre_redirect_role', selectedRole);
+        await signInWithRedirect(auth, googleProvider);
+      } else {
+        // Inside an iframe (AI Studio preview environment), we must use signInWithPopup 
+        // because redirects are blocked inside sandboxed iframes.
+        console.log("Iframe environment detected: Using popup flow...");
         const result = await signInWithPopup(auth, googleProvider);
         localStorage.setItem(`role_${result.user.uid}`, selectedRole);
         await syncUserWithD1(result.user, selectedRole);
-      } catch (fbErr: any) {
-        console.warn("Real Google popup blocked or failed, attempting standard redirect flow:", fbErr);
-        if (fbErr.code === 'auth/unauthorized-domain' || fbErr.message?.includes('unauthorized-domain')) {
-          throw fbErr; // throw immediately to trigger instructions and avoid broken redirect loops
-        }
-        // Fallback to signInWithRedirect for maximum capability (e.g. inside sandboxed iframes or certain mobile browsers)
-        localStorage.setItem('pre_redirect_role', selectedRole);
-        await signInWithRedirect(auth, googleProvider);
       }
     } catch (err: any) {
       console.error("Google authentication failed:", err);
