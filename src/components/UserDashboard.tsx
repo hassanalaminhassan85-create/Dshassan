@@ -74,13 +74,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
   // Password visibility
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  // Custom Google Account Chooser State Variables
-  const [isGoogleChooserOpen, setIsGoogleChooserOpen] = useState<boolean>(false);
-  const [customGoogleEmail, setCustomGoogleEmail] = useState<string>('');
-  const [showCustomGoogleInput, setShowCustomGoogleInput] = useState<boolean>(false);
-  const [chooserStatus, setChooserStatus] = useState<'select' | 'checking' | 'exists' | 'creating'>('select');
-  const [chooserEmail, setChooserEmail] = useState<string>('');
-
   // Secure 2-Phase Email OTP Signup States
   const [isOtpPending, setIsOtpPending] = useState<boolean>(false);
   const [otpInput, setOtpInput] = useState<string>('');
@@ -444,130 +437,28 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
     }
   };
 
-  // Google Federated Authentication Flow with Popup and Redirect Options
+  // Google Federated Authentication Flow
   const handleGoogleSignIn = async () => {
     setAuthError(null);
     setSuccessMsg(null);
     triggerHaptic(20);
-    // Open the custom Google Account Chooser modal which lists emails and handles checks/new accounts
-    setChooserStatus('select');
-    setIsGoogleChooserOpen(true);
-    setShowCustomGoogleInput(false);
-    setCustomGoogleEmail('');
-  };
-
-  // Process selected email from the Google Account Chooser
-  const handleSelectGoogleEmail = async (selectedEmail: string, nameToUse?: string) => {
-    const emailClean = selectedEmail.trim();
-    if (!emailClean) {
-      setAuthError("Invalid email address selected.");
-      return;
-    }
-
-    setChooserEmail(emailClean);
-    setChooserStatus('checking');
-    triggerHaptic(15);
-
-    try {
-      // Check if user already exists in D1 database
-      const checkRes = await fetch(`/api/auth/check-email?email=${encodeURIComponent(emailClean)}`);
-      if (!checkRes.ok) {
-        throw new Error("Failed to reach identity validation ledger node.");
-      }
-
-      const checkData = await checkRes.json();
-
-      if (checkData.exists) {
-        // Account already exists
-        setChooserStatus('exists');
-        triggerHaptic([30, 10]);
-
-        setTimeout(async () => {
-          setIsGoogleChooserOpen(false);
-          setChooserStatus('select');
-          setAuthLoading(true);
-
-          const existingUser = checkData.user;
-          const mockFirebaseUser = {
-            uid: existingUser.id || 'google_local_' + btoa(emailClean).replace(/=/g, '').substring(0, 15),
-            email: emailClean,
-            displayName: existingUser.fullName || nameToUse || emailClean.split('@')[0],
-            photoURL: '',
-            providerData: [{ providerId: 'google.com' }]
-          };
-
-          localStorage.setItem(`role_${mockFirebaseUser.uid}`, existingUser.role || selectedRole);
-          await syncUserWithD1(mockFirebaseUser, existingUser.role || selectedRole);
-          setAuthLoading(false);
-        }, 2200);
-      } else {
-        // Create new account for him
-        setChooserStatus('creating');
-        triggerHaptic([20, 20]);
-
-        setTimeout(async () => {
-          setIsGoogleChooserOpen(false);
-          setChooserStatus('select');
-          setAuthLoading(true);
-
-          const mockFirebaseUser = {
-            uid: 'google_local_' + btoa(emailClean).replace(/=/g, '').substring(0, 15),
-            email: emailClean,
-            displayName: nameToUse || emailClean.split('@')[0],
-            photoURL: '',
-            providerData: [{ providerId: 'google.com' }]
-          };
-
-          localStorage.setItem(`role_${mockFirebaseUser.uid}`, selectedRole);
-          await syncUserWithD1(mockFirebaseUser, selectedRole);
-          setAuthLoading(false);
-        }, 2200);
-      }
-    } catch (err: any) {
-      console.error("Google chooser error:", err);
-      setChooserStatus('select');
-      setIsGoogleChooserOpen(false);
-      setAuthError(err.message || "Failed to complete Google authenticated handshake.");
-    }
-  };
-
-  // Triggers real standard Google Authentication with Firebase Popup/Redirect
-  const triggerRealGoogleSignIn = async () => {
-    setIsGoogleChooserOpen(false);
     setAuthLoading(true);
-    setAuthError(null);
-    setSuccessMsg(null);
-    triggerHaptic(25);
 
     try {
-      if (googleSignInMethod === 'popup') {
-        try {
-          const result = await signInWithPopup(auth, googleProvider);
-          localStorage.setItem(`role_${result.user.uid}`, selectedRole);
-          await syncUserWithD1(result.user, selectedRole);
-        } catch (fbErr: any) {
-          console.warn("Real Google popup blocked/failed, opening sandbox chooser fallback:", fbErr);
-          setAuthError("Google Popup blocked by browser iframe sandboxing. Falling back to the secure local Google Account Chooser...");
-          setTimeout(() => {
-            setIsGoogleChooserOpen(true);
-            setAuthError(null);
-          }, 3000);
-        }
-      } else {
+      // First try standard Firebase signInWithPopup
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        localStorage.setItem(`role_${result.user.uid}`, selectedRole);
+        await syncUserWithD1(result.user, selectedRole);
+      } catch (fbErr: any) {
+        console.warn("Real Google popup blocked or failed, attempting standard redirect flow:", fbErr);
+        // Fallback to signInWithRedirect for maximum capability (e.g. inside sandboxed iframes or certain mobile browsers)
         localStorage.setItem('pre_redirect_role', selectedRole);
-        try {
-          await signInWithRedirect(auth, googleProvider);
-        } catch (redirectErr: any) {
-          console.warn("Real Google redirect failed:", redirectErr);
-          setAuthError("Google Redirect failed. Opening secure Google Account Chooser...");
-          setTimeout(() => {
-            setIsGoogleChooserOpen(true);
-            setAuthError(null);
-          }, 3000);
-        }
+        await signInWithRedirect(auth, googleProvider);
       }
     } catch (err: any) {
-      setAuthError(err.message || "Real Google authentication failed.");
+      console.error("Google authentication failed:", err);
+      setAuthError(err.message || "Failed to complete Google authentication.");
     } finally {
       setAuthLoading(false);
     }
@@ -1334,186 +1225,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
       mode={biometricPromptMode}
       email={email || "candidate2026@dstech.com"}
     />
-
-    {/* Google Account Chooser Modal */}
-    <AnimatePresence>
-      {isGoogleChooserOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 15 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 15 }}
-            transition={{ duration: 0.2 }}
-            className="w-full max-w-md bg-white dark:bg-[#0c1428] border border-slate-200 dark:border-white/10 rounded-2xl shadow-2xl p-6 text-left relative overflow-hidden"
-          >
-            {chooserStatus === 'select' ? (
-              <>
-                {/* Header: Google branding and clean layout */}
-                <div className="flex flex-col items-center text-center pb-4 border-b border-slate-100 dark:border-white/5">
-                  <svg className="h-7 w-7 mb-2.5" viewBox="0 0 24 24">
-                    <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.68 14.94 1 12 1 7.24 1 3.23 3.73 1.34 7.68l3.75 2.91C6.01 7.2 8.78 5.04 12 5.04z" />
-                    <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.47h6.44c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.39-4.88 3.39-8.5z" />
-                    <path fill="#FBBC05" d="M5.09 10.59c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29L1.34 7.68C.49 9.38 0 11.28 0 13.3s.49 3.92 1.34 5.62l3.75-2.91c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29z" />
-                    <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.66-2.84c-1.01.68-2.31 1.09-4.3 1.09-3.22 0-5.99-2.16-6.91-5.55l-3.75 2.91C3.23 20.27 7.24 23 12 23z" />
-                  </svg>
-                  <h3 className="text-lg font-bold text-slate-950 dark:text-slate-50">Choose an Account</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 font-medium">to continue to <span className="font-semibold text-indigo-600 dark:text-indigo-400">alihsan.online</span></p>
-                </div>
-
-                {/* List of Accounts */}
-                <div className="mt-4 space-y-3 max-h-[260px] overflow-y-auto pr-1">
-                  {/* 1. User's Main Registered Email (Dynamic from workspace/browser context) */}
-                  <button
-                    onClick={() => handleSelectGoogleEmail("hassanalaminhassan85@gmail.com", "Hassan Al-Amin")}
-                    className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-left group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-500 to-indigo-600 text-white flex items-center justify-center font-bold text-sm">
-                        H
-                      </div>
-                      <div>
-                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100 block group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">Hassan Al-Amin</span>
-                        <span className="text-xs text-slate-600 dark:text-slate-300 font-medium block">hassanalaminhassan85@gmail.com</span>
-                      </div>
-                    </div>
-                    <ChevronRight size={16} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-
-                  {/* 2. Ngozi Balogun */}
-                  <button
-                    onClick={() => handleSelectGoogleEmail("ngozi.balogun@dstech.com", "Ngozi Balogun")}
-                    className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-left group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-emerald-500 to-emerald-600 text-white flex items-center justify-center font-bold text-sm">
-                        N
-                      </div>
-                      <div>
-                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100 block group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">Ngozi Balogun</span>
-                        <span className="text-xs text-slate-600 dark:text-slate-300 font-medium block">ngozi.balogun@dstech.com</span>
-                      </div>
-                    </div>
-                    <ChevronRight size={16} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-
-                  {/* 3. Demo Candidate */}
-                  <button
-                    onClick={() => handleSelectGoogleEmail("candidate2026@dstech.com", "Demo Candidate")}
-                    className="w-full flex items-center justify-between p-3.5 rounded-xl border border-slate-200 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-left group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-amber-500 to-amber-600 text-white flex items-center justify-center font-bold text-sm">
-                        C
-                      </div>
-                      <div>
-                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100 block group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">Demo Candidate</span>
-                        <span className="text-xs text-slate-600 dark:text-slate-300 font-medium block">candidate2026@dstech.com</span>
-                      </div>
-                    </div>
-                    <ChevronRight size={16} className="text-slate-400 group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-
-                  {/* Custom Add Account Options */}
-                  {showCustomGoogleInput ? (
-                    <div className="p-4 border border-indigo-500/30 rounded-xl space-y-3 bg-indigo-500/5">
-                      <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider block">Add Account</span>
-                      <input
-                        type="email"
-                        placeholder="Enter Google account email"
-                        value={customGoogleEmail}
-                        onChange={(e) => setCustomGoogleEmail(e.target.value)}
-                        className="w-full px-3 py-2 text-sm font-semibold bg-slate-50 dark:bg-black/30 border border-slate-200 dark:border-white/10 rounded-lg text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleSelectGoogleEmail(customGoogleEmail)}
-                          className="flex-1 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold uppercase tracking-widest rounded-md"
-                        >
-                          Confirm
-                        </button>
-                        <button
-                          onClick={() => setShowCustomGoogleInput(false)}
-                          className="px-3 py-1.5 bg-slate-200 dark:bg-white/5 text-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-widest rounded-md"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setShowCustomGoogleInput(true)}
-                      className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-slate-300 dark:border-white/10 hover:border-indigo-400 hover:bg-indigo-500/5 transition-all text-center cursor-pointer"
-                    >
-                      <UserPlus size={14} className="text-indigo-500 dark:text-indigo-400" />
-                      <span className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest">Use another account</span>
-                    </button>
-                  )}
-                </div>
-
-                {/* Production Grade Credentials Backup Link */}
-                <div className="mt-5 pt-4 border-t border-slate-100 dark:border-white/5 text-center space-y-3">
-                  <button
-                    onClick={triggerRealGoogleSignIn}
-                    className="w-full py-2.5 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-800/80 dark:to-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold uppercase tracking-wider rounded-xl hover:opacity-90 transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <Sparkles size={13} className="text-indigo-500 animate-pulse" />
-                    Connect Real Google Account
-                  </button>
-                  
-                  <button
-                    onClick={() => setIsGoogleChooserOpen(false)}
-                    className="text-xs font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-colors block w-full text-center"
-                  >
-                    Close Chooser
-                  </button>
-                </div>
-              </>
-            ) : chooserStatus === 'checking' ? (
-              <div className="flex flex-col items-center justify-center py-10 space-y-4 text-center">
-                <svg className="h-10 w-10 animate-bounce" viewBox="0 0 24 24">
-                  <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.68 14.94 1 12 1 7.24 1 3.23 3.73 1.34 7.68l3.75 2.91C6.01 7.2 8.78 5.04 12 5.04z" />
-                  <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.47h6.44c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.39-4.88 3.39-8.5z" />
-                </svg>
-                <div className="space-y-2">
-                  <h4 className="text-sm font-bold uppercase tracking-widest text-slate-800 dark:text-slate-100">Verifying Email</h4>
-                  <p className="text-sm text-indigo-600 dark:text-indigo-400 font-bold font-mono">{chooserEmail}</p>
-                </div>
-                <div className="w-12 h-1 border-t-2 border-indigo-500 border-solid rounded-full animate-spin"></div>
-                <p className="text-xs text-slate-500">Checking registry database...</p>
-              </div>
-            ) : chooserStatus === 'exists' ? (
-              <div className="flex flex-col items-center justify-center py-10 space-y-4 text-center">
-                <div className="h-12 w-12 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-full flex items-center justify-center">
-                  <AlertCircle size={24} className="animate-bounce" />
-                </div>
-                <div className="space-y-2">
-                  <h4 className="text-sm font-bold uppercase tracking-widest text-amber-500">Account Already Exists</h4>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">An account with <span className="font-bold text-slate-800 dark:text-slate-200">{chooserEmail}</span> is already registered.</p>
-                </div>
-                <p className="text-xs font-semibold bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-lg tracking-wider">
-                  Signing in automatically...
-                </p>
-                <p className="text-xs text-slate-400">Please wait a moment.</p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-10 space-y-4 text-center">
-                <div className="h-12 w-12 bg-indigo-500/15 border border-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center">
-                  <UserPlus size={24} className="animate-pulse" />
-                </div>
-                <div className="space-y-2">
-                  <h4 className="text-sm font-bold uppercase tracking-widest text-indigo-500 dark:text-indigo-400">Account Not Found</h4>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 font-medium">Creating a brand new candidate profile for <span className="font-bold text-slate-800 dark:text-slate-200">{chooserEmail}</span></p>
-                </div>
-                <div className="w-16 h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-orange-500 to-indigo-500 origin-left animate-[pulse_1.5s_infinite]"></div>
-                </div>
-                <p className="text-xs text-slate-400">Setting up your onboarding environment...</p>
-              </div>
-            )}
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
   </div>
 );
 };

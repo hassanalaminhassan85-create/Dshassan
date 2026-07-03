@@ -114,6 +114,24 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
       });
     }
   }, [fcmToken, currentUser]);
+
+  // Fetch and auto-set saved FCM VAPID key
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => {
+        if (res.ok) return res.json();
+        return {};
+      })
+      .then((settings: any) => {
+        if (settings.fcm_vapid_key) {
+          setCustomVapidKey(settings.fcm_vapid_key);
+          console.log('[CandidateEnterpriseDashboard] Loaded saved FCM VAPID key from backend settings:', settings.fcm_vapid_key);
+        }
+      })
+      .catch(err => {
+        console.warn('Failed to load settings in CandidateEnterpriseDashboard:', err);
+      });
+  }, []);
   const [isNotifCenterOpen, setIsNotifCenterOpen] = useState<boolean>(false);
   const [activePageId, setActivePageId] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>('');

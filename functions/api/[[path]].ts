@@ -140,6 +140,11 @@ async function ensureDatabaseTables(db: any) {
       deviceType TEXT,
       created_at TEXT NOT NULL,
       PRIMARY KEY (userId, fcmToken)
+    );`,
+
+    `CREATE TABLE IF NOT EXISTS settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
     );`
   ];
 
@@ -1346,6 +1351,36 @@ export async function onRequest(context: { request: Request; env: any; params: a
       } catch (err: any) {
         console.error("FCM Token Registration Error:", err);
         return new Response(JSON.stringify({ error: err.message || "Failed to register FCM token" }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/settings' && method === 'GET') {
+      try {
+        const results = await env.DB.prepare("SELECT key, value FROM settings").all();
+        const settingsMap: Record<string, string> = {};
+        if (results.results) {
+          results.results.forEach((row: any) => {
+            settingsMap[row.key] = row.value;
+          });
+        }
+        return new Response(JSON.stringify(settingsMap), { headers });
+      } catch (err: any) {
+        return new Response(JSON.stringify({}), { headers });
+      }
+    }
+
+    if (path === '/api/settings' && method === 'POST') {
+      try {
+        const body = await request.json();
+        const { key, value } = body;
+        if (key && value !== undefined) {
+          await env.DB.prepare(
+            "INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)"
+          ).bind(key, value).run();
+        }
+        return new Response(JSON.stringify({ success: true }), { headers });
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
       }
     }
 

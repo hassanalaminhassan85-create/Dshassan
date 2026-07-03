@@ -443,6 +443,26 @@ export async function apiSaveFcmToken(tokenParams: {
   return res.json();
 }
 
+export async function apiGetSettings(): Promise<Record<string, string>> {
+  try {
+    const res = await fetch('/api/settings');
+    if (!res.ok) return {};
+    return res.json();
+  } catch {
+    return {};
+  }
+}
+
+export async function apiSaveSetting(key: string, value: string): Promise<{ success: boolean }> {
+  const res = await fetch('/api/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ key, value }),
+  });
+  if (!res.ok) throw new Error('Failed to save setting.');
+  return res.json();
+}
+
 export interface BiometricLogRecord {
   id: string;
   user_id: string;

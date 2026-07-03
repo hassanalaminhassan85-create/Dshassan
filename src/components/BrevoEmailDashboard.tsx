@@ -122,6 +122,24 @@ export const BrevoEmailDashboard: React.FC = () => {
     }
   }, [toast]);
 
+  // Fetch and auto-set saved FCM VAPID key
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => {
+        if (res.ok) return res.json();
+        return {};
+      })
+      .then((settings: any) => {
+        if (settings.fcm_vapid_key) {
+          setCustomVapidKey(settings.fcm_vapid_key);
+          console.log('[BrevoEmailDashboard] Loaded saved FCM VAPID key from backend settings:', settings.fcm_vapid_key);
+        }
+      })
+      .catch(err => {
+        console.warn('Failed to load settings in BrevoEmailDashboard:', err);
+      });
+  }, []);
+
   // Fetch Analytics & Charts
   const fetchAnalytics = async () => {
     try {
