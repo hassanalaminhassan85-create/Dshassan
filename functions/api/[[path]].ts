@@ -8,8 +8,96 @@ import {
 
 // Temporary memory store for stateless fallback
 let inMemoryNotifications: any[] = [
-  { id: 'notif-1', title: 'System Calibrated', message: 'Biometric cryptographic keys locked & synchronized on secure enclave.', read: false, createdAt: new Date().toISOString() },
-  { id: 'notif-2', title: 'Welcome to DS Tech', message: 'Your candidate portal is now active. Complete your professional roadmap.', read: true, createdAt: new Date().toISOString() }
+  {
+    id: 'notif-1',
+    title: 'Blockchain Credential Secured',
+    message: 'Your B.Sc. Computer Science degree from Amadu Bello University has been cryptographically signed and verified on the DS Tech ledger.',
+    read: false,
+    createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+    recipientRole: 'candidate',
+    type: 'success',
+    priority: 'high',
+    actionUrl: '#credentials'
+  },
+  {
+    id: 'notif-2',
+    title: 'Technical Interview invitation',
+    message: 'The Advanced React Architect panel has reviewed your resume and matched you with our prime project. Please select a dynamic schedule.',
+    read: false,
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    recipientRole: 'candidate',
+    type: 'interview',
+    priority: 'high',
+    actionUrl: '#interviews'
+  },
+  {
+    id: 'notif-3',
+    title: 'Recommended Course Available',
+    message: 'We recommended starting the "AI-driven Full Stack Integration" course to bridge your skill gap for the Senior System Architect role.',
+    read: true,
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    recipientRole: 'candidate',
+    type: 'course',
+    priority: 'medium',
+    actionUrl: '#courses'
+  },
+  {
+    id: 'notif-4',
+    title: 'Security Alert: New Passkey Added',
+    message: 'A cryptographically secure WebAuthn/FIDO2 passkey was registered on your active device (Chrome / Linux).',
+    read: true,
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    recipientRole: 'candidate',
+    type: 'warning',
+    priority: 'low',
+    actionUrl: '#settings'
+  },
+  {
+    id: 'notif-5',
+    title: 'Portal Profile Synced',
+    message: 'Your candidate portal identity has been safely linked across our enterprise ecosystem and secured under biometric key hashes.',
+    read: true,
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    recipientRole: 'candidate',
+    type: 'success',
+    priority: 'low'
+  },
+  {
+    id: 'notif-admin-1',
+    title: 'New Candidate Registered',
+    message: 'A new applicant has successfully bypassed the initial biometric gate and completed their secure portfolio setup.',
+    read: false,
+    createdAt: new Date().toISOString(),
+    recipientRole: 'admin',
+    type: 'application',
+    priority: 'high'
+  },
+  {
+    id: 'notif-admin-2',
+    title: 'System Health Nominal',
+    message: 'Cloudflare D1 tables, D1 indexes, and WebAuthn authenticators have been validated with zero key leakage.',
+    read: true,
+    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+    recipientRole: 'admin',
+    type: 'success',
+    priority: 'low'
+  }
+];
+
+// Seeded real-time chat messages database (Memory fallback)
+let inMemoryChatMessages: any[] = [
+  {
+    id: 'msg-seed-1',
+    senderId: 'chatbot',
+    senderName: 'AI Career Assistant',
+    senderRole: 'bot',
+    receiverId: 'hassanalaminhassan85@gmail.com',
+    message: 'Hello! I am your AI Career Copilot. I can analyze your resume, suggest top roles, mock-interview you, or guide your learning path. Ask me anything!',
+    type: 'text',
+    mediaUrl: null,
+    createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+    read: 1
+  }
 ];
 
 // Global clients registry for SSE real-time broadcasting
@@ -27,6 +115,58 @@ function broadcastSyncEvent(event: any) {
       connectedClients.delete(controller);
     }
   }
+}
+
+// Helper to parse base64 Data URLs for Multimodal Gemini analysis
+function parseBase64Data(dataUrl: string) {
+  const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+  if (!matches) return null;
+  return {
+    mimeType: matches[1],
+    base64Data: matches[2]
+  };
+}
+
+// Helper to aggregate chat messages into conversation threads for admin overview
+function groupMessagesIntoContacts(messages: any[]) {
+  const contactsMap = new Map<string, any>();
+  
+  // Sort messages oldest to newest so last message is indeed the latest
+  const sorted = [...messages].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  
+  for (const msg of sorted) {
+    // Exclude bot messages from standard admin human conversations list
+    if (msg.senderId === 'chatbot' || msg.receiverId === 'chatbot') {
+      continue;
+    }
+    
+    // The contact ID is the non-admin user
+    const contactId = msg.senderId === 'admin' ? msg.receiverId : msg.senderId;
+    const contactName = msg.senderId === 'admin' ? 'Candidate' : msg.senderName;
+    const contactRole = msg.senderId === 'admin' ? 'user' : msg.senderRole;
+    
+    contactsMap.set(contactId, {
+      contactId,
+      contactName,
+      contactRole,
+      lastMessage: msg.message,
+      lastMessageType: msg.type,
+      lastMessageAt: msg.createdAt,
+      unreadCount: 0
+    });
+  }
+  
+  // Count unread messages received by admin
+  for (const msg of messages) {
+    if (msg.receiverId === 'admin' && msg.read === 0) {
+      const contact = contactsMap.get(msg.senderId);
+      if (contact) {
+        contact.unreadCount++;
+      }
+    }
+  }
+  
+  return Array.from(contactsMap.values()).sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
 }
 
 // Cryptographically secure password hashing helper using native Web Cryptography API
@@ -148,12 +288,60 @@ async function ensureDatabaseTables(db: any) {
     );`
   ];
 
+  // Force clean up old unquoted schema to avoid SQL keyword parse errors
+  try {
+    await db.prepare("DROP TABLE IF EXISTS notifications").run();
+  } catch (e) {}
+
+  // Run initial table creations
   for (const query of queries) {
     try {
       await db.prepare(query).run();
     } catch (err) {
       console.error("Bootstrapper table error:", err);
     }
+  }
+
+  // Create notifications table with quoted identifiers to support SQLite keywords like "read" and "type"
+  try {
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS "notifications" (
+        "id" TEXT PRIMARY KEY,
+        "title" TEXT NOT NULL,
+        "message" TEXT NOT NULL,
+        "read" INTEGER NOT NULL DEFAULT 0,
+        "createdAt" TEXT NOT NULL,
+        "recipientRole" TEXT NOT NULL,
+        "userId" TEXT,
+        "type" TEXT NOT NULL,
+        "priority" TEXT NOT NULL,
+        "actionUrl" TEXT,
+        "image" TEXT,
+        "metadata" TEXT
+      );
+    `).run();
+  } catch (err) {
+    console.error("Bootstrapper notifications table error:", err);
+  }
+
+  // Create chat_messages table to support real-time SSE chatting
+  try {
+    await db.prepare(`
+      CREATE TABLE IF NOT EXISTS "chat_messages" (
+        "id" TEXT PRIMARY KEY,
+        "senderId" TEXT NOT NULL,
+        "senderName" TEXT NOT NULL,
+        "senderRole" TEXT NOT NULL,
+        "receiverId" TEXT NOT NULL,
+        "message" TEXT NOT NULL,
+        "type" TEXT NOT NULL,
+        "mediaUrl" TEXT,
+        "createdAt" TEXT NOT NULL,
+        "read" INTEGER NOT NULL DEFAULT 0
+      );
+    `).run();
+  } catch (err) {
+    console.error("Bootstrapper chat_messages table error:", err);
   }
 
   // Safe migrations to add status and password_hash to older tables if they exist
@@ -163,11 +351,15 @@ async function ensureDatabaseTables(db: any) {
   try {
     await db.prepare("ALTER TABLE users ADD COLUMN password_hash TEXT").run();
   } catch (e) {}
+  try {
+    await db.prepare("ALTER TABLE users ADD COLUMN profile_photo TEXT").run();
+  } catch (e) {}
 
   // Insert default user seed if none exists
   try {
     const check = await db.prepare("SELECT COUNT(*) as count FROM users").all();
-    if (check && check.results && check.results[0] && check.results[0].count === 0) {
+    const rows = Array.isArray(check) ? check : (check?.results || []);
+    if (rows && rows[0] && rows[0].count === 0) {
       const demoPassHash = await hashPassword("vision2026");
       await db.prepare(
         "INSERT INTO users (id, email, full_name, role, status, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
@@ -175,6 +367,128 @@ async function ensureDatabaseTables(db: any) {
     }
   } catch (err) {
     console.error("Bootstrapper seed error:", err);
+  }
+
+  // Insert default notifications if none exist
+  try {
+    const check = await db.prepare('SELECT COUNT(*) as count FROM "notifications"').all();
+    const rows = Array.isArray(check) ? check : (check?.results || []);
+    if (rows && rows[0] && rows[0].count === 0) {
+      const defaultNotifications = [
+        {
+          id: 'notif-1',
+          title: 'Blockchain Credential Secured',
+          message: 'Your B.Sc. Computer Science degree from Amadu Bello University has been cryptographically signed and verified on the DS Tech ledger.',
+          read: 0,
+          createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+          recipientRole: 'candidate',
+          type: 'success',
+          priority: 'high',
+          actionUrl: '#credentials',
+          image: '',
+          metadata: ''
+        },
+        {
+          id: 'notif-2',
+          title: 'Technical Interview invitation',
+          message: 'The Advanced React Architect panel has reviewed your resume and matched you with our prime project. Please select a dynamic schedule.',
+          read: 0,
+          createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          recipientRole: 'candidate',
+          type: 'interview',
+          priority: 'high',
+          actionUrl: '#interviews',
+          image: '',
+          metadata: ''
+        },
+        {
+          id: 'notif-3',
+          title: 'Recommended Course Available',
+          message: 'We recommended starting the "AI-driven Full Stack Integration" course to bridge your skill gap for the Senior System Architect role.',
+          read: 1,
+          createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          recipientRole: 'candidate',
+          type: 'course',
+          priority: 'medium',
+          actionUrl: '#courses',
+          image: '',
+          metadata: ''
+        },
+        {
+          id: 'notif-4',
+          title: 'Security Alert: New Passkey Added',
+          message: 'A cryptographically secure WebAuthn/FIDO2 passkey was registered on your active device (Chrome / Linux).',
+          read: 1,
+          createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+          recipientRole: 'candidate',
+          type: 'warning',
+          priority: 'low',
+          actionUrl: '#settings',
+          image: '',
+          metadata: ''
+        },
+        {
+          id: 'notif-5',
+          title: 'Portal Profile Synced',
+          message: 'Your candidate portal identity has been safely linked across our enterprise ecosystem and secured under biometric key hashes.',
+          read: 1,
+          createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          recipientRole: 'candidate',
+          type: 'success',
+          priority: 'low',
+          actionUrl: '',
+          image: '',
+          metadata: ''
+        },
+        {
+          id: 'notif-admin-1',
+          title: 'New Candidate Registered',
+          message: 'A new applicant has successfully bypassed the initial biometric gate and completed their secure portfolio setup.',
+          read: 0,
+          createdAt: new Date().toISOString(),
+          recipientRole: 'admin',
+          type: 'application',
+          priority: 'high',
+          actionUrl: '',
+          image: '',
+          metadata: ''
+        },
+        {
+          id: 'notif-admin-2',
+          title: 'System Health Nominal',
+          message: 'Cloudflare D1 tables, D1 indexes, and WebAuthn authenticators have been validated with zero key leakage.',
+          read: 1,
+          createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+          recipientRole: 'admin',
+          type: 'success',
+          priority: 'low',
+          actionUrl: '',
+          image: '',
+          metadata: ''
+        }
+      ];
+
+      for (const notif of defaultNotifications) {
+        await db.prepare(
+          'INSERT INTO "notifications" ("id", "title", "message", "read", "createdAt", "recipientRole", "userId", "type", "priority", "actionUrl", "image", "metadata") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+        ).bind(
+          notif.id,
+          notif.title,
+          notif.message,
+          notif.read,
+          notif.createdAt,
+          notif.recipientRole,
+          null,
+          notif.type,
+          notif.priority,
+          notif.actionUrl,
+          notif.image,
+          notif.metadata
+        ).run();
+      }
+    }
+  } catch (err) {
+    console.error("Bootstrapper seed notifications error:", err);
   }
 }
 
@@ -198,6 +512,333 @@ export async function onRequest(context: { request: Request; env: any; params: a
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, X-User-ID, Authorization',
   });
+
+  if (path === '/api/debug/notifications') {
+    let dbStatus = "no DB";
+    let tables: any[] = [];
+    let notificationsCount = -1;
+    let errMessage = "";
+    try {
+      if (env.DB) {
+        dbStatus = "DB present";
+        const res = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table'").all();
+        tables = Array.isArray(res) ? res : (res?.results || []);
+        const countRes = await env.DB.prepare('SELECT COUNT(*) as count FROM "notifications"').all();
+        const countRows = Array.isArray(countRes) ? countRes : (countRes?.results || []);
+        notificationsCount = countRows[0] ? countRows[0].count : -1;
+      }
+    } catch (e: any) {
+      errMessage = e.message || String(e);
+    }
+    return new Response(JSON.stringify({ dbStatus, tables, notificationsCount, errMessage, inMemoryCount: inMemoryNotifications.length }), { headers });
+  }
+
+  // ==========================================
+  // REAL-TIME SSE CHAT ENDPOINTS
+  // ==========================================
+
+  // 1. GET /api/chat/messages
+  if (path === '/api/chat/messages' && method === 'GET') {
+    const senderId = url.searchParams.get('senderId') || '';
+    const receiverId = url.searchParams.get('receiverId') || '';
+    
+    if (!senderId || !receiverId) {
+      return new Response(JSON.stringify({ error: "Missing senderId or receiverId query params." }), { status: 400, headers });
+    }
+
+    try {
+      if (env.DB) {
+        const query = `
+          SELECT * FROM "chat_messages" 
+          WHERE (("senderId" = ? AND "receiverId" = ?) OR ("senderId" = ? AND "receiverId" = ?))
+          ORDER BY "createdAt" ASC
+        `;
+        const res = await env.DB.prepare(query).bind(senderId, receiverId, receiverId, senderId).all();
+        const messages = Array.isArray(res) ? res : (res?.results || []);
+        return new Response(JSON.stringify({ messages }), { headers });
+      }
+    } catch (e: any) {
+      console.error("D1 chat retrieval failed, using fallback:", e);
+    }
+
+    // Memory fallback filter
+    const messages = inMemoryChatMessages.filter(msg => 
+      ((msg.senderId === senderId && msg.receiverId === receiverId) || 
+       (msg.senderId === receiverId && msg.receiverId === senderId))
+    ).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+
+    return new Response(JSON.stringify({ messages, source: 'fallback' }), { headers });
+  }
+
+  // 2. GET /api/chat/unread
+  if (path === '/api/chat/unread' && method === 'GET') {
+    const userId = url.searchParams.get('userId') || '';
+    if (!userId) {
+      return new Response(JSON.stringify({ error: "Missing userId query param." }), { status: 400, headers });
+    }
+
+    try {
+      if (env.DB) {
+        const query = `
+          SELECT "senderId", COUNT(*) as count 
+          FROM "chat_messages" 
+          WHERE "receiverId" = ? AND "read" = 0
+          GROUP BY "senderId"
+        `;
+        const res = await env.DB.prepare(query).bind(userId).all();
+        const unreadRows = Array.isArray(res) ? res : (res?.results || []);
+        const unread: Record<string, number> = {};
+        for (const row of unreadRows) {
+          unread[row.senderId] = row.count;
+        }
+        return new Response(JSON.stringify({ unread }), { headers });
+      }
+    } catch (e: any) {
+      console.error("D1 chat unread failed, using fallback:", e);
+    }
+
+    // Memory fallback count
+    const unread: Record<string, number> = {};
+    for (const msg of inMemoryChatMessages) {
+      if (msg.receiverId === userId && msg.read === 0) {
+        unread[msg.senderId] = (unread[msg.senderId] || 0) + 1;
+      }
+    }
+    return new Response(JSON.stringify({ unread, source: 'fallback' }), { headers });
+  }
+
+  // 3. POST /api/chat/messages/mark-read
+  if (path === '/api/chat/messages/mark-read' && method === 'POST') {
+    try {
+      const { senderId, receiverId } = await request.json();
+      if (!senderId || !receiverId) {
+        return new Response(JSON.stringify({ error: "Missing senderId or receiverId in payload." }), { status: 400, headers });
+      }
+
+      try {
+        if (env.DB) {
+          const query = `
+            UPDATE "chat_messages" 
+            SET "read" = 1 
+            WHERE "senderId" = ? AND "receiverId" = ? AND "read" = 0
+          `;
+          await env.DB.prepare(query).bind(senderId, receiverId).run();
+          // Broadcast read receipt event
+          broadcastSyncEvent({ type: 'chat_read', data: { senderId, receiverId } });
+          return new Response(JSON.stringify({ success: true }), { headers });
+        }
+      } catch (e: any) {
+        console.error("D1 chat mark-read failed, using fallback:", e);
+      }
+
+      // Memory fallback update
+      let updatedCount = 0;
+      for (const msg of inMemoryChatMessages) {
+        if (msg.senderId === senderId && msg.receiverId === receiverId && msg.read === 0) {
+          msg.read = 1;
+          updatedCount++;
+        }
+      }
+      if (updatedCount > 0) {
+        broadcastSyncEvent({ type: 'chat_read', data: { senderId, receiverId } });
+      }
+      return new Response(JSON.stringify({ success: true, updatedCount, source: 'fallback' }), { headers });
+    } catch (err: any) {
+      return new Response(JSON.stringify({ error: err.message || String(err) }), { status: 500, headers });
+    }
+  }
+
+  // 4. POST /api/chat/messages
+  if (path === '/api/chat/messages' && method === 'POST') {
+    try {
+      const payload = await request.json();
+      const { senderId, senderName, senderRole, receiverId, message, type, mediaUrl } = payload;
+      
+      if (!senderId || !senderName || !receiverId || (!message && !mediaUrl)) {
+        return new Response(JSON.stringify({ error: "Missing required fields in chat message payload." }), { status: 400, headers });
+      }
+
+      const msgId = `msg-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const createdAt = new Date().toISOString();
+
+      const newMsg = {
+        id: msgId,
+        senderId,
+        senderName,
+        senderRole,
+        receiverId,
+        message: message || '',
+        type: type || 'text',
+        mediaUrl: mediaUrl || null,
+        createdAt,
+        read: 0
+      };
+
+      // Save Message to database if exists
+      try {
+        if (env.DB) {
+          await env.DB.prepare(`
+            INSERT INTO "chat_messages" ("id", "senderId", "senderName", "senderRole", "receiverId", "message", "type", "mediaUrl", "createdAt", "read")
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(
+            newMsg.id,
+            newMsg.senderId,
+            newMsg.senderName,
+            newMsg.senderRole,
+            newMsg.receiverId,
+            newMsg.message,
+            newMsg.type,
+            newMsg.mediaUrl,
+            newMsg.createdAt,
+            newMsg.read
+          ).run();
+        }
+      } catch (e: any) {
+        console.error("D1 save message failed, using fallback:", e);
+      }
+      
+      // Save to memory fallback
+      inMemoryChatMessages.push(newMsg);
+
+      // Broadcast user message to connected SSE clients
+      broadcastSyncEvent({ type: 'chat', data: newMsg });
+
+      // AI Chatbot Reply Logic
+      if (receiverId === 'chatbot') {
+        const chatContext = "You are the friendly, helpful AI Career Copilot for DS Tech. Support the user with career advice, skills profiling, interview prep, learning paths, or general HR queries. Keep your responses engaging, specific, and concise (max 3-4 sentences), formatted beautifully in professional Markdown.\n\n";
+        
+        let history: any[] = [];
+        try {
+          if (env.DB) {
+            const query = `
+              SELECT * FROM "chat_messages" 
+              WHERE (("senderId" = ? AND "receiverId" = 'chatbot') OR ("senderId" = 'chatbot' AND "receiverId" = ?))
+              ORDER BY "createdAt" DESC LIMIT 10
+            `;
+            const res = await env.DB.prepare(query).bind(senderId, senderId).all();
+            history = (Array.isArray(res) ? res : (res?.results || [])).reverse();
+          } else {
+            history = inMemoryChatMessages.filter(msg => 
+              ((msg.senderId === senderId && msg.receiverId === 'chatbot') || 
+               (msg.senderId === 'chatbot' && msg.receiverId === senderId))
+            ).slice(-10);
+          }
+        } catch (e) {
+          history = inMemoryChatMessages.filter(msg => 
+            ((msg.senderId === senderId && msg.receiverId === 'chatbot') || 
+             (msg.senderId === 'chatbot' && msg.receiverId === senderId))
+          ).slice(-10);
+        }
+
+        let historyPrompt = "";
+        for (const h of history) {
+          const sName = h.senderId === 'chatbot' ? 'AI' : 'User';
+          historyPrompt += `${sName}: ${h.message}\n`;
+        }
+
+        const botMsgId = `msg-${Date.now()}-bot`;
+        const botCreatedAt = new Date(Date.now() + 500).toISOString();
+        
+        let botText = "";
+        
+        try {
+          const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY, httpOptions: { headers: { 'User-Agent': 'aistudio-build' } } });
+          
+          let response;
+          if (newMsg.type === 'image' && newMsg.mediaUrl && newMsg.mediaUrl.startsWith('data:')) {
+            const parsed = parseBase64Data(newMsg.mediaUrl);
+            if (parsed) {
+              response = await ai.models.generateContent({
+                model: "gemini-3.5-flash",
+                contents: [
+                  {
+                    inlineData: {
+                      data: parsed.base64Data,
+                      mimeType: parsed.mimeType
+                    }
+                  },
+                  `${chatContext}\nHistory:\n${historyPrompt}\nUser has uploaded an image. Analyze this image and respond to the user's message: ${newMsg.message || 'What is in this image?'}`
+                ]
+              });
+            }
+          }
+          
+          if (!response) {
+            response = await ai.models.generateContent({
+              model: "gemini-3.5-flash",
+              contents: `${chatContext}\nHistory:\n${historyPrompt}\nUser: ${newMsg.message}\nAI:`
+            });
+          }
+
+          botText = response.text || "I am analyzing your message. Let me know if there's anything specific I can help you with!";
+        } catch (apiErr: any) {
+          console.error("Gemini Chatbot API error:", apiErr);
+          botText = "I received your message! However, I had a temporary connection issue. Please feel free to ask me again, or type your message below!";
+        }
+
+        const botMsg = {
+          id: botMsgId,
+          senderId: 'chatbot',
+          senderName: 'AI Career Assistant',
+          senderRole: 'bot',
+          receiverId: senderId,
+          message: botText,
+          type: 'text',
+          mediaUrl: null,
+          createdAt: botCreatedAt,
+          read: 0
+        };
+
+        try {
+          if (env.DB) {
+            await env.DB.prepare(`
+              INSERT INTO "chat_messages" ("id", "senderId", "senderName", "senderRole", "receiverId", "message", "type", "mediaUrl", "createdAt", "read")
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `).bind(
+              botMsg.id,
+              botMsg.senderId,
+              botMsg.senderName,
+              botMsg.senderRole,
+              botMsg.receiverId,
+              botMsg.message,
+              botMsg.type,
+              botMsg.mediaUrl,
+              botMsg.createdAt,
+              botMsg.read
+            ).run();
+          }
+        } catch (e: any) {
+          console.error("D1 save bot reply failed:", e);
+        }
+        
+        inMemoryChatMessages.push(botMsg);
+        broadcastSyncEvent({ type: 'chat', data: botMsg });
+      }
+
+      return new Response(JSON.stringify({ success: true, message: newMsg }), { headers });
+    } catch (err: any) {
+      return new Response(JSON.stringify({ error: err.message || String(err) }), { status: 500, headers });
+    }
+  }
+
+  // 5. GET /api/chat/active-contacts
+  if (path === '/api/chat/active-contacts' && method === 'GET') {
+    try {
+      if (env.DB) {
+        const allMsgQuery = `SELECT * FROM "chat_messages" ORDER BY "createdAt" DESC`;
+        const res = await env.DB.prepare(allMsgQuery).all();
+        const allMessages = Array.isArray(res) ? res : (res?.results || []);
+        
+        const contacts = groupMessagesIntoContacts(allMessages);
+        return new Response(JSON.stringify({ contacts }), { headers });
+      }
+    } catch (e: any) {
+      console.error("D1 active-contacts failed, using fallback:", e);
+    }
+
+    const contacts = groupMessagesIntoContacts(inMemoryChatMessages);
+    return new Response(JSON.stringify({ contacts, source: 'fallback' }), { headers });
+  }
 
   // Handle preflight
   if (method === 'OPTIONS') {
@@ -838,13 +1479,19 @@ export async function onRequest(context: { request: Request; env: any; params: a
       const user = results.results?.[0];
       return new Response(JSON.stringify({
         exists: !!user,
-        user: user ? { id: user.id, email: user.email, fullName: user.full_name, role: user.role } : null
+        user: user ? { 
+          id: user.id, 
+          email: user.email, 
+          fullName: user.full_name, 
+          role: user.role,
+          profilePhoto: user.profile_photo || "" 
+        } : null
       }), { headers });
     }
 
     if (path === '/api/auth/sync-firebase' && method === 'POST') {
       const body = await request.json();
-      const { firebaseUid, email, fullName, role } = body;
+      const { firebaseUid, email, fullName, role, profilePhoto } = body;
 
       if (!firebaseUid || !email) {
         return new Response(JSON.stringify({ error: "Missing required identifier: firebaseUid and email" }), { status: 400, headers });
@@ -859,25 +1506,35 @@ export async function onRequest(context: { request: Request; env: any; params: a
 
       if (existingUser) {
         alreadyExists = true;
+        
+        // If profile photo is provided and currently empty, update it
+        if (profilePhoto && !existingUser.profile_photo) {
+          await env.DB.prepare("UPDATE users SET profile_photo = ? WHERE id = ?").bind(profilePhoto, existingUser.id).run();
+          existingUser.profile_photo = profilePhoto;
+        }
+
         finalUser = {
           id: existingUser.id,
           email: existingUser.email,
           fullName: existingUser.full_name,
-          role: existingUser.role
+          role: existingUser.role,
+          profilePhoto: existingUser.profile_photo || ""
         };
       } else {
         // Create new user profile as requested
         const nameToUse = fullName || email.split('@')[0];
         const roleToUse = role || 'Applicant';
+        const photoToUse = profilePhoto || '';
         
         await env.DB.prepare(
-          "INSERT INTO users (id, email, full_name, role, status, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+          "INSERT INTO users (id, email, full_name, role, status, profile_photo, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
         ).bind(
           firebaseUid,
           email,
           nameToUse,
           roleToUse,
           'active',
+          photoToUse,
           new Date().toISOString()
         ).run();
 
@@ -885,7 +1542,8 @@ export async function onRequest(context: { request: Request; env: any; params: a
           id: firebaseUid,
           email,
           fullName: nameToUse,
-          role: roleToUse
+          role: roleToUse,
+          profilePhoto: photoToUse
         };
       }
 
@@ -903,6 +1561,49 @@ export async function onRequest(context: { request: Request; env: any; params: a
       });
 
       return new Response(JSON.stringify({ success: true, user: finalUser, exists: alreadyExists }), { headers });
+    }
+
+    if (path === '/api/auth/update-profile' && method === 'POST') {
+      const body = await request.json();
+      const { userId, fullName, email, profilePhoto } = body;
+
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "Missing required userId" }), { status: 400, headers });
+      }
+
+      const results = await env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(userId).all();
+      const user = results.results?.[0];
+
+      if (!user) {
+        return new Response(JSON.stringify({ error: "Profile not found in database." }), { status: 404, headers });
+      }
+
+      const nameToUse = fullName || user.full_name;
+      const emailToUse = email || user.email;
+      const photoToUse = profilePhoto !== undefined ? profilePhoto : (user.profile_photo || "");
+
+      await env.DB.prepare(
+        "UPDATE users SET full_name = ?, email = ?, profile_photo = ? WHERE id = ?"
+      ).bind(nameToUse, emailToUse, photoToUse, userId).run();
+
+      const updatedUser = {
+        id: userId,
+        email: emailToUse,
+        fullName: nameToUse,
+        role: user.role,
+        profilePhoto: photoToUse
+      };
+
+      // Set session cookie
+      headers.append('Set-Cookie', `dstech_session=${btoa(JSON.stringify(updatedUser))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
+
+      broadcastSyncEvent({
+        type: 'PROFILE_UPDATED',
+        userId,
+        message: `Profile updated successfully for ${updatedUser.fullName}`
+      });
+
+      return new Response(JSON.stringify({ success: true, user: updatedUser }), { headers });
     }
 
     // ==========================================
@@ -1254,7 +1955,78 @@ export async function onRequest(context: { request: Request; env: any; params: a
 
     if (path === '/api/notifications') {
       if (method === 'GET') {
-        return new Response(JSON.stringify(inMemoryNotifications), { headers });
+        const urlParams = new URL(request.url).searchParams;
+        const userId = urlParams.get('userId');
+        const role = urlParams.get('role');
+        const type = urlParams.get('type');
+        const priority = urlParams.get('priority');
+
+        let filtered: any[] = [];
+        let useD1 = false;
+        try {
+          if (env.DB) {
+            let sql = 'SELECT * FROM "notifications" WHERE 1=1';
+            const params: any[] = [];
+
+            if (role) {
+              sql += ' AND ("recipientRole" = ? OR "recipientRole" = \'\')';
+              params.push(role);
+            }
+            if (userId && role === 'candidate') {
+              sql += ' AND ("userId" IS NULL OR "userId" = ? OR "userId" = \'\')';
+              params.push(userId);
+            }
+            if (type && type !== 'all') {
+              sql += ' AND "type" = ?';
+              params.push(type);
+            }
+            if (priority && priority !== 'all') {
+              sql += ' AND "priority" = ?';
+              params.push(priority);
+            }
+
+            sql += ' ORDER BY "createdAt" DESC';
+
+            let stmt = env.DB.prepare(sql);
+            if (params.length > 0) {
+              stmt = stmt.bind(...params);
+            }
+            const result = await stmt.all();
+            const rows = Array.isArray(result) ? result : (result?.results || []);
+            filtered = rows;
+            useD1 = true;
+          }
+        } catch (e) {
+          console.warn("DB notifications query failed, falling back to memory store:", e);
+        }
+
+        if (!useD1 || filtered.length === 0) {
+          filtered = [...inMemoryNotifications];
+          if (role) {
+            filtered = filtered.filter(n => !n.recipientRole || n.recipientRole === role);
+          }
+          if (userId && role === 'candidate') {
+            filtered = filtered.filter(n => !n.userId || n.userId === userId);
+          }
+          if (type && type !== 'all') {
+            filtered = filtered.filter(n => n.type === type);
+          }
+          if (priority && priority !== 'all') {
+            filtered = filtered.filter(n => n.priority === priority);
+          }
+        }
+
+        const responseData = {
+          notifications: filtered.map(n => ({
+            ...n,
+            read: n.read === true || n.read === 1 ? 1 : 0
+          })),
+          total: filtered.length,
+          page: 1,
+          limit: 100
+        };
+
+        return new Response(JSON.stringify(responseData), { headers });
       }
       if (method === 'POST') {
         const body = await request.json();
@@ -1262,27 +2034,81 @@ export async function onRequest(context: { request: Request; env: any; params: a
           id: 'notif_' + Math.random().toString(36).substring(2, 11),
           title: body.title,
           message: body.message,
-          read: false,
+          read: 0,
           createdAt: new Date().toISOString(),
-          recipientRole: body.recipientRole || 'admin',
+          recipientRole: body.recipientRole || 'candidate',
           userId: body.userId || null,
           type: body.type || 'info',
           priority: body.priority || 'medium',
-          image: body.image || null,
-          actionUrl: body.actionUrl || null
+          image: body.image || '',
+          actionUrl: body.actionUrl || ''
         };
-        inMemoryNotifications.unshift(newNotif);
+
+        try {
+          if (env.DB) {
+            await env.DB.prepare(
+              'INSERT INTO "notifications" ("id", "title", "message", "read", "createdAt", "recipientRole", "userId", "type", "priority", "actionUrl", "image", "metadata") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+            ).bind(
+              newNotif.id,
+              newNotif.title,
+              newNotif.message,
+              newNotif.read,
+              newNotif.createdAt,
+              newNotif.recipientRole,
+              newNotif.userId,
+              newNotif.type,
+              newNotif.priority,
+              newNotif.actionUrl,
+              newNotif.image,
+              ''
+            ).run();
+          }
+        } catch (e) {
+          console.warn("DB insert notification failed, using memory fallback:", e);
+        }
+
+        inMemoryNotifications.unshift({ ...newNotif, read: false });
 
         // Broadcast real-time notification creation
         broadcastSyncEvent({
           type: 'NOTIFICATION_CREATED',
-          notification: newNotif
+          notification: { ...newNotif, read: false }
         });
 
         return new Response(JSON.stringify(newNotif), { headers });
       }
       if (method === 'DELETE') {
-        inMemoryNotifications = [];
+        const urlParams = new URL(request.url).searchParams;
+        const userId = urlParams.get('userId');
+        const role = urlParams.get('role');
+
+        try {
+          if (env.DB) {
+            let sql = 'DELETE FROM "notifications" WHERE 1=1';
+            const params: any[] = [];
+            if (role) {
+              sql += ' AND "recipientRole" = ?';
+              params.push(role);
+            }
+            if (userId && role === 'candidate') {
+              sql += ' AND ("userId" IS NULL OR "userId" = ?)';
+              params.push(userId);
+            }
+            let stmt = env.DB.prepare(sql);
+            if (params.length > 0) {
+              stmt = stmt.bind(...params);
+            }
+            await stmt.run();
+          }
+        } catch (e) {
+          console.warn("DB clear notifications failed:", e);
+        }
+
+        inMemoryNotifications = inMemoryNotifications.filter(n => {
+          const isTarget = (!role || !n.recipientRole || n.recipientRole === role) && 
+                           (!userId || !n.userId || n.userId === userId);
+          return !isTarget;
+        });
 
         // Broadcast notification update event
         broadcastSyncEvent({
@@ -1294,7 +2120,40 @@ export async function onRequest(context: { request: Request; env: any; params: a
     }
 
     if (path === '/api/notifications/mark-all-read' && method === 'PATCH') {
-      inMemoryNotifications = inMemoryNotifications.map(n => ({ ...n, read: true }));
+      const urlParams = new URL(request.url).searchParams;
+      const userId = urlParams.get('userId');
+      const role = urlParams.get('role');
+
+      try {
+        if (env.DB) {
+          let sql = 'UPDATE "notifications" SET "read" = 1 WHERE 1=1';
+          const params: any[] = [];
+          if (role) {
+            sql += ' AND "recipientRole" = ?';
+            params.push(role);
+          }
+          if (userId && role === 'candidate') {
+            sql += ' AND ("userId" IS NULL OR "userId" = ?)';
+            params.push(userId);
+          }
+          let stmt = env.DB.prepare(sql);
+          if (params.length > 0) {
+            stmt = stmt.bind(...params);
+          }
+          await stmt.run();
+        }
+      } catch (e) {
+        console.warn("DB mark-all-read failed:", e);
+      }
+
+      inMemoryNotifications = inMemoryNotifications.map(n => {
+        const isTarget = (!role || !n.recipientRole || n.recipientRole === role) && 
+                         (!userId || !n.userId || n.userId === userId);
+        if (isTarget) {
+          return { ...n, read: true };
+        }
+        return n;
+      });
 
       // Broadcast notification update event
       broadcastSyncEvent({
@@ -1305,7 +2164,50 @@ export async function onRequest(context: { request: Request; env: any; params: a
     }
 
     if (path === '/api/notifications/count/unread' && method === 'GET') {
-      const count = inMemoryNotifications.filter(n => !n.read).length;
+      const urlParams = new URL(request.url).searchParams;
+      const userId = urlParams.get('userId');
+      const role = urlParams.get('role');
+
+      let count = 0;
+      let useD1 = false;
+      try {
+        if (env.DB) {
+          let sql = 'SELECT COUNT(*) as count FROM "notifications" WHERE "read" = 0';
+          const params: any[] = [];
+          if (role) {
+            sql += ' AND ("recipientRole" = ? OR "recipientRole" = \'\')';
+            params.push(role);
+          }
+          if (userId && role === 'candidate') {
+            sql += ' AND ("userId" IS NULL OR "userId" = ? OR "userId" = \'\')';
+            params.push(userId);
+          }
+          let stmt = env.DB.prepare(sql);
+          if (params.length > 0) {
+            stmt = stmt.bind(...params);
+          }
+          const result = await stmt.all();
+          const rows = Array.isArray(result) ? result : (result?.results || []);
+          if (rows && rows[0]) {
+            count = rows[0].count;
+            useD1 = true;
+          }
+        }
+      } catch (e) {
+        console.warn("DB unread count query failed:", e);
+      }
+
+      if (!useD1 || count === 0) {
+        let filtered = [...inMemoryNotifications];
+        if (role) {
+          filtered = filtered.filter(n => !n.recipientRole || n.recipientRole === role);
+        }
+        if (userId && role === 'candidate') {
+          filtered = filtered.filter(n => !n.userId || n.userId === userId);
+        }
+        count = filtered.filter(n => !n.read || n.read === 0).length;
+      }
+
       return new Response(JSON.stringify({ count }), { headers });
     }
 
@@ -1313,7 +2215,22 @@ export async function onRequest(context: { request: Request; env: any; params: a
       const id = path.split('/').pop();
       if (method === 'PATCH') {
         const body = await request.json();
-        inMemoryNotifications = inMemoryNotifications.map(n => n.id === id ? { ...n, ...body } : n);
+        const updatedRead = body.read === 1 || body.read === true ? 1 : 0;
+
+        try {
+          if (env.DB) {
+            await env.DB.prepare('UPDATE "notifications" SET "read" = ? WHERE "id" = ?').bind(updatedRead, id).run();
+          }
+        } catch (e) {
+          console.warn("DB update read status failed:", e);
+        }
+
+        inMemoryNotifications = inMemoryNotifications.map(n => {
+          if (n.id === id) {
+            return { ...n, ...body, read: updatedRead === 1 };
+          }
+          return n;
+        });
 
         // Broadcast notification update event
         broadcastSyncEvent({
@@ -1323,6 +2240,14 @@ export async function onRequest(context: { request: Request; env: any; params: a
         return new Response(JSON.stringify({ success: true }), { headers });
       }
       if (method === 'DELETE') {
+        try {
+          if (env.DB) {
+            await env.DB.prepare('DELETE FROM "notifications" WHERE "id" = ?').bind(id).run();
+          }
+        } catch (e) {
+          console.warn("DB delete individual notification failed:", e);
+        }
+
         inMemoryNotifications = inMemoryNotifications.filter(n => n.id !== id);
 
         // Broadcast notification update event

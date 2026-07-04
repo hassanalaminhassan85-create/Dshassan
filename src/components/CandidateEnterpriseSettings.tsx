@@ -5,14 +5,18 @@ import {
   Link2, Briefcase, Cpu, Code, CreditCard, Search, RotateCcw,
   Download, Upload, Save, Check, AlertTriangle, FileText,
   Bookmark, Star, Clock, Trash2, ShieldAlert, Key, Info, CheckCircle,
-  Copy, ChevronRight, Laptop, Activity, Plus, Play, Lock, UserCheck
+  Copy, ChevronRight, Laptop, Activity, Plus, Play, Lock, UserCheck, RefreshCw,
+  CheckCircle2, AlertCircle
 } from 'lucide-react';
 
+import { apiUpdateProfile } from '../lib/api';
+
 interface CandidateEnterpriseSettingsProps {
-  currentUser: { fullName: string; email: string; id: string } | null;
+  currentUser: { fullName: string; email: string; id: string; role?: string; profilePhoto?: string } | null;
   onClose?: () => void;
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
+  onProfileUpdated?: (updatedUser: any) => void;
 }
 
 // 12 Settings Categories
@@ -61,8 +65,75 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
   currentUser,
   onClose,
   isDarkMode,
-  setIsDarkMode
+  setIsDarkMode,
+  onProfileUpdated
 }) => {
+  // Profile photo custom/preset states
+  const [profilePhoto, setProfilePhoto] = useState<string>(currentUser?.profilePhoto || '');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [photoSuccess, setPhotoSuccess] = useState<boolean>(false);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+      setPhotoError("Image size must be smaller than 2MB.");
+      return;
+    }
+
+    setPhotoError(null);
+    setPhotoSuccess(false);
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        const resultBase64 = reader.result;
+        setProfilePhoto(resultBase64);
+        saveProfilePhoto(resultBase64);
+      }
+    };
+    reader.onerror = () => {
+      setPhotoError("Failed to read image file.");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const saveProfilePhoto = async (photoValue: string) => {
+    if (!currentUser?.id) return;
+    setIsUploadingPhoto(true);
+    setPhotoError(null);
+    setPhotoSuccess(false);
+    try {
+      const res = await apiUpdateProfile({
+        userId: currentUser.id,
+        profilePhoto: photoValue
+      });
+      if (res.success) {
+        setPhotoSuccess(true);
+        if (onProfileUpdated) {
+          onProfileUpdated(res.user);
+        }
+        localStorage.setItem('currentUser', JSON.stringify(res.user));
+        setTimeout(() => setPhotoSuccess(false), 3000);
+      } else {
+        throw new Error("Could not serialize and write profile photo.");
+      }
+    } catch (err: any) {
+      setPhotoError(err.message || "Failed to update profile photo.");
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const applyPresetAvatar = (gradientClass: string) => {
+    // Generate a high-contrast inline SVG representing the selected preset
+    const initials = currentUser?.fullName ? currentUser.fullName.substring(0, 2).toUpperCase() : 'DS';
+    const svgString = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><defs><linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="%231E40AF"/><stop offset="100%" stop-color="%23EA580C"/></linearGradient></defs><rect width="100%" height="100%" fill="url(%23g)"/><text x="50%" y="55%" font-family="Inter, sans-serif" font-weight="900" font-size="36" fill="white" text-anchor="middle" dominant-baseline="middle">${initials}</text></svg>`;
+    setProfilePhoto(svgString);
+    saveProfilePhoto(svgString);
+  };
+
   // Initialize setting keys with state values
   const [settings, setSettings] = useState<Record<string, any>>({
     // Category 1: Profile
@@ -589,10 +660,10 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
   return (
     <div 
       id="extraordinary-settings-view" 
-      className={`min-h-screen relative p-4 md:p-6 transition-all duration-300 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} flex flex-col`}
+      className={`relative w-full transition-all duration-300 ${isDarkMode ? 'text-slate-100' : 'text-slate-900'} flex flex-col`}
     >
       {/* Top Utility Indicator & Save Hub */}
-      <div id="settings-save-header" className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/10 pb-4 mb-6">
+      <div id="settings-save-header" className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b pb-4 mb-6 ${isDarkMode ? 'border-white/10' : 'border-slate-200'}`}>
         <div>
           <div className="flex items-center gap-2">
             <Settings className="text-orange-500 animate-spin-slow" size={22} />
@@ -631,7 +702,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
           )}
 
           {saveStatus === 'idle' && (
-            <div className="text-[9px] font-mono text-slate-500 bg-black/40 border border-white/5 rounded-xl px-2.5 py-1.5">
+            <div className={`text-[9px] font-mono border rounded-xl px-2.5 py-1.5 ${isDarkMode ? 'text-slate-500 bg-black/40 border-white/5' : 'text-slate-600 bg-slate-100 border-slate-200'}`}>
               SECURE LOCAL MEMORY SYNC: ACTIVE
             </div>
           )}
@@ -639,7 +710,11 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
           {onClose && (
             <button
               onClick={onClose}
-              className="px-3.5 py-1.5 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 text-[10px] font-extrabold uppercase rounded-xl transition-all"
+              className={`px-3.5 py-1.5 border text-[10px] font-extrabold uppercase rounded-xl transition-all ${
+                isDarkMode 
+                  ? 'bg-white/5 border-white/10 hover:bg-white/10 text-slate-300' 
+                  : 'bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-700'
+              }`}
             >
               Close Console
             </button>
@@ -648,10 +723,10 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
       </div>
 
       {/* Profile/Environment Presets Row */}
-      <div id="settings-preset-presets" className="bg-slate-900/40 border border-white/5 rounded-2xl p-3 flex flex-wrap items-center justify-between gap-4 mb-6">
+      <div id="settings-preset-presets" className={`rounded-2xl p-3 flex flex-wrap items-center justify-between gap-4 mb-6 border ${isDarkMode ? 'bg-slate-900/40 border-slate-800/80' : 'bg-white border-slate-200 shadow-sm'}`}>
         <div className="flex items-center gap-2">
           <Info size={13} className="text-orange-400 shrink-0" />
-          <span className="text-[10px] font-extrabold uppercase tracking-wide text-slate-300">
+          <span className={`text-[10px] font-extrabold uppercase tracking-wide ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
             Rapid Presets:
           </span>
         </div>
@@ -665,7 +740,13 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
             <button
               key={p.id}
               onClick={() => handleProfilePresetSelect(p.id)}
-              className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase border transition-all ${activeProfile === p.id ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-black/30 border-slate-800 text-slate-400 hover:text-white'}`}
+              className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase border transition-all ${
+                activeProfile === p.id 
+                  ? 'bg-indigo-600 border-indigo-500 text-white shadow-md' 
+                  : isDarkMode 
+                    ? 'bg-black/30 border-slate-800 text-slate-400 hover:text-white' 
+                    : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-950'
+              }`}
             >
               {p.label}
             </button>
@@ -673,13 +754,13 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
         </div>
       </div>
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
+      <div className="flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-0">
         
         {/* LEFT COLUMN: Sidebar Category Selector & Advanced Tools */}
         <div id="settings-left-rail" className="lg:col-span-4 flex flex-col gap-4">
           
           {/* Navigation Box with search */}
-          <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-4 flex flex-col gap-4">
+          <div className={`rounded-2xl p-4 flex flex-col gap-4 border ${isDarkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
             
             {/* Global Settings Search input */}
             <div className="relative">
@@ -690,7 +771,11 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                 placeholder="Search settings, keys, descriptions..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-8 py-2 bg-black/40 border border-white/10 rounded-xl text-[11px] focus:outline-none focus:border-indigo-500 text-indigo-200"
+                className={`w-full pl-9 pr-8 py-2 rounded-xl text-[11px] focus:outline-none transition-all ${
+                  isDarkMode 
+                    ? 'bg-black/40 border-white/10 focus:border-indigo-500 text-indigo-200' 
+                    : 'bg-slate-100 border-slate-200 focus:border-indigo-500 text-slate-800'
+                }`}
               />
               {searchQuery && (
                 <button
@@ -703,23 +788,55 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
             </div>
 
             {/* Sub-Filters */}
-            <div className="flex items-center gap-3 border-b border-white/5 pb-2.5">
+            <div className={`flex items-center gap-3 border-b pb-2.5 ${isDarkMode ? 'border-white/5' : 'border-slate-100'}`}>
               <button
                 onClick={() => setStarredOnly(!starredOnly)}
-                className={`flex items-center gap-1.5 text-[9px] font-black uppercase ${starredOnly ? 'text-orange-400' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`flex items-center gap-1.5 text-[9px] font-black uppercase ${
+                  starredOnly 
+                    ? 'text-orange-500' 
+                    : isDarkMode ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'
+                }`}
               >
-                <Star size={10} className={starredOnly ? 'fill-orange-400' : ''} /> Bookmarked Settings
+                <Star size={10} className={starredOnly ? 'fill-orange-500 text-orange-500' : ''} /> Bookmarked
               </button>
               <button
                 onClick={() => setRecentlyChangedOnly(!recentlyChangedOnly)}
-                className={`flex items-center gap-1.5 text-[9px] font-black uppercase ${recentlyChangedOnly ? 'text-indigo-400' : 'text-slate-500 hover:text-slate-300'}`}
+                className={`flex items-center gap-1.5 text-[9px] font-black uppercase ${
+                  recentlyChangedOnly 
+                    ? 'text-indigo-600 dark:text-indigo-400' 
+                    : isDarkMode ? 'text-slate-500 hover:text-slate-300' : 'text-slate-400 hover:text-slate-600'
+                }`}
               >
                 <Clock size={10} /> Edited Only
               </button>
             </div>
 
-            {/* Categories List */}
-            <nav id="settings-categories-nav" className="space-y-1 max-h-[350px] overflow-y-auto pr-1">
+            {/* Horizontal Categories selector on Mobile */}
+            <div className="lg:hidden flex items-center gap-2 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none scroll-smooth">
+              {SETTING_CATEGORIES.map(cat => {
+                const CatIcon = cat.icon;
+                const isActive = activeCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => { setActiveCategory(cat.id); setSearchQuery(''); }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] whitespace-nowrap transition-all shrink-0 border ${
+                      isActive 
+                        ? 'bg-indigo-600 border-indigo-500 text-white font-extrabold shadow-md' 
+                        : isDarkMode
+                          ? 'bg-black/30 border-slate-800 text-slate-400 hover:text-white'
+                          : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <CatIcon size={12} className={isActive ? 'text-white' : 'text-indigo-500'} />
+                    <span>{cat.title}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Desktop Categories List */}
+            <nav id="settings-categories-nav" className="hidden lg:block space-y-1 max-h-[350px] overflow-y-auto pr-1">
               {SETTING_CATEGORIES.map(cat => {
                 const CatIcon = cat.icon;
                 const isActive = activeCategory === cat.id;
@@ -731,18 +848,28 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                   <button
                     key={cat.id}
                     onClick={() => { setActiveCategory(cat.id); setSearchQuery(''); }}
-                    className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all group ${isActive ? 'bg-indigo-600 text-white font-extrabold shadow-md' : 'hover:bg-white/5 text-slate-400 hover:text-white'}`}
+                    className={`w-full flex items-center justify-between p-2.5 rounded-xl text-left transition-all group border ${
+                      isActive 
+                        ? 'bg-indigo-600 border-indigo-500 text-white font-extrabold shadow-md' 
+                        : isDarkMode
+                          ? 'border-transparent hover:bg-white/5 text-slate-400 hover:text-white'
+                          : 'border-transparent hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+                    }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className={`p-1.5 rounded-lg ${isActive ? 'bg-indigo-500' : 'bg-white/5 group-hover:bg-white/10'}`}>
-                        <CatIcon size={12} className={isActive ? 'text-white' : 'text-indigo-400'} />
+                      <div className={`p-1.5 rounded-lg ${isActive ? 'bg-indigo-500' : isDarkMode ? 'bg-white/5 group-hover:bg-white/10' : 'bg-slate-100 group-hover:bg-slate-200'}`}>
+                        <CatIcon size={12} className={isActive ? 'text-white' : 'text-indigo-500 dark:text-indigo-400'} />
                       </div>
                       <div className="truncate">
                         <p className="text-[11px] leading-tight font-black">{cat.title}</p>
-                        <p className={`text-[8px] truncate ${isActive ? 'text-indigo-100' : 'text-slate-500'}`}>{cat.description}</p>
+                        <p className={`text-[8px] truncate ${isActive ? 'text-indigo-100' : isDarkMode ? 'text-slate-500' : 'text-slate-400'}`}>{cat.description}</p>
                       </div>
                     </div>
-                    <span className={`text-[8px] font-mono px-1.5 py-0.5 rounded ${isActive ? 'bg-indigo-500 text-white' : 'bg-black/30 text-slate-500'}`}>
+                    <span className={`text-[8px] font-mono px-1.5 py-0.5 rounded ${
+                      isActive 
+                        ? 'bg-indigo-500 text-white' 
+                        : isDarkMode ? 'bg-black/30 text-slate-500' : 'bg-slate-100 text-slate-500'
+                    }`}>
                       {count}
                     </span>
                   </button>
@@ -753,8 +880,8 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
 
           {/* Recently Accessed Memory List */}
           {settingsHistory.length > 0 && (
-            <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-4 space-y-2.5">
-              <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block">
+            <div className={`rounded-2xl p-4 space-y-2.5 border ${isDarkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+              <span className={`text-[8px] font-black uppercase tracking-widest block ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                 Recently Visited Categories
               </span>
               <div className="flex flex-wrap gap-1.5">
@@ -765,7 +892,11 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                     <button
                       key={histId}
                       onClick={() => setActiveCategory(histId)}
-                      className={`px-2.5 py-1 bg-white/5 border border-white/5 rounded-lg text-[9px] font-bold text-slate-300 hover:text-white hover:border-indigo-500/40 transition-all`}
+                      className={`px-2.5 py-1 border rounded-lg text-[9px] font-bold transition-all ${
+                        isDarkMode
+                          ? 'bg-white/5 border-white/5 text-slate-300 hover:text-white hover:border-indigo-500/40'
+                          : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 hover:border-indigo-500/40'
+                      }`}
                     >
                       {cat.title}
                     </button>
@@ -776,14 +907,14 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
           )}
 
           {/* Backup & Recovery Hub */}
-          <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-4 space-y-4">
-            <div className="flex justify-between items-center border-b border-white/5 pb-2">
+          <div className={`rounded-2xl p-4 space-y-4 border ${isDarkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
+            <div className={`flex justify-between items-center border-b pb-2 ${isDarkMode ? 'border-white/5' : 'border-slate-100'}`}>
               <span className="text-[9px] font-black uppercase tracking-widest text-orange-400 flex items-center gap-1.5">
                 <ShieldAlert size={12} /> Backup & State Recovery
               </span>
               <button
                 onClick={handleCreateBackup}
-                className="p-1 text-[9px] font-black uppercase text-indigo-400 hover:text-white"
+                className={`p-1 text-[9px] font-black uppercase transition-colors ${isDarkMode ? 'text-indigo-400 hover:text-white' : 'text-indigo-600 hover:text-indigo-800'}`}
               >
                 + New Backup
               </button>
@@ -791,15 +922,17 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
             
             <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
               {backups.map(bk => (
-                <div key={bk.id} className="p-2.5 bg-black/40 border border-white/5 rounded-xl flex items-center justify-between gap-2">
+                <div key={bk.id} className={`p-2.5 border rounded-xl flex items-center justify-between gap-2 ${
+                  isDarkMode ? 'bg-black/40 border-white/5' : 'bg-slate-50 border-slate-100'
+                }`}>
                   <div className="min-w-0">
-                    <p className="font-extrabold text-[10px] text-white truncate">{bk.name}</p>
+                    <p className={`font-extrabold text-[10px] truncate ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>{bk.name}</p>
                     <span className="text-[8px] text-slate-500 font-mono block">{bk.date} • {bk.size}</span>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 shrink-0">
                     <button
                       onClick={() => handleRestoreBackup(bk)}
-                      className="px-1.5 py-0.5 bg-indigo-600/20 text-indigo-400 text-[8px] font-black uppercase rounded hover:bg-indigo-600 hover:text-white"
+                      className="px-1.5 py-0.5 bg-indigo-600/20 text-indigo-400 dark:text-indigo-300 text-[8px] font-black uppercase rounded hover:bg-indigo-600 hover:text-white"
                       title="Restore settings"
                     >
                       Restore
@@ -816,15 +949,19 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
               ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t border-white/5">
+            <div className={`grid grid-cols-2 gap-2 pt-2 border-t ${isDarkMode ? 'border-white/5' : 'border-slate-100'}`}>
               <button
                 onClick={handleExportJSON}
-                className="py-1.5 bg-white/5 border border-white/10 hover:bg-white/10 text-[9px] font-black uppercase rounded-lg text-slate-300 flex items-center justify-center gap-1"
+                className={`py-1.5 border hover:bg-white/10 text-[9px] font-black uppercase rounded-lg flex items-center justify-center gap-1 transition-colors ${
+                  isDarkMode ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10' : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                }`}
               >
                 <Download size={10} /> Export JSON
               </button>
               
-              <label className="py-1.5 bg-white/5 border border-white/10 hover:bg-white/10 text-[9px] font-black uppercase rounded-lg text-slate-300 flex items-center justify-center gap-1 cursor-pointer">
+              <label className={`py-1.5 border hover:bg-white/10 text-[9px] font-black uppercase rounded-lg flex items-center justify-center gap-1 cursor-pointer transition-colors ${
+                isDarkMode ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10' : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+              }`}>
                 <Upload size={10} /> Import JSON
                 <input
                   type="file"
@@ -842,15 +979,15 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
         <div id="settings-right-panel" className="lg:col-span-8 flex flex-col gap-6">
           
           {/* Main Controls Card */}
-          <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-6 flex flex-col gap-6">
+          <div className={`rounded-2xl p-6 flex flex-col gap-6 border ${isDarkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200 shadow-sm'}`}>
             
             {/* Active Category Title */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b border-white/5 pb-4">
+            <div className={`flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b pb-4 ${isDarkMode ? 'border-white/5' : 'border-slate-100'}`}>
               <div>
                 <span className="text-[8px] font-extrabold uppercase tracking-widest text-indigo-400">
                   Settings Category View
                 </span>
-                <h3 className="text-sm font-black text-white uppercase mt-0.5 flex items-center gap-1.5">
+                <h3 className={`text-sm font-black uppercase mt-0.5 flex items-center gap-1.5 ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>
                   {searchQuery ? `Search Results for "${searchQuery}"` : SETTING_CATEGORIES.find(c => c.id === activeCategory)?.title}
                 </h3>
                 <p className="text-[11px] text-slate-400 mt-1">
@@ -865,7 +1002,11 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                     setJsonText(JSON.stringify(settings, null, 2));
                     setShowJsonEditor(!showJsonEditor);
                   }}
-                  className="px-2.5 py-1 bg-slate-800 border border-slate-700 text-[9px] font-bold uppercase rounded-lg text-slate-300 hover:text-white"
+                  className={`px-2.5 py-1 border text-[9px] font-bold uppercase rounded-lg transition-colors ${
+                    isDarkMode 
+                      ? 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white' 
+                      : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200 hover:text-slate-950'
+                  }`}
                 >
                   {showJsonEditor ? 'Exit Code Editor' : 'Advanced JSON Editor'}
                 </button>
@@ -886,7 +1027,11 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                   <textarea
                     value={jsonText}
                     onChange={e => { setJsonText(e.target.value); setJsonError(null); }}
-                    className="w-full h-80 bg-black/80 text-emerald-400 font-mono text-[10px] p-4 rounded-xl border border-white/10 focus:outline-none focus:border-indigo-500"
+                    className={`w-full h-80 font-mono text-[10px] p-4 rounded-xl border focus:outline-none focus:border-indigo-500 transition-colors ${
+                      isDarkMode 
+                        ? 'bg-black/80 text-emerald-400 border-white/10' 
+                        : 'bg-slate-50 text-slate-800 border-slate-200'
+                    }`}
                     placeholder="{ ...settings }"
                   />
                   {jsonError && (
@@ -899,7 +1044,11 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                 <div className="flex justify-end gap-2">
                   <button
                     onClick={() => setShowJsonEditor(false)}
-                    className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold uppercase text-slate-400 hover:text-white"
+                    className={`px-4 py-1.5 border rounded-xl text-[10px] font-bold uppercase transition-all ${
+                      isDarkMode 
+                        ? 'bg-white/5 border-white/10 text-slate-400 hover:text-white' 
+                        : 'bg-slate-100 border-slate-200 text-slate-500 hover:bg-slate-200 hover:text-slate-950'
+                    }`}
                   >
                     Cancel
                   </button>
@@ -914,9 +1063,100 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
             ) : (
               /* Regular UI Controls */
               <div id="settings-controls-grid" className="space-y-5">
+                {activeCategory === 'profile' && !searchQuery && (
+                  <div className={`p-6 border rounded-2xl space-y-6 ${isDarkMode ? 'bg-slate-900/60 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                    <div className={`flex items-center justify-between border-b pb-3 ${isDarkMode ? 'border-white/5' : 'border-slate-200'}`}>
+                      <div>
+                        <h4 className={`font-black text-xs uppercase tracking-wider flex items-center gap-1.5 ${isDarkMode ? 'text-slate-300' : 'text-slate-800'}`}>
+                          <User size={14} className="text-orange-500" /> Professional Identity Seals
+                        </h4>
+                        <p className="text-[9px] text-slate-500 mt-0.5">Securely write biometric and candidate image credentials into the D1 ledger.</p>
+                      </div>
+                      <span className="text-[9px] px-2 py-0.5 bg-orange-500/10 text-orange-400 rounded-md border border-orange-500/20 font-bold uppercase tracking-wider">
+                        Active Verification
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row gap-6 items-center">
+                      {/* Avatar preview block */}
+                      <div className="relative group shrink-0">
+                        <div className={`w-24 h-24 rounded-full overflow-hidden border-2 border-indigo-500/30 flex items-center justify-center relative bg-gradient-to-br ${isDarkMode ? 'from-indigo-950 to-slate-900' : 'from-indigo-50 to-slate-100'}`}>
+                          {profilePhoto ? (
+                            <img src={profilePhoto} alt="Profile Photo" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                          ) : (
+                            <span className={`text-2xl font-black ${isDarkMode ? 'text-white' : 'text-slate-700'}`}>
+                              {currentUser?.fullName ? currentUser.fullName.substring(0, 2).toUpperCase() : 'DS'}
+                            </span>
+                          )}
+                          
+                          {/* Upload Loading Overlay */}
+                          {isUploadingPhoto && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                              <RefreshCw size={18} className="text-orange-500 animate-spin" />
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Interactive edit badge */}
+                        <label className="absolute bottom-0 right-0 p-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full border border-slate-900 cursor-pointer shadow-lg transition-all hover:scale-110 flex items-center justify-center">
+                          <Upload size={12} />
+                          <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
+                        </label>
+                      </div>
+
+                      {/* Info & preset selection */}
+                      <div className="flex-1 space-y-4 text-center md:text-left">
+                        <div className="space-y-1">
+                          <p className={`text-xs font-bold ${isDarkMode ? 'text-white' : 'text-slate-900'}`}>{currentUser?.fullName || 'Full Name'}</p>
+                          <p className="text-[10px] text-slate-400 font-mono">{currentUser?.email || 'email@domain.com'}</p>
+                          <p className="text-[9px] text-slate-500">
+                            Support PNG, JPG or GIF. Max size 2MB. Your avatar updates automatically on all panels.
+                          </p>
+                        </div>
+
+                        {/* Preset instant buttons */}
+                        <div className="space-y-2">
+                          <p className={`text-[9px] font-black uppercase ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>Or Select a Specialized Cyber Preset</p>
+                          <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                            {[
+                              { id: 'indigo', name: 'Cyber Indigo', gradient: 'from-indigo-600 to-blue-500' },
+                              { id: 'emerald', name: 'Security Emerald', gradient: 'from-emerald-600 to-teal-500' },
+                              { id: 'orange', name: 'Cosmic Amber', gradient: 'from-orange-600 to-amber-500' },
+                              { id: 'fuchsia', name: 'Neon Fuchsia', gradient: 'from-fuchsia-600 to-rose-500' }
+                            ].map((preset) => (
+                              <button
+                                key={preset.id}
+                                onClick={() => applyPresetAvatar(preset.gradient)}
+                                className={`px-2.5 py-1 text-[9px] font-bold rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer ${
+                                  isDarkMode 
+                                    ? 'bg-slate-800 hover:bg-indigo-950/40 border-white/5 text-slate-300 hover:text-white' 
+                                    : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700 hover:text-slate-900'
+                                }`}
+                              >
+                                <span className={`w-2 h-2 rounded-full bg-gradient-to-br ${preset.gradient}`} />
+                                {preset.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Status indicators */}
+                        {photoError && (
+                          <p className="text-[10px] font-semibold text-rose-400 animate-pulse">{photoError}</p>
+                        )}
+                        {photoSuccess && (
+                          <p className="text-[10px] font-semibold text-emerald-400 flex items-center gap-1 justify-center md:justify-start">
+                            <CheckCircle2 size={12} /> Profile credentials synchronized with D1 ledger!
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {filteredSettings.length === 0 ? (
                   <div className="p-8 text-center text-slate-500 space-y-2">
-                    <AlertTriangle className="mx-auto text-orange-400" size={24} />
+                    <AlertCircle className="mx-auto text-orange-400" size={24} />
                     <p className="text-[11px] font-bold uppercase">No settings match your active filters.</p>
                     <p className="text-[10px]">Try clearing search parameters or disabling active custom filters.</p>
                   </div>
@@ -928,12 +1168,16 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                     return (
                       <div
                         key={item.key}
-                        className="p-4 bg-black/20 border border-white/5 hover:border-indigo-500/10 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all"
+                        className={`p-4 border rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${
+                          isDarkMode 
+                            ? 'bg-black/20 border-white/5 hover:border-indigo-500/10' 
+                            : 'bg-slate-50/50 border-slate-200 hover:border-indigo-500/30 hover:bg-slate-50'
+                        }`}
                       >
                         {/* Title & Help block */}
                         <div className="space-y-1 max-w-xl">
                           <div className="flex items-center gap-1.5">
-                            <span className="font-extrabold text-[12px] text-white">
+                            <span className={`font-extrabold text-[12px] ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>
                               {item.label}
                             </span>
                             
@@ -954,17 +1198,17 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                             )}
                           </div>
                           
-                          <p className="text-[10px] text-slate-400 leading-normal">
+                          <p className={`text-[10px] leading-normal ${isDarkMode ? 'text-slate-400' : 'text-slate-600'}`}>
                             {item.help}
                           </p>
                           
-                          <span className="text-[8px] font-mono text-indigo-300 uppercase tracking-wider block">
+                          <span className="text-[8px] font-mono text-indigo-400 dark:text-indigo-300 uppercase tracking-wider block">
                             Key: settings.{item.key}
                           </span>
                         </div>
 
                         {/* Interactive UI Element Controls */}
-                        <div className="shrink-0 min-w-[160px] flex justify-start md:justify-end items-center">
+                        <div className="w-full md:w-auto md:shrink-0 md:min-w-[160px] flex justify-start md:justify-end items-center">
                           
                           {/* Toggle switches */}
                           {item.type === 'toggle' && (
@@ -978,8 +1222,8 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                                 }}
                                 className="sr-only peer"
                               />
-                              <div className="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-                              <span className="ml-2 text-[10px] font-mono font-black text-slate-300">
+                              <div className="w-9 h-5 bg-slate-850 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+                              <span className={`ml-2 text-[10px] font-mono font-black ${isDarkMode ? 'text-slate-300' : 'text-slate-700'}`}>
                                 {value ? 'ON' : 'OFF'}
                               </span>
                             </label>
@@ -990,7 +1234,9 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                             <select
                               value={value}
                               onChange={e => updateSetting(item.key, e.target.value)}
-                              className="bg-black/40 border border-white/10 text-[11px] font-bold rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 text-indigo-300 w-full md:w-auto"
+                              className={`border text-[11px] font-bold rounded-xl px-2.5 py-1.5 focus:outline-none focus:border-indigo-500 w-full md:w-auto ${
+                                isDarkMode ? 'bg-black/40 border-white/10 text-indigo-300' : 'bg-white border-slate-300 text-slate-800'
+                              }`}
                             >
                               {item.options.map(opt => (
                                 <option key={opt} value={opt}>
@@ -1009,9 +1255,9 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                                 max={item.max || 10}
                                 value={value}
                                 onChange={e => updateSetting(item.key, parseInt(e.target.value))}
-                                className="w-24 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                                className="w-24 h-1 rounded-lg appearance-none cursor-pointer accent-indigo-500 bg-slate-200 dark:bg-slate-800"
                               />
-                              <span className="text-[11px] font-mono font-black text-indigo-400">
+                              <span className="text-[11px] font-mono font-black text-indigo-500 dark:text-indigo-400">
                                 {value} yrs
                               </span>
                             </div>
@@ -1023,7 +1269,9 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                               type="number"
                               value={value}
                               onChange={e => updateSetting(item.key, e.target.value)}
-                              className="w-20 px-2 py-1 bg-black/40 border border-white/10 rounded-xl text-[11px] font-mono text-indigo-300 focus:outline-none focus:border-indigo-500"
+                              className={`w-20 px-2 py-1 border rounded-xl text-[11px] font-mono focus:outline-none focus:border-indigo-500 ${
+                                isDarkMode ? 'bg-black/40 border-white/10 text-indigo-300' : 'bg-white border-slate-300 text-slate-800'
+                              }`}
                             />
                           )}
 
@@ -1033,17 +1281,11 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                               <input
                                 type="text"
                                 value={value}
-                                onChange={e => {
-                                  const isSensitive = item.key === 'email' || item.key === 'phone' || item.key === 'apiKey' || item.key === 'customUrl';
-                                  // For sensitive text entries, we can direct inline edit or let trigger dialog
-                                  if (isSensitive) {
-                                    updateSetting(item.key, e.target.value);
-                                  } else {
-                                    updateSetting(item.key, e.target.value);
-                                  }
-                                }}
+                                onChange={e => updateSetting(item.key, e.target.value)}
                                 disabled={item.readonly}
-                                className="w-full md:w-44 px-2.5 py-1.5 bg-black/40 border border-white/10 rounded-xl text-[11px] focus:outline-none focus:border-indigo-500 text-indigo-200"
+                                className={`w-full md:w-44 px-2.5 py-1.5 border rounded-xl text-[11px] focus:outline-none focus:border-indigo-500 ${
+                                  isDarkMode ? 'bg-black/40 border-white/10 text-indigo-200' : 'bg-white border-slate-300 text-slate-800'
+                                }`}
                               />
                             </div>
                           )}
@@ -1057,9 +1299,9 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
             )}
 
             {/* Revert Reset Panel */}
-            <div className="border-t border-white/5 pt-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className={`border-t pt-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 ${isDarkMode ? 'border-white/5' : 'border-slate-100'}`}>
               <div className="flex items-center gap-2">
-                <AlertTriangle size={15} className="text-orange-400 shrink-0" />
+                <AlertCircle size={15} className="text-orange-400 shrink-0" />
                 <span className="text-[10px] text-slate-400">
                   Resetting all settings is permanent. This wipes localized backups from this profile container.
                 </span>
@@ -1075,10 +1317,10 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
           </div>
 
           {/* Settings Audit Log Viewer */}
-          <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-6 space-y-4">
-            <div className="flex justify-between items-center border-b border-white/5 pb-2">
+          <div className={`border rounded-2xl p-6 space-y-4 ${isDarkMode ? 'bg-slate-900/60 border-white/10' : 'bg-white border-slate-200 shadow-sm'}`}>
+            <div className={`flex justify-between items-center border-b pb-2 ${isDarkMode ? 'border-white/5' : 'border-slate-100'}`}>
               <div>
-                <h4 className="font-black text-xs uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                <h4 className={`font-black text-xs uppercase tracking-wider flex items-center gap-1.5 ${isDarkMode ? 'text-slate-300' : 'text-slate-800'}`}>
                   <Activity size={14} className="text-indigo-400" /> Complete Security Audit Log
                 </h4>
                 <p className="text-[9px] text-slate-500 mt-0.5">Continuous tracking of all profile configurations on the active session</p>
@@ -1090,17 +1332,17 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
 
             <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
               {auditLogs.map(log => (
-                <div key={log.id} className="p-2 bg-black/40 border border-white/5 rounded-xl font-mono text-[9px] flex flex-col md:flex-row justify-between gap-2">
+                <div key={log.id} className={`p-2 border rounded-xl font-mono text-[9px] flex flex-col md:flex-row justify-between gap-2 ${isDarkMode ? 'bg-black/40 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
                   <div className="space-y-0.5">
-                    <p className="text-white">
-                      Updated setting <span className="text-orange-400 font-bold">{log.key}</span>
+                    <p className={isDarkMode ? 'text-white' : 'text-slate-800'}>
+                      Updated setting <span className="text-orange-500 font-bold">{log.key}</span>
                     </p>
                     <p className="text-slate-500">
-                      Value: <span className="text-rose-400 strike-through line-through">{log.oldValue}</span> <ChevronRight size={10} className="inline" /> <span className="text-emerald-400">{log.newValue}</span>
+                      Value: <span className="text-rose-400 strike-through line-through">{log.oldValue}</span> <ChevronRight size={10} className="inline" /> <span className="text-emerald-500">{log.newValue}</span>
                     </p>
                   </div>
-                  <div className="text-right shrink-0">
-                    <span className="text-indigo-400 font-bold block">{log.timestamp}</span>
+                  <div className="text-left md:text-right shrink-0">
+                    <span className="text-indigo-550 dark:text-indigo-400 font-bold block">{log.timestamp}</span>
                     <span className="text-slate-500 text-[8px] block">{log.ipAddress}</span>
                   </div>
                 </div>
@@ -1120,14 +1362,14 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl"
+              className={`border rounded-2xl p-6 max-w-sm w-full space-y-4 shadow-xl ${isDarkMode ? 'bg-slate-900 border-white/10 text-white' : 'bg-white border-slate-200 text-slate-800'}`}
             >
               <div className="flex items-center gap-2.5 text-orange-400">
                 <Lock size={20} className="animate-pulse" />
-                <h4 className="font-black text-sm uppercase text-white">Sensitive Operation Approval</h4>
+                <h4 className={`font-black text-sm uppercase ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>Sensitive Operation Approval</h4>
               </div>
               
-              <p className="text-[11px] text-slate-300 leading-normal">
+              <p className={`text-[11px] leading-normal ${isDarkMode ? 'text-slate-300' : 'text-slate-600'}`}>
                 You are editing a highly critical configuration parameter (<strong>{pendingSensitiveChange?.key}</strong>). Please authorize this change using your security key or passkey credentials.
               </p>
 
@@ -1140,7 +1382,9 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                   value={passwordInput}
                   onChange={e => setPasswordInput(e.target.value)}
                   placeholder="Enter passcode..."
-                  className="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-[11px] focus:outline-none focus:border-indigo-500 text-indigo-300"
+                  className={`w-full px-3 py-2 border rounded-xl text-[11px] focus:outline-none focus:border-indigo-500 ${
+                    isDarkMode ? 'bg-black/40 border-white/10 text-indigo-300' : 'bg-slate-50 border-slate-200 text-slate-850'
+                  }`}
                 />
                 {passwordError && (
                   <p className="text-[9px] font-bold text-rose-400">{passwordError}</p>
@@ -1155,7 +1399,9 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                     setPasswordError(null);
                     setPendingSensitiveChange(null);
                   }}
-                  className="px-3.5 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[10px] font-bold uppercase text-slate-400 hover:text-white"
+                  className={`px-3.5 py-1.5 border rounded-lg text-[10px] font-bold uppercase transition-colors ${
+                    isDarkMode ? 'bg-white/5 border-white/10 text-slate-400 hover:text-white' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+                  }`}
                 >
                   Cancel
                 </button>

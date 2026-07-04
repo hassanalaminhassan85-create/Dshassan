@@ -504,4 +504,22 @@ export async function apiLogBiometricAttempt(params: {
   return res.json();
 }
 
+export async function apiUpdateProfile(params: {
+  userId: string;
+  fullName?: string;
+  email?: string;
+  profilePhoto?: string;
+}): Promise<{ success: boolean; user: any }> {
+  const res = await fetch('/api/auth/update-profile', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params)
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(errData.error || 'Failed to update user profile.');
+  }
+  return res.json();
+}
+
 

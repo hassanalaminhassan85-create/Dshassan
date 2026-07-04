@@ -11,10 +11,12 @@ import {
 } from 'lucide-react';
 import { useFCM } from '../hooks/useFCM';
 import { CandidateEnterpriseSettings } from './CandidateEnterpriseSettings';
+import { Logo } from './Logo';
 import { useNotifications } from './NotificationProvider';
 import { NotificationCenter } from './NotificationCenter';
+import { RealTimeChat } from './RealTimeChat';
 import { startRegistration } from '@simplewebauthn/browser';
-import { apiSaveFcmToken } from '../lib/api';
+import { apiSaveFcmToken, apiCreateNotification } from '../lib/api';
 
 // Recharts for stunning data visualizations
 import {
@@ -23,10 +25,11 @@ import {
 } from 'recharts';
 
 interface CandidateEnterpriseDashboardProps {
-  currentUser: { fullName: string; email: string; id: string } | null;
+  currentUser: { fullName: string; email: string; id: string; role?: string; profilePhoto?: string } | null;
   onLogout: () => void;
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
+  onProfileUpdated?: (updatedUser: any) => void;
 }
 
 // Full 25 Pages Definition
@@ -89,7 +92,8 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
   currentUser,
   onLogout,
   isDarkMode,
-  setIsDarkMode
+  setIsDarkMode,
+  onProfileUpdated
 }) => {
   const { token: fcmToken, permission: fcmPermission, loading: fcmLoading, error: fcmError, requestPermissionAndGetToken } = useFCM();
   const [customVapidKey, setCustomVapidKey] = useState<string>('');
@@ -98,6 +102,44 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
   const [testNotificationCountdown, setTestNotificationCountdown] = useState<number>(0);
 
   const { unreadCount, registerUser } = useNotifications();
+
+  // State variables for In-App Notification Simulator
+  const [simTitle, setSimTitle] = useState<string>('');
+  const [simMessage, setSimMessage] = useState<string>('');
+  const [simType, setSimType] = useState<string>('application');
+  const [simPriority, setSimPriority] = useState<'high' | 'medium' | 'low'>('medium');
+  const [isSimulating, setIsSimulating] = useState<boolean>(false);
+
+  const triggerSimulation = async (preset?: { title: string; message: string; type: string; priority: 'high' | 'medium' | 'low' }) => {
+    setIsSimulating(true);
+    try {
+      const payload = preset || {
+        title: simTitle || 'Custom Notification Triggered',
+        message: simMessage || 'This is a custom real-time notification payload.',
+        type: simType,
+        priority: simPriority,
+      };
+
+      await apiCreateNotification({
+        title: payload.title,
+        message: payload.message,
+        type: payload.type,
+        priority: payload.priority,
+        userId: currentUser?.email || 'candidate_user',
+        recipientRole: 'candidate'
+      });
+
+      // Clear custom fields if triggered custom
+      if (!preset) {
+        setSimTitle('');
+        setSimMessage('');
+      }
+    } catch (err) {
+      console.error('Failed to trigger simulated notification:', err);
+    } finally {
+      setIsSimulating(false);
+    }
+  };
 
   // Automatically register device FCM token with backend
   useEffect(() => {
@@ -516,11 +558,15 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
     }
   };
 
-  // Live simulation tickers
+  // Register user reactively when session resolves
   useEffect(() => {
     const userEmail = currentUser?.email || "anonymous";
-    registerUser(userEmail, "candidate");
+    const userRole = (currentUser?.role?.toLowerCase() as 'admin' | 'candidate' | 'recruiter') || 'candidate';
+    registerUser(userEmail, userRole);
+  }, [currentUser?.email, currentUser?.role, registerUser]);
 
+  // Live simulation tickers
+  useEffect(() => {
     const wsInterval = setInterval(() => {
       const logs = [
         `TICKER: Ledger sealed block #${Math.floor(Math.random() * 100000)}`,
@@ -652,14 +698,7 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
           >
             <Menu size={16} />
           </button>
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-gradient-to-br from-orange-500 to-indigo-600 rounded-lg shadow-md shrink-0">
-              <Sparkles size={12} className="text-white animate-pulse" />
-            </div>
-            <div>
-              <span className="font-extrabold text-[11px] tracking-tight block uppercase bg-gradient-to-r from-orange-500 to-indigo-500 bg-clip-text text-transparent">DS TECH HUB</span>
-            </div>
-          </div>
+          <Logo showText={true} size="xs" variant={isDarkMode ? 'light' : 'dark'} className="ml-1 shrink-0" />
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -704,15 +743,7 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
               {/* Drawer Header */}
               <div className="p-4 border-b flex flex-col gap-3 relative">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="p-2 bg-gradient-to-br from-orange-500 to-indigo-600 rounded-xl shadow-md">
-                      <Sparkles size={14} className="text-white animate-pulse" />
-                    </div>
-                    <div>
-                      <h2 className="font-black text-xs tracking-wider uppercase bg-gradient-to-r from-orange-400 to-indigo-400 bg-clip-text text-transparent">DS TECH HUB</h2>
-                      <p className="text-[8px] text-slate-400 font-bold uppercase tracking-wider">DS Tech & Digital Agency</p>
-                    </div>
-                  </div>
+                  <Logo showText={true} size="sm" variant={isDarkMode ? 'light' : 'dark'} className="text-left" />
                   <button
                     onClick={() => setIsMobileNavOpen(false)}
                     className={`p-1.5 rounded-lg border transition-all ${isDarkMode ? 'border-slate-800 hover:bg-slate-800 text-slate-400' : 'border-slate-200 hover:bg-slate-100 text-slate-500'}`}
@@ -875,15 +906,7 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
         {/* Sidebar Header */}
         <div className="p-4 border-b flex flex-col gap-3 relative">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-gradient-to-br from-orange-500 to-indigo-600 rounded-xl shadow-md">
-                <Sparkles size={16} className="text-white animate-pulse" />
-              </div>
-              <div>
-                <h2 className="font-black text-xs tracking-wider uppercase bg-gradient-to-r from-orange-400 to-indigo-400 bg-clip-text text-transparent">DS TECH HUB</h2>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest">DS Tech & Digital Agency</p>
-              </div>
-            </div>
+            <Logo showText={true} size="sm" variant={isDarkMode ? 'light' : 'dark'} className="text-left" />
           </div>
 
           {/* Global Search across all pages */}
@@ -1025,6 +1048,23 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
           })}
         </div>
 
+        {/* User profile card at the bottom of the sidebar */}
+        <div className={`p-3 border-t flex items-center gap-3 ${isDarkMode ? 'border-slate-800 bg-slate-950/25' : 'border-slate-200 bg-slate-100/25'}`}>
+          <div className="relative w-10 h-10 rounded-full overflow-hidden border border-indigo-500/30 shrink-0 bg-gradient-to-br from-indigo-950 to-slate-900 flex items-center justify-center">
+            {currentUser?.profilePhoto ? (
+              <img src={currentUser.profilePhoto} alt="User profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            ) : (
+              <span className="text-xs font-black text-white">
+                {currentUser?.fullName ? currentUser.fullName.substring(0, 2).toUpperCase() : 'DS'}
+              </span>
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className={`text-xs font-black truncate ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>{currentUser?.fullName}</p>
+            <p className={`text-[9px] font-bold uppercase tracking-wider truncate ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>{currentUser?.role || 'Candidate'}</p>
+          </div>
+        </div>
+
         {/* Real-time WebSockets Monitor Log Footer */}
         <div className={`p-3 border-t ${isDarkMode ? 'bg-slate-950/60' : 'bg-slate-100'}`}>
           <div className="flex items-center justify-between mb-1.5 text-[8px] font-black uppercase tracking-widest text-emerald-400">
@@ -1045,7 +1085,7 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
         
         {/* GLOBAL CONTEXT / META BAR */}
-        <header className={`p-4 border-b flex items-center justify-between ${isDarkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'} sticky top-0 z-30 backdrop-blur-md`}>
+        <header className={`p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${isDarkMode ? 'bg-slate-900/60 border-slate-800' : 'bg-white border-slate-200'} md:sticky md:top-0 z-30 backdrop-blur-md`}>
           <div className="flex items-center gap-3">
             {/* Back button */}
             {pageHistory.length > 1 && (
@@ -1152,14 +1192,25 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
               <div className="relative rounded-2xl bg-gradient-to-br from-[#02102e] via-[#02163b] to-slate-950 text-white p-6 border border-indigo-950 overflow-hidden shadow-xl">
                 <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-gradient-to-br from-orange-500/10 to-transparent rounded-full filter blur-3xl pointer-events-none" />
                 <div className="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div className="space-y-1">
-                    <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-orange-500/15 text-orange-400 border border-orange-500/20 mb-1.5">
-                      <Sparkles size={10} /> 2026 Executive Intel
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="relative w-16 h-16 rounded-full overflow-hidden border-2 border-indigo-500/30 bg-gradient-to-br from-indigo-950 to-slate-900 flex items-center justify-center shrink-0">
+                      {currentUser?.profilePhoto ? (
+                        <img src={currentUser.profilePhoto} alt="User profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      ) : (
+                        <span className="text-lg font-black text-white">
+                          {currentUser?.fullName ? currentUser.fullName.substring(0, 2).toUpperCase() : 'DS'}
+                        </span>
+                      )}
                     </div>
-                    <h2 className="text-xl font-black tracking-tight">Welcome, {currentUser?.fullName || 'Ngozi Balogun'}</h2>
-                    <p className="text-slate-400 text-[11px] max-w-xl">
-                      Your autonomous security key is validated on local D1 Node hashes. This premium cockpit manages 25 specialized engines to coordinate your DS Tech career pathway.
-                    </p>
+                    <div className="space-y-1">
+                      <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-orange-500/15 text-orange-400 border border-orange-500/20 mb-1.5">
+                        <Sparkles size={10} /> 2026 Executive Intel
+                      </div>
+                      <h2 className="text-xl font-black tracking-tight">Welcome, {currentUser?.fullName || 'Ngozi Balogun'}</h2>
+                      <p className="text-slate-400 text-[11px] max-w-xl">
+                        Your autonomous security key is validated on local D1 Node hashes. This premium cockpit manages 25 specialized engines to coordinate your DS Tech career pathway.
+                      </p>
+                    </div>
                   </div>
                   <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col justify-between shrink-0 min-w-[200px]">
                     <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Overall Profile Rank</span>
@@ -1560,6 +1611,7 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
               currentUser={currentUser}
               isDarkMode={isDarkMode}
               setIsDarkMode={setIsDarkMode}
+              onProfileUpdated={onProfileUpdated}
             />
           )}
 
@@ -1592,7 +1644,7 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
               </div>
 
               {/* Status and Action Panel */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 
                 {/* FCM Token Generation Card */}
                 <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-5 space-y-4">
@@ -1743,6 +1795,157 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
                         </>
                       )}
                     </button>
+                  </div>
+                </div>
+
+                {/* In-App Notification Simulator & Sandbox */}
+                <div className="bg-slate-900/60 border border-white/10 rounded-2xl p-5 space-y-4 md:col-span-2 lg:col-span-1 text-left">
+                  <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+                    <Sparkles size={16} className="text-indigo-400 animate-pulse" />
+                    <h4 className="font-extrabold text-xs uppercase text-slate-200">Real-Time In-App Sandbox</h4>
+                  </div>
+
+                  <p className="text-slate-400 leading-relaxed text-[11px]">
+                    Simulate real-time application workflow events pushing directly into your notification feed. Choose a quick preset or trigger a custom message.
+                  </p>
+
+                  <div className="space-y-3 text-slate-300">
+                    {/* Presets Grid */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        onClick={() => triggerSimulation({
+                          title: "Technical Interview invitation 📅",
+                          message: "The Advanced React Architect panel requested a live Zoom session. Schedule slot now.",
+                          type: "interview",
+                          priority: "high"
+                        })}
+                        disabled={isSimulating}
+                        className="p-2 bg-purple-950/40 border border-purple-800/30 hover:border-purple-600/50 hover:bg-purple-950/60 rounded-xl text-left text-purple-300 text-[10px] font-bold transition flex flex-col gap-1 cursor-pointer"
+                      >
+                        <span className="uppercase text-[8px] tracking-wider text-purple-400">📅 Interview</span>
+                        <span className="truncate">Interview Call</span>
+                      </button>
+
+                      <button
+                        onClick={() => triggerSimulation({
+                          title: "Credential Sync Completed 🏆",
+                          message: "Ahmadu Bello University verified diploma secured on DS Tech's Hedera Hashgraph ledger.",
+                          type: "achievement",
+                          priority: "high"
+                        })}
+                        disabled={isSimulating}
+                        className="p-2 bg-yellow-950/40 border border-yellow-800/30 hover:border-yellow-600/50 hover:bg-yellow-950/60 rounded-xl text-left text-yellow-300 text-[10px] font-bold transition flex flex-col gap-1 cursor-pointer"
+                      >
+                        <span className="uppercase text-[8px] tracking-wider text-yellow-400">🏆 Achievement</span>
+                        <span className="truncate">Credential Locked</span>
+                      </button>
+
+                      <button
+                        onClick={() => triggerSimulation({
+                          title: "New AI Course recommendation 🎓",
+                          message: "Improve your match score by taking the advanced FIDO2/WebAuthn secure engineering module.",
+                          type: "course",
+                          priority: "medium"
+                        })}
+                        disabled={isSimulating}
+                        className="p-2 bg-cyan-950/40 border border-cyan-800/30 hover:border-cyan-600/50 hover:bg-cyan-950/60 rounded-xl text-left text-cyan-300 text-[10px] font-bold transition flex flex-col gap-1 cursor-pointer"
+                      >
+                        <span className="uppercase text-[8px] tracking-wider text-cyan-400">📚 Course</span>
+                        <span className="truncate">AI Skill Gap</span>
+                      </button>
+
+                      <button
+                        onClick={() => triggerSimulation({
+                          title: "FIDO2 Enclave Synchronized ✅",
+                          message: "WebAuthn cryptographic keys verified and securely stored in your browser's TPM enclave.",
+                          type: "success",
+                          priority: "low"
+                        })}
+                        disabled={isSimulating}
+                        className="p-2 bg-emerald-950/40 border border-emerald-800/30 hover:border-emerald-600/50 hover:bg-emerald-950/60 rounded-xl text-left text-emerald-300 text-[10px] font-bold transition flex flex-col gap-1 cursor-pointer"
+                      >
+                        <span className="uppercase text-[8px] tracking-wider text-emerald-400">✅ Success</span>
+                        <span className="truncate">Enclave Synced</span>
+                      </button>
+                    </div>
+
+                    <div className="relative flex py-1 items-center">
+                      <div className="flex-grow border-t border-slate-800"></div>
+                      <span className="flex-shrink mx-2 text-slate-500 text-[8px] font-bold uppercase">Or Custom Trigger</span>
+                      <div className="flex-grow border-t border-slate-800"></div>
+                    </div>
+
+                    {/* Custom Form */}
+                    <div className="space-y-2">
+                      <div className="space-y-1">
+                        <input
+                          type="text"
+                          placeholder="Notification Title (e.g., Offer Letter)"
+                          value={simTitle}
+                          onChange={(e) => setSimTitle(e.target.value)}
+                          className="w-full bg-black/40 border border-slate-750 rounded-xl px-3 py-1.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <textarea
+                          placeholder="Notification message content..."
+                          value={simMessage}
+                          onChange={(e) => setSimMessage(e.target.value)}
+                          rows={2}
+                          className="w-full bg-black/40 border border-slate-750 rounded-xl px-3 py-1.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500 resize-none"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-1">
+                          <select
+                            value={simType}
+                            onChange={(e) => setSimType(e.target.value)}
+                            className="w-full bg-black/40 border border-slate-750 rounded-xl px-2.5 py-1.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500"
+                          >
+                            <option value="success">Success</option>
+                            <option value="warning">Warning</option>
+                            <option value="error">Error</option>
+                            <option value="application">Application</option>
+                            <option value="interview">Interview</option>
+                            <option value="course">Course</option>
+                            <option value="achievement">Achievement</option>
+                            <option value="info">Info</option>
+                          </select>
+                        </div>
+
+                        <div className="space-y-1">
+                          <select
+                            value={simPriority}
+                            onChange={(e) => setSimPriority(e.target.value as any)}
+                            className="w-full bg-black/40 border border-slate-750 rounded-xl px-2.5 py-1.5 text-[10px] text-slate-300 focus:outline-none focus:border-indigo-500"
+                          >
+                            <option value="high">High Priority</option>
+                            <option value="medium">Medium Priority</option>
+                            <option value="low">Low Priority</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => triggerSimulation()}
+                        disabled={isSimulating}
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-extrabold uppercase rounded-xl transition flex items-center justify-center gap-1 text-[10px] cursor-pointer"
+                      >
+                        {isSimulating ? (
+                          <>
+                            <RefreshCw size={11} className="animate-spin" />
+                            <span>Injecting Event...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send size={11} />
+                            <span>Inject Test Notification</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -2495,6 +2698,9 @@ export const CandidateEnterpriseDashboard: React.FC<CandidateEnterpriseDashboard
         onClose={() => setIsNotifCenterOpen(false)} 
         role="candidate" 
       />
+
+      {/* Floating real-time SSE WhatsApp-style chat widget */}
+      <RealTimeChat currentUser={currentUser} isDarkMode={isDarkMode} />
 
     </div>
   );

@@ -213,6 +213,32 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       try {
         const data = JSON.parse(event.data);
         
+        // Handle real-time chat SSE updates
+        if (data.type === 'chat' || data.type === 'chat_read') {
+          // Dispatch a custom event globally so chat widgets can update their messages array
+          window.dispatchEvent(new CustomEvent('realtime-sync', { detail: data }));
+
+          // If a new message is received (not sent by this client) and chat is minimized, show a Toast
+          if (data.type === 'chat' && data.data) {
+            const msg = data.data;
+            const isMe = msg.senderId === userIdRef.current;
+            const isTargetAdmin = msg.receiverId === 'admin' && userRoleRef.current === 'admin';
+            const isTargetUser = msg.receiverId === userIdRef.current;
+
+            if (!isMe && (isTargetAdmin || isTargetUser)) {
+              // Only toast if chat drawer isn't currently open (we can set a flag on window.isChatActive)
+              if (!(window as any).isChatActive) {
+                addToast({
+                  title: `Message from ${msg.senderName}`,
+                  message: msg.message.length > 60 ? msg.message.substring(0, 60) + '...' : msg.message,
+                  type: "info",
+                  priority: "medium"
+                });
+              }
+            }
+          }
+        }
+        
         // Trigger a global state update for any data synchronization events
         if (data.type === 'NOTIFICATIONS_UPDATED' || data.type?.includes('SYNC') || data.type?.includes('CREATED') || data.type?.includes('UPDATED') || data.type?.includes('DELETED')) {
           refreshNotificationsList();

@@ -676,6 +676,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
               onLogout={handleLogout}
               isDarkMode={isDarkMode}
               setIsDarkMode={setIsDarkMode}
+              onProfileUpdated={(updatedUser) => {
+                setCurrentUser(updatedUser);
+              }}
             />
           )}
         </AnimatePresence>

@@ -25,6 +25,7 @@ import { ApplicationQRScanner } from './ApplicationQRScanner';
 import { CareersFormPDFView } from './CareersFormPDFView';
 import { BrevoEmailDashboard } from './BrevoEmailDashboard';
 import { AdminAuthGate } from './AdminAuthGate';
+import { AdminChatCenter } from './AdminChatCenter';
 
 import { 
   SERVICES, 
@@ -123,7 +124,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   }, [candidateAnalyses]);
 
   // Super Admin Control Center State
-  const [adminModule, setAdminModule] = useState<'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'emails'>('recruitment');
+  const [adminModule, setAdminModule] = useState<'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'emails' | 'chat'>('recruitment');
   
   // Custom navigation header states
   const [isThreeDotsOpen, setIsThreeDotsOpen] = useState<boolean>(false);
@@ -2036,6 +2037,7 @@ export default {
       group: 'Talent Acquisition',
       items: [
         { id: 'recruitment', label: 'Recruitment', icon: Briefcase, count: applications.length },
+        { id: 'chat', label: 'WhatsApp Live Chat', icon: MessageSquare },
       ]
     },
     {
@@ -2299,6 +2301,7 @@ export default {
                 </div>
                 <h1 className="text-lg sm:text-2xl font-extrabold text-[#000E32] dark:text-white uppercase tracking-wide leading-tight break-words">
                   {adminModule === 'recruitment' ? 'Recruitment Console' :
+                   adminModule === 'chat' ? 'WhatsApp Real-Time Chat Center' :
                    adminModule === 'website' ? 'Website Catalog Console' :
                    adminModule === 'portfolio' ? 'Portfolio Case Studies' :
                    adminModule === 'blog' ? 'Insights Blog Node' :
@@ -2309,6 +2312,7 @@ export default {
                 </h1>
                 <p className="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs leading-relaxed max-w-2xl font-medium">
                   {adminModule === 'recruitment' ? 'Filter and manage applicants, schedule dynamic multi-modal video screening nodes, and dispatch cryptographic WebAuthn challenges.' :
+                   adminModule === 'chat' ? 'Communicate with active candidates in real-time using secure edge Server-Sent Events, voice synthesis, and image attachment channels.' :
                    adminModule === 'website' ? 'Coordinate published landing-page catalog service structures, capabilities matrix definitions, and structural database rows.' :
                    adminModule === 'portfolio' ? 'Review published case study lists, developer profiles, technology matrices, and localized catalog assets.' :
                    adminModule === 'blog' ? 'Compose industry perspectives, tech journals, structural updates, and draft candidate learning items.' :
@@ -5199,6 +5203,10 @@ export default {
 
       {adminModule === 'emails' && (
         <BrevoEmailDashboard />
+      )}
+
+      {adminModule === 'chat' && (
+        <AdminChatCenter />
       )}
 
       {/* Dynamic QR Code scanner modal */}
