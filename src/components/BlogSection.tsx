@@ -170,7 +170,7 @@ export const BlogSection: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2 pt-6 border-t border-slate-200 dark:border-slate-800">
             <Tag size={12} className="text-slate-400" />
             {readingPost.tags.map((t, i) => (
-              <span key={i} className="px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase rounded-xl">
+              <span key={i} className="px-2.5 py-1 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase rounded-xl">
                 #{t}
               </span>
             ))}
@@ -310,7 +310,7 @@ export const BlogSection: React.FC = () => {
                   className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${
                     selectedCategory === cat
                       ? 'bg-[#000E32] dark:bg-orange-600 text-white shadow-md'
-                      : 'bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-800/60'
+                      : 'bg-white dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-800/60'
                   }`}
                 >
                   {cat === 'all' ? 'All Articles' : cat}
@@ -321,7 +321,7 @@ export const BlogSection: React.FC = () => {
 
           {/* Feed Grid */}
           {filteredPosts.length === 0 ? (
-            <div className="py-16 text-center space-y-2 bg-slate-50 dark:bg-slate-900/35 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+            <div className="py-16 text-center space-y-2 bg-white dark:bg-slate-900/35 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
               <BookOpen size={30} className="mx-auto text-slate-400 animate-pulse" />
               <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">No articles found</p>
             </div>
@@ -359,7 +359,7 @@ export const BlogSection: React.FC = () => {
                   <div className="p-6 sm:w-2/3 text-left flex flex-col justify-between space-y-4">
                     <div className="space-y-2">
                       <div className="flex justify-between items-center text-[9px] font-bold text-slate-400">
-                        <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-indigo-500 dark:text-indigo-400 rounded uppercase">
+                        <span className="px-2 py-0.5 bg-white dark:bg-slate-800 text-indigo-500 dark:text-indigo-400 rounded uppercase">
                           {post.category}
                         </span>
                         <span>{post.readTime}</span>

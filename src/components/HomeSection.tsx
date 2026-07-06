@@ -316,7 +316,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
       </section>
 
       {/* 4. WHY CHOOSE US */}
-      <section className="bg-slate-100/50 dark:bg-slate-900/50 py-16 border-y border-slate-200/30 dark:border-slate-800/40">
+      <section className="bg-white dark:bg-slate-900/50 py-16 border-y border-slate-200 dark:border-slate-800/40">
         <div className="max-w-6xl mx-auto px-6 space-y-12">
           <div className="text-center space-y-3">
             <span className="text-orange-500 text-xs uppercase tracking-widest font-black">{t.whyBrandsTrustSub}</span>
@@ -345,7 +345,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                 {/* Modern AI Indicator Line on hover */}
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-amber-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
                 
-                <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center group-hover:scale-110 group-hover:bg-orange-500/10 group-hover:text-orange-500 transition-all duration-300">
+                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center group-hover:scale-110 group-hover:bg-orange-500/10 group-hover:text-orange-500 transition-all duration-300">
                   {feat.icon}
                 </div>
                 <div className="space-y-1">
@@ -557,7 +557,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                     required
                     value={bookingName}
                     onChange={(e) => setBookingName(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
                     placeholder="e.g. David Alao"
                   />
                 </div>
@@ -568,7 +568,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                     required
                     value={bookingEmail}
                     onChange={(e) => setBookingEmail(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
                     placeholder="david@example.com"
                   />
                 </div>
@@ -577,7 +577,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                   <select 
                     value={bookingService}
                     onChange={(e) => setBookingService(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
                   >
                     <option value="Digital Marketing">{language === 'zh' ? '数字营销与广告投放' : 'Digital Marketing & Social Ads'}</option>
                     <option value="Web & Software">{language === 'zh' ? '网站及应用软件开发' : 'Website & Software Development'}</option>

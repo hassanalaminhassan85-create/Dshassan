@@ -1516,11 +1516,11 @@ export default {
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 text-[10px] text-slate-500 font-mono">
-            <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-lg border border-slate-200">
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-white rounded-lg border border-slate-200">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               Teacher: Professor Al-Amin
             </span>
-            <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-lg border border-slate-200">
+            <span className="flex items-center gap-1.5 px-3 py-1 bg-white rounded-lg border border-slate-200">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
               Student: Kofi
             </span>
@@ -1538,7 +1538,7 @@ export default {
 
             <button
               onClick={handleDownloadFullMarkdownWorkbook}
-              className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+              className="px-4 py-3 bg-white hover:bg-slate-200 text-slate-700 border border-slate-300 font-bold rounded-xl text-xs uppercase tracking-wider flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
               title="Download Markdown Study Guide"
             >
               <Download size={13} />
@@ -1564,7 +1564,7 @@ export default {
                 Welcome to your first lesson, Kofi! In traditional web development, relational databases are bulky, centralized servers located in a single geographical region. If our server is in Lagos, a student accessing the platform in London or New York will experience high network latency. 
               </p>
               <p className="text-slate-700 mt-2">
-                To solve this, Cloudflare D1 replicates read-only nodes of our <strong>SQLite database</strong> across hundreds of edge location data centers globally. Let's provision our instance! Go to your Cloudflare Dashboard, select <strong>Workers & Pages</strong> on the sidebar, head to <strong>D1</strong>, and click <strong>"Create database"</strong>. Enter the name <code className="bg-slate-100 px-1 py-0.5 rounded text-indigo-600 font-mono text-[11px]">hassan-portal-db</code> and click Create.
+                To solve this, Cloudflare D1 replicates read-only nodes of our <strong>SQLite database</strong> across hundreds of edge location data centers globally. Let's provision our instance! Go to your Cloudflare Dashboard, select <strong>Workers & Pages</strong> on the sidebar, head to <strong>D1</strong>, and click <strong>"Create database"</strong>. Enter the name <code className="bg-white px-1 py-0.5 rounded text-indigo-600 font-mono text-[11px]">hassan-portal-db</code> and click Create.
               </p>
             </div>
           </div>
@@ -1588,7 +1588,7 @@ export default {
             <div>
               <p className="font-bold text-amber-800 text-xs mb-0.5">Professor Hassan Al-Amin</p>
               <p className="text-slate-700">
-                A stellar question, Kofi! We use the automated SQL schema seed generator built into our admin dashboard. It scans our current memory state, compiles the exact tables (<code className="bg-slate-100 px-1 py-0.5 rounded text-indigo-600 font-mono text-[11px]">admin_services</code>, <code className="bg-slate-100 px-1 py-0.5 rounded text-indigo-600 font-mono text-[11px]">admin_portfolio_projects</code>, etc.), and generates optimized SQLite <code className="bg-slate-100 px-1.5 py-0.5 rounded text-emerald-600 font-mono text-[11px]">INSERT INTO</code> statements. 
+                A stellar question, Kofi! We use the automated SQL schema seed generator built into our admin dashboard. It scans our current memory state, compiles the exact tables (<code className="bg-white px-1 py-0.5 rounded text-indigo-600 font-mono text-[11px]">admin_services</code>, <code className="bg-white px-1 py-0.5 rounded text-indigo-600 font-mono text-[11px]">admin_portfolio_projects</code>, etc.), and generates optimized SQLite <code className="bg-white px-1.5 py-0.5 rounded text-emerald-600 font-mono text-[11px]">INSERT INTO</code> statements. 
               </p>
               <p className="text-slate-700 mt-2">
                 Download this SQL file using the button below and execute it inside the Cloudflare console, or run the following Wrangler commands in your terminal:
@@ -1603,7 +1603,7 @@ export default {
           </div>
 
           {/* Action Download Row */}
-          <div className="p-4 bg-slate-100 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
+          <div className="p-4 bg-white border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
             <div className="text-left">
               <h5 className="font-bold text-slate-800 text-xs uppercase font-mono tracking-wide flex items-center gap-1.5">
                 <Database size={12} className="text-emerald-600" />
@@ -1664,13 +1664,13 @@ export default {
               <p className="text-slate-700 mt-2">
                 Follow this exact masterclass sequence to export and compile:
               </p>
-              <ol className="list-decimal list-inside space-y-2 mt-2 pl-1.5 text-slate-700 text-xs bg-slate-50 p-3 rounded-lg border border-slate-200">
+              <ol className="list-decimal list-inside space-y-2 mt-2 pl-1.5 text-slate-700 text-xs bg-white p-3 rounded-lg border border-slate-200">
                 <li>Go to the top header settings or export menu in Google AI Studio, select <strong>"Export as ZIP"</strong>, and save it.</li>
                 <li>Unzip the downloaded file on your computer and open a terminal inside that folder.</li>
-                <li>Verify your <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-cyan-600">package.json</code> contains all framework dependencies and run <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-[10px]">npm install</code>.</li>
-                <li>Run <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-[10px]">npm run build</code>. Vite will compile, tree-shake, and optimize all React hooks and Tailwind utility variables, producing a production-ready static directory named <code className="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-indigo-600">dist/</code>.</li>
+                <li>Verify your <code className="bg-white px-1 py-0.5 rounded font-mono text-cyan-600">package.json</code> contains all framework dependencies and run <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-[10px]">npm install</code>.</li>
+                <li>Run <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-[10px]">npm run build</code>. Vite will compile, tree-shake, and optimize all React hooks and Tailwind utility variables, producing a production-ready static directory named <code className="bg-white px-1.5 py-0.5 rounded font-mono text-indigo-600">dist/</code>.</li>
                 <li>Log in to your Cloudflare Dashboard, select <strong>Workers & Pages</strong>, click <strong>"Create application"</strong>, choose <strong>Pages</strong>, and select <strong>"Direct Upload"</strong>.</li>
-                <li>Give your project a name like <code className="bg-slate-100 px-1 py-0.5 rounded text-cyan-600 font-mono text-[10px]">hassan-agency</code> and simply drag and drop the whole <code className="bg-slate-100 px-1.5 py-0.5 rounded font-mono text-indigo-600">dist/</code> folder!</li>
+                <li>Give your project a name like <code className="bg-white px-1 py-0.5 rounded text-cyan-600 font-mono text-[10px]">hassan-agency</code> and simply drag and drop the whole <code className="bg-white px-1.5 py-0.5 rounded font-mono text-indigo-600">dist/</code> folder!</li>
               </ol>
             </div>
           </div>
@@ -1688,7 +1688,7 @@ export default {
           </div>
 
           {/* Action Download Row */}
-          <div className="p-4 bg-slate-100 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
+          <div className="p-4 bg-white border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
             <div className="text-left">
               <h5 className="font-bold text-slate-800 text-xs uppercase font-mono tracking-wide flex items-center gap-1.5">
                 <FileText size={12} className="text-indigo-600" />
@@ -1736,19 +1736,19 @@ export default {
               </p>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 my-3">
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <div className="p-3 bg-white border border-slate-200 rounded-lg">
                   <span className="font-bold text-amber-700 text-[10px] uppercase font-mono block">1. Local Storage Event Sync</span>
                   <p className="text-[10px] text-slate-600 mt-1 leading-relaxed">
                     Inside the same browser (e.g. multi-tab management), React subscribes to the <code className="text-red-600 font-mono text-[9px]">storage</code> event. When Tab A updates local records, Tab B automatically intercepts the event and triggers a full state hydration instantly!
                   </p>
                 </div>
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <div className="p-3 bg-white border border-slate-200 rounded-lg">
                   <span className="font-bold text-blue-700 text-[10px] uppercase font-mono block">2. Worker long polling sync</span>
                   <p className="text-[10px] text-slate-600 mt-1 leading-relaxed">
                     Mobile clients set up a reactive <code className="text-indigo-600 font-mono text-[9px]">useEffect</code> loop that polls the live SQLite worker every 30 seconds, downloading delta states and replacing the cached structures seamlessly.
                   </p>
                 </div>
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
+                <div className="p-3 bg-white border border-slate-200 rounded-lg">
                   <span className="font-bold text-emerald-700 text-[10px] uppercase font-mono block">3. Server-Sent Events (SSE)</span>
                   <p className="text-[10px] text-slate-600 mt-1 leading-relaxed">
                     Cloudflare Workers open an active HTTP stream with clients. When D1 updates a record, it broadcasts a push frame to all listening phones and tablets, triggering immediate UI state replacement!
@@ -1775,7 +1775,7 @@ export default {
           </div>
 
           {/* Action Download Row */}
-          <div className="p-4 bg-slate-100 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
+          <div className="p-4 bg-white border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
             <div className="text-left">
               <h5 className="font-bold text-slate-800 text-xs uppercase font-mono tracking-wide flex items-center gap-1.5">
                 <Sparkles size={12} className="text-blue-600 animate-pulse" />
@@ -1827,16 +1827,16 @@ database_id = "60ce292c-a702-401c-891c-400e80a75828" # Put your unique D1 UUID h
             <div>
               <p className="font-bold text-amber-800 text-xs mb-0.5">Professor Hassan Al-Amin</p>
               <p className="text-slate-700">
-                Pay extreme attention here, Kofi! The <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[11px] text-red-600">binding = "DB"</code> variable is the most critical element. When your edge worker starts up, Cloudflare automatically injects a fully authorized SQLite client into your running server context as <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[11px] text-cyan-600">env.DB</code>. 
+                Pay extreme attention here, Kofi! The <code className="bg-white px-1 py-0.5 rounded font-mono text-[11px] text-red-600">binding = "DB"</code> variable is the most critical element. When your edge worker starts up, Cloudflare automatically injects a fully authorized SQLite client into your running server context as <code className="bg-white px-1 py-0.5 rounded font-mono text-[11px] text-cyan-600">env.DB</code>. 
               </p>
               <p className="text-slate-700 mt-2">
-                This enables you to issue raw sql commands such as <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[11px] text-slate-800">env.DB.prepare("SELECT * FROM admin_services").all()</code> securely. It prevents any hacker or external client from viewing your database credentials, as there are no database connection string secrets or passwords exposed to the public frontend!
+                This enables you to issue raw sql commands such as <code className="bg-white px-1 py-0.5 rounded font-mono text-[11px] text-slate-800">env.DB.prepare("SELECT * FROM admin_services").all()</code> securely. It prevents any hacker or external client from viewing your database credentials, as there are no database connection string secrets or passwords exposed to the public frontend!
               </p>
             </div>
           </div>
 
           {/* Action Download Row */}
-          <div className="p-4 bg-slate-100 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
+          <div className="p-4 bg-white border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
             <div className="text-left">
               <h5 className="font-bold text-slate-800 text-xs uppercase font-mono tracking-wide flex items-center gap-1.5">
                 <FileText size={12} className="text-emerald-600" />
@@ -1871,7 +1871,7 @@ database_id = "60ce292c-a702-401c-891c-400e80a75828" # Put your unique D1 UUID h
                 Now, Kofi, let's write our actual Cloudflare Worker logic! We need an edge route handler that serves database queries and coordinates cross-device requests. By using a Worker, our database calls execute instantly in under 5 milliseconds from any country!
               </p>
               <p className="text-slate-700 mt-2">
-                Here is the complete production-grade Worker script in TypeScript. Copy and save it as <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-cyan-600 text-[11px]">index.ts</code> in your worker source folder:
+                Here is the complete production-grade Worker script in TypeScript. Copy and save it as <code className="bg-white px-1 py-0.5 rounded font-mono text-cyan-600 text-[11px]">index.ts</code> in your worker source folder:
               </p>
             </div>
           </div>
@@ -1925,7 +1925,7 @@ export default {
           </pre>
 
           {/* Action Download Row */}
-          <div className="p-4 bg-slate-100 border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
+          <div className="p-4 bg-white border border-slate-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-sm">
             <div className="text-left">
               <h5 className="font-bold text-slate-800 text-xs uppercase font-mono tracking-wide flex items-center gap-1.5">
                 <Code size={12} className="text-indigo-600" />
@@ -1949,7 +1949,7 @@ export default {
       subtitle: "Academy graduation ceremonies and deployment checklist",
       type: "certification",
       content: (
-        <div className="flex flex-col items-center justify-center text-center p-4 sm:p-6 bg-slate-50 rounded-2xl border border-slate-200 relative overflow-hidden shadow-inner">
+        <div className="flex flex-col items-center justify-center text-center p-4 sm:p-6 bg-white rounded-2xl border border-slate-200 relative overflow-hidden shadow-inner">
           <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none" />
           
           <motion.div
@@ -1970,7 +1970,7 @@ export default {
             <p className="font-bold text-slate-500 uppercase tracking-wider text-[9px] mb-1.5 font-mono">My Deployment Checklist</p>
             <div className="flex items-start gap-2">
               <span className="text-emerald-600 font-mono font-bold">✓</span>
-              <span>Created a global Cloudflare D1 database instance named <code className="bg-slate-100 px-1 rounded font-mono text-[9px]">hassan-portal-db</code>.</span>
+              <span>Created a global Cloudflare D1 database instance named <code className="bg-white px-1 rounded font-mono text-[9px]">hassan-portal-db</code>.</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-emerald-600 font-mono font-bold">✓</span>
@@ -2071,7 +2071,7 @@ export default {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 flex">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 flex">
       
       {/* 1. DESKTOP PERMANENT SIDEBAR & MOBILE SLIDEOUT SIDEBAR */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#000E32] text-white flex flex-col justify-between border-r border-blue-900/40 shadow-2xl transition-transform duration-300 ease-in-out md:translate-x-0 ${
@@ -2330,7 +2330,7 @@ export default {
               <div className="relative">
                 <button
                   onClick={() => setIsAdminLangDropdownOpen(!isAdminLangDropdownOpen)}
-                  className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-transparent flex items-center gap-1.5 text-xs font-black cursor-pointer"
+                  className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-transparent flex items-center gap-1.5 text-xs font-black cursor-pointer"
                 >
                   <Globe size={13} className="text-indigo-400" />
                   <span className="font-mono uppercase font-black">{language}</span>
@@ -2362,7 +2362,7 @@ export default {
               {/* Theme Selector */}
               <button
                 onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-transparent cursor-pointer"
+                className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-transparent cursor-pointer"
                 title="Toggle Theme"
               >
                 {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
@@ -2374,7 +2374,7 @@ export default {
                 whileTap={{ scale: 0.95 }}
                 type="button"
                 onClick={() => setIsNotifCenterOpen(true)}
-                className="relative p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors border border-transparent shadow-sm shrink-0 flex items-center justify-center cursor-pointer"
+                className="relative p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors border border-transparent shadow-sm shrink-0 flex items-center justify-center cursor-pointer"
                 title="Notifications Center"
               >
                 <Bell size={14} />
@@ -2391,7 +2391,7 @@ export default {
                 whileTap={{ scale: 0.95 }}
                 type="button"
                 onClick={fetchApplications}
-                className="p-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors border border-transparent shadow-sm shrink-0 flex items-center justify-center cursor-pointer"
+                className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors border border-transparent shadow-sm shrink-0 flex items-center justify-center cursor-pointer"
                 title="Refresh Records"
               >
                 <RefreshCw size={14} />
@@ -2548,7 +2548,7 @@ export default {
               placeholder="Search by full name, email, phone number, or document ID..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#000E32]/10 focus:border-[#000E32] transition-all"
+              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#000E32]/10 focus:border-[#000E32] transition-all"
             />
           </div>
 
@@ -2557,7 +2557,7 @@ export default {
             <button
               type="button"
               onClick={handleExportCSV}
-              className="w-full md:w-auto py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors"
+              className="w-full md:w-auto py-2.5 px-4 bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors"
             >
               <FileSpreadsheet size={15} className="text-emerald-600" />
               Export Filtered CSV
@@ -2574,7 +2574,7 @@ export default {
 
           <div className="grid grid-cols-1 min-[480px]:grid-cols-3 sm:flex sm:flex-wrap gap-2.5 w-full sm:w-auto">
             {/* Status Filter */}
-            <div className="flex items-center justify-between sm:justify-start gap-2 bg-slate-50 border border-slate-250/60 px-2.5 py-1.5 rounded-xl">
+            <div className="flex items-center justify-between sm:justify-start gap-2 bg-white border border-slate-250/60 px-2.5 py-1.5 rounded-xl">
               <span className="text-[9px] uppercase font-black text-slate-400 whitespace-nowrap">Status</span>
               <select
                 value={statusFilter}
@@ -2589,7 +2589,7 @@ export default {
             </div>
 
             {/* Role Filter */}
-            <div className="flex items-center justify-between sm:justify-start gap-2 bg-slate-50 border border-slate-250/60 px-2.5 py-1.5 rounded-xl">
+            <div className="flex items-center justify-between sm:justify-start gap-2 bg-white border border-slate-250/60 px-2.5 py-1.5 rounded-xl">
               <span className="text-[9px] uppercase font-black text-slate-400 whitespace-nowrap">Position</span>
               <select
                 value={roleFilter}
@@ -2604,7 +2604,7 @@ export default {
             </div>
 
             {/* Academic/Education Filter */}
-            <div className="flex items-center justify-between sm:justify-start gap-2 bg-slate-50 border border-slate-250/60 px-2.5 py-1.5 rounded-xl">
+            <div className="flex items-center justify-between sm:justify-start gap-2 bg-white border border-slate-250/60 px-2.5 py-1.5 rounded-xl">
               <span className="text-[9px] uppercase font-black text-slate-400 whitespace-nowrap">Academic</span>
               <select
                 value={eduFilter}
@@ -2641,7 +2641,7 @@ export default {
         
         {/* Candidates Table/Cards List */}
         <div className={`${selectedApp ? 'md:col-span-4' : 'md:col-span-7'} bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm transition-all duration-300`}>
-          <div className="p-4 sm:p-5 border-b border-slate-100 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div className="p-4 sm:p-5 border-b border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <h3 className="font-extrabold text-[#000E32] text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
               <Users size={16} className="text-orange-500" />
               Applicant Profile Records ({filteredApps.length})
@@ -2671,7 +2671,7 @@ export default {
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="bg-slate-50 text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                    <tr className="bg-white text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100">
                       <th className="py-3.5 px-5">Candidate</th>
                       <th className="py-3.5 px-4">Applied Role</th>
                       <th className="py-3.5 px-4">Work Preferences</th>
@@ -2791,7 +2791,7 @@ export default {
                               <button
                                 onClick={() => onViewApplicant(app.id)}
                                 type="button"
-                                className="p-1.5 bg-slate-100 text-slate-700 hover:bg-[#000E32] hover:text-white rounded-lg transition-colors border border-slate-200 shadow-sm"
+                                className="p-1.5 bg-white text-slate-700 hover:bg-[#000E32] hover:text-white rounded-lg transition-colors border border-slate-200 shadow-sm"
                                 title="Review Rendered Documents & Print agreements"
                               >
                                 <Eye size={13} />
@@ -2880,7 +2880,7 @@ export default {
                       </div>
 
                       {/* Info grid */}
-                      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px] bg-slate-50/60 p-2.5 rounded-xl border border-slate-100 font-medium">
+                      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px] bg-white p-2.5 rounded-xl border border-slate-100 font-medium">
                         <div>
                           <span className="text-slate-400 font-bold block uppercase text-[8px] tracking-wider">Position</span>
                           <span className="text-[#000E32] font-bold line-clamp-1">{app.positionSkills?.majorRole || 'N/A'}</span>
@@ -2924,7 +2924,7 @@ export default {
                             whileTap={{ scale: 0.95 }}
                             onClick={() => onViewApplicant(app.id)}
                             type="button"
-                            className="py-1 px-2 bg-slate-100 hover:bg-[#000E32] text-slate-700 hover:text-white rounded-lg transition-colors border border-slate-200 flex items-center gap-1 font-bold text-[9px]"
+                            className="py-1 px-2 bg-white hover:bg-[#000E32] text-slate-700 hover:text-white rounded-lg transition-colors border border-slate-200 flex items-center gap-1 font-bold text-[9px]"
                           >
                             <Eye size={11} />
                             <span>Profile</span>
@@ -2980,7 +2980,7 @@ export default {
                   </div>
 
                   {/* Tab Selector for Actions, AI Insights, and PDF Form */}
-                  <div className="flex bg-slate-100 p-1 border-b border-slate-200">
+                  <div className="flex bg-white p-1 border-b border-slate-200">
                     <button
                       type="button"
                       onClick={() => setAdminDetailTab('actions')}
@@ -3011,13 +3011,13 @@ export default {
                   </div>
 
                   {adminDetailTab === 'pdf' ? (
-                    <div className="p-4 bg-slate-50 max-h-[75vh] overflow-y-auto space-y-4">
+                    <div className="p-4 bg-white max-h-[75vh] overflow-y-auto space-y-4">
                       <div className="border border-slate-300 rounded-2xl overflow-hidden shadow-sm bg-white p-2">
                         <CareersFormPDFView application={selectedApp} />
                       </div>
                     </div>
                   ) : adminDetailTab === 'ai' ? (
-                    <div className="p-6 bg-slate-50 max-h-[75vh] overflow-y-auto space-y-6 text-left scrollbar-thin">
+                    <div className="p-6 bg-white max-h-[75vh] overflow-y-auto space-y-6 text-left scrollbar-thin">
                       {/* Title & Badge */}
                       <div className="flex items-center justify-between border-b border-slate-200 pb-3">
                         <div className="flex items-center gap-2">
@@ -3248,7 +3248,7 @@ export default {
                     <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto text-left">
                       {/* Photo & Quick Overview Grid */}
                       <div className="flex gap-4 items-start pb-4 border-b border-slate-100">
-                        <div className="w-16 h-20 bg-slate-100 border border-slate-200 rounded-lg overflow-hidden p-0.5 flex-shrink-0 flex items-center justify-center">
+                        <div className="w-16 h-20 bg-white border border-slate-200 rounded-lg overflow-hidden p-0.5 flex-shrink-0 flex items-center justify-center">
                           {selectedApp.personalInfo?.passportPhoto ? (
                             <img src={selectedApp.personalInfo.passportPhoto} className="w-full h-full object-cover" alt="candidate" />
                           ) : (
@@ -3365,7 +3365,7 @@ export default {
                       </div>
 
                       {/* APPOINTMENT OFFER SPECIFICATIONS (For generating official appointment letter) */}
-                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200/80 space-y-4 text-xs">
+                      <div className="p-4 bg-white rounded-2xl border border-slate-200/80 space-y-4 text-xs">
                         <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
                           <Edit3 size={13} className="text-orange-500" />
                           <span className="font-extrabold text-[#000E32] uppercase text-[10px] tracking-wide">
@@ -3457,7 +3457,7 @@ export default {
                                 className={`py-1.5 px-2 rounded-lg text-[9.5px] font-bold text-left transition-all border ${
                                   selectedPreset === preset.id
                                     ? 'bg-[#000E32] text-white border-[#000E32]'
-                                    : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+                                    : 'bg-white hover:bg-white text-slate-700 border-slate-200'
                                 }`}
                               >
                                 {preset.label}
@@ -3526,13 +3526,13 @@ export default {
                           onChange={(e) => setAdminNotesText(e.target.value)}
                           rows={3}
                           placeholder="Add assessment highlights, verified references, interviews feedback, or background checks remarks..."
-                          className="w-full text-xs bg-slate-50 border border-slate-200 focus:border-[#000E32] rounded-xl p-3 text-slate-700 leading-relaxed font-medium placeholder-slate-400 focus:outline-none"
+                          className="w-full text-xs bg-white border border-slate-200 focus:border-[#000E32] rounded-xl p-3 text-slate-700 leading-relaxed font-medium placeholder-slate-400 focus:outline-none"
                         />
                         <button
                           onClick={() => handleUpdateStatus(selectedApp.id, selectedApp.status || 'pending')}
                           disabled={updatingId === selectedApp.id}
                           type="button"
-                          className="py-1.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-extrabold uppercase tracking-wide transition-colors float-right"
+                          className="py-1.5 px-4 bg-white hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-extrabold uppercase tracking-wide transition-colors float-right"
                         >
                           Save Notes Only
                         </button>
@@ -3548,7 +3548,7 @@ export default {
                           <button
                             onClick={() => handleExportJSON(selectedApp)}
                             type="button"
-                            className="py-1.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 flex items-center gap-1 transition-colors"
+                            className="py-1.5 px-3 bg-white hover:bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 flex items-center gap-1 transition-colors"
                             title="Download raw JSON Profile"
                           >
                             <Download size={11} />
@@ -3571,8 +3571,8 @@ export default {
               </motion.div>
               </div>
             ) : (
-              <div className="hidden md:block bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center text-slate-400 space-y-3.5">
-                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-350">
+              <div className="hidden md:block bg-white border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center text-slate-400 space-y-3.5">
+                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mx-auto text-slate-350">
                   <UserMinus size={20} />
                 </div>
                 <h4 className="text-xs font-bold uppercase tracking-widest text-[#000E32]">HR Action Console</h4>
@@ -3613,7 +3613,7 @@ export default {
             </div>
 
             {/* Document body viewport with real-time feedback */}
-            <div className="p-3 bg-slate-50 overflow-y-auto flex-1 text-left scrollbar-thin scrollbar-thumb-slate-300">
+            <div className="p-3 bg-white overflow-y-auto flex-1 text-left scrollbar-thin scrollbar-thumb-slate-300">
               <div className="bg-white border border-slate-200 rounded-2xl p-1.5 shadow-sm scale-[0.98] origin-top">
                 <CareersFormPDFView application={selectedApp} />
               </div>
@@ -3636,7 +3636,7 @@ export default {
           branding: { label: 'Branding & Graphics', icon: Heart, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-950/20', border: 'border-rose-100 dark:border-rose-900/30', desc: 'Logos, physical flyers, and visual branding identities.' },
           ict: { label: 'ICT Solutions', icon: QrCode, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-950/20', border: 'border-cyan-100 dark:border-cyan-900/30', desc: 'Network setups, hardware sourcing, and workstation configurations.' },
           training: { label: 'Training Academy', icon: GraduationCap, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/20', border: 'border-purple-100 dark:border-purple-900/30', desc: 'Full engineering masterclasses, digital advertising, and mentorship.' },
-          compliance: { label: 'Legal Compliance', icon: ShieldAlert, color: 'text-slate-500', bg: 'bg-slate-50 dark:bg-slate-950/20', border: 'border-slate-100 dark:border-slate-900/30', desc: 'CAC incorporation files, annual returns, and tax registrations.' }
+          compliance: { label: 'Legal Compliance', icon: ShieldAlert, color: 'text-slate-500', bg: 'bg-white dark:bg-slate-950/20', border: 'border-slate-100 dark:border-slate-900/30', desc: 'CAC incorporation files, annual returns, and tax registrations.' }
         };
 
         // Filtered list based on active selector
@@ -3741,7 +3741,7 @@ export default {
                   className={`px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${
                     svcFilterCat === 'all'
                       ? 'bg-[#000E32] text-white shadow-sm'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-500'
+                      : 'bg-white hover:bg-slate-200 text-slate-500'
                   }`}
                 >
                   Show All ({adminServices.length})
@@ -3764,7 +3764,7 @@ export default {
                       className={`cursor-pointer p-5 rounded-2xl border transition-all relative overflow-hidden flex flex-col justify-between text-left h-36 ${
                         isActive
                           ? 'bg-gradient-to-br from-[#000E32] to-[#041d5e] border-orange-500/80 shadow-md text-white'
-                          : 'bg-white hover:bg-slate-50/50 border-slate-200 text-slate-800'
+                          : 'bg-white hover:bg-white border-slate-200 text-slate-800'
                       }`}
                     >
                       {/* Ambient Glowing Background Effect when active */}
@@ -3780,7 +3780,7 @@ export default {
                         <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold font-mono ${
                           isActive 
                             ? 'bg-orange-500 text-white' 
-                            : 'bg-slate-100 text-slate-600'
+                            : 'bg-white text-slate-600'
                         }`}>
                           {catServices.length} {catServices.length === 1 ? 'Node' : 'Nodes'}
                         </span>
@@ -3874,7 +3874,7 @@ export default {
                         required 
                         value={svcName} 
                         onChange={e => setSvcName(e.target.value)} 
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 font-bold" 
+                        className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 font-bold" 
                         placeholder="e.g. Meta Conversions API Node" 
                       />
                     </div>
@@ -3887,7 +3887,7 @@ export default {
                         required 
                         value={svcPrice} 
                         onChange={e => setSvcPrice(e.target.value)} 
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 font-mono font-bold" 
+                        className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 font-mono font-bold" 
                         placeholder="e.g. ₦150,000 – ₦850,000+" 
                       />
                     </div>
@@ -3898,7 +3898,7 @@ export default {
                       <select 
                         value={svcCategory} 
                         onChange={e => setSvcCategory(e.target.value)} 
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500"
+                        className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500"
                       >
                         <option value="marketing">Digital Marketing</option>
                         <option value="web">Web Development</option>
@@ -3919,14 +3919,14 @@ export default {
                         type="text" 
                         value={svcImage} 
                         onChange={e => setSvcImage(e.target.value)} 
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-[10px]" 
+                        className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-[10px]" 
                         placeholder="https://images.unsplash.com/photo-..." 
                       />
                       {/* Clickable Image Presets */}
                       <div className="flex gap-1 mt-1.5 overflow-x-auto pb-1">
-                        <button type="button" onClick={() => setSvcImage('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Tech Theme</button>
-                        <button type="button" onClick={() => setSvcImage('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">AI Neural</button>
-                        <button type="button" onClick={() => setSvcImage('https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Corporate Business</button>
+                        <button type="button" onClick={() => setSvcImage('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white rounded text-[9px] text-slate-500 whitespace-nowrap">Tech Theme</button>
+                        <button type="button" onClick={() => setSvcImage('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white rounded text-[9px] text-slate-500 whitespace-nowrap">AI Neural</button>
+                        <button type="button" onClick={() => setSvcImage('https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white rounded text-[9px] text-slate-500 whitespace-nowrap">Corporate Business</button>
                       </div>
                     </div>
 
@@ -3937,7 +3937,7 @@ export default {
                         type="text" 
                         value={svcUrl} 
                         onChange={e => setSvcUrl(e.target.value)} 
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 font-mono" 
+                        className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 font-mono" 
                         placeholder="https://wa.me/p/..." 
                       />
                     </div>
@@ -3980,7 +3980,7 @@ export default {
                         rows={3} 
                         value={svcDesc} 
                         onChange={e => setSvcDesc(e.target.value)} 
-                        className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl resize-none focus:outline-none focus:border-orange-500" 
+                        className="w-full p-3 bg-white border border-slate-200 rounded-xl resize-none focus:outline-none focus:border-orange-500" 
                         placeholder="Provide detail on service timelines, value metrics, and exact client benefits..." 
                       />
                     </div>
@@ -4001,7 +4001,7 @@ export default {
                             setSvcUrl('');
                             setIsAddingSvc(false);
                           }}
-                          className="px-4 py-2 text-slate-500 hover:text-slate-700 bg-slate-100 text-[10px] font-bold uppercase rounded-xl transition-all"
+                          className="px-4 py-2 text-slate-500 hover:text-slate-700 bg-white text-[10px] font-bold uppercase rounded-xl transition-all"
                         >
                           Close Panel
                         </button>
@@ -4035,7 +4035,7 @@ export default {
 
               {/* Grid of animated Cards */}
               {displayedSvc.length === 0 ? (
-                <div className="bg-slate-50 border border-slate-200 border-dashed p-10 rounded-3xl text-center">
+                <div className="bg-white border border-slate-200 border-dashed p-10 rounded-3xl text-center">
                   <Layers className="mx-auto text-slate-300 mb-3" size={32} />
                   <p className="text-xs font-bold text-slate-600 uppercase">No service nodes in this category yet</p>
                   <p className="text-[10px] text-slate-400 font-light mt-1">Click "Add Service" above to build the first node for this sector.</p>
@@ -4095,7 +4095,7 @@ export default {
                           </div>
 
                           {/* Bulleted visual "Features List" preview */}
-                          <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1">
+                          <div className="bg-white p-2.5 rounded-xl border border-slate-100 space-y-1">
                             <span className="text-[8px] font-mono uppercase tracking-widest text-slate-400 font-bold block">// Active Deliverables</span>
                             <ul className="text-[9px] text-slate-600 font-bold space-y-0.5">
                               {svc.category === 'marketing' && (
@@ -4133,7 +4133,7 @@ export default {
                         </div>
 
                         {/* Card bottom controller row */}
-                        <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center shrink-0">
+                        <div className="p-4 bg-white border-t border-slate-100 flex justify-between items-center shrink-0">
                           <a 
                             href={svc.url || "https://wa.me/2348123456789"} 
                             target="_blank" 
@@ -4369,7 +4369,7 @@ export default {
                     required 
                     value={projTitle} 
                     onChange={e => setProjTitle(e.target.value)} 
-                    className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500" 
+                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500" 
                     placeholder="e.g. Abuja Logistics Database API Integration" 
                   />
                 </div>
@@ -4381,7 +4381,7 @@ export default {
                     type="text" 
                     value={projClient} 
                     onChange={e => setProjClient(e.target.value)} 
-                    className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500" 
+                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500" 
                     placeholder="e.g. Garki Logistics Hub" 
                   />
                 </div>
@@ -4392,7 +4392,7 @@ export default {
                   <select 
                     value={projCat} 
                     onChange={e => setProjCat(e.target.value)} 
-                    className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500"
+                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500"
                   >
                     <option value="Digital Marketing">Digital Marketing</option>
                     <option value="Software Development">Software Development</option>
@@ -4411,34 +4411,34 @@ export default {
                     type="text" 
                     value={projStats} 
                     onChange={e => setProjStats(e.target.value)} 
-                    className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono" 
+                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono" 
                     placeholder="e.g. 5.4x ROAS / 12ms delay" 
                   />
                   {/* Metric Suggesters */}
                   <div className="flex gap-1 mt-1.5 overflow-x-auto pb-1">
                     {projCat === 'Digital Marketing' ? (
                       <>
-                        <button type="button" onClick={() => setProjStats('5.4x ROAS Improvement')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">5.4x ROAS</button>
-                        <button type="button" onClick={() => setProjStats('+420% Lead Generation')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">+420% Leads</button>
-                        <button type="button" onClick={() => setProjStats('62% Lower Acquisition Cost')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">62% lower CAC</button>
+                        <button type="button" onClick={() => setProjStats('5.4x ROAS Improvement')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">5.4x ROAS</button>
+                        <button type="button" onClick={() => setProjStats('+420% Lead Generation')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">+420% Leads</button>
+                        <button type="button" onClick={() => setProjStats('62% Lower Acquisition Cost')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">62% lower CAC</button>
                       </>
                     ) : projCat === 'Software Development' ? (
                       <>
-                        <button type="button" onClick={() => setProjStats('12ms Real-Time Latency')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">12ms Latency</button>
-                        <button type="button" onClick={() => setProjStats('99.99% Node Uptime')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">99.99% Uptime</button>
-                        <button type="button" onClick={() => setProjStats('Zero Runtime Compile Errors')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">0 Errors</button>
+                        <button type="button" onClick={() => setProjStats('12ms Real-Time Latency')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">12ms Latency</button>
+                        <button type="button" onClick={() => setProjStats('99.99% Node Uptime')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">99.99% Uptime</button>
+                        <button type="button" onClick={() => setProjStats('Zero Runtime Compile Errors')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">0 Errors</button>
                       </>
                     ) : projCat === 'AI Solutions' ? (
                       <>
-                        <button type="button" onClick={() => setProjStats('85% Task Automation Ratio')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">85% Automated</button>
-                        <button type="button" onClick={() => setProjStats('3.8x Data Analytics Efficiency')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">3.8x Data</button>
-                        <button type="button" onClick={() => setProjStats('Cognitive Parse Sub-Seconds')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">Sub-Sec Parse</button>
+                        <button type="button" onClick={() => setProjStats('85% Task Automation Ratio')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">85% Automated</button>
+                        <button type="button" onClick={() => setProjStats('3.8x Data Analytics Efficiency')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">3.8x Data</button>
+                        <button type="button" onClick={() => setProjStats('Cognitive Parse Sub-Seconds')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">Sub-Sec Parse</button>
                       </>
                     ) : (
                       <>
-                        <button type="button" onClick={() => setProjStats('100% Regulatory Compliance')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">100% Legal</button>
-                        <button type="button" onClick={() => setProjStats('Zero Corporate Audit Deficiencies')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">0 Audits</button>
-                        <button type="button" onClick={() => setProjStats('5 Days Turnaround Acceleration')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">5 Days Speed</button>
+                        <button type="button" onClick={() => setProjStats('100% Regulatory Compliance')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">100% Legal</button>
+                        <button type="button" onClick={() => setProjStats('Zero Corporate Audit Deficiencies')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">0 Audits</button>
+                        <button type="button" onClick={() => setProjStats('5 Days Turnaround Acceleration')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">5 Days Speed</button>
                       </>
                     )}
                   </div>
@@ -4451,13 +4451,13 @@ export default {
                     type="text" 
                     value={projImage} 
                     onChange={e => setProjImage(e.target.value)} 
-                    className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-[10px]" 
+                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-[10px]" 
                     placeholder="https://images.unsplash.com/photo-..." 
                   />
                   <div className="flex gap-1.5 mt-1.5 overflow-x-auto pb-1">
-                    <button type="button" onClick={() => setProjImage('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">Tech Theme</button>
-                    <button type="button" onClick={() => setProjImage('https://images.unsplash.com/photo-1551434678-e076c223a692?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">Office Team</button>
-                    <button type="button" onClick={() => setProjImage('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">AI Cyber</button>
+                    <button type="button" onClick={() => setProjImage('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">Tech Theme</button>
+                    <button type="button" onClick={() => setProjImage('https://images.unsplash.com/photo-1551434678-e076c223a692?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">Office Team</button>
+                    <button type="button" onClick={() => setProjImage('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">AI Cyber</button>
                   </div>
                 </div>
 
@@ -4469,14 +4469,14 @@ export default {
                       type="text" 
                       value={projVideo} 
                       onChange={e => setProjVideo(e.target.value)} 
-                      className="w-full p-3 pr-8 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-[10px]" 
+                      className="w-full p-3 pr-8 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-[10px]" 
                       placeholder="e.g. https://www.w3schools.com/html/mov_bbb.mp4" 
                     />
                     <Video size={12} className="absolute right-3 top-3.5 text-slate-400" />
                   </div>
                   <div className="flex gap-1.5 mt-1.5 overflow-x-auto pb-1">
-                    <button type="button" onClick={() => setProjVideo('https://www.w3schools.com/html/mov_bbb.mp4')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-indigo-500 hover:underline whitespace-nowrap">Big Buck Bunny MP4</button>
-                    <button type="button" onClick={() => setProjVideo('https://www.w3schools.com/html/movie.mp4')} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-indigo-500 hover:underline whitespace-nowrap">Bear Wilderness MP4</button>
+                    <button type="button" onClick={() => setProjVideo('https://www.w3schools.com/html/mov_bbb.mp4')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-indigo-500 hover:underline whitespace-nowrap">Big Buck Bunny MP4</button>
+                    <button type="button" onClick={() => setProjVideo('https://www.w3schools.com/html/movie.mp4')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-indigo-500 hover:underline whitespace-nowrap">Bear Wilderness MP4</button>
                   </div>
                 </div>
 
@@ -4487,7 +4487,7 @@ export default {
                     type="text" 
                     value={projDate} 
                     onChange={e => setProjDate(e.target.value)} 
-                    className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500" 
+                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500" 
                     placeholder="e.g. June 2026" 
                   />
                 </div>
@@ -4499,7 +4499,7 @@ export default {
                     type="text" 
                     value={projTags} 
                     onChange={e => setProjTags(e.target.value)} 
-                    className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono" 
+                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono" 
                     placeholder="e.g. React 19, Automated compliance, IoT telemetry, Kano" 
                   />
                 </div>
@@ -4512,7 +4512,7 @@ export default {
                     rows={2} 
                     value={projDesc} 
                     onChange={e => setProjDesc(e.target.value)} 
-                    className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl resize-none focus:outline-none focus:border-orange-500" 
+                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl resize-none focus:outline-none focus:border-orange-500" 
                     placeholder="Provide a concise 1-2 sentence executive summary of the case study gains..." 
                   />
                 </div>
@@ -4561,7 +4561,7 @@ export default {
                     rows={8} 
                     value={projContent} 
                     onChange={e => setProjContent(e.target.value)} 
-                    className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl font-mono text-xs focus:outline-none focus:border-orange-500" 
+                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl font-mono text-xs focus:outline-none focus:border-orange-500" 
                     placeholder="# Project Detailed Title&#10;&#10;## 1. Challenges faced&#10;Describe details here...&#10;&#10;## 2. Solution blueprint&#10;Describe solution here...&#10;&#10;## 3. Measurable results..." 
                   />
                 </div>
@@ -4585,7 +4585,7 @@ export default {
                         setProjTags('');
                         setIsAddingProj(false);
                       }}
-                      className="px-4 py-2 text-slate-500 hover:text-slate-700 bg-slate-100 dark:bg-slate-800 text-xs font-bold uppercase rounded-xl"
+                      className="px-4 py-2 text-slate-500 hover:text-slate-700 bg-white dark:bg-slate-800 text-xs font-bold uppercase rounded-xl"
                     >
                       Close Form
                     </button>
@@ -4603,14 +4603,14 @@ export default {
 
           {/* Projects Registry Directory Table list */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
-            <div className="bg-slate-50 dark:bg-slate-950 px-5 py-3 border-b border-slate-150 dark:border-slate-800 flex justify-between items-center">
+            <div className="bg-white dark:bg-slate-950 px-5 py-3 border-b border-slate-150 dark:border-slate-800 flex justify-between items-center">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">// Active Works Catalog</span>
               <span className="text-[10px] text-slate-500 font-mono font-bold">Total Record Count: {adminProjects.length}</span>
             </div>
 
             <table className="w-full text-xs text-left">
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-950 text-[10px] font-black uppercase text-slate-400 border-b border-slate-150 dark:border-slate-800">
+                <tr className="bg-white dark:bg-slate-950 text-[10px] font-black uppercase text-slate-400 border-b border-slate-150 dark:border-slate-800">
                   <th className="py-3 px-5">Preview</th>
                   <th className="py-3 px-4">Project Title & Metadata</th>
                   <th className="py-3 px-4">Category & Client</th>
@@ -4620,10 +4620,10 @@ export default {
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-bold text-slate-700 dark:text-slate-300">
                 {adminProjects.map((proj: any) => (
-                  <tr key={proj.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-850/50 transition-colors">
+                  <tr key={proj.id} className="hover:bg-white dark:hover:bg-slate-850/50 transition-colors">
                     {/* Visual Asset Preview (Image or Video indicator) */}
                     <td className="py-4 px-5">
-                      <div className="relative w-16 h-10 rounded-xl overflow-hidden bg-slate-100 border border-slate-200/60 dark:border-slate-800">
+                      <div className="relative w-16 h-10 rounded-xl overflow-hidden bg-white border border-slate-200/60 dark:border-slate-800">
                         {proj.image ? (
                           <img 
                             src={proj.image} 
@@ -4761,11 +4761,11 @@ export default {
             >
               <div className="md:col-span-2">
                 <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Article Title</label>
-                <input type="text" required value={blogTitle} onChange={e=>setBlogTitle(e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl" placeholder="e.g. Navigating SCUML compliance thresholds" />
+                <input type="text" required value={blogTitle} onChange={e=>setBlogTitle(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl" placeholder="e.g. Navigating SCUML compliance thresholds" />
               </div>
               <div>
                 <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Category Node</label>
-                <select value={blogCat} onChange={e=>setBlogCat(e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                <select value={blogCat} onChange={e=>setBlogCat(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl">
                   <option value="Marketing">Marketing</option>
                   <option value="Business Growth">Business Growth</option>
                   <option value="AI">AI</option>
@@ -4774,7 +4774,7 @@ export default {
               </div>
               <div className="md:col-span-3">
                 <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Article body markup</label>
-                <textarea required rows={5} value={blogDesc} onChange={e=>setBlogDesc(e.target.value)} className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl resize-none font-sans" placeholder="Type the informational article content here..." />
+                <textarea required rows={5} value={blogDesc} onChange={e=>setBlogDesc(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl resize-none font-sans" placeholder="Type the informational article content here..." />
               </div>
               <div className="md:col-span-3 flex justify-end">
                 <button type="submit" className="px-5 py-2 bg-[#000E32] text-white text-xs font-black uppercase tracking-wider rounded-xl">Publish Article Node</button>
@@ -4785,7 +4785,7 @@ export default {
           <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
             <table className="w-full text-xs text-left">
               <thead>
-                <tr className="bg-slate-50 text-[10px] font-black uppercase text-slate-400 border-b border-slate-150">
+                <tr className="bg-white text-[10px] font-black uppercase text-slate-400 border-b border-slate-150">
                   <th className="py-3 px-5">Article Title</th>
                   <th className="py-3 px-4">Category</th>
                   <th className="py-3 px-4">Author</th>
@@ -4794,7 +4794,7 @@ export default {
               </thead>
               <tbody className="divide-y divide-slate-100 font-bold text-slate-700">
                 {adminBlogs.map((post: any) => (
-                  <tr key={post.id} className="hover:bg-slate-50/50">
+                  <tr key={post.id} className="hover:bg-white">
                     <td className="py-4 px-5">
                       <div className="space-y-0.5 text-left">
                         <span className="text-slate-900 uppercase font-serif text-xs block">{post.title}</span>
@@ -4833,7 +4833,7 @@ export default {
               <h3 className="font-extrabold text-sm uppercase font-serif text-[#000E32] border-b border-slate-100 pb-2">Vocational Courses</h3>
               <div className="space-y-3">
                 {adminCourses.map((c: any) => (
-                  <div key={c.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-2xl border border-slate-100/50">
+                  <div key={c.id} className="flex justify-between items-center p-3 bg-white rounded-2xl border border-slate-100/50">
                     <div className="text-left space-y-0.5">
                       <span className="font-extrabold uppercase font-serif text-slate-900 text-[11px] block">{c.title}</span>
                       <span className="text-[10px] text-slate-400 block font-bold">Duration: {c.duration} • level: {c.level}</span>
@@ -4876,7 +4876,7 @@ export default {
               <h3 className="font-extrabold text-sm uppercase font-serif text-[#000E32] border-b border-slate-100 pb-2">Client Invoices ledger</h3>
               <div className="space-y-3">
                 {adminInvoices.map((inv: any) => (
-                  <div key={inv.id} className="flex justify-between items-center p-3 bg-slate-50 rounded-2xl border border-slate-150">
+                  <div key={inv.id} className="flex justify-between items-center p-3 bg-white rounded-2xl border border-slate-150">
                     <div className="text-left space-y-0.5">
                       <span className="font-extrabold text-slate-900 font-serif block uppercase text-[11px]">{inv.number}</span>
                       <span className="text-[10px] text-slate-400 font-bold block">{inv.project}</span>
@@ -4904,7 +4904,7 @@ export default {
               <h3 className="font-extrabold text-sm uppercase font-serif text-[#000E32] border-b border-slate-100 pb-2">Support ticket dispatch console</h3>
               <div className="space-y-3">
                 {adminTickets.map((tkt: any) => (
-                  <div key={tkt.id} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-150 space-y-2">
+                  <div key={tkt.id} className="p-3.5 bg-white rounded-2xl border border-slate-150 space-y-2">
                     <div className="flex justify-between items-center text-xs">
                       <span className="font-extrabold text-slate-900 font-serif uppercase text-[11px] block">{tkt.subject}</span>
                       <span className="px-1.5 py-0.5 bg-orange-500/10 text-orange-500 text-[9px] font-black uppercase">{tkt.status}</span>
@@ -4957,22 +4957,22 @@ export default {
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
             <h3 className="font-extrabold text-sm uppercase font-serif text-[#000E32] border-b border-slate-100 pb-2">Regional Visitor Demographics</h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl">
+              <div className="p-4 bg-white border border-slate-150 rounded-2xl">
                 <span className="text-xs font-serif font-black text-slate-900 block">Abuja (FCT)</span>
                 <span className="text-lg font-mono text-indigo-500 font-extrabold block">42%</span>
                 <span className="text-[9px] text-slate-400 uppercase font-bold block">Primary Hub</span>
               </div>
-              <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl">
+              <div className="p-4 bg-white border border-slate-150 rounded-2xl">
                 <span className="text-xs font-serif font-black text-slate-900 block">Lagos (State)</span>
                 <span className="text-lg font-mono text-orange-500 font-extrabold block">35%</span>
                 <span className="text-[9px] text-slate-400 uppercase font-bold block">Secondary Hub</span>
               </div>
-              <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl">
+              <div className="p-4 bg-white border border-slate-150 rounded-2xl">
                 <span className="text-xs font-serif font-black text-slate-900 block">Port Harcourt</span>
                 <span className="text-lg font-mono text-slate-600 font-extrabold block">15%</span>
                 <span className="text-[9px] text-slate-400 uppercase font-bold block">Active Node</span>
               </div>
-              <div className="p-4 bg-slate-50 border border-slate-150 rounded-2xl">
+              <div className="p-4 bg-white border border-slate-150 rounded-2xl">
                 <span className="text-xs font-serif font-black text-slate-900 block">Accra / Remote</span>
                 <span className="text-lg font-mono text-slate-600 font-extrabold block">8%</span>
                 <span className="text-[9px] text-slate-400 uppercase font-bold block">West-Africa outreach</span>
@@ -5059,7 +5059,7 @@ export default {
                 <span className="font-extrabold text-[10px] uppercase tracking-wider">Cloudflare D1 Storage</span>
               </div>
               <p className="text-slate-500 text-[11px] leading-relaxed">
-                Relational scan history and executive summaries are persisted in D1 (Binding: <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[9px]">DB</code>). All entries are scoped by a unique User ID hash for compliance.
+                Relational scan history and executive summaries are persisted in D1 (Binding: <code className="bg-white px-1 py-0.5 rounded font-mono text-[9px]">DB</code>). All entries are scoped by a unique User ID hash for compliance.
               </p>
             </div>
 
@@ -5069,7 +5069,7 @@ export default {
                 <span className="font-extrabold text-[10px] uppercase tracking-wider">Secure R2 Object Bucket</span>
               </div>
               <p className="text-slate-500 text-[11px] leading-relaxed">
-                Compressed QR badges are securely stored inside R2 storage (Binding: <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[9px]">BUCKET</code>). Time-expiring Signed URLs protect image downloads.
+                Compressed QR badges are securely stored inside R2 storage (Binding: <code className="bg-white px-1 py-0.5 rounded font-mono text-[9px]">BUCKET</code>). Time-expiring Signed URLs protect image downloads.
               </p>
             </div>
 
@@ -5088,7 +5088,7 @@ export default {
           {/* 3. Scan Log & Cloud Vault Entries */}
           <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden text-left">
             
-            <div className="p-5 border-b border-slate-100 bg-slate-50 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="p-5 border-b border-slate-100 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h4 className="font-extrabold text-[#000E32] uppercase tracking-wider text-[11px]">
                   Secure QR Scan Logs & Vault Registry
@@ -5138,7 +5138,7 @@ export default {
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse text-xs">
                   <thead>
-                    <tr className="bg-slate-100 border-b border-slate-200 text-slate-500 uppercase font-extrabold text-[9px] tracking-wider">
+                    <tr className="bg-white border-b border-slate-200 text-slate-500 uppercase font-extrabold text-[9px] tracking-wider">
                       <th className="px-5 py-3">Scan Log ID</th>
                       <th className="px-5 py-3">Timestamp (UTC)</th>
                       <th className="px-5 py-3">Applicant Name</th>
@@ -5149,7 +5149,7 @@ export default {
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {scanHistory.map((row) => (
-                      <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                      <tr key={row.id} className="hover:bg-white transition-colors">
                         <td className="px-5 py-3.5 font-mono font-bold text-slate-500">
                           {row.id}
                         </td>
@@ -5165,7 +5165,7 @@ export default {
                             href={row.secure_r2_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-mono text-[9px] font-bold rounded-lg border border-slate-200 transition-colors"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-slate-200 text-slate-700 font-mono text-[9px] font-bold rounded-lg border border-slate-200 transition-colors"
                           >
                             <Download size={10} />
                             Get Signed QR
@@ -5482,7 +5482,7 @@ export default {
                           {guideSlides[guidePage].title}
                         </h4>
                       </div>
-                      <span className="text-[9px] font-mono text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                      <span className="text-[9px] font-mono text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
                         Page {guidePage + 1}/{guideSlides.length}
                       </span>
                     </div>
@@ -5508,7 +5508,7 @@ export default {
                       <button
                         onClick={() => setGuidePage(prev => Math.max(0, prev - 1))}
                         disabled={guidePage === 0}
-                        className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 disabled:opacity-35 text-slate-700 disabled:text-slate-400 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-0.5 transition-all border border-slate-200 active:scale-95 cursor-pointer disabled:pointer-events-none"
+                        className="px-2.5 py-1.5 bg-white hover:bg-white disabled:opacity-35 text-slate-700 disabled:text-slate-400 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-0.5 transition-all border border-slate-200 active:scale-95 cursor-pointer disabled:pointer-events-none"
                       >
                         <ChevronLeft size={12} className="stroke-[3px]" />
                         <span>Prev</span>
@@ -5533,7 +5533,7 @@ export default {
                       <button
                         onClick={() => setGuidePage(prev => Math.min(guideSlides.length - 1, prev + 1))}
                         disabled={guidePage === guideSlides.length - 1}
-                        className="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 disabled:opacity-35 text-slate-700 disabled:text-slate-400 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-0.5 transition-all border border-slate-200 active:scale-95 cursor-pointer disabled:pointer-events-none"
+                        className="px-2.5 py-1.5 bg-white hover:bg-white disabled:opacity-35 text-slate-700 disabled:text-slate-400 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-0.5 transition-all border border-slate-200 active:scale-95 cursor-pointer disabled:pointer-events-none"
                       >
                         <span>Next</span>
                         <ChevronRight size={12} className="stroke-[3px]" />
@@ -5577,7 +5577,7 @@ export default {
                             {guideSlides[guidePage].title}
                           </h4>
                         </div>
-                        <span className="text-[10px] font-mono text-slate-500 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
+                        <span className="text-[10px] font-mono text-slate-500 bg-white px-2.5 py-1 rounded-md border border-slate-200">
                           Page {guidePage + 1} of {guideSlides.length}
                         </span>
                       </div>
@@ -5603,7 +5603,7 @@ export default {
                         <button
                           onClick={() => setGuidePage(prev => Math.max(0, prev - 1))}
                           disabled={guidePage === 0}
-                          className="px-3.5 py-2 bg-slate-50 hover:bg-slate-100 disabled:opacity-30 text-slate-700 disabled:text-slate-400 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all border border-slate-200 active:scale-95 cursor-pointer disabled:pointer-events-none"
+                          className="px-3.5 py-2 bg-white hover:bg-white disabled:opacity-30 text-slate-700 disabled:text-slate-400 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all border border-slate-200 active:scale-95 cursor-pointer disabled:pointer-events-none"
                         >
                           <ChevronLeft size={13} className="stroke-[3px]" />
                           <span>Previous</span>
@@ -5628,7 +5628,7 @@ export default {
                         <button
                           onClick={() => setGuidePage(prev => Math.min(guideSlides.length - 1, prev + 1))}
                           disabled={guidePage === guideSlides.length - 1}
-                          className="px-3.5 py-2 bg-slate-50 hover:bg-slate-100 disabled:opacity-30 text-slate-700 disabled:text-slate-400 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all border border-slate-200 active:scale-95 cursor-pointer disabled:pointer-events-none"
+                          className="px-3.5 py-2 bg-white hover:bg-white disabled:opacity-30 text-slate-700 disabled:text-slate-400 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 transition-all border border-slate-200 active:scale-95 cursor-pointer disabled:pointer-events-none"
                         >
                           <span>Next</span>
                           <ChevronRight size={13} className="stroke-[3px]" />
@@ -5661,10 +5661,10 @@ export default {
               <div className="space-y-8">
                 <section>
                   <h2 className="text-lg font-bold border-b border-slate-300 pb-1 mb-3">Module 1: Creating & Initializing the Cloudflare D1 Database</h2>
-                  <p className="mb-2"><strong>Professor Al-Amin:</strong> Welcome, Kofi! Today, we're making our local catalogs live worldwide. First, we need a Cloudflare D1 Database. D1 is SQLite run at the edge, offering near-zero latency and high durability. Go to your Cloudflare Dashboard, select D1 on the sidebar, and click "Create database". Name it <code className="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-850">hassan-portal-db</code>.</p>
+                  <p className="mb-2"><strong>Professor Al-Amin:</strong> Welcome, Kofi! Today, we're making our local catalogs live worldwide. First, we need a Cloudflare D1 Database. D1 is SQLite run at the edge, offering near-zero latency and high durability. Go to your Cloudflare Dashboard, select D1 on the sidebar, and click "Create database". Name it <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">hassan-portal-db</code>.</p>
                   <p className="mb-4"><strong>Kofi (Student):</strong> Understood, Professor! Once it's created, I get a unique Database ID. But how do we load all our tables, services, portfolios, and courses into it? Do we write them manually?</p>
                   <p className="mb-2"><strong>Professor Al-Amin:</strong> No, Kofi! We use the SQL schema script we just generated in our Admin Dashboard! You can click "Export SQL Schema (D1)" in this utility menu to download the file. Then, use Wrangler CLI to execute it locally or in production:</p>
-                  <pre className="bg-slate-100 border border-slate-300 p-3 rounded font-mono text-xs text-slate-850 my-3">
+                  <pre className="bg-white border border-slate-300 p-3 rounded font-mono text-xs text-slate-850 my-3">
 {`# For Local Sandbox testing:
 npx wrangler d1 execute hassan-portal-db --local --file=schema.sql
 
@@ -5676,8 +5676,8 @@ npx wrangler d1 execute hassan-portal-db --remote --file=schema.sql`}
                 <section>
                   <h2 className="text-lg font-bold border-b border-slate-300 pb-1 mb-3">Module 2: Deploying the Web Client as a ZIP File</h2>
                   <p className="mb-2"><strong>Kofi (Student):</strong> That's incredibly elegant, Professor! Our database is now live. But what about the frontend application itself? How do we export it from AI Studio and host it so anyone can load it?</p>
-                  <p className="mb-2"><strong>Professor Al-Amin:</strong> An excellent question! We export our code as a ZIP archive. Go to the top settings wheel or export options in Google AI Studio, select "Export as ZIP", and save it. Then, unzip the archive on your local computer. Open your terminal in that folder and run <code className="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-850">npm install</code>. Build the optimized static files using <code className="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-850">npm run build</code>. This generates a production-ready <code className="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-850">dist/</code> directory.</p>
-                  <p className="mb-4"><strong>Professor Al-Amin:</strong> Go to the Cloudflare Pages section, click "Create direct upload project", and simply drag and drop your <code className="font-mono bg-slate-100 px-1 py-0.5 rounded text-slate-850">dist/</code> folder!</p>
+                  <p className="mb-2"><strong>Professor Al-Amin:</strong> An excellent question! We export our code as a ZIP archive. Go to the top settings wheel or export options in Google AI Studio, select "Export as ZIP", and save it. Then, unzip the archive on your local computer. Open your terminal in that folder and run <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">npm install</code>. Build the optimized static files using <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">npm run build</code>. This generates a production-ready <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">dist/</code> directory.</p>
+                  <p className="mb-4"><strong>Professor Al-Amin:</strong> Go to the Cloudflare Pages section, click "Create direct upload project", and simply drag and drop your <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">dist/</code> folder!</p>
                   <p className="mb-2"><strong>Kofi (Student):</strong> Wow! That hosts our web assets on Cloudflare's ultra-fast Edge server network. It will load instantly in any country on browsers and mobile devices alike!</p>
                 </section>
 
@@ -5690,7 +5690,7 @@ npx wrangler d1 execute hassan-portal-db --remote --file=schema.sql`}
 
                 <section className="break-before-page">
                   <h2 className="text-lg font-bold border-b border-slate-300 pb-1 mb-3">Module 4: Wrangler configuration (.toml)</h2>
-                  <pre className="bg-slate-100 border border-slate-300 p-3 rounded font-mono text-xs text-slate-850 my-3">
+                  <pre className="bg-white border border-slate-300 p-3 rounded font-mono text-xs text-slate-850 my-3">
 {`# wrangler.toml
 name = "hassan-agency-portal"
 pages_build_output_dir = "dist"

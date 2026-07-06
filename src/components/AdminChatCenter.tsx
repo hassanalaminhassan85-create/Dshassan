@@ -337,7 +337,7 @@ export const AdminChatCenter: React.FC = () => {
   return (
     <div className="flex bg-white dark:bg-zinc-950 border dark:border-zinc-800 rounded-3xl overflow-hidden shadow-xl h-[650px] transition-all">
       {/* 1. LEFT CONVERSATION LIST PANEL */}
-      <div className="w-1/3 border-r dark:border-zinc-800 flex flex-col bg-slate-50/50 dark:bg-zinc-950/20">
+      <div className="w-1/3 border-r dark:border-zinc-800 flex flex-col bg-white dark:bg-zinc-950/20">
         {/* Search header */}
         <div className="p-4 border-b dark:border-zinc-800 shrink-0 space-y-3">
           <div className="flex items-center justify-between">
@@ -346,7 +346,7 @@ export const AdminChatCenter: React.FC = () => {
             </h3>
             <button 
               onClick={fetchContacts}
-              className="p-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-500 dark:text-zinc-400 transition-colors cursor-pointer"
+              className="p-1 rounded bg-white hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-500 dark:text-zinc-400 transition-colors cursor-pointer"
               title="Refresh Threads"
             >
               <RefreshCw size={12} />
@@ -360,7 +360,7 @@ export const AdminChatCenter: React.FC = () => {
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search by candidate name or email..."
-              className="w-full pl-9 pr-4 py-2 rounded-xl text-xs bg-slate-100 dark:bg-zinc-900 border-transparent dark:border-transparent text-slate-800 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+              className="w-full pl-9 pr-4 py-2 rounded-xl text-xs bg-white dark:bg-zinc-900 border-transparent dark:border-transparent text-slate-800 dark:text-zinc-100 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
             />
           </div>
         </div>
@@ -388,7 +388,7 @@ export const AdminChatCenter: React.FC = () => {
                   className={`w-full p-4 flex items-start gap-3 transition-colors text-left cursor-pointer ${
                     isSelected 
                       ? 'bg-emerald-50/50 dark:bg-emerald-950/20 border-l-4 border-emerald-500 pl-3' 
-                      : 'hover:bg-slate-100/50 dark:hover:bg-zinc-900/40'
+                      : 'hover:bg-white dark:hover:bg-zinc-900/40'
                   }`}
                 >
                   <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-zinc-800 text-emerald-700 dark:text-zinc-400 flex items-center justify-center font-bold text-xs shadow-inner uppercase">
@@ -427,7 +427,7 @@ export const AdminChatCenter: React.FC = () => {
         {selectedContact ? (
           <>
             {/* Active Thread Header */}
-            <div className="p-4 bg-slate-50 dark:bg-zinc-900 border-b dark:border-zinc-800 flex items-center justify-between shrink-0 shadow-sm transition-colors">
+            <div className="p-4 bg-white dark:bg-zinc-900 border-b dark:border-zinc-800 flex items-center justify-between shrink-0 shadow-sm transition-colors">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-sm shadow uppercase">
                   {selectedContact.contactName.substring(0, 2)}
@@ -477,7 +477,7 @@ export const AdminChatCenter: React.FC = () => {
                       }`}>
                         {/* Type Image attachment */}
                         {msg.type === 'image' && msg.mediaUrl && (
-                          <div className="rounded-xl overflow-hidden mb-1.5 border border-black/5 bg-slate-50 max-h-[220px]">
+                          <div className="rounded-xl overflow-hidden mb-1.5 border border-black/5 bg-white max-h-[220px]">
                             <img
                               src={msg.mediaUrl}
                               alt="Admin Media Attachment"
@@ -547,7 +547,7 @@ export const AdminChatCenter: React.FC = () => {
 
             {/* Media Image Selection preview */}
             {selectedImage && (
-              <div className="p-2 border-t shrink-0 flex items-center gap-2 bg-slate-50 dark:bg-zinc-900 border-slate-200 dark:border-zinc-800">
+              <div className="p-2 border-t shrink-0 flex items-center gap-2 bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800">
                 <div className="relative w-16 h-16 rounded-xl overflow-hidden border bg-white">
                   <img
                     src={selectedImage}
@@ -570,7 +570,7 @@ export const AdminChatCenter: React.FC = () => {
             )}
 
             {/* Input area */}
-            <div className="p-3 bg-slate-50 dark:bg-zinc-900 border-t dark:border-zinc-800 flex items-center gap-2 shrink-0 transition-colors">
+            <div className="p-3 bg-white dark:bg-zinc-900 border-t dark:border-zinc-800 flex items-center gap-2 shrink-0 transition-colors">
               <div className="flex items-center gap-1">
                 <button
                   type="button"
@@ -629,7 +629,7 @@ export const AdminChatCenter: React.FC = () => {
                     <button
                       type="submit"
                       disabled={!inputText.trim()}
-                      className="absolute right-1 p-1.5 rounded-full text-emerald-600 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                      className="absolute right-1 p-1.5 rounded-full text-emerald-600 hover:bg-white dark:hover:bg-zinc-700 transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
                     >
                       <Send size={14} />
                     </button>

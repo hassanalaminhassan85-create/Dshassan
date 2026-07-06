@@ -151,7 +151,7 @@ export const AppointmentLetter: React.FC<AppointmentLetterProps> = ({
           </div>
 
           {/* Letter Date Bar */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50/50 p-3 rounded-xl border border-slate-100 text-xs gap-2.5 sm:gap-4 w-full">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-3 rounded-xl border border-slate-100 text-xs gap-2.5 sm:gap-4 w-full">
             <span className="font-extrabold text-[#000E32] uppercase tracking-wider break-words max-w-full">Official Employment Ref: DST-APP-2026-{(application.personalInfo?.fullName || 'USR').substring(0, 3).toUpperCase()}</span>
             <span className="font-semibold text-slate-600 shrink-0">Date: <span className="font-bold text-[#000E32]">{new Date(application.createdAt || Date.now()).toLocaleDateString()}</span></span>
           </div>
@@ -245,7 +245,7 @@ export const AppointmentLetter: React.FC<AppointmentLetterProps> = ({
               </div>
 
               {/* Terms of engagement */}
-              <div className="border border-slate-150 p-4 rounded-2xl bg-slate-50/50">
+              <div className="border border-slate-150 p-4 rounded-2xl bg-white">
                 <span className="text-[10px] font-extrabold text-[#000E32] uppercase tracking-wider flex items-center gap-2 mb-3">
                   <ClipboardList size={14} /> TERMS OF ENGAGEMENT
                 </span>
@@ -463,7 +463,7 @@ export const AppointmentLetter: React.FC<AppointmentLetterProps> = ({
                       <CheckCircle2 size={16} />
                       <span className="text-xs font-extrabold uppercase tracking-wide">Agreement Signed & Locked</span>
                     </div>
-                    <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 mt-2">
+                    <div className="flex justify-between items-center bg-white p-2.5 rounded-xl border border-slate-100 mt-2">
                       <div className="flex flex-col">
                         <span className="text-[9px] text-slate-400 font-bold uppercase">Staff Signature</span>
                         {(acceptSignature || application.appointmentSignature) && (acceptSignature || application.appointmentSignature).trim() !== '' ? (
@@ -482,7 +482,7 @@ export const AppointmentLetter: React.FC<AppointmentLetterProps> = ({
               </div>
 
               {/* Company Approval / Seal Representation */}
-              <div className="border border-slate-150 rounded-3xl p-5 bg-slate-50/50 space-y-4 relative">
+              <div className="border border-slate-150 rounded-3xl p-5 bg-white space-y-4 relative">
                 <div className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider">
                   For Company Approval / Seal
                 </div>
@@ -557,8 +557,8 @@ export const AppointmentLetter: React.FC<AppointmentLetterProps> = ({
               {[
                 { name: 'Facebook', handle: 'dstechanddigitalltd', color: 'text-blue-600 bg-blue-50/50' },
                 { name: 'Instagram', handle: 'dstechanddigitalg', color: 'text-pink-600 bg-pink-50/50' },
-                { name: 'TikTok', handle: 'dstechanddigitalb', color: 'text-slate-900 bg-slate-50/50' },
-                { name: 'X (Twitter)', handle: '@DigitalDs18286', color: 'text-slate-900 bg-slate-50/50' },
+                { name: 'TikTok', handle: 'dstechanddigitalb', color: 'text-slate-900 bg-white' },
+                { name: 'X (Twitter)', handle: '@DigitalDs18286', color: 'text-slate-900 bg-white' },
                 { name: 'YouTube', handle: 'dstechanddigitalmarketingltd', color: 'text-red-600 bg-red-50/50' },
                 { name: 'LinkedIn', handle: 'dstechanddigitalltd', color: 'text-blue-700 bg-blue-50/50' },
               ].map((channel, i) => (

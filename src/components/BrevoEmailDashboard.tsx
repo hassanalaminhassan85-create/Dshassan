@@ -406,7 +406,7 @@ export const BrevoEmailDashboard: React.FC = () => {
         <div className="flex flex-wrap gap-2 shrink-0">
           <button
             onClick={handleProcessQueue}
-            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[#000E32] dark:text-slate-200 font-extrabold rounded-xl transition flex items-center gap-2"
+            className="px-4 py-2 bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[#000E32] dark:text-slate-200 font-extrabold rounded-xl transition flex items-center gap-2"
           >
             <RefreshCw size={12} className="animate-spin-slow" />
             <span>Process Queue</span>
@@ -534,15 +534,15 @@ export const BrevoEmailDashboard: React.FC = () => {
 
               {/* Timeframe breakdowns */}
               <div className="grid grid-cols-3 gap-4 text-left">
-                <div className="bg-slate-50 dark:bg-slate-800/40 p-4 border border-slate-200/60 dark:border-slate-800 rounded-xl">
+                <div className="bg-white dark:bg-slate-800/40 p-4 border border-slate-200/60 dark:border-slate-800 rounded-xl">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Today</span>
                   <span className="text-lg font-black text-slate-700 dark:text-slate-300">{metrics?.sentToday || 0} emails</span>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/40 p-4 border border-slate-200/60 dark:border-slate-800 rounded-xl">
+                <div className="bg-white dark:bg-slate-800/40 p-4 border border-slate-200/60 dark:border-slate-800 rounded-xl">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Last 7 Days</span>
                   <span className="text-lg font-black text-slate-700 dark:text-slate-300">{metrics?.sentThisWeek || 0} emails</span>
                 </div>
-                <div className="bg-slate-50 dark:bg-slate-800/40 p-4 border border-slate-200/60 dark:border-slate-800 rounded-xl">
+                <div className="bg-white dark:bg-slate-800/40 p-4 border border-slate-200/60 dark:border-slate-800 rounded-xl">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Last 30 Days</span>
                   <span className="text-lg font-black text-slate-700 dark:text-slate-300">{metrics?.sentThisMonth || 0} emails</span>
                 </div>
@@ -645,7 +645,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                             <span className="font-mono text-slate-600 dark:text-slate-300">{item.type.toUpperCase()}</span>
                             <span className="font-bold">{item.count} dispatched</span>
                           </div>
-                          <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                          <div className="w-full bg-white dark:bg-slate-800 h-2.5 rounded-full overflow-hidden">
                             <div 
                               className="bg-gradient-to-r from-blue-600 to-indigo-500 h-full rounded-full transition-all duration-500"
                               style={{ width: `${percentage}%` }}
@@ -679,7 +679,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search by recipient email or subject..."
-                    className="w-full pl-9 pr-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-1 focus:ring-blue-500 outline-none text-xs"
+                    className="w-full pl-9 pr-3 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-1 focus:ring-blue-500 outline-none text-xs"
                   />
                 </div>
 
@@ -688,7 +688,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none"
+                    className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none"
                   >
                     <option value="">All Delivery Statuses</option>
                     <option value="sent">Sent</option>
@@ -706,7 +706,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                   <select
                     value={typeFilter}
                     onChange={(e) => setTypeFilter(e.target.value)}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none"
+                    className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none"
                   >
                     <option value="">All Templates</option>
                     <option value="welcome">Welcome</option>
@@ -733,7 +733,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-xs"
+                    className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none text-xs"
                   >
                     <option value="newest">Dispatched Newest</option>
                     <option value="oldest">Dispatched Oldest</option>
@@ -752,14 +752,14 @@ export const BrevoEmailDashboard: React.FC = () => {
                     type="date"
                     value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
-                    className="p-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px]"
+                    className="p-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px]"
                   />
                   <span className="text-slate-400">to</span>
                   <input
                     type="date"
                     value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
-                    className="p-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px]"
+                    className="p-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px]"
                   />
                 </div>
 
@@ -805,7 +805,7 @@ export const BrevoEmailDashboard: React.FC = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-400 text-[10px] uppercase font-black tracking-wider border-b border-slate-100 dark:border-slate-800">
+                  <tr className="bg-white dark:bg-slate-800/50 text-slate-400 text-[10px] uppercase font-black tracking-wider border-b border-slate-100 dark:border-slate-800">
                     <th className="py-3 px-4 w-10">
                       <input 
                         type="checkbox"
@@ -841,7 +841,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                       return (
                         <tr 
                           key={log.id} 
-                          className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
+                          className="hover:bg-white dark:hover:bg-slate-800/30 transition-colors"
                         >
                           <td className="py-3.5 px-4">
                             <input
@@ -859,7 +859,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                             </span>
                           </td>
                           <td className="py-3.5 px-4">
-                            <span className="font-mono text-[10px] bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md">
+                            <span className="font-mono text-[10px] bg-white dark:bg-slate-800 px-2 py-0.5 rounded-md">
                               {log.email_type}
                             </span>
                           </td>
@@ -923,7 +923,7 @@ export const BrevoEmailDashboard: React.FC = () => {
             </div>
 
             {/* Pagination Controls bar */}
-            <div className="p-4 bg-slate-50 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 text-[11px]">
+            <div className="p-4 bg-white dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 text-[11px]">
               <div>
                 Showing <span className="font-extrabold text-slate-700 dark:text-slate-300">{logs.length}</span> of <span className="font-extrabold text-slate-700 dark:text-slate-300">{totalLogs}</span> transactions
               </div>
@@ -948,7 +948,7 @@ export const BrevoEmailDashboard: React.FC = () => {
 
               <button
                 onClick={handleExportCSV}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition flex items-center gap-1.5"
               >
                 <Download size={12} />
                 <span>Export logs CSV</span>
@@ -976,7 +976,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                   value={testRecipientEmail}
                   onChange={(e) => setTestRecipientEmail(e.target.value)}
                   placeholder="e.g. candidate@example.com"
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none"
+                  className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none"
                   required
                 />
               </div>
@@ -988,7 +988,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                   value={testRecipientName}
                   onChange={(e) => setTestRecipientName(e.target.value)}
                   placeholder="e.g. John Doe"
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none"
+                  className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none"
                 />
               </div>
 
@@ -997,7 +997,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                 <select
                   value={testTemplateType}
                   onChange={(e) => setTestTemplateType(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none"
+                  className="w-full p-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none"
                 >
                   <option value="welcome">Welcome Onboarding (Template 1)</option>
                   <option value="verification">Verify Email (Template 2)</option>
@@ -1042,7 +1042,7 @@ export const BrevoEmailDashboard: React.FC = () => {
               <span className="px-2 py-0.5 bg-sky-50 dark:bg-slate-800 text-sky-600 dark:text-sky-400 rounded-md uppercase font-mono text-[9px]">Responsive design</span>
             </div>
 
-            <div className="flex-1 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 p-4 overflow-y-auto font-sans leading-relaxed text-xs">
+            <div className="flex-1 bg-white dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800 p-4 overflow-y-auto font-sans leading-relaxed text-xs">
               <div className="max-w-md mx-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
                 <div className="bg-[#0f172a] p-5 text-center">
                   <span className="font-black text-[#38bdf8] text-lg">DS <span className="text-white">Tech</span></span>
@@ -1053,7 +1053,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                     <>
                       <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-2">Welcome to DS Tech, {testRecipientName || "User"}! 🎉</h4>
                       <p className="text-slate-500 dark:text-slate-300 text-[11px] mb-3">Your professional recruitment journey starts right here. DS Tech is Nigeria's premier elite technology career matchmaking and screening platform.</p>
-                      <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl mb-4 border border-slate-150">
+                      <div className="bg-white dark:bg-slate-800 p-3 rounded-xl mb-4 border border-slate-150">
                         <strong className="block text-[#0f172a] dark:text-orange-500 mb-1">Next Steps:</strong>
                         <ul className="list-disc pl-4 text-slate-500 dark:text-slate-300 space-y-1">
                           <li>Complete detailed career constellation profile</li>
@@ -1074,7 +1074,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                       <div className="text-center mb-4">
                         <span className="inline-block bg-[#2563eb] text-white px-5 py-2 rounded-lg font-bold">Verify Email Address</span>
                       </div>
-                      <div className="bg-slate-50 dark:bg-slate-800 p-2.5 rounded-lg text-[10px] text-slate-400">
+                      <div className="bg-white dark:bg-slate-800 p-2.5 rounded-lg text-[10px] text-slate-400">
                         This link is valid for 24 hours. If you did not sign up, you can ignore this alert.
                       </div>
                     </>
@@ -1110,7 +1110,7 @@ export const BrevoEmailDashboard: React.FC = () => {
                     <>
                       <h4 className="text-sm font-bold text-slate-800 dark:text-white mb-2 uppercase">{testTemplateType.replace(/_/g, ' ')}</h4>
                       <p className="text-slate-500 mb-3">Custom template visualization for transaction testing.</p>
-                      <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-xl text-center border">
+                      <div className="bg-white dark:bg-slate-800 p-4 rounded-xl text-center border">
                         <CheckCircle2 size={24} className="text-emerald-500 mx-auto mb-2" />
                         <span className="font-extrabold text-slate-700 dark:text-slate-300">Enterprise Responsive Component</span>
                       </div>
@@ -1135,7 +1135,7 @@ export const BrevoEmailDashboard: React.FC = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Permission card */}
-              <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
+              <div className="bg-white dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
                 <span className="text-[10px] uppercase font-black text-slate-400 block">Notification Permission</span>
                 <div className="flex items-center gap-2">
                   <span className={`w-3.5 h-3.5 rounded-full \${
@@ -1156,7 +1156,7 @@ export const BrevoEmailDashboard: React.FC = () => {
               </div>
 
               {/* Service worker registration card */}
-              <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
+              <div className="bg-white dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
                 <span className="text-[10px] uppercase font-black text-slate-400 block">Service Worker Status</span>
                 <div className="flex items-center gap-2">
                   <Server className="text-blue-500" size={16} />
@@ -1170,7 +1170,7 @@ export const BrevoEmailDashboard: React.FC = () => {
               </div>
 
               {/* PWA Manifest card */}
-              <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
+              <div className="bg-white dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-2">
                 <span className="text-[10px] uppercase font-black text-slate-400 block">PWA Manifest Verification</span>
                 <div className="flex items-center gap-2">
                   <FileJson className="text-orange-500" size={16} />
@@ -1353,7 +1353,7 @@ export const BrevoEmailDashboard: React.FC = () => {
               <div className="space-y-4">
                 {/* File 1: Service Worker */}
                 <div className="space-y-1.5">
-                  <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg">
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-400 bg-white dark:bg-slate-800/50 p-2 rounded-lg">
                     <span>1. Firebase SW: <code className="text-orange-500 font-bold font-mono">public/firebase-messaging-sw.js</code></span>
                     <button
                       onClick={() => handleCopyText(`// Firebase Service Worker for alihsan.online Push Notifications
@@ -1420,7 +1420,7 @@ messaging.setBackgroundMessageHandler(function(payload) {
 
                 {/* File 2: manifest.json */}
                 <div className="space-y-1.5">
-                  <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg">
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-400 bg-white dark:bg-slate-800/50 p-2 rounded-lg">
                     <span>2. PWA Manifest: <code className="text-orange-500 font-bold font-mono">public/manifest.json</code></span>
                     <button
                       onClick={() => handleCopyText(`{
@@ -1473,7 +1473,7 @@ messaging.setBackgroundMessageHandler(function(payload) {
 
                 {/* File 3: useFCM.ts */}
                 <div className="space-y-1.5">
-                  <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-400 bg-slate-50 dark:bg-slate-800/50 p-2 rounded-lg">
+                  <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-400 bg-white dark:bg-slate-800/50 p-2 rounded-lg">
                     <span>3. React Integration Hook: <code className="text-orange-500 font-bold font-mono">src/hooks/useFCM.ts</code></span>
                     <button
                       onClick={() => handleCopyText(`import { useState, useEffect } from 'react';
@@ -1567,12 +1567,12 @@ const fcmToken = await getToken(messaging, {
 
               <div className="space-y-4 text-xs leading-relaxed">
                 {/* DNS Records */}
-                <div className="space-y-1.5 p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border">
+                <div className="space-y-1.5 p-3.5 bg-white dark:bg-slate-800/40 rounded-xl border">
                   <span className="font-black text-[10px] text-orange-500 uppercase block">1. DNS Records (SPF & DKIM for Brevo)</span>
                   <p className="text-slate-500 text-[11px]">To make emails deliver reliably to users' inboxes without going to spam, add the following TXT records to your domain registrar (Cloudflare/GoDaddy/Namecheap):</p>
                   
                   <div className="space-y-2 mt-2 font-mono text-[10px]">
-                    <div className="bg-slate-100 dark:bg-slate-950 p-2 rounded border">
+                    <div className="bg-white dark:bg-slate-950 p-2 rounded border">
                       <strong className="text-[#000E32] dark:text-orange-400 block mb-0.5">TXT Record: SPF</strong>
                       <div className="flex justify-between items-center bg-slate-200/50 dark:bg-slate-900/80 p-1 px-2 rounded mt-1">
                         <span>v=spf1 include:spf.sendinblue.com ~all</span>
@@ -1581,7 +1581,7 @@ const fcmToken = await getToken(messaging, {
                         </button>
                       </div>
                     </div>
-                    <div className="bg-slate-100 dark:bg-slate-950 p-2 rounded border">
+                    <div className="bg-white dark:bg-slate-950 p-2 rounded border">
                       <strong className="text-[#000E32] dark:text-orange-400 block mb-0.5">TXT Record: DKIM (Host: mail._domainkey)</strong>
                       <div className="flex justify-between items-center bg-slate-200/50 dark:bg-slate-900/80 p-1 px-2 rounded mt-1">
                         <span className="break-all">k=rsa; p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDy7gA3...</span>
@@ -1594,15 +1594,15 @@ const fcmToken = await getToken(messaging, {
                 </div>
 
                 {/* Brevo Tracker */}
-                <div className="space-y-1.5 p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border">
+                <div className="space-y-1.5 p-3.5 bg-white dark:bg-slate-800/40 rounded-xl border">
                   <span className="font-black text-[10px] text-orange-500 uppercase block">2. Brevo Tracker Script</span>
-                  <p className="text-slate-500 text-[11px]">We integrated the official Brevo Tracking Script inside the <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">&lt;head&gt;</code> of <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">index.html</code>. Replace <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">window.key</code> value with your actual Brevo tracker automation key from the Brevo automation control panel.</p>
+                  <p className="text-slate-500 text-[11px]">We integrated the official Brevo Tracking Script inside the <code className="font-mono bg-white dark:bg-slate-800 px-1 rounded text-orange-500">&lt;head&gt;</code> of <code className="font-mono bg-white dark:bg-slate-800 px-1 rounded text-orange-500">index.html</code>. Replace <code className="font-mono bg-white dark:bg-slate-800 px-1 rounded text-orange-500">window.key</code> value with your actual Brevo tracker automation key from the Brevo automation control panel.</p>
                 </div>
 
                 {/* Server Hosting routing fix explanation */}
-                <div className="space-y-1.5 p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border">
+                <div className="space-y-1.5 p-3.5 bg-white dark:bg-slate-800/40 rounded-xl border">
                   <span className="font-black text-[10px] text-orange-500 uppercase block">3. Fixed: Background Service Connection</span>
-                  <p className="text-slate-500 text-[11px]">Previously, your phone or browser couldn't register to receive notifications because the background system files (<code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">firebase-messaging-sw.js</code> and <code className="font-mono bg-slate-100 dark:bg-slate-800 px-1 rounded text-orange-500">manifest.json</code>) were missing. This caused the website to return a page instead of the setup code.</p>
+                  <p className="text-slate-500 text-[11px]">Previously, your phone or browser couldn't register to receive notifications because the background system files (<code className="font-mono bg-white dark:bg-slate-800 px-1 rounded text-orange-500">firebase-messaging-sw.js</code> and <code className="font-mono bg-white dark:bg-slate-800 px-1 rounded text-orange-500">manifest.json</code>) were missing. This caused the website to return a page instead of the setup code.</p>
                   <p className="text-slate-500 text-[11px] mt-1"><strong>What we did:</strong> We created and placed these files directly into the website's public folder. Now, the server delivers them correctly to your phone or web browser, which lets your device register and receive notifications successfully.</p>
                 </div>
 
@@ -1612,12 +1612,12 @@ const fcmToken = await getToken(messaging, {
                   <p className="text-slate-500 text-[11px]">To see active pop-up notification banners on mobile phones, follow these requirements:</p>
                   
                   <div className="space-y-2 mt-2 text-[11px] list-none">
-                    <div className="bg-slate-100/50 dark:bg-slate-950/40 p-2.5 rounded border border-slate-200/50 dark:border-slate-800/80">
+                    <div className="bg-white dark:bg-slate-950/40 p-2.5 rounded border border-slate-200/50 dark:border-slate-800/80">
                       <strong className="text-orange-500 block mb-0.5">⚠️ Iframe Constraint (Crucial)</strong>
                       <p className="text-slate-500 text-[10.5px]">Browsers strictly block notification permission prompts inside nested frames. You <strong>MUST click "Open in New Tab"</strong> at the top-right of your AI Studio screen to open the app directly.</p>
                     </div>
 
-                    <div className="bg-slate-100/50 dark:bg-slate-950/40 p-2.5 rounded border border-slate-200/50 dark:border-slate-800/80">
+                    <div className="bg-white dark:bg-slate-950/40 p-2.5 rounded border border-slate-200/50 dark:border-slate-800/80">
                       <strong className="text-orange-500 block mb-0.5">🍏 Apple iOS (iPhone/iPad)</strong>
                       <p className="text-slate-500 text-[10.5px] leading-relaxed">
                         1. Open the direct app link in the native <strong>Safari</strong> browser.<br />
@@ -1628,7 +1628,7 @@ const fcmToken = await getToken(messaging, {
                       </p>
                     </div>
 
-                    <div className="bg-slate-100/50 dark:bg-slate-950/40 p-2.5 rounded border border-slate-200/50 dark:border-slate-800/80">
+                    <div className="bg-white dark:bg-slate-950/40 p-2.5 rounded border border-slate-200/50 dark:border-slate-800/80">
                       <strong className="text-orange-500 block mb-0.5">🤖 Android (Samsung/Google/Xiaomi)</strong>
                       <p className="text-slate-500 text-[10.5px] leading-relaxed">
                         1. Open the direct app link inside <strong>Google Chrome</strong>.<br />
@@ -1650,7 +1650,7 @@ const fcmToken = await getToken(messaging, {
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-xl w-full text-left shadow-2xl relative animate-scale-in">
             <button
               onClick={() => setSelectedLog(null)}
-              className="absolute top-4 right-4 p-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 rounded-full text-slate-400 hover:text-slate-600 transition"
+              className="absolute top-4 right-4 p-1 bg-white hover:bg-slate-200 dark:bg-slate-800 rounded-full text-slate-400 hover:text-slate-600 transition"
             >
               <X size={16} />
             </button>
@@ -1678,7 +1678,7 @@ const fcmToken = await getToken(messaging, {
                 </div>
                 <div>
                   <span className="text-slate-400 block uppercase text-[9px] font-black">Template Classification</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-300 font-mono bg-slate-50 dark:bg-slate-800 px-1.5 py-0.5 rounded">{selectedLog.email_type}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-300 font-mono bg-white dark:bg-slate-800 px-1.5 py-0.5 rounded">{selectedLog.email_type}</span>
                 </div>
                 <div>
                   <span className="text-slate-400 block uppercase text-[9px] font-black">Subject Line</span>
@@ -1705,7 +1705,7 @@ const fcmToken = await getToken(messaging, {
                 </div>
               )}
 
-              <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border space-y-1 text-[10px]">
+              <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border space-y-1 text-[10px]">
                 <p><strong>Created:</strong> {selectedLog.created_at}</p>
                 {selectedLog.sent_at && <p><strong>Sent at:</strong> {selectedLog.sent_at}</p>}
                 {selectedLog.delivered_at && <p><strong>Delivered at:</strong> {selectedLog.delivered_at}</p>}
@@ -1716,7 +1716,7 @@ const fcmToken = await getToken(messaging, {
               <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                 <button
                   onClick={() => setSelectedLog(null)}
-                  className="px-3.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-xl"
+                  className="px-3.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-200 rounded-xl"
                 >
                   Close Metadata
                 </button>

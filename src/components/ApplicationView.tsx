@@ -113,7 +113,7 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
             }
             window.dispatchEvent(new Event('popstate'));
           }}
-          className="w-full sm:w-auto py-2 px-5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-slate-200"
+          className="w-full sm:w-auto py-2 px-5 bg-white hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 border border-slate-200"
         >
           ← Careers Application Portal
         </button>
@@ -274,7 +274,7 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
       </div>
 
       {/* Switcher Tab Buttons */}
-      <div className="no-print flex gap-1 sm:gap-2 bg-slate-100 p-1 sm:p-1.5 rounded-2xl max-w-md mx-auto border border-slate-200 w-full">
+      <div className="no-print flex gap-1 sm:gap-2 bg-white p-1 sm:p-1.5 rounded-2xl max-w-md mx-auto border border-slate-200 w-full">
         <button
           type="button"
           onClick={() => setActiveFormTab('both')}

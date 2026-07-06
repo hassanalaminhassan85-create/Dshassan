@@ -227,7 +227,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
               <button
                 type="button"
                 onClick={onCancel}
-                className="p-1.5 text-slate-400 hover:text-orange-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-all mr-1 flex items-center justify-center border border-slate-200 dark:border-slate-800"
+                className="p-1.5 text-slate-400 hover:text-orange-600 hover:bg-white dark:hover:bg-slate-800 rounded-xl transition-all mr-1 flex items-center justify-center border border-slate-200 dark:border-slate-800"
                 title="Back to Corporate Hub"
               >
                 <ArrowLeft size={16} />
@@ -244,7 +244,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
           <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
             <div className="flex flex-col items-start sm:items-end text-left sm:text-right">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Overall Progress</span>
-              <span className="text-xs font-extrabold text-[#000E32] dark:text-slate-200 bg-slate-100 dark:bg-slate-950 px-2.5 py-1 rounded-lg mt-0.5 shadow-sm border border-slate-200/40 dark:border-slate-850">
+              <span className="text-xs font-extrabold text-[#000E32] dark:text-slate-200 bg-white dark:bg-slate-950 px-2.5 py-1 rounded-lg mt-0.5 shadow-sm border border-slate-200/40 dark:border-slate-850">
                 {Math.round((activeTab / totalSteps) * 100)}% Completed
               </span>
             </div>
@@ -263,7 +263,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
         </div>
 
         {/* Mobile Horizontal Progress Scrollbar (Sleek UI/UX improvement) */}
-        <div className="bg-slate-50/50 px-4 py-3 border-b border-slate-150/40 lg:hidden">
+        <div className="bg-white px-4 py-3 border-b border-slate-150/40 lg:hidden">
           <div className="flex items-center gap-2 overflow-x-auto pb-1.5 scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
             {steps.map(step => {
               const StepIcon = step.icon;
@@ -315,7 +315,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                       ? 'bg-[#000E32] dark:bg-orange-600 text-white shadow-md shadow-blue-950/20 dark:shadow-orange-950/20 translate-x-2'
                       : isCompleted
                       ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/40 dark:bg-emerald-950/10 hover:bg-emerald-50/80 dark:hover:bg-emerald-900/20 border border-transparent'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800/40 border border-transparent'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800/40 border border-transparent'
                   }`}
                 >
                   <div
@@ -324,7 +324,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                         ? 'bg-orange-500 text-white'
                         : isCompleted
                         ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400'
-                        : 'bg-slate-100 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500'
+                        : 'bg-white dark:bg-slate-800/50 text-slate-400 dark:text-slate-500'
                     }`}
                   >
                     <StepIcon size={16} />
@@ -349,7 +349,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
             <div className="p-6 md:p-8 min-h-[420px]">
               
               {/* Interactive Segmented Switch */}
-              <div className="flex bg-slate-100 p-1 rounded-2xl mb-6 max-w-md border border-slate-200/50">
+              <div className="flex bg-white p-1 rounded-2xl mb-6 max-w-md border border-slate-200/50">
                 <button
                   type="button"
                   onClick={() => setFormViewMode('edit')}
@@ -414,7 +414,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                       </div>
 
                       {/* Ref Date */}
-                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 p-2.5 rounded-xl border border-slate-150/50 text-[10px] gap-2 w-full">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-white p-2.5 rounded-xl border border-slate-150/50 text-[10px] gap-2 w-full">
                         <span className="font-extrabold text-[#000E32] uppercase font-mono break-all">Ref: DST-DRAFT-{(personalInfo.fullName || 'CANDIDATE').substring(0, 3).toUpperCase()}</span>
                         <span className="font-semibold text-slate-600 shrink-0">Date: <span className="font-bold text-[#000E32]">{new Date().toLocaleDateString()}</span></span>
                       </div>
@@ -478,7 +478,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                         </div>
 
                         {/* Terms outline */}
-                        <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-150 text-[10px] space-y-1">
+                        <div className="bg-white p-3.5 rounded-xl border border-slate-150 text-[10px] space-y-1">
                           <span className="font-extrabold text-[#000E32] uppercase tracking-wider block mb-1">Proposed Terms Summary</span>
                           <p className="text-slate-600 font-medium">1. This appointment authorizes you to participate in active agency campaigns.</p>
                           <p className="text-slate-600 font-medium">2. Service structures and payout guidelines shall follow campaign terms.</p>
@@ -486,7 +486,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
 
                         {/* Two Column details overview */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                          <div className="border border-slate-150 bg-slate-50 p-3 rounded-xl space-y-2">
+                          <div className="border border-slate-150 bg-white p-3 rounded-xl space-y-2">
                             <span className="text-[9px] font-extrabold text-[#000E32] uppercase block pb-1 border-b">Candidate Details</span>
                             <div className="space-y-1 text-[10px] font-medium">
                               <div className="flex justify-between"><span className="text-slate-400">State:</span> <span className="font-bold text-slate-800">{personalInfo.stateOfOrigin || 'Pending'}</span></div>
@@ -495,7 +495,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                             </div>
                           </div>
 
-                          <div className="border border-slate-150 bg-slate-50 p-3 rounded-xl space-y-2">
+                          <div className="border border-slate-150 bg-white p-3 rounded-xl space-y-2">
                             <span className="text-[9px] font-extrabold text-[#000E32] uppercase block pb-1 border-b">E-Signing Seal</span>
                             <div className="flex flex-col items-center justify-center h-12">
                               {signatureData ? (
@@ -923,7 +923,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                             />
                             
                             {/* Interactive Quick Selection Block */}
-                            <div className="mt-3 p-4 bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 rounded-2xl space-y-3">
+                            <div className="mt-3 p-4 bg-white dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 rounded-2xl space-y-3">
                               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                                 <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                                   <Sparkles size={11} className="text-orange-500 animate-pulse" />
@@ -955,7 +955,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                                       className={`px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider transition-colors shrink-0 cursor-pointer ${
                                         formRoleCategory === cat
                                           ? 'bg-[#000E32] text-white dark:bg-orange-600'
-                                          : 'bg-white hover:bg-slate-100 dark:bg-slate-950 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200/50 dark:border-slate-800'
+                                          : 'bg-white hover:bg-white dark:bg-slate-950 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200/50 dark:border-slate-800'
                                       }`}
                                     >
                                       {cat}
@@ -984,7 +984,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                                       className={`w-full text-left p-2 rounded-lg text-xs transition-all flex items-center justify-between cursor-pointer border ${
                                         isSelected
                                           ? 'bg-orange-50/50 dark:bg-orange-950/20 border-orange-300 dark:border-orange-900 text-orange-700 dark:text-orange-400'
-                                          : 'hover:bg-slate-50 dark:hover:bg-slate-900 border-transparent text-slate-700 dark:text-slate-300'
+                                          : 'hover:bg-white dark:hover:bg-slate-900 border-transparent text-slate-700 dark:text-slate-300'
                                       }`}
                                     >
                                       <div>
@@ -996,7 +996,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                                           Suggested stack: {role.tools.join(' • ')}
                                         </div>
                                       </div>
-                                      <span className="text-[9px] font-mono bg-slate-100 dark:bg-slate-900 px-1.5 py-0.5 rounded text-slate-500 shrink-0">
+                                      <span className="text-[9px] font-mono bg-white dark:bg-slate-900 px-1.5 py-0.5 rounded text-slate-500 shrink-0">
                                         {role.estimatedSalary}
                                       </span>
                                     </button>
@@ -1072,7 +1072,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                               className={`px-4 py-2.5 rounded-xl font-semibold text-xs border transition-all duration-300 flex items-center gap-1.5 ${
                                 isSelected
                                   ? 'bg-[#000E32] text-white border-[#000E32] shadow'
-                                  : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                                  : 'bg-white hover:bg-white text-slate-700 border-slate-200'
                               }`}
                             >
                               <div
@@ -1104,7 +1104,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                   {/* SECTION 7: Preferred Work Mode */}
                   {activeTab === 7 && (
                     <div className="space-y-6">
-                      <div className="border border-slate-150 p-4 rounded-2xl bg-slate-50/50">
+                      <div className="border border-slate-150 p-4 rounded-2xl bg-white">
                         <h4 className="text-xs font-extrabold text-[#000E32] uppercase tracking-wide mb-3">
                           1. Monthly Salary-Based Job preference:
                         </h4>
@@ -1117,7 +1117,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                               className={`py-3 px-2 rounded-xl text-xs font-bold border transition-all duration-300 text-center uppercase tracking-wider ${
                                 workMode.monthlySalaryJob === mode
                                   ? 'bg-orange-600 text-white border-orange-600 shadow'
-                                  : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
+                                  : 'bg-white hover:bg-white text-slate-600 border-slate-200'
                               }`}
                             >
                               {mode}
@@ -1126,7 +1126,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                         </div>
                       </div>
 
-                      <div className="border border-slate-150 p-4 rounded-2xl bg-slate-50/50">
+                      <div className="border border-slate-150 p-4 rounded-2xl bg-white">
                         <h4 className="text-xs font-extrabold text-[#000E32] uppercase tracking-wide mb-3">
                           2. Contract / Freelacing Jobs preference:
                         </h4>
@@ -1139,7 +1139,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                               className={`py-3 px-2 rounded-xl text-xs font-bold border transition-all duration-300 text-center uppercase tracking-wider ${
                                 workMode.contractFreelanceJob === mode
                                   ? 'bg-[#000E32] text-white border-[#000E32] shadow'
-                                  : 'bg-white hover:bg-slate-50 text-slate-600 border-slate-200'
+                                  : 'bg-white hover:bg-white text-slate-600 border-slate-200'
                               }`}
                             >
                               {mode}
@@ -1216,7 +1216,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
 
                       <div className="flex flex-col items-center justify-center py-6">
                         {personalInfo.passportPhoto && personalInfo.passportPhoto.trim() !== '' ? (
-                          <div className="relative group max-w-[180px] w-full aspect-square bg-slate-100 border rounded-2xl overflow-hidden p-1.5 shadow">
+                          <div className="relative group max-w-[180px] w-full aspect-square bg-white border rounded-2xl overflow-hidden p-1.5 shadow">
                             <img
                               src={personalInfo.passportPhoto}
                               alt="Passport Preview"
@@ -1231,14 +1231,14 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                             </button>
                           </div>
                         ) : (
-                          <label className="w-full max-w-sm border-2 border-dashed border-slate-300 hover:border-slate-400 cursor-pointer p-8 rounded-2xl flex flex-col items-center justify-center gap-3 bg-slate-50/50 transition-all duration-300 hover:bg-slate-50 text-center">
+                          <label className="w-full max-w-sm border-2 border-dashed border-slate-300 hover:border-slate-400 cursor-pointer p-8 rounded-2xl flex flex-col items-center justify-center gap-3 bg-white transition-all duration-300 hover:bg-white text-center">
                             <input
                               type="file"
                               accept="image/*"
                               onChange={handlePassportPhotoUpload}
                               className="hidden"
                             />
-                            <div className="p-4 bg-slate-100 rounded-full text-slate-500">
+                            <div className="p-4 bg-white rounded-full text-slate-500">
                               <Camera size={26} />
                             </div>
                             <div>
@@ -1274,7 +1274,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                       </div>
 
                       {/* Declaration Check & Date */}
-                      <div className="border border-slate-150 p-4 rounded-2xl bg-slate-50/40 space-y-4">
+                      <div className="border border-slate-150 p-4 rounded-2xl bg-white space-y-4">
                         <div className="flex gap-3">
                           <input
                             type="checkbox"
@@ -1342,12 +1342,12 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                 </button>
               </div>
             ) : (
-              <div className="bg-slate-50 p-6 flex items-center justify-between gap-4 border-t border-slate-100">
+              <div className="bg-white p-6 flex items-center justify-between gap-4 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={handleBack}
                   disabled={activeTab === 1}
-                  className="px-5 py-2.5 bg-white hover:bg-slate-100 text-[#000E32] font-extrabold text-xs uppercase tracking-wider rounded-xl border border-slate-200 disabled:opacity-30 disabled:pointer-events-none transition-all duration-300 flex items-center gap-2 shadow-sm"
+                  className="px-5 py-2.5 bg-white hover:bg-white text-[#000E32] font-extrabold text-xs uppercase tracking-wider rounded-xl border border-slate-200 disabled:opacity-30 disabled:pointer-events-none transition-all duration-300 flex items-center gap-2 shadow-sm"
                 >
                   <ArrowLeft size={14} />
                   Previous Set

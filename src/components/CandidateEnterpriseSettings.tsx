@@ -702,7 +702,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
           )}
 
           {saveStatus === 'idle' && (
-            <div className={`text-[9px] font-mono border rounded-xl px-2.5 py-1.5 ${isDarkMode ? 'text-slate-500 bg-black/40 border-white/5' : 'text-slate-600 bg-slate-100 border-slate-200'}`}>
+            <div className={`text-[9px] font-mono border rounded-xl px-2.5 py-1.5 ${isDarkMode ? 'text-slate-500 bg-black/40 border-white/5' : 'text-slate-600 bg-white border-slate-200'}`}>
               SECURE LOCAL MEMORY SYNC: ACTIVE
             </div>
           )}
@@ -713,7 +713,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
               className={`px-3.5 py-1.5 border text-[10px] font-extrabold uppercase rounded-xl transition-all ${
                 isDarkMode 
                   ? 'bg-white/5 border-white/10 hover:bg-white/10 text-slate-300' 
-                  : 'bg-slate-100 border-slate-200 hover:bg-slate-200 text-slate-700'
+                  : 'bg-white border-slate-200 hover:bg-slate-200 text-slate-700'
               }`}
             >
               Close Console
@@ -745,7 +745,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                   ? 'bg-indigo-600 border-indigo-500 text-white shadow-md' 
                   : isDarkMode 
                     ? 'bg-black/30 border-slate-800 text-slate-400 hover:text-white' 
-                    : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-950'
+                    : 'bg-white border-slate-200 text-slate-600 hover:text-slate-950'
               }`}
             >
               {p.label}
@@ -774,7 +774,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                 className={`w-full pl-9 pr-8 py-2 rounded-xl text-[11px] focus:outline-none transition-all ${
                   isDarkMode 
                     ? 'bg-black/40 border-white/10 focus:border-indigo-500 text-indigo-200' 
-                    : 'bg-slate-100 border-slate-200 focus:border-indigo-500 text-slate-800'
+                    : 'bg-white border-slate-200 focus:border-indigo-500 text-slate-800'
                 }`}
               />
               {searchQuery && (
@@ -825,7 +825,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                         ? 'bg-indigo-600 border-indigo-500 text-white font-extrabold shadow-md' 
                         : isDarkMode
                           ? 'bg-black/30 border-slate-800 text-slate-400 hover:text-white'
-                          : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900'
+                          : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     <CatIcon size={12} className={isActive ? 'text-white' : 'text-indigo-500'} />
@@ -853,11 +853,11 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                         ? 'bg-indigo-600 border-indigo-500 text-white font-extrabold shadow-md' 
                         : isDarkMode
                           ? 'border-transparent hover:bg-white/5 text-slate-400 hover:text-white'
-                          : 'border-transparent hover:bg-slate-100 text-slate-600 hover:text-slate-900'
+                          : 'border-transparent hover:bg-white text-slate-600 hover:text-slate-900'
                     }`}
                   >
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className={`p-1.5 rounded-lg ${isActive ? 'bg-indigo-500' : isDarkMode ? 'bg-white/5 group-hover:bg-white/10' : 'bg-slate-100 group-hover:bg-slate-200'}`}>
+                      <div className={`p-1.5 rounded-lg ${isActive ? 'bg-indigo-500' : isDarkMode ? 'bg-white/5 group-hover:bg-white/10' : 'bg-white group-hover:bg-slate-200'}`}>
                         <CatIcon size={12} className={isActive ? 'text-white' : 'text-indigo-500 dark:text-indigo-400'} />
                       </div>
                       <div className="truncate">
@@ -868,7 +868,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                     <span className={`text-[8px] font-mono px-1.5 py-0.5 rounded ${
                       isActive 
                         ? 'bg-indigo-500 text-white' 
-                        : isDarkMode ? 'bg-black/30 text-slate-500' : 'bg-slate-100 text-slate-500'
+                        : isDarkMode ? 'bg-black/30 text-slate-500' : 'bg-white text-slate-500'
                     }`}>
                       {count}
                     </span>
@@ -895,7 +895,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                       className={`px-2.5 py-1 border rounded-lg text-[9px] font-bold transition-all ${
                         isDarkMode
                           ? 'bg-white/5 border-white/5 text-slate-300 hover:text-white hover:border-indigo-500/40'
-                          : 'bg-slate-100 border-slate-200 text-slate-600 hover:text-slate-900 hover:border-indigo-500/40'
+                          : 'bg-white border-slate-200 text-slate-600 hover:text-slate-900 hover:border-indigo-500/40'
                       }`}
                     >
                       {cat.title}
@@ -923,7 +923,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
             <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1">
               {backups.map(bk => (
                 <div key={bk.id} className={`p-2.5 border rounded-xl flex items-center justify-between gap-2 ${
-                  isDarkMode ? 'bg-black/40 border-white/5' : 'bg-slate-50 border-slate-100'
+                  isDarkMode ? 'bg-black/40 border-white/5' : 'bg-white border-slate-100'
                 }`}>
                   <div className="min-w-0">
                     <p className={`font-extrabold text-[10px] truncate ${isDarkMode ? 'text-white' : 'text-slate-800'}`}>{bk.name}</p>
@@ -953,14 +953,14 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
               <button
                 onClick={handleExportJSON}
                 className={`py-1.5 border hover:bg-white/10 text-[9px] font-black uppercase rounded-lg flex items-center justify-center gap-1 transition-colors ${
-                  isDarkMode ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10' : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                  isDarkMode ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-200'
                 }`}
               >
                 <Download size={10} /> Export JSON
               </button>
               
               <label className={`py-1.5 border hover:bg-white/10 text-[9px] font-black uppercase rounded-lg flex items-center justify-center gap-1 cursor-pointer transition-colors ${
-                isDarkMode ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10' : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200'
+                isDarkMode ? 'bg-white/5 border-white/10 text-slate-300 hover:bg-white/10' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-200'
               }`}>
                 <Upload size={10} /> Import JSON
                 <input
@@ -1005,7 +1005,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                   className={`px-2.5 py-1 border text-[9px] font-bold uppercase rounded-lg transition-colors ${
                     isDarkMode 
                       ? 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white' 
-                      : 'bg-slate-100 border-slate-200 text-slate-700 hover:bg-slate-200 hover:text-slate-950'
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-200 hover:text-slate-950'
                   }`}
                 >
                   {showJsonEditor ? 'Exit Code Editor' : 'Advanced JSON Editor'}
@@ -1030,7 +1030,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                     className={`w-full h-80 font-mono text-[10px] p-4 rounded-xl border focus:outline-none focus:border-indigo-500 transition-colors ${
                       isDarkMode 
                         ? 'bg-black/80 text-emerald-400 border-white/10' 
-                        : 'bg-slate-50 text-slate-800 border-slate-200'
+                        : 'bg-white text-slate-800 border-slate-200'
                     }`}
                     placeholder="{ ...settings }"
                   />
@@ -1047,7 +1047,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                     className={`px-4 py-1.5 border rounded-xl text-[10px] font-bold uppercase transition-all ${
                       isDarkMode 
                         ? 'bg-white/5 border-white/10 text-slate-400 hover:text-white' 
-                        : 'bg-slate-100 border-slate-200 text-slate-500 hover:bg-slate-200 hover:text-slate-950'
+                        : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-200 hover:text-slate-950'
                     }`}
                   >
                     Cancel
@@ -1064,7 +1064,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
               /* Regular UI Controls */
               <div id="settings-controls-grid" className="space-y-5">
                 {activeCategory === 'profile' && !searchQuery && (
-                  <div className={`p-6 border rounded-2xl space-y-6 ${isDarkMode ? 'bg-slate-900/60 border-white/10' : 'bg-slate-50 border-slate-200'}`}>
+                  <div className={`p-6 border rounded-2xl space-y-6 ${isDarkMode ? 'bg-slate-900/60 border-white/10' : 'bg-white border-slate-200'}`}>
                     <div className={`flex items-center justify-between border-b pb-3 ${isDarkMode ? 'border-white/5' : 'border-slate-200'}`}>
                       <div>
                         <h4 className={`font-black text-xs uppercase tracking-wider flex items-center gap-1.5 ${isDarkMode ? 'text-slate-300' : 'text-slate-800'}`}>
@@ -1080,7 +1080,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                     <div className="flex flex-col md:flex-row gap-6 items-center">
                       {/* Avatar preview block */}
                       <div className="relative group shrink-0">
-                        <div className={`w-24 h-24 rounded-full overflow-hidden border-2 border-indigo-500/30 flex items-center justify-center relative bg-gradient-to-br ${isDarkMode ? 'from-indigo-950 to-slate-900' : 'from-indigo-50 to-slate-100'}`}>
+                        <div className={`w-24 h-24 rounded-full overflow-hidden border-2 border-indigo-500/30 flex items-center justify-center relative bg-gradient-to-br ${isDarkMode ? 'from-indigo-950 to-slate-900' : 'from-white to-white'}`}>
                           {profilePhoto ? (
                             <img src={profilePhoto} alt="Profile Photo" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                           ) : (
@@ -1130,7 +1130,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                                 className={`px-2.5 py-1 text-[9px] font-bold rounded-lg border transition-all flex items-center gap-1.5 cursor-pointer ${
                                   isDarkMode 
                                     ? 'bg-slate-800 hover:bg-indigo-950/40 border-white/5 text-slate-300 hover:text-white' 
-                                    : 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-700 hover:text-slate-900'
+                                    : 'bg-white hover:bg-slate-200 border-slate-200 text-slate-700 hover:text-slate-900'
                                 }`}
                               >
                                 <span className={`w-2 h-2 rounded-full bg-gradient-to-br ${preset.gradient}`} />
@@ -1171,7 +1171,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                         className={`p-4 border rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all ${
                           isDarkMode 
                             ? 'bg-black/20 border-white/5 hover:border-indigo-500/10' 
-                            : 'bg-slate-50/50 border-slate-200 hover:border-indigo-500/30 hover:bg-slate-50'
+                            : 'bg-white border-slate-200 hover:border-indigo-500/30 hover:bg-white'
                         }`}
                       >
                         {/* Title & Help block */}
@@ -1332,7 +1332,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
 
             <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
               {auditLogs.map(log => (
-                <div key={log.id} className={`p-2 border rounded-xl font-mono text-[9px] flex flex-col md:flex-row justify-between gap-2 ${isDarkMode ? 'bg-black/40 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
+                <div key={log.id} className={`p-2 border rounded-xl font-mono text-[9px] flex flex-col md:flex-row justify-between gap-2 ${isDarkMode ? 'bg-black/40 border-white/5' : 'bg-white border-slate-100'}`}>
                   <div className="space-y-0.5">
                     <p className={isDarkMode ? 'text-white' : 'text-slate-800'}>
                       Updated setting <span className="text-orange-500 font-bold">{log.key}</span>
@@ -1383,7 +1383,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                   onChange={e => setPasswordInput(e.target.value)}
                   placeholder="Enter passcode..."
                   className={`w-full px-3 py-2 border rounded-xl text-[11px] focus:outline-none focus:border-indigo-500 ${
-                    isDarkMode ? 'bg-black/40 border-white/10 text-indigo-300' : 'bg-slate-50 border-slate-200 text-slate-850'
+                    isDarkMode ? 'bg-black/40 border-white/10 text-indigo-300' : 'bg-white border-slate-200 text-slate-850'
                   }`}
                 />
                 {passwordError && (
@@ -1400,7 +1400,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
                     setPendingSensitiveChange(null);
                   }}
                   className={`px-3.5 py-1.5 border rounded-lg text-[10px] font-bold uppercase transition-colors ${
-                    isDarkMode ? 'bg-white/5 border-white/10 text-slate-400 hover:text-white' : 'bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+                    isDarkMode ? 'bg-white/5 border-white/10 text-slate-400 hover:text-white' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
                   }`}
                 >
                   Cancel

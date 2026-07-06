@@ -417,11 +417,11 @@ export default function App() {
   return (
     <div 
       dir={language === 'ar' ? 'rtl' : 'ltr'}
-      className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col font-sans selection:bg-orange-500 selection:text-white transition-colors duration-300"
+      className="min-h-screen bg-white dark:bg-slate-950 flex flex-col font-sans selection:bg-orange-500 selection:text-white transition-colors duration-300"
     >
       {/* Upper Navigation Header Bar */}
       {!isAdminView && !isUserLoggedIn && activePage !== 'account' && (
-        <header className="no-print bg-white/80 dark:bg-slate-900/85 backdrop-blur-md border-b border-indigo-100/50 dark:border-slate-800 sticky top-0 z-50 shadow-sm px-4 py-3 sm:px-6 sm:py-3.5 flex flex-col lg:flex-row gap-3 lg:gap-4 justify-between items-center transition-colors duration-300 animate-fade-in">
+        <header className="no-print bg-white dark:bg-slate-900/85 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-50 shadow-sm px-4 py-3 sm:px-6 sm:py-3.5 flex flex-col lg:flex-row gap-3 lg:gap-4 justify-between items-center transition-colors duration-300 animate-fade-in">
           
           {/* Logo Container and Mobile Controls (Language + Theme + Menu Toggle) */}
           <div className="flex items-center justify-between w-full lg:w-auto gap-2">
@@ -437,7 +437,7 @@ export default function App() {
                   whileHover={{ scale: 1.1, rotate: [0, -3, 3, 0] }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
-                  className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/40 dark:border-slate-700/50 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm"
+                  className="px-2.5 py-1.5 bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/40 dark:border-slate-700/50 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm"
                   type="button"
                 >
                   <motion.div
@@ -499,13 +499,13 @@ export default function App() {
                 whileHover={{ scale: 1.1, rotate: 15 }}
                 whileTap={{ scale: 0.85, rotate: -30 }}
                 onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                className="lg:hidden relative p-2.5 overflow-hidden rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/60 shadow-md flex items-center justify-center cursor-pointer"
+                className="lg:hidden relative p-2.5 overflow-hidden rounded-xl bg-gradient-to-br from-white to-white dark:from-slate-800 dark:to-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/60 shadow-md flex items-center justify-center cursor-pointer"
                 type="button"
                 title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
               >
                 {/* Dynamic colored background flare */}
                 <motion.div 
-                  className="absolute inset-0 opacity-10 bg-gradient-to-tr from-amber-400 to-orange-500 dark:from-indigo-500 dark:to-purple-600"
+                  className="absolute inset-0 opacity-10 bg-gradient-to-tr from-amber-400 to-orange-500 dark:from-white0 dark:to-purple-600"
                   animate={{ rotate: 360 }}
                   transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
                 />
@@ -540,7 +540,7 @@ export default function App() {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 type="button"
-                className="lg:hidden flex items-center justify-center p-2.5 rounded-xl bg-slate-100/80 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 transition-all border border-slate-200/40 dark:border-slate-700/50 shadow-sm"
+                className="lg:hidden flex items-center justify-center p-2.5 rounded-xl bg-white dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 transition-all border border-slate-200/40 dark:border-slate-700/50 shadow-sm"
                 title="Toggle Menu"
               >
                 <div className="flex items-center gap-1.5 px-1 py-0.5">
@@ -654,7 +654,7 @@ export default function App() {
                 whileHover={{ scale: 1.1, rotate: [0, -2, 2, 0] }}
                 whileTap={{ scale: 0.94 }}
                 onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                className="px-3 py-1.5 bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
                 type="button"
               >
                 <motion.div
@@ -781,7 +781,7 @@ export default function App() {
               <button
                 onClick={navigateToRoot}
                 type="button"
-                className="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shadow-sm"
+                className="px-3.5 py-1.5 bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shadow-sm"
               >
                 <ClipboardEdit size={12} className="text-orange-600" />
                 <span>{t.portalTitle}</span>
@@ -882,7 +882,7 @@ export default function App() {
                   })}
                 </div>
 
-                <div className="h-px bg-slate-100 dark:bg-slate-800 mx-4" />
+                <div className="h-px bg-white dark:bg-slate-800 mx-4" />
 
                 {/* Mobile System Utilities Block */}
                 <div className="flex flex-col gap-3 px-4">
@@ -898,7 +898,7 @@ export default function App() {
                           setIsMobileMenuOpen(false);
                         }}
                         type="button"
-                        className="w-full justify-center py-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                        className="w-full justify-center py-2 bg-white hover:bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
                       >
                         <ClipboardEdit size={12} className="text-orange-600" />
                         <span>{t.portalTitle}</span>
@@ -1303,7 +1303,7 @@ export default function App() {
                       
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
                         <div className="flex items-center gap-3">
-                          <div className="p-1.5 bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl shadow-sm">
+                          <div className="p-1.5 bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-xl shadow-sm">
                             <Logo size="sm" showText={false} variant={theme === 'dark' ? 'light' : 'dark'} />
                           </div>
                           <div>
@@ -1377,7 +1377,7 @@ export default function App() {
                       </div>
 
                       {/* GPS Verification with Map-like Coordinate Tag */}
-                      <div className="bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl p-2.5 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-300 gap-2">
+                      <div className="bg-white dark:bg-slate-950 border border-gray-200 dark:border-slate-800 rounded-xl p-2.5 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 dark:text-slate-300 gap-2">
                         <div className="flex items-center gap-1.5 font-medium">
                           <Globe size={13} className="text-[#000E32] dark:text-orange-400 animate-spin-slow shrink-0" />
                           <span className="text-[11px]">{t.hqGps}</span>
@@ -1428,7 +1428,7 @@ export default function App() {
                   </div>
 
                   {/* Guided Journey Pathway Block */}
-                  <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200/60 dark:border-slate-800/80 rounded-[2rem] p-6 md:p-8 space-y-6">
+                  <div className="bg-white dark:bg-slate-900/50 border border-gray-200 dark:border-slate-800/80 rounded-[2rem] p-6 md:p-8 space-y-6">
                     <div className="text-center max-w-xl mx-auto space-y-1.5">
                       <span className="font-hand text-xl text-orange-600 dark:text-orange-400 block">{t.journeySubtitle}</span>
                       <h3 className="text-lg font-bold text-[#000E32] dark:text-white uppercase tracking-wide font-serif">{t.journeyTitle}</h3>

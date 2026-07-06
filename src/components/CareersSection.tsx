@@ -101,7 +101,7 @@ export const CareersSection: React.FC<CareersSectionProps> = ({ onApplyForJob })
               className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300 ${
                 selectedDept === dept
                   ? 'bg-[#000E32] dark:bg-orange-600 text-white shadow-md'
-                  : 'bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-800/60'
+                  : 'bg-white dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-800/60'
               }`}
             >
               {dept === 'all' ? 'All Departments' : dept}
@@ -112,7 +112,7 @@ export const CareersSection: React.FC<CareersSectionProps> = ({ onApplyForJob })
 
       {/* VACANCIES FEED */}
       {filteredVacancies.length === 0 ? (
-        <div className="py-16 text-center space-y-2 bg-slate-50 dark:bg-slate-900/35 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+        <div className="py-16 text-center space-y-2 bg-white dark:bg-slate-900/35 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
           <HelpCircle size={30} className="mx-auto text-slate-400 animate-pulse" />
           <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">No open positions found</p>
         </div>
@@ -125,7 +125,7 @@ export const CareersSection: React.FC<CareersSectionProps> = ({ onApplyForJob })
             >
               <div className="space-y-3 text-left md:max-w-2xl">
                 <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-slate-400">
-                  <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-indigo-500 dark:text-indigo-400 rounded uppercase">
+                  <span className="px-2 py-0.5 bg-white dark:bg-slate-800 text-indigo-500 dark:text-indigo-400 rounded uppercase">
                     {vac.department}
                   </span>
                   <div className="flex items-center gap-0.5">
@@ -149,7 +149,7 @@ export const CareersSection: React.FC<CareersSectionProps> = ({ onApplyForJob })
                 {/* Requirements tags */}
                 <div className="flex flex-wrap gap-1.5 pt-1">
                   {vac.requirements.map((req, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-slate-50 dark:bg-slate-950 text-slate-400 text-[9px] font-bold uppercase rounded border border-slate-100 dark:border-slate-800/40">
+                    <span key={i} className="px-2 py-0.5 bg-white dark:bg-slate-950 text-slate-400 text-[9px] font-bold uppercase rounded border border-slate-100 dark:border-slate-800/40">
                       {req}
                     </span>
                   ))}

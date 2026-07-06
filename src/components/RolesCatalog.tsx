@@ -66,7 +66,7 @@ export function RolesCatalog({ language, onSelectRole }: RolesCatalogProps) {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={t.searchRolesPlaceholder || "Search position, skill, tool..."}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
+            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-orange-500 dark:focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-colors"
           />
         </div>
 
@@ -77,7 +77,7 @@ export function RolesCatalog({ language, onSelectRole }: RolesCatalogProps) {
             className={`px-3 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
               activeCategory === 'all'
                 ? 'bg-[#000E32] text-white dark:bg-orange-600 dark:text-white shadow-sm'
-                : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
+                : 'bg-white hover:bg-white dark:bg-slate-950 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
             }`}
           >
             {t.allSectors || 'All Sectors'}
@@ -92,7 +92,7 @@ export function RolesCatalog({ language, onSelectRole }: RolesCatalogProps) {
                 className={`px-3 py-1.5 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 cursor-pointer ${
                   activeCategory === catKey
                     ? 'bg-indigo-500 dark:bg-indigo-600 text-white shadow-sm'
-                    : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-950 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
+                    : 'bg-white hover:bg-white dark:bg-slate-950 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
                 }`}
               >
                 <IconComponent size={12} className="shrink-0" />
@@ -153,7 +153,7 @@ export function RolesCatalog({ language, onSelectRole }: RolesCatalogProps) {
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {role.skills.map((skill, index) => (
-                        <span key={index} className="text-[9px] font-medium bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded-lg border border-slate-100 dark:border-slate-800">
+                        <span key={index} className="text-[9px] font-medium bg-white dark:bg-slate-950 text-slate-600 dark:text-slate-300 px-1.5 py-0.5 rounded-lg border border-slate-100 dark:border-slate-800">
                           {skill}
                         </span>
                       ))}
@@ -198,7 +198,7 @@ export function RolesCatalog({ language, onSelectRole }: RolesCatalogProps) {
 
         {filteredRoles.length === 0 && (
           <div className="col-span-full py-12 text-center space-y-3 bg-white dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 rounded-3xl">
-            <div className="mx-auto w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-950 flex items-center justify-center text-slate-400">
+            <div className="mx-auto w-10 h-10 rounded-full bg-white dark:bg-slate-950 flex items-center justify-center text-slate-400">
               <Search size={20} />
             </div>
             <div className="space-y-0.5">

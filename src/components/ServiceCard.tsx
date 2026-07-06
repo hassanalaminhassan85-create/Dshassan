@@ -102,7 +102,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
       id={`service-card-${svc.id}`}
     >
       {/* Card Image Section */}
-      <div className="relative h-48 overflow-hidden shrink-0 bg-slate-100 dark:bg-slate-950 flex items-center justify-center">
+      <div className="relative h-48 overflow-hidden shrink-0 bg-white dark:bg-slate-950 flex items-center justify-center">
         {!imgError ? (
           <>
             {/* Shimmer effect while loading */}

@@ -157,7 +157,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
             <div className="p-4 md:p-6 border-b border-neutral-100 dark:border-neutral-800">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
+                  <div className="p-2 bg-white dark:bg-neutral-800 rounded-lg">
                     <Bell className="text-neutral-600 dark:text-neutral-300" size={20} />
                   </div>
                   <div>
@@ -174,7 +174,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                   {unreadCount > 0 && (
                     <button
                       onClick={() => markAllAsRead()}
-                      className="p-2 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
+                      className="p-2 rounded-lg text-neutral-500 hover:bg-white dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
                       title="Mark all as read"
                     >
                       <CheckCheck size={18} />
@@ -195,7 +195,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                   )}
                   <button
                     onClick={onClose}
-                    className="p-2 rounded-lg text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
+                    className="p-2 rounded-lg text-neutral-400 hover:bg-white dark:hover:bg-neutral-800 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors"
                   >
                     <X size={18} />
                   </button>
@@ -210,13 +210,13 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                   placeholder="Search notifications..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 text-sm font-sans bg-neutral-100 dark:bg-neutral-800/60 border border-transparent hover:border-neutral-200 dark:hover:border-neutral-700/60 focus:border-indigo-500 dark:focus:border-indigo-500 rounded-lg outline-none transition-colors text-neutral-900 dark:text-neutral-100 placeholder-neutral-400"
+                  className="w-full pl-9 pr-4 py-2 text-sm font-sans bg-white dark:bg-neutral-800/60 border border-transparent hover:border-neutral-200 dark:hover:border-neutral-700/60 focus:border-indigo-500 dark:focus:border-indigo-500 rounded-lg outline-none transition-colors text-neutral-900 dark:text-neutral-100 placeholder-neutral-400"
                 />
               </div>
             </div>
 
             {/* Advanced Filters Panel (Scannable bento structure) */}
-            <div className="bg-neutral-50/50 dark:bg-neutral-900/50 p-4 border-b border-neutral-100 dark:border-neutral-800 space-y-3">
+            <div className="bg-white dark:bg-neutral-900/50 p-4 border-b border-neutral-100 dark:border-neutral-800 space-y-3">
               {/* Type categories */}
               <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
                 {['all', 'application', 'interview', 'course', 'success', 'warning', 'info'].map((type) => (
@@ -225,8 +225,8 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                     onClick={() => setActiveType(type)}
                     className={`px-3 py-1 text-xs font-sans font-medium rounded-full border shrink-0 transition-all ${
                       activeType === type
-                        ? 'bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 border-transparent shadow-sm'
-                        : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700 hover:bg-neutral-50 dark:hover:bg-neutral-700'
+                        ? 'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 border-transparent shadow-sm'
+                        : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 border-neutral-200 dark:border-neutral-700 hover:bg-white dark:hover:bg-neutral-700'
                     }`}
                   >
                     {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -293,7 +293,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                 </div>
               ) : displayedNotifications.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center py-20 text-center">
-                  <div className="p-4 bg-neutral-100 dark:bg-neutral-800 rounded-full mb-4">
+                  <div className="p-4 bg-white dark:bg-neutral-800 rounded-full mb-4">
                     <Inbox className="text-neutral-400" size={32} />
                   </div>
                   <h3 className="font-sans font-semibold text-neutral-800 dark:text-neutral-200 text-base">
@@ -405,7 +405,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
                 <div className="py-2 text-center">
                   <button
                     onClick={() => setVisibleCount((prev) => Math.min(prev + 10, filteredNotifications.length))}
-                    className="px-4 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-700 text-xs font-sans font-medium text-neutral-600 dark:text-neutral-400 transition-colors"
+                    className="px-4 py-1.5 rounded-lg border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 hover:bg-white dark:hover:bg-neutral-700 text-xs font-sans font-medium text-neutral-600 dark:text-neutral-400 transition-colors"
                   >
                     Load More Notifications
                   </button>

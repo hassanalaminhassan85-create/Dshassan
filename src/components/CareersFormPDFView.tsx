@@ -54,7 +54,7 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
   const isApproved = status === 'approved' || approvedBy?.approved;
 
   return (
-    <div className="space-y-8 no-print:bg-slate-100 p-0 sm:p-2" id="careers-pdf-document">
+    <div className="space-y-8 no-print:bg-white p-0 sm:p-2" id="careers-pdf-document">
       
       {/* ==================== PAGE 1 ==================== */}
       <div className="bg-white p-4 sm:p-8 rounded-3xl shadow-xl border border-slate-200 text-left font-sans max-w-[900px] mx-auto text-slate-800 leading-normal relative overflow-hidden print:shadow-none print:border-none print:p-0 print:m-0 break-after-page page-break-after-always" style={{ pageBreakAfter: 'always', breakAfter: 'page' }}>
@@ -156,7 +156,7 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
 
         {/* 3. Title Section */}
         <div className="my-5 text-center relative py-1">
-          <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-slate-100 -z-10" />
+          <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-white -z-10" />
           <h1 className="inline-block bg-white px-6 text-xl sm:text-2xl font-black text-[#000E32] tracking-wider uppercase">
             ✦ <span className="text-orange-500">CAREERS</span> APPLICATION FORM ✦
           </h1>
@@ -175,7 +175,7 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
               
               {/* Passport Photo if present in Section 1 */}
               {personalInfo.passportPhoto && (
-                <div className="w-16 h-20 border border-[#000E32] bg-slate-50 rounded mx-auto mb-3 overflow-hidden p-0.5 shadow-sm shrink-0">
+                <div className="w-16 h-20 border border-[#000E32] bg-white rounded mx-auto mb-3 overflow-hidden p-0.5 shadow-sm shrink-0">
                   <img src={personalInfo.passportPhoto} className="w-full h-full object-cover rounded" alt="passport-photo" />
                 </div>
               )}
@@ -471,7 +471,7 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
               <p className="text-[7.5px] text-slate-400 uppercase tracking-widest leading-none">Accreditation Document</p>
             </div>
           </div>
-          <div className="text-[9px] font-bold text-[#000E32] tracking-wider uppercase bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+          <div className="text-[9px] font-bold text-[#000E32] tracking-wider uppercase bg-white px-2.5 py-1 rounded-lg border border-slate-200">
             Page 2: Endorsement & Declaration
           </div>
         </div>
@@ -486,7 +486,7 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
             <p className="text-[9px] text-slate-600 font-medium italic leading-relaxed">
               Apart from English, which other language(s) can you effectively use for communication, service delivery, content creation, or presentation?
             </p>
-            <div className="mt-2 p-2 bg-slate-50/50 rounded border border-slate-100 min-h-[50px] font-mono text-[9px] text-[#000E32] font-bold leading-tight">
+            <div className="mt-2 p-2 bg-white rounded border border-slate-100 min-h-[50px] font-mono text-[9px] text-[#000E32] font-bold leading-tight">
               {languageProficiency || 'English Only'}
             </div>
           </div>
@@ -499,7 +499,7 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
             <p className="text-[9.5px] text-slate-600 font-medium italic leading-relaxed">
               Why would you like to join DS Tech and Digital Marketing Agency Limited?
             </p>
-            <div className="mt-2 p-2 bg-slate-50/50 rounded border border-slate-100 min-h-[60px] text-[9px] font-semibold text-slate-700 leading-normal">
+            <div className="mt-2 p-2 bg-white rounded border border-slate-100 min-h-[60px] text-[9px] font-semibold text-slate-700 leading-normal">
               "{personalStatement || 'No personal statement provided.'}"
             </div>
           </div>
@@ -515,7 +515,7 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
               </p>
               
               {/* Show passport photo placeholder or actual upload */}
-              <div className="w-20 h-24 border border-dashed border-slate-300 rounded-lg mx-auto flex items-center justify-center p-1 bg-slate-50">
+              <div className="w-20 h-24 border border-dashed border-slate-300 rounded-lg mx-auto flex items-center justify-center p-1 bg-white">
                 {personalInfo.passportPhoto ? (
                   <img src={personalInfo.passportPhoto} className="w-full h-full object-cover rounded" alt="passport-photo-staff" />
                 ) : (
@@ -546,7 +546,7 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
             <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-2 gap-4 items-end">
               <div>
                 <span className="text-slate-400 font-bold block text-[7.5px] uppercase">Applicant Signature:</span>
-                <div className="mt-1 min-h-[45px] border-b border-dashed border-slate-300 flex items-center justify-center bg-slate-50/30 rounded p-1">
+                <div className="mt-1 min-h-[45px] border-b border-dashed border-slate-300 flex items-center justify-center bg-white rounded p-1">
                   {applicantSignature ? (
                     <img src={applicantSignature} className="max-h-[35px] object-contain" alt="signature" />
                   ) : (

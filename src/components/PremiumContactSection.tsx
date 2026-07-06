@@ -123,7 +123,7 @@ export const PremiumContactSection: React.FC<PremiumContactSectionProps> = ({ cl
       <div className={`flex items-center justify-between border p-3 rounded-2xl backdrop-blur-md transition-all duration-300 ${
         isDarkMode 
           ? 'bg-[#02081e]/60 border-slate-800/60 text-slate-200' 
-          : 'bg-slate-50/80 border-slate-200/60 text-[#000E32]'
+          : 'bg-white border-slate-200/60 text-[#000E32]'
       }`}>
         <div className="flex items-center gap-2.5">
           <span className="flex h-2 w-2 relative">
@@ -157,7 +157,7 @@ export const PremiumContactSection: React.FC<PremiumContactSectionProps> = ({ cl
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase shadow-xs transition-colors cursor-pointer border ${
               isDarkMode 
                 ? 'bg-white/5 border-white/10 hover:bg-white/10 text-white' 
-                : 'bg-white border-slate-200 hover:bg-slate-50 text-[#000E32]'
+                : 'bg-white border-slate-200 hover:bg-white text-[#000E32]'
             }`}
           >
             {isDarkMode ? (
@@ -180,7 +180,7 @@ export const PremiumContactSection: React.FC<PremiumContactSectionProps> = ({ cl
         /* Premium Loading Skeletons */
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5 pt-1">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-slate-100 animate-pulse rounded-[24px] border border-slate-200 p-6 space-y-4 h-[280px]">
+            <div key={i} className="bg-white animate-pulse rounded-[24px] border border-slate-200 p-6 space-y-4 h-[280px]">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-slate-200" />
                 <div className="h-4 w-24 bg-slate-200 rounded" />
@@ -314,7 +314,7 @@ export const PremiumContactSection: React.FC<PremiumContactSectionProps> = ({ cl
               <div className={`h-24 w-full border rounded-xl relative overflow-hidden mt-3 group/map transition-all duration-300 ${
                 isDarkMode 
                   ? 'bg-slate-950/60 border-slate-800/80 shadow-inner' 
-                  : 'bg-slate-50 border-slate-200/80 shadow-inner'
+                  : 'bg-white border-slate-200/80 shadow-inner'
               }`}>
                 {/* SVG wireframe path representation of roads */}
                 <svg className={`absolute inset-0 w-full h-full opacity-35 stroke-current ${isDarkMode ? 'text-indigo-950/80' : 'text-slate-300'}`} viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -462,7 +462,7 @@ export const PremiumContactSection: React.FC<PremiumContactSectionProps> = ({ cl
               <div className={`border p-2.5 rounded-xl flex items-center justify-between text-[10px] font-bold ${
                 isDarkMode 
                   ? 'bg-slate-900/40 border-slate-800/80 text-slate-400' 
-                  : 'bg-slate-50 border-slate-150 text-slate-500'
+                  : 'bg-white border-slate-150 text-slate-500'
               }`}>
                 <span className="flex items-center gap-1.5 uppercase tracking-wide">
                   <Sparkles size={11} className="text-amber-500 animate-pulse" />

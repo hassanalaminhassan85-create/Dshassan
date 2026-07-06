@@ -439,7 +439,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
 
   // Google Federated Authentication Flow
   const handleGoogleSignIn = async () => {
-    if (authLoading) return;
     setAuthError(null);
     setSuccessMsg(null);
     triggerHaptic(20);
@@ -466,13 +465,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
     } catch (err: any) {
       console.error("Google authentication failed:", err);
       if (err.code === 'auth/unauthorized-domain' || err.message?.includes('unauthorized-domain')) {
-        setAuthError("unauthorized-domain: Your domain is not whitelisted in Firebase Auth.");
-      } else if (err.code === 'auth/popup-blocked') {
-        setAuthError("Popup blocked. Please open this app in a new tab (click ↗) to log in.");
-      } else if (err.code === 'auth/cancelled-popup-request' || err.code === 'auth/popup-closed-by-user') {
-        setAuthError("Authentication was cancelled.");
-      } else if (err.message?.includes('INTERNAL ASSERTION FAILED')) {
-        setAuthError("Authentication flow interrupted. Please try again.");
+        setAuthError("unauthorized-domain: Your domain 'alihsan.online' is not whitelisted in Firebase Auth.");
       } else {
         setAuthError(err.message || "Failed to complete Google authentication.");
       }

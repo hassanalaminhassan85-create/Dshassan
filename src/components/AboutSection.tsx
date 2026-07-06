@@ -62,7 +62,7 @@ export const AboutSection: React.FC = () => {
             DS Tech was formed to solve this. By bringing corporate attorneys, senior software developers, and Meta/Google ad consultants under a single, unified enterprise structure, we deliver bulletproof growth funnels alongside fully compliant legal setups.
           </p>
         </div>
-        <div className="p-6 bg-slate-100 dark:bg-slate-900 rounded-3xl border border-slate-200/40 dark:border-slate-800 space-y-6">
+        <div className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-6">
           <div className="flex gap-4 items-start">
             <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center text-orange-500 shrink-0">
               <Target size={18} />
@@ -157,7 +157,7 @@ export const AboutSection: React.FC = () => {
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {team.map((member, i) => (
-            <div key={i} className="p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200/40 dark:border-slate-800 text-center">
+            <div key={i} className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-center">
               <span className="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wide block font-serif">{member.name}</span>
               <span className="text-[10px] text-slate-400 font-bold block mt-1">{member.role}</span>
             </div>

@@ -228,7 +228,7 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
   };
 
   return (
-    <div className="w-full bg-slate-50 rounded-2xl border border-slate-200 shadow-inner p-4 flex flex-col gap-4">
+    <div className="w-full bg-white rounded-2xl border border-slate-200 shadow-inner p-4 flex flex-col gap-4">
       {/* Mode Select Tabs */}
       <div className="flex gap-2 bg-slate-200/60 p-1.5 rounded-xl self-center max-w-sm w-full shadow-sm">
         <button
@@ -303,7 +303,7 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 Weight:
               </span>
-              <div className="flex gap-1 bg-slate-100 p-0.5 rounded-lg">
+              <div className="flex gap-1 bg-white p-0.5 rounded-lg">
                 {[
                   { value: 1.5, label: 'Fine' },
                   { value: 3, label: 'Medium' },
@@ -331,7 +331,7 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
                 type="button"
                 onClick={undoLast}
                 disabled={history.length === 0}
-                className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-colors duration-200"
+                className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-white rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-colors duration-200"
                 title="Undo last stroke"
               >
                 <Undo2 size={16} />
@@ -376,7 +376,7 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
               onChange={e => setTypedName(e.target.value)}
               placeholder="Type your full name here..."
               maxLength={40}
-              className="w-full text-center px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-300 focus:border-slate-400 focus:outline-none transition-all duration-200 text-lg font-medium text-slate-800"
+              className="w-full text-center px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-slate-300 focus:border-slate-400 focus:outline-none transition-all duration-200 text-lg font-medium text-slate-800"
             />
 
             {typedName.trim() && (
@@ -390,7 +390,7 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
                       key={font.id}
                       type="button"
                       onClick={() => setSelectedFont(font.id)}
-                      className={`p-3 border rounded-xl text-center flex flex-col items-center justify-center min-h-[70px] bg-slate-50/50 hover:bg-slate-50 transition-all duration-300 ${
+                      className={`p-3 border rounded-xl text-center flex flex-col items-center justify-center min-h-[70px] bg-white hover:bg-white transition-all duration-300 ${
                         selectedFont === font.id
                           ? 'border-indigo-500 ring-2 ring-indigo-50/70 bg-indigo-50/10'
                           : 'border-slate-200 hover:border-slate-300'
@@ -429,14 +429,14 @@ export const SignaturePad: React.FC<SignaturePadProps> = ({
                 </button>
               </div>
             ) : (
-              <label className="w-full max-w-md border-2 border-dashed border-slate-300 hover:border-slate-400 cursor-pointer p-6 rounded-2xl flex flex-col items-center justify-center gap-3 bg-slate-50/50 transition-all duration-300 hover:bg-slate-50">
+              <label className="w-full max-w-md border-2 border-dashed border-slate-300 hover:border-slate-400 cursor-pointer p-6 rounded-2xl flex flex-col items-center justify-center gap-3 bg-white transition-all duration-300 hover:bg-white">
                 <input
                   type="file"
                   accept="image/*"
                   onChange={handleImageUpload}
                   className="hidden"
                 />
-                <div className="p-3 bg-slate-100 rounded-full text-slate-600 group-hover:scale-110 transition-transform duration-300">
+                <div className="p-3 bg-white rounded-full text-slate-600 group-hover:scale-110 transition-transform duration-300">
                   <FileImage size={24} />
                 </div>
                 <div>

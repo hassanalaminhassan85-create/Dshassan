@@ -377,7 +377,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
         
         {/* Interactive Search input & Statistics bar */}
         <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-3xl shadow-sm">
-          <div className="relative w-full md:max-w-md bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 p-1.5 flex items-center shadow-inner">
+          <div className="relative w-full md:max-w-md bg-white dark:bg-slate-950 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 p-1.5 flex items-center shadow-inner">
             <Search className="w-4 h-4 text-slate-400 mx-3 shrink-0" />
             <input 
               type="text" 
@@ -414,15 +414,15 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                 className={`p-3.5 rounded-2xl text-left transition-all duration-300 flex flex-col justify-between h-24 border ${
                   isActive
                     ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-lg shadow-orange-500/10'
-                    : 'bg-white dark:bg-slate-900 border-slate-200/60 dark:border-slate-800/80 hover:bg-slate-50 dark:hover:bg-slate-850 hover:border-orange-500/30'
+                    : 'bg-white dark:bg-slate-900 border-slate-200/60 dark:border-slate-800/80 hover:bg-white dark:hover:bg-slate-850 hover:border-orange-500/30'
                 }`}
                 type="button"
               >
                 <div className="flex justify-between items-start w-full">
-                  <div className={`p-1.5 rounded-xl ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800'}`}>
+                  <div className={`p-1.5 rounded-xl ${isActive ? 'bg-white/20 text-white' : 'bg-white dark:bg-slate-800'}`}>
                     {cat.id === 'all' ? <Layers className="w-4 h-4 text-orange-500" /> : getCategoryIcon(cat.id)}
                   </div>
-                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-850 text-slate-500'}`}>
+                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-white dark:bg-slate-850 text-slate-500'}`}>
                     {count}
                   </span>
                 </div>
@@ -436,8 +436,8 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
 
         {/* Custom Fade Track Mobile Scroller */}
         <div className="relative w-full block sm:hidden">
-          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-slate-50 dark:from-slate-950 to-transparent pointer-events-none z-10" />
-          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-slate-50 dark:from-slate-950 to-transparent pointer-events-none z-10" />
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white dark:from-slate-950 to-transparent pointer-events-none z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white dark:from-slate-950 to-transparent pointer-events-none z-10" />
           <div className="flex overflow-x-auto scrollbar-none gap-2 py-1 px-4">
             {categories.map((cat) => {
               const isActive = activeCategory === cat.id;
@@ -465,7 +465,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
 
       {/* SERVICES BENTO GRID */}
       {filteredServices.length === 0 ? (
-        <div className="py-16 text-center space-y-4 bg-slate-50 dark:bg-slate-900/35 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+        <div className="py-16 text-center space-y-4 bg-white dark:bg-slate-900/35 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
           <HelpCircle size={36} className="mx-auto text-slate-400 animate-bounce" />
           <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">{currentUi.noFound}</p>
           <p className="text-slate-400 dark:text-slate-500 text-[11px]">{currentUi.noFoundDesc}</p>

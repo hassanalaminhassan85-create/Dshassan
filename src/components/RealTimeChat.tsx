@@ -490,7 +490,7 @@ export const RealTimeChat: React.FC<RealTimeChatProps> = ({ currentUser, isDarkM
 
                         {/* Rendering Image content */}
                         {msg.type === 'image' && msg.mediaUrl && (
-                          <div className="rounded-xl overflow-hidden mb-1.5 border border-black/5 bg-slate-50 max-h-[220px]">
+                          <div className="rounded-xl overflow-hidden mb-1.5 border border-black/5 bg-white max-h-[220px]">
                             <img
                               src={msg.mediaUrl}
                               alt="Media Attachment"
@@ -562,7 +562,7 @@ export const RealTimeChat: React.FC<RealTimeChatProps> = ({ currentUser, isDarkM
             {/* 4. ATTACHMENT IMAGES PREVIEW CAROUSEL ROW */}
             {selectedImage && (
               <div className={`p-2 border-t flex items-center gap-2 shrink-0 ${
-                isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-slate-50 border-slate-200'
+                isDarkMode ? 'bg-zinc-900 border-zinc-800' : 'bg-white border-slate-200'
               }`}>
                 <div className="relative w-16 h-16 rounded-xl overflow-hidden border bg-white">
                   <img
@@ -594,7 +594,7 @@ export const RealTimeChat: React.FC<RealTimeChatProps> = ({ currentUser, isDarkM
                 <button
                   type="button"
                   onClick={() => imageInputRef.current?.click()}
-                  className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400 transition-colors cursor-pointer"
+                  className="p-2 rounded-full hover:bg-white dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400 transition-colors cursor-pointer"
                   title="Attach Photo"
                 >
                   <ImageIcon size={18} />
@@ -614,7 +614,7 @@ export const RealTimeChat: React.FC<RealTimeChatProps> = ({ currentUser, isDarkM
                   className={`p-2 rounded-full transition-all cursor-pointer ${
                     isRecording 
                       ? 'bg-rose-500 text-white animate-pulse shadow-lg' 
-                      : 'hover:bg-slate-100 dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400'
+                      : 'hover:bg-white dark:hover:bg-zinc-800 text-slate-500 dark:text-zinc-400'
                   }`}
                   title={isRecording ? "Stop & Send Recording" : "Record Simulated Voice Note"}
                 >
@@ -654,7 +654,7 @@ export const RealTimeChat: React.FC<RealTimeChatProps> = ({ currentUser, isDarkM
                     <button
                       type="submit"
                       disabled={!inputText.trim()}
-                      className="absolute right-1 p-1.5 rounded-full text-emerald-600 hover:bg-slate-100 dark:hover:bg-zinc-700 transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+                      className="absolute right-1 p-1.5 rounded-full text-emerald-600 hover:bg-white dark:hover:bg-zinc-700 transition-colors disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
                     >
                       <Send size={14} />
                     </button>

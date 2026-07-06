@@ -177,7 +177,7 @@ export const PortfolioSection: React.FC = () => {
               className={`px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all duration-300 ${
                 activeTab === cat
                   ? 'bg-[#000E32] dark:bg-orange-600 text-white shadow-md shadow-indigo-900/10'
-                  : 'bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-800/60'
+                  : 'bg-white dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/50 dark:border-slate-800/60'
               }`}
             >
               {cat === 'all' ? 'All Case Studies' : cat}
@@ -214,7 +214,7 @@ export const PortfolioSection: React.FC = () => {
 
                 <div className="flex flex-wrap gap-1.5 pt-2">
                   {proj.tags.map((tag, i) => (
-                    <span key={i} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[9px] font-bold uppercase rounded">
+                    <span key={i} className="px-2 py-0.5 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[9px] font-bold uppercase rounded">
                       {tag}
                     </span>
                   ))}
@@ -256,7 +256,7 @@ export const PortfolioSection: React.FC = () => {
       </section>
 
       {/* 3. TECHNOLOGY STACK DISPLAY */}
-      <section className="bg-gradient-to-b from-slate-50/60 to-slate-100/30 dark:from-slate-900/40 dark:to-slate-950/20 p-8 md:p-12 rounded-3xl border border-slate-200 dark:border-slate-800/80 text-center space-y-8 relative overflow-hidden">
+      <section className="bg-gradient-to-b from-white to-white dark:from-slate-900/40 dark:to-slate-950/20 p-8 md:p-12 rounded-3xl border border-slate-200 dark:border-slate-800/80 text-center space-y-8 relative overflow-hidden">
         {/* Dynamic ambient background glow */}
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-500/5 dark:bg-orange-500/3 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-indigo-500/5 dark:bg-indigo-500/3 rounded-full blur-3xl pointer-events-none" />
@@ -323,7 +323,7 @@ export const PortfolioSection: React.FC = () => {
                 <motion.div 
                   whileHover={{ rotate: 360, scale: 1.1 }}
                   transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                  className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-900 flex items-center justify-center shadow-inner border border-slate-100 dark:border-slate-800/50"
+                  className="w-12 h-12 rounded-xl bg-white dark:bg-slate-900 flex items-center justify-center shadow-inner border border-slate-100 dark:border-slate-800/50"
                 >
                   {tech.icon}
                 </motion.div>
@@ -430,7 +430,7 @@ export const PortfolioSection: React.FC = () => {
               
               <h3 className="font-extrabold text-[#000E32] dark:text-white text-base uppercase font-serif tracking-tight leading-tight">{selectedProject.title}</h3>
               
-              <div className="text-xs font-bold text-slate-500 space-y-1 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/60">
+              <div className="text-xs font-bold text-slate-500 space-y-1 bg-white dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/60">
                 <div>Client: <span className="text-slate-800 dark:text-slate-200">{selectedProject.client || 'Garki Enterprise Node'}</span></div>
                 {selectedProject.stats && <div>Outcome Indicator: <span className="text-emerald-500 font-mono">{selectedProject.stats}</span></div>}
                 {selectedProject.video && <div className="text-[10px] text-indigo-500 font-mono mt-1">// Playing Case Study Video review</div>}
@@ -463,7 +463,7 @@ export const PortfolioSection: React.FC = () => {
               <div className="flex justify-between items-center pt-4 border-t border-slate-100 dark:border-slate-800">
                 <div className="flex flex-wrap gap-1.5 max-w-[60%]">
                   {selectedProject.tags.map((tag: string, i: number) => (
-                    <span key={i} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[9px] font-bold uppercase rounded">
+                    <span key={i} className="px-2 py-0.5 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[9px] font-bold uppercase rounded">
                       {tag}
                     </span>
                   ))}

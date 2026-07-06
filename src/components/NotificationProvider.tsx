@@ -585,7 +585,7 @@ const ToastCard: React.FC<{ toast: ToastItem; onClose: () => void }> = ({ toast,
             e.stopPropagation();
             onClose();
           }}
-          className="p-1 rounded-md text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors pointer-events-auto"
+          className="p-1 rounded-md text-neutral-400 hover:bg-white dark:hover:bg-neutral-800 hover:text-neutral-600 dark:hover:text-neutral-300 transition-colors pointer-events-auto"
         >
           <X size={14} />
         </button>

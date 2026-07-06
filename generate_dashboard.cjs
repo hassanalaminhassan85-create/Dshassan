@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+const fs = require('fs');
+
+const content = `import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, Briefcase, FileText, Wallet, Settings, Bell, MessageSquare, 
   LogOut, Heart, Star, CheckCircle2, Clock, MapPin, Activity, 
-  Award, ChevronRight, ChevronDown, Menu, X, Sparkles, LayoutGrid, Zap, 
+  Award, ChevronRight, Menu, X, Sparkles, LayoutGrid, Zap, 
   ArrowUpRight, Shield, Calendar, LifeBuoy, FileCheck, BrainCircuit
 } from 'lucide-react';
 import { 
@@ -11,7 +13,6 @@ import {
   BarChart, Bar, Cell
 } from 'recharts';
 import { Logo } from './Logo';
-import { ProposalsTab, ContractsTab, PortfolioTab, CertificatesTab, CalendarTab, SupportTab, SettingsTab, AiTab } from './CandidateEnterpriseTabs';
 
 interface FreelancerDashboardProps {
   currentUser: { fullName: string; email: string; id: string; role?: string; profilePhoto?: string } | null;
@@ -104,10 +105,10 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
   ];
 
   return (
-    <div className={`min-h-screen ${bgClass} ${textClass} font-sans flex flex-col transition-colors duration-300`}>
+    <div className={\`min-h-screen \${bgClass} \${textClass} font-sans flex flex-col transition-colors duration-300\`}>
       
       {/* Top Navbar */}
-      <header className={`w-full sticky top-0 z-50 border-b ${headerClass} px-4 py-3 flex items-center justify-between`}>
+      <header className={\`w-full sticky top-0 z-50 border-b \${headerClass} px-4 py-3 flex items-center justify-between\`}>
         <div className="flex items-center gap-4">
           <button 
             className="lg:hidden p-2 -ml-2 rounded-lg text-slate-500 hover:text-slate-800 dark:hover:text-slate-200"
@@ -126,20 +127,20 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
               placeholder="Search for jobs, clients, or messages..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full pl-10 pr-4 py-2 rounded-full text-sm font-medium border ${isDarkMode ? 'bg-[#131A2B] border-white/10 text-slate-200 focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50' : 'bg-slate-100 border-transparent text-slate-800 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:bg-white'} focus:outline-none transition-all shadow-inner`}
+              className={\`w-full pl-10 pr-4 py-2 rounded-full text-sm font-medium border \${isDarkMode ? 'bg-[#131A2B] border-white/10 text-slate-200 focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50' : 'bg-slate-100 border-transparent text-slate-800 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:bg-white'} focus:outline-none transition-all shadow-inner\`}
             />
           </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-4">
-          <button className={`relative p-2 rounded-full ${isDarkMode ? 'hover:bg-white/5 text-slate-300' : 'hover:bg-slate-100 text-slate-600'} transition-colors`}>
+          <button className={\`relative p-2 rounded-full \${isDarkMode ? 'hover:bg-white/5 text-slate-300' : 'hover:bg-slate-100 text-slate-600'} transition-colors\`}>
             <Bell size={20} />
-            <span className={`absolute top-1.5 right-1.5 w-2 h-2 rounded-full ${bgAccentPrimary} animate-pulse`} />
+            <span className={\`absolute top-1.5 right-1.5 w-2 h-2 rounded-full \${bgAccentPrimary} animate-pulse\`} />
           </button>
           
           <div className="h-6 w-px bg-slate-200 dark:bg-white/10 mx-1 hidden sm:block" />
 
-          <button onClick={onLogout} className={`hidden sm:flex items-center gap-3 p-1.5 pr-3 rounded-full ${isDarkMode ? 'hover:bg-white/5 text-slate-300' : 'hover:bg-slate-100 text-slate-600'} transition-colors border border-transparent dark:hover:border-white/5`}>
+          <button onClick={onLogout} className={\`hidden sm:flex items-center gap-3 p-1.5 pr-3 rounded-full \${isDarkMode ? 'hover:bg-white/5 text-slate-300' : 'hover:bg-slate-100 text-slate-600'} transition-colors border border-transparent dark:hover:border-white/5\`}>
             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-500 to-purple-600 overflow-hidden flex items-center justify-center text-white shadow-md">
               {currentUser?.profilePhoto ? (
                 <img src={currentUser.profilePhoto} alt="Profile" className="w-full h-full object-cover" />
@@ -156,11 +157,11 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
       {/* Main Layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
-        <aside className={`
+        <aside className={\`
           fixed lg:static inset-y-0 left-0 z-40 w-64 border-r transform transition-transform duration-300 ease-in-out mt-[65px] lg:mt-0 flex flex-col
-          ${sidebarClass}
-          ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        `}>
+          \${sidebarClass}
+          \${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        \`}>
           <div className="flex-1 overflow-y-auto py-6 scrollbar-hide">
             
             {menuGroups.map((group, idx) => (
@@ -174,18 +175,18 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                       <button
                         key={item.id}
                         onClick={() => { setActiveTab(item.id as any); setIsMobileMenuOpen(false); }}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 ${
+                        className={\`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 \${
                           isActive 
                             ? (isDarkMode ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 'bg-orange-50 text-orange-600 border border-orange-200') 
                             : (isDarkMode ? 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 border border-transparent')
-                        }`}
+                        }\`}
                       >
                         <div className="flex items-center gap-3">
                           <Icon size={18} className={isActive ? (isDarkMode ? 'text-orange-400' : 'text-orange-600') : 'text-slate-400'} />
                           {item.label}
                         </div>
                         {item.badge && (
-                          <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${item.badge === 'New' ? 'bg-purple-500/20 text-purple-400' : 'bg-orange-500/20 text-orange-400'}`}>
+                          <span className={\`text-[10px] px-1.5 py-0.5 rounded-md font-bold \${item.badge === 'New' ? 'bg-purple-500/20 text-purple-400' : 'bg-orange-500/20 text-orange-400'}\`}>
                             {item.badge}
                           </span>
                         )}
@@ -200,7 +201,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
           <div className="p-4 border-t border-slate-200 dark:border-white/5">
             <button 
               onClick={onLogout}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-rose-500 ${isDarkMode ? 'hover:bg-rose-500/10' : 'hover:bg-rose-50'} transition-all`}
+              className={\`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-bold text-rose-500 \${isDarkMode ? 'hover:bg-rose-500/10' : 'hover:bg-rose-50'} transition-all\`}
             >
               <LogOut size={18} />
               Sign Out
@@ -256,29 +257,29 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
 
                   {/* Top Stats Grid */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className={`p-5 rounded-2xl ${cardBgClass} relative overflow-hidden group`}>
+                    <div className={\`p-5 rounded-2xl \${cardBgClass} relative overflow-hidden group\`}>
                       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 group-hover:-rotate-12 transition-transform duration-500">
                         <Wallet size={64} />
                       </div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Available Balance</p>
-                      <h2 className="text-3xl font-black">$${availableBalance.toLocaleString()}</h2>
+                      <h2 className="text-3xl font-black">$\${availableBalance.toLocaleString()}</h2>
                       <div className="mt-4 flex items-center gap-2">
-                        <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md">+$450 this week</span>
+                        <span className="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md">+\$450 this week</span>
                       </div>
                     </div>
                     
-                    <div className={`p-5 rounded-2xl ${cardBgClass} relative overflow-hidden group`}>
+                    <div className={\`p-5 rounded-2xl \${cardBgClass} relative overflow-hidden group\`}>
                       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
                         <Briefcase size={64} />
                       </div>
                       <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">Active Contracts</p>
                       <h2 className="text-3xl font-black">{activeContracts.length}</h2>
                       <div className="mt-4 flex items-center gap-2">
-                        <span className="text-xs font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-md">$${pendingPayments.toLocaleString()} in escrow</span>
+                        <span className="text-xs font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-md">$\${pendingPayments.toLocaleString()} in escrow</span>
                       </div>
                     </div>
 
-                    <div className={`p-5 rounded-2xl ${cardBgClass} relative overflow-hidden group`}>
+                    <div className={\`p-5 rounded-2xl \${cardBgClass} relative overflow-hidden group\`}>
                       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-transform duration-500">
                         <Star size={64} />
                       </div>
@@ -292,7 +293,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                       </div>
                     </div>
 
-                    <div className={`p-5 rounded-2xl ${cardBgClass} relative overflow-hidden group`}>
+                    <div className={\`p-5 rounded-2xl \${cardBgClass} relative overflow-hidden group\`}>
                       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
                         <Zap size={64} />
                       </div>
@@ -309,7 +310,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Left Column: Projects & Proposals */}
                     <div className="lg:col-span-2 space-y-6">
-                      <div className={`rounded-3xl ${cardBgClass} overflow-hidden`}>
+                      <div className={\`rounded-3xl \${cardBgClass} overflow-hidden\`}>
                         <div className="p-6 border-b border-slate-200 dark:border-white/5 flex justify-between items-center">
                           <h3 className="text-lg font-bold">Active Projects</h3>
                           <button onClick={() => setActiveTab('contracts')} className="text-xs font-bold text-slate-500 hover:text-orange-500 transition-colors">View All</button>
@@ -330,7 +331,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                                 <div className="text-sm font-bold">{contract.rate}</div>
                                 <div className="flex items-center gap-2">
                                   <div className="w-24 h-1.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden">
-                                    <div className="h-full bg-emerald-500" style={{ width: `${contract.progress}%` }} />
+                                    <div className="h-full bg-emerald-500" style={{ width: \`\${contract.progress}%\` }} />
                                   </div>
                                   <span className="text-[10px] font-bold text-slate-500">{contract.progress}%</span>
                                 </div>
@@ -349,13 +350,13 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                       </div>
 
                       {/* Earnings Chart */}
-                      <div className={`rounded-3xl ${cardBgClass} p-6`}>
+                      <div className={\`rounded-3xl \${cardBgClass} p-6\`}>
                         <div className="flex justify-between items-center mb-6">
                           <div>
                             <h3 className="text-lg font-bold">Earnings Overview</h3>
                             <p className="text-xs text-slate-500 mt-1">Your income over the last 7 days</p>
                           </div>
-                          <select className={`text-xs font-bold px-3 py-1.5 rounded-lg border ${isDarkMode ? 'bg-[#0B0F19] border-white/10 text-slate-300' : 'bg-white border-slate-200 text-slate-700'}`}>
+                          <select className={\`text-xs font-bold px-3 py-1.5 rounded-lg border \${isDarkMode ? 'bg-[#0B0F19] border-white/10 text-slate-300' : 'bg-white border-slate-200 text-slate-700'}\`}>
                             <option>This Week</option>
                             <option>This Month</option>
                             <option>This Year</option>
@@ -366,7 +367,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                             <BarChart data={earningsData}>
                               <CartesianGrid vertical={false} stroke={isDarkMode ? '#1e293b' : '#e2e8f0'} strokeDasharray="3 3" />
                               <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#64748b' : '#94a3b8', fontSize: 12}} dy={10} />
-                              <YAxis axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#64748b' : '#94a3b8', fontSize: 12}} dx={-10} tickFormatter={(val) => `$${val}`} />
+                              <YAxis axisLine={false} tickLine={false} tick={{fill: isDarkMode ? '#64748b' : '#94a3b8', fontSize: 12}} dx={-10} tickFormatter={(val) => \`\$\${val}\`} />
                               <Tooltip 
                                 cursor={{fill: isDarkMode ? '#1e293b' : '#f1f5f9'}}
                                 contentStyle={{ 
@@ -379,7 +380,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                               />
                               <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
                                 {earningsData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.amount > 0 ? '#f97316' : (isDarkMode ? '#1e293b' : '#e2e8f0')} />
+                                  <Cell key={\`cell-\${index}\`} fill={entry.amount > 0 ? '#f97316' : (isDarkMode ? '#1e293b' : '#e2e8f0')} />
                                 ))}
                               </Bar>
                             </BarChart>
@@ -391,7 +392,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                     {/* Right Column: Profile & AI */}
                     <div className="space-y-6">
                       {/* Profile Card */}
-                      <div className={`p-6 rounded-3xl ${cardBgClass} text-center relative overflow-hidden`}>
+                      <div className={\`p-6 rounded-3xl \${cardBgClass} text-center relative overflow-hidden\`}>
                         <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-br from-purple-600/20 to-orange-500/20" />
                         <div className="relative z-10">
                           <div className="w-20 h-20 mx-auto rounded-2xl bg-gradient-to-tr from-orange-500 to-purple-600 p-0.5 shadow-xl shadow-orange-500/20 mb-4">
@@ -414,7 +415,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                               <span className="text-xs font-black">{profileCompletion}%</span>
                             </div>
                             <div className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-full overflow-hidden mb-4">
-                              <div className="h-full bg-purple-500" style={{ width: `${profileCompletion}%` }} />
+                              <div className="h-full bg-purple-500" style={{ width: \`\${profileCompletion}%\` }} />
                             </div>
                             <button className="w-full py-2 rounded-xl border border-slate-200 dark:border-white/10 text-xs font-bold hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
                               Complete Profile
@@ -424,7 +425,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                       </div>
 
                       {/* AI Assistant Promo */}
-                      <div className={`p-6 rounded-3xl ${isDarkMode ? 'bg-gradient-to-br from-purple-900/40 to-indigo-900/40 border border-purple-500/20' : 'bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200'} relative overflow-hidden`}>
+                      <div className={\`p-6 rounded-3xl \${isDarkMode ? 'bg-gradient-to-br from-purple-900/40 to-indigo-900/40 border border-purple-500/20' : 'bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200'} relative overflow-hidden\`}>
                         <div className="absolute top-0 right-0 p-4 opacity-20">
                           <BrainCircuit size={80} className={isDarkMode ? 'text-purple-400' : 'text-purple-600'} />
                         </div>
@@ -452,14 +453,14 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                       <p className="text-sm text-slate-500 mt-1">Discover opportunities that match your skills.</p>
                     </div>
                     <div className="flex gap-2">
-                      <button className={`px-4 py-2 rounded-xl text-sm font-bold border ${isDarkMode ? 'border-white/10 hover:bg-white/5' : 'border-slate-200 hover:bg-slate-50'} transition-colors`}>Saved Jobs</button>
-                      <button className={`px-4 py-2 rounded-xl text-sm font-bold border ${isDarkMode ? 'border-white/10 hover:bg-white/5' : 'border-slate-200 hover:bg-slate-50'} transition-colors`}>Filters</button>
+                      <button className={\`px-4 py-2 rounded-xl text-sm font-bold border \${isDarkMode ? 'border-white/10 hover:bg-white/5' : 'border-slate-200 hover:bg-slate-50'} transition-colors\`}>Saved Jobs</button>
+                      <button className={\`px-4 py-2 rounded-xl text-sm font-bold border \${isDarkMode ? 'border-white/10 hover:bg-white/5' : 'border-slate-200 hover:bg-slate-50'} transition-colors\`}>Filters</button>
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     {jobs.map(job => (
-                      <div key={job.id} className={`p-6 rounded-3xl ${cardBgClass} hover:border-orange-500/50 transition-colors cursor-pointer group`}>
+                      <div key={job.id} className={\`p-6 rounded-3xl \${cardBgClass} hover:border-orange-500/50 transition-colors cursor-pointer group\`}>
                         <div className="flex justify-between items-start gap-4 mb-4">
                           <div>
                             <h3 className="text-xl font-bold group-hover:text-orange-500 transition-colors">{job.title}</h3>
@@ -480,7 +481,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                         
                         <div className="flex flex-wrap gap-2 mb-6">
                           {job.skills.map(skill => (
-                            <span key={skill} className={`px-3 py-1.5 rounded-lg text-xs font-bold ${isDarkMode ? 'bg-white/5 text-slate-300' : 'bg-slate-100 text-slate-700'}`}>
+                            <span key={skill} className={\`px-3 py-1.5 rounded-lg text-xs font-bold \${isDarkMode ? 'bg-white/5 text-slate-300' : 'bg-slate-100 text-slate-700'}\`}>
                               {skill}
                             </span>
                           ))}
@@ -503,18 +504,18 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
 
               {/* MESSAGES TAB */}
               {activeTab === 'messages' && (
-                <div className={`h-[calc(100vh-140px)] rounded-3xl ${cardBgClass} flex overflow-hidden`}>
+                <div className={\`h-[calc(100vh-140px)] rounded-3xl \${cardBgClass} flex overflow-hidden\`}>
                   {/* Message List Sidebar */}
                   <div className="w-80 border-r border-slate-200 dark:border-white/5 flex flex-col hidden md:flex">
                     <div className="p-4 border-b border-slate-200 dark:border-white/5">
                       <h2 className="text-lg font-bold mb-3">Messages</h2>
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-                        <input type="text" placeholder="Search chats..." className={`w-full pl-9 pr-3 py-2 rounded-xl text-xs font-medium border ${isDarkMode ? 'bg-[#0B0F19] border-white/10' : 'bg-slate-50 border-slate-200'} focus:outline-none focus:border-orange-500`} />
+                        <input type="text" placeholder="Search chats..." className={\`w-full pl-9 pr-3 py-2 rounded-xl text-xs font-medium border \${isDarkMode ? 'bg-[#0B0F19] border-white/10' : 'bg-slate-50 border-slate-200'} focus:outline-none focus:border-orange-500\`} />
                       </div>
                     </div>
                     <div className="flex-1 overflow-y-auto">
-                      <div className={`p-4 border-b border-slate-200 dark:border-white/5 cursor-pointer ${isDarkMode ? 'bg-white/5' : 'bg-slate-50'}`}>
+                      <div className={\`p-4 border-b border-slate-200 dark:border-white/5 cursor-pointer \${isDarkMode ? 'bg-white/5' : 'bg-slate-50'}\`}>
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-bold text-sm">Aether Dynamics</span>
                           <span className="text-[10px] text-slate-500 font-bold">10:12 AM</span>
@@ -545,7 +546,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                     <div className="flex-1 p-6 overflow-y-auto space-y-6">
                       <div className="flex items-start gap-3">
                         <div className="w-8 h-8 rounded-full bg-indigo-500/20 flex shrink-0" />
-                        <div className={`p-3 rounded-2xl rounded-tl-sm text-sm ${isDarkMode ? 'bg-white/5' : 'bg-slate-100'}`}>
+                        <div className={\`p-3 rounded-2xl rounded-tl-sm text-sm \${isDarkMode ? 'bg-white/5' : 'bg-slate-100'}\`}>
                           Are we still on track for Phase 2 delivery tomorrow?
                           <div className="text-[9px] text-slate-400 font-bold mt-2 text-right">10:12 AM</div>
                         </div>
@@ -553,7 +554,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                     </div>
                     <div className="p-4 border-t border-slate-200 dark:border-white/5">
                       <div className="relative">
-                        <input type="text" placeholder="Type a message..." className={`w-full pl-4 pr-12 py-3 rounded-2xl text-sm border ${isDarkMode ? 'bg-[#0B0F19] border-white/10' : 'bg-slate-50 border-slate-200'} focus:outline-none focus:border-orange-500`} />
+                        <input type="text" placeholder="Type a message..." className={\`w-full pl-4 pr-12 py-3 rounded-2xl text-sm border \${isDarkMode ? 'bg-[#0B0F19] border-white/10' : 'bg-slate-50 border-slate-200'} focus:outline-none focus:border-orange-500\`} />
                         <button className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl transition-colors">
                           <ArrowUpRight size={16} />
                         </button>
@@ -563,14 +564,21 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                 </div>
               )}
 
-              {activeTab === 'proposals' && <ProposalsTab isDarkMode={isDarkMode} cardBgClass={cardBgClass} />}
-              {activeTab === 'contracts' && <ContractsTab isDarkMode={isDarkMode} cardBgClass={cardBgClass} />}
-              {activeTab === 'portfolio' && <PortfolioTab isDarkMode={isDarkMode} cardBgClass={cardBgClass} />}
-              {activeTab === 'certificates' && <CertificatesTab isDarkMode={isDarkMode} cardBgClass={cardBgClass} />}
-              {activeTab === 'calendar' && <CalendarTab isDarkMode={isDarkMode} cardBgClass={cardBgClass} />}
-              {activeTab === 'support' && <SupportTab isDarkMode={isDarkMode} cardBgClass={cardBgClass} />}
-              {activeTab === 'settings' && <SettingsTab isDarkMode={isDarkMode} cardBgClass={cardBgClass} />}
-              {activeTab === 'ai' && <AiTab isDarkMode={isDarkMode} cardBgClass={cardBgClass} />}
+              {/* Fallback Empty State for other tabs */}
+              {['proposals', 'contracts', 'portfolio', 'certificates', 'calendar', 'support', 'settings', 'ai'].includes(activeTab) && (
+                <div className={\`flex flex-col items-center justify-center h-96 rounded-3xl \${cardBgClass} text-center p-8\`}>
+                  <div className="w-20 h-20 rounded-full bg-slate-100 dark:bg-white/5 flex items-center justify-center mb-6 text-slate-400">
+                    <LifeBuoy size={32} />
+                  </div>
+                  <h2 className="text-2xl font-bold mb-2 capitalize">{activeTab}</h2>
+                  <p className="text-slate-500 dark:text-slate-400 max-w-md">
+                    This section is currently being upgraded to the new premium experience. Check back soon for exciting new features.
+                  </p>
+                  <button onClick={() => setActiveTab('home')} className="mt-6 px-6 py-2.5 rounded-full border border-slate-200 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-white/5 text-sm font-bold transition-colors">
+                    Back to Dashboard
+                  </button>
+                </div>
+              )}
 
             </motion.div>
           </AnimatePresence>
@@ -579,3 +587,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
     </div>
   );
 };
+`
+
+fs.writeFileSync('src/components/CandidateEnterpriseDashboard.tsx', content);
+console.log('Created CandidateEnterpriseDashboard.tsx');

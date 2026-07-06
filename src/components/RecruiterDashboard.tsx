@@ -104,10 +104,10 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
   };
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 font-sans selection:bg-indigo-500 selection:text-white ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+    <div className={`min-h-screen transition-colors duration-500 font-sans selection:bg-indigo-500 selection:text-white ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'}`}>
       
       {/* Top Navigation Bar */}
-      <nav className={`border-b sticky top-0 z-40 backdrop-blur-md px-4 md:px-8 py-3 flex items-center justify-between ${isDarkMode ? 'bg-slate-950/80 border-slate-900' : 'bg-white/80 border-slate-200'}`}>
+      <nav className={`border-b sticky top-0 z-40 px-4 md:px-8 py-3 flex items-center justify-between ${isDarkMode ? 'bg-slate-950/80 border-slate-900 backdrop-blur-md' : 'bg-white border-slate-200'}`}>
         <div className="flex items-center gap-3">
           <Logo size="sm" variant={isDarkMode ? 'light' : 'dark'} showText={true} />
           <span className="h-4 w-px bg-slate-300 dark:bg-slate-800" />
@@ -119,7 +119,7 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
         <div className="flex items-center gap-4">
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
+            className="p-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
             title="Toggle theme"
           >
             {isDarkMode ? <Sun size={15} className="text-amber-400" /> : <Moon size={15} className="text-indigo-400" />}
@@ -187,12 +187,12 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Search by candidate name, email, or core role..."
-              className="w-full bg-slate-100 dark:bg-black/40 border border-transparent dark:border-white/5 rounded-xl py-2 pl-11 pr-4 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 text-indigo-500 dark:text-indigo-200"
+              className="w-full bg-white dark:bg-black/40 border border-transparent dark:border-white/5 rounded-xl py-2 pl-11 pr-4 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 text-indigo-500 dark:text-indigo-200"
             />
           </div>
           
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-            <div className="flex items-center gap-2 bg-slate-100 dark:bg-black/30 border border-transparent dark:border-white/5 rounded-xl px-2 py-1">
+            <div className="flex items-center gap-2 bg-white dark:bg-black/30 border border-transparent dark:border-white/5 rounded-xl px-2 py-1">
               <Filter size={12} className="text-slate-400" />
               <select
                 value={statusFilter}
@@ -206,7 +206,7 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
               </select>
             </div>
 
-            <div className="flex items-center gap-2 bg-slate-100 dark:bg-black/30 border border-transparent dark:border-white/5 rounded-xl px-2 py-1">
+            <div className="flex items-center gap-2 bg-white dark:bg-black/30 border border-transparent dark:border-white/5 rounded-xl px-2 py-1">
               <Briefcase size={12} className="text-slate-400" />
               <select
                 value={roleFilter}
@@ -255,7 +255,7 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
                       className={`p-4 rounded-2xl border transition-all cursor-pointer text-left relative overflow-hidden ${
                         isSelected 
                           ? 'border-indigo-500 bg-indigo-500/5 shadow-lg' 
-                          : 'border-slate-200 dark:border-slate-850 bg-slate-100/40 dark:bg-black/20 hover:border-slate-400 dark:hover:border-slate-750'
+                          : 'border-slate-200 dark:border-slate-850 bg-white dark:bg-black/20 hover:border-slate-400 dark:hover:border-slate-750'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
@@ -329,7 +329,7 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-slate-100/40 dark:bg-black/30 border border-slate-200 dark:border-white/5 space-y-2">
+                    <div className="p-4 rounded-2xl bg-white dark:bg-black/30 border border-slate-200 dark:border-white/5 space-y-2">
                       <h4 className="text-[9px] font-black uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
                         <Sparkles size={11} />
                         <span>Core Capabilities & Bio</span>
@@ -367,7 +367,7 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
                     <button
                       onClick={() => handleUpdateStatus(selectedApp.id, 'pending')}
                       disabled={updatingId === selectedApp.id}
-                      className="w-full py-2 bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-300 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      className="w-full py-2 bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-300 text-[10px] font-bold uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
                     >
                       <Clock size={13} className="text-amber-400" />
                       <span className={isDarkMode ? "text-slate-300" : "text-slate-600"}>Revert to Review Pending</span>
@@ -385,6 +385,30 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
           </div>
 
         </div>
+
+        {/* DEDICATED PREMIUM SHELL FOOTER */}
+        <footer className={`mt-auto border-t py-6 px-6 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 transition-all duration-300 ${
+          isDarkMode 
+            ? 'border-slate-800/80 bg-[#0B0F19]/40 text-slate-500' 
+            : 'border-slate-200 bg-white text-slate-600'
+        } font-sans`}>
+          <div className="flex flex-col sm:flex-row items-center gap-3 text-center sm:text-left">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-black uppercase tracking-wider">Recruiter Cockpit Terminal</span>
+            </div>
+            <span className="hidden sm:inline text-slate-700">|</span>
+            <span className="text-[10px] font-mono">Node ID: <span className="font-bold text-indigo-400 select-all">DST-REC-{currentUser?.uid?.substring(0, 8).toUpperCase() || 'RE9A1F'}</span></span>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[11px] font-medium">
+            <a href="#compliance" onClick={(e) => { e.preventDefault(); }} className="hover:text-indigo-400 dark:hover:text-slate-300 transition-colors">Compliance</a>
+            <a href="#audit" onClick={(e) => { e.preventDefault(); }} className="hover:text-indigo-400 dark:hover:text-slate-300 transition-colors">Security Ledger</a>
+            <a href="#status" onClick={(e) => { e.preventDefault(); }} className="hover:text-indigo-400 dark:hover:text-slate-300 transition-colors">System Status</a>
+            <span className="hidden xs:inline text-slate-700">|</span>
+            <span className="text-[11px] font-mono">© 2026 DS Tech Recruiter Cockpit</span>
+          </div>
+        </footer>
 
       </main>
 
