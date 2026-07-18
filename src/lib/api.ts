@@ -542,4 +542,168 @@ export async function apiUpdateProfile(params: {
   return res.json();
 }
 
+// --- CAC Certificate & Trust Center Sync ---
+export interface CacMetadata {
+  id: string;
+  company_name: string;
+  registration_number: string;
+  business_type: string;
+  registration_date: string;
+  company_status: string;
+  registered_address: string;
+  description: string;
+  verification_url: string;
+  r2_object_key: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
+  is_published: number; // 0 or 1
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function apiGetCacMetadata(admin: boolean = false): Promise<CacMetadata[]> {
+  const url = admin ? '/api/cac/metadata?admin=true' : '/api/cac/metadata';
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to retrieve CAC metadata.');
+  return res.json();
+}
+
+export async function apiSaveCacMetadata(metadata: Partial<CacMetadata>): Promise<CacMetadata> {
+  const res = await fetch('/api/cac/metadata', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(metadata)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to save CAC metadata.');
+  }
+  return res.json();
+}
+
+export async function apiDeleteCacMetadata(id: string): Promise<{ success: boolean }> {
+  const res = await fetch(`/api/cac/metadata?id=${encodeURIComponent(id)}`, {
+    method: 'DELETE'
+  });
+  if (!res.ok) throw new Error('Failed to delete CAC metadata.');
+  return res.json();
+}
+
+export async function apiToggleCacPublish(id: string, isPublished: boolean): Promise<{ success: boolean; id: string; is_published: number }> {
+  const res = await fetch('/api/cac/metadata/publish', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, is_published: isPublished })
+  });
+  if (!res.ok) throw new Error('Failed to toggle CAC publish state.');
+  return res.json();
+}
+
+export async function apiUploadCacFile(file: File): Promise<{
+  success: boolean;
+  r2_object_key: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
+}> {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const res = await fetch('/api/cac/upload', {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to upload CAC file.');
+  }
+  return res.json();
+}
+
+// --- Recognition & Certifications System ---
+export interface RecognitionCertificate {
+  id: string;
+  title: string;
+  category: string;
+  issuing_organization: string;
+  issue_date: string;
+  expiry_date?: string;
+  certificate_number?: string;
+  description?: string;
+  verification_url?: string;
+  r2_object_key?: string;
+  thumbnail_key?: string;
+  file_name?: string;
+  file_size?: number;
+  mime_type?: string;
+  is_published: number; // 0 or 1
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function apiGetRecognitionCertificates(admin: boolean = false, category?: string): Promise<RecognitionCertificate[]> {
+  let url = admin ? '/api/recognition/certificates?admin=true' : '/api/recognition/certificates';
+  if (category) {
+    url += (admin ? '&' : '?') + `category=${encodeURIComponent(category)}`;
+  }
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to retrieve recognition certificates.');
+  return res.json();
+}
+
+export async function apiSaveRecognitionCertificate(cert: Partial<RecognitionCertificate>): Promise<RecognitionCertificate> {
+  const res = await fetch('/api/recognition/certificates', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(cert)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to save recognition certificate.');
+  }
+  return res.json();
+}
+
+export async function apiDeleteRecognitionCertificate(id: string): Promise<{ success: boolean }> {
+  const res = await fetch(`/api/recognition/certificates?id=${encodeURIComponent(id)}`, {
+    method: 'DELETE'
+  });
+  if (!res.ok) throw new Error('Failed to delete recognition certificate.');
+  return res.json();
+}
+
+export async function apiToggleRecognitionPublish(id: string, isPublished: boolean): Promise<{ success: boolean; id: string; is_published: number }> {
+  const res = await fetch('/api/recognition/certificates/publish', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, is_published: isPublished })
+  });
+  if (!res.ok) throw new Error('Failed to toggle recognition certificate publish state.');
+  return res.json();
+}
+
+export async function apiUploadRecognitionFile(file: File): Promise<{
+  success: boolean;
+  r2_object_key: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
+}> {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const res = await fetch('/api/recognition/upload', {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to upload recognition certificate file.');
+  }
+  return res.json();
+}
+
 

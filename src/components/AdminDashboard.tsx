@@ -7,7 +7,7 @@ import {
   Edit3, ArrowLeft, Heart, BarChart3, Users, Landmark, UserMinus, ShieldAlert, LogOut,
   QrCode, MessageSquare, Send, FileText, Printer, Layers, FolderOpen, BookOpen,
   Video, Plus, PlusCircle, Check, MoreVertical, Settings, Sliders, Database, ArrowUp,
-  Sun, Moon, Globe, ChevronDown, Copy, X, Code, Bell
+  Sun, Moon, Globe, ChevronDown, Copy, X, Code, Bell, ShieldCheck, Award
 } from 'lucide-react';
 import { JobApplication } from '../types';
 import { useNotifications } from './NotificationProvider';
@@ -26,6 +26,8 @@ import { CareersFormPDFView } from './CareersFormPDFView';
 import { BrevoEmailDashboard } from './BrevoEmailDashboard';
 import { AdminAuthGate } from './AdminAuthGate';
 import { AdminChatCenter } from './AdminChatCenter';
+import { CacAdminCenter } from './CacAdminCenter';
+import { RecognitionAdminDashboard } from './RecognitionAdminDashboard';
 
 import { 
   SERVICES, 
@@ -124,7 +126,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   }, [candidateAnalyses]);
 
   // Super Admin Control Center State
-  const [adminModule, setAdminModule] = useState<'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'emails' | 'chat'>('recruitment');
+  const [adminModule, setAdminModule] = useState<'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'emails' | 'chat' | 'trust' | 'recognition'>('recruitment');
   
   // Custom navigation header states
   const [isThreeDotsOpen, setIsThreeDotsOpen] = useState<boolean>(false);
@@ -2046,6 +2048,7 @@ export default {
         { id: 'website', label: 'Services Catalog', icon: Layers, count: adminServices.length },
         { id: 'portfolio', label: 'Portfolio Projects', icon: FolderOpen, count: adminProjects.length },
         { id: 'blog', label: 'Insights Blog', icon: BookOpen, count: adminBlogs.length },
+        { id: 'recognition', label: 'Recognition Certs', icon: Award },
       ]
     },
     {
@@ -2065,6 +2068,7 @@ export default {
       items: [
         { id: 'analytics', label: 'Intelligence Charts', icon: BarChart3 },
         { id: 'notifications', label: 'Secure QR & Vault', icon: QrCode },
+        { id: 'trust', label: 'Trust & Compliance', icon: ShieldCheck },
         { id: 'emails', label: 'Brevo Email Console', icon: Mail },
       ]
     }
@@ -2308,6 +2312,8 @@ export default {
                    adminModule === 'training' ? 'LMS Academy Console' :
                    adminModule === 'clients' ? 'CRM Client Registry' :
                    adminModule === 'analytics' ? 'Analytical Intelligence' :
+                   adminModule === 'trust' ? 'Enterprise Trust & Compliance' :
+                   adminModule === 'recognition' ? 'Recognition Certificates Console' :
                    adminModule === 'emails' ? 'Email Queue & Logs' : 'Secure QR & Cloud R2 Vault'}
                 </h1>
                 <p className="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs leading-relaxed max-w-2xl font-medium">
@@ -2319,6 +2325,8 @@ export default {
                    adminModule === 'training' ? 'Manage curriculum courses, chapter lists, masterclass guide documents, and final graduate credentials.' :
                    adminModule === 'clients' ? 'Monitor corporate client invoices, SLA support tickets, active client profiles, and payment ledger trails.' :
                    adminModule === 'analytics' ? 'Review graphical system metrics, user action flows, WebAuthn verification tallies, and local DB logs.' :
+                   adminModule === 'trust' ? 'Manage Corporate Affairs Commission (CAC) incorporation metadata, upload certificate files to Cloudflare R2, track file history, and configure public registry publishing status.' :
+                   adminModule === 'recognition' ? 'Manage enterprise recognition certificates, upload verification files to Cloudflare R2, manage metadata, and toggle publishing status.' :
                    adminModule === 'emails' ? 'Audit Brevo transactional templates, dispatch queues, failed delivery retry logs, and template variables.' :
                    'Manage applicant physical credential badges, read dynamic QR scans, and review the WebAuthn security credential vault.'}
                 </p>
@@ -5207,6 +5215,14 @@ export default {
 
       {adminModule === 'chat' && (
         <AdminChatCenter />
+      )}
+
+      {adminModule === 'trust' && (
+        <CacAdminCenter />
+      )}
+
+      {adminModule === 'recognition' && (
+        <RecognitionAdminDashboard />
       )}
 
       {/* Dynamic QR Code scanner modal */}

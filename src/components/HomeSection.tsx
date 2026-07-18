@@ -7,6 +7,7 @@ import {
 import { SERVICES, TESTIMONIALS, PARTNERS } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
 import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
+import { CacTrustSection } from './CacTrustSection';
 
 interface HomeSectionProps {
   onNavigate: (path: string) => void;
@@ -358,6 +359,9 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
           </div>
         </div>
       </section>
+
+      {/* 4.5 ENTERPRISE CAC CERTIFICATE TRUST CENTER */}
+      <CacTrustSection language={language} />
 
       {/* 5. FEATURED SERVICES PREVIEW */}
       <section className="max-w-6xl mx-auto px-6 space-y-12">

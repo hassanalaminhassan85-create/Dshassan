@@ -15,6 +15,7 @@ import { BlogSection } from './components/BlogSection';
 import { TrainingAcademySection } from './components/TrainingAcademySection';
 import { ClientPortalSection } from './components/ClientPortalSection';
 import { CareersSection } from './components/CareersSection';
+import { RecognitionSection } from './components/RecognitionSection';
 import { JobApplication } from './types';
 import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint } from 'lucide-react';
 import { Logo } from './components/Logo';
@@ -85,6 +86,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Blog", value: "blog" },
     { label: "Academy", value: "training" },
     { label: "Clients", value: "clients" },
+    { label: "Recognition", value: "recognition" },
     { label: "Careers", value: "careers" }
   ],
   fr: [
@@ -95,6 +97,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Blog", value: "blog" },
     { label: "Académie", value: "training" },
     { label: "Clients", value: "clients" },
+    { label: "Reconnaissance", value: "recognition" },
     { label: "Carrières", value: "careers" }
   ],
   ha: [
@@ -105,6 +108,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Blog", value: "blog" },
     { label: "Makaranta", value: "training" },
     { label: "Abokan Ciniki", value: "clients" },
+    { label: "Yabo da Kyaututtuka", value: "recognition" },
     { label: "Ayyuka Buɗe", value: "careers" }
   ],
   yo: [
@@ -115,6 +119,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Blog", value: "blog" },
     { label: "Ile-ẹkọ", value: "training" },
     { label: "Awọn alabara", value: "clients" },
+    { label: "Idanimọ", value: "recognition" },
     { label: "Iṣẹ-ṣiṣe", value: "careers" }
   ],
   es: [
@@ -125,6 +130,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Blog", value: "blog" },
     { label: "Academia", value: "training" },
     { label: "Clientes", value: "clients" },
+    { label: "Reconocimientos", value: "recognition" },
     { label: "Carreras", value: "careers" }
   ],
   ar: [
@@ -135,6 +141,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "المدونة", value: "blog" },
     { label: "الأكاديمية", value: "training" },
     { label: "العملاء", value: "clients" },
+    { label: "شهادات التقدير", value: "recognition" },
     { label: "الوظائف", value: "careers" }
   ],
   de: [
@@ -145,6 +152,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Blog", value: "blog" },
     { label: "Akademie", value: "training" },
     { label: "Kunden", value: "clients" },
+    { label: "Anerkennung", value: "recognition" },
     { label: "Karriere", value: "careers" }
   ],
   ru: [
@@ -155,6 +163,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Блог", value: "blog" },
     { label: "Академия", value: "training" },
     { label: "Клиенты", value: "clients" },
+    { label: "Признание", value: "recognition" },
     { label: "Вакансии", value: "careers" }
   ],
   pt: [
@@ -165,6 +174,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Blog", value: "blog" },
     { label: "Academia", value: "training" },
     { label: "Clientes", value: "clients" },
+    { label: "Reconhecimento", value: "recognition" },
     { label: "Carreiras", value: "careers" }
   ],
   zh: [
@@ -175,6 +185,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "博客资讯", value: "blog" },
     { label: "培训学院", value: "training" },
     { label: "客户门户", value: "clients" },
+    { label: "资质荣誉", value: "recognition" },
     { label: "人才招聘", value: "careers" }
   ]
 };
@@ -191,7 +202,7 @@ export default function App() {
   const [selectedRoleTitle, setSelectedRoleTitle] = useState<string>('');
 
   // Active website ecosystem page routing state
-  const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'blog' | 'training' | 'clients' | 'careers' | 'account'>('home');
+  const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'blog' | 'training' | 'clients' | 'careers' | 'account' | 'recognition'>('home');
 
   // Interactive 2027 App Shell full-screen state
   const [isUserLoggedIn, setIsUserLoggedIn] = useState<boolean>(false);
@@ -335,6 +346,8 @@ export default function App() {
           setActivePage('clients');
         } else if (path === '/careers') {
           setActivePage('careers');
+        } else if (path === '/recognition') {
+          setActivePage('recognition');
         } else if (path === '/account') {
           setActivePage('account');
         }
@@ -1130,6 +1143,16 @@ export default function App() {
                 className="w-full"
               >
                 <ClientPortalSection />
+              </motion.div>
+             ) : activePage === 'recognition' ? (
+              <motion.div
+                key="recognition-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full"
+              >
+                <RecognitionSection />
               </motion.div>
              ) : activePage === 'account' ? (
               <motion.div
