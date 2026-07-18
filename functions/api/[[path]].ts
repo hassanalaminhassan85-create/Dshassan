@@ -441,7 +441,33 @@ async function ensureDatabaseTables(db: any) {
     );`,
 
     `CREATE INDEX IF NOT EXISTS idx_recognition_category ON recognition_certificates (category);`,
-    `CREATE INDEX IF NOT EXISTS idx_recognition_published ON recognition_certificates (is_published);`
+    `CREATE INDEX IF NOT EXISTS idx_recognition_published ON recognition_certificates (is_published);`,
+
+    `CREATE TABLE IF NOT EXISTS ongoing_projects (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      slug TEXT NOT NULL,
+      category TEXT NOT NULL,
+      short_description TEXT NOT NULL,
+      full_description TEXT NOT NULL,
+      cover_image_key TEXT,
+      gallery TEXT,
+      status TEXT NOT NULL,
+      progress_percentage INTEGER DEFAULT 0,
+      technologies TEXT,
+      estimated_completion TEXT,
+      last_updated TEXT NOT NULL,
+      is_featured INTEGER DEFAULT 0,
+      is_published INTEGER DEFAULT 0,
+      display_order INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );`,
+
+    `CREATE INDEX IF NOT EXISTS idx_ongoing_projects_status ON ongoing_projects (status);`,
+    `CREATE INDEX IF NOT EXISTS idx_ongoing_projects_published ON ongoing_projects (is_published);`,
+    `CREATE INDEX IF NOT EXISTS idx_ongoing_projects_category ON ongoing_projects (category);`,
+    `CREATE INDEX IF NOT EXISTS idx_ongoing_projects_order ON ongoing_projects (display_order);`
   ];
 
   // Force clean up old unquoted schema to avoid SQL keyword parse errors
@@ -699,6 +725,92 @@ async function ensureDatabaseTables(db: any) {
     }
   } catch (err) {
     console.error("Bootstrapper seed Recognition error:", err);
+  }
+
+  // Insert default Ongoing Projects seed if none exists
+  try {
+    const checkProjects = await db.prepare("SELECT COUNT(*) as count FROM sqlite_master WHERE type='table' AND name='ongoing_projects'").all();
+    const tableExists = Array.isArray(checkProjects) ? checkProjects : (checkProjects?.results || []);
+    if (tableExists && tableExists[0] && tableExists[0].count > 0) {
+      const checkRecords = await db.prepare("SELECT COUNT(*) as count FROM ongoing_projects").all();
+      const recordsCount = Array.isArray(checkRecords) ? checkRecords : (checkRecords?.results || []);
+      if (recordsCount && recordsCount[0] && recordsCount[0].count === 0) {
+        const seedProjects = [
+          {
+            id: 'proj-1',
+            title: 'Al Ihsan Cryptographic Security Hub',
+            slug: 'al-ihsan-crypto-security-hub',
+            category: 'Cyber Security',
+            short_description: 'An advanced multi-tenant identity verification framework securing state information portals using WebAuthn biometrics and real-time ledger verification.',
+            full_description: 'Our core cyber security project focuses on establishing a decentralized identity verification gateway. Designed to mitigate deep-fake identities, automated spam registrations, and malicious cyber attacks on sovereign portals. Features complete end-to-end encryption, multi-device physical passkey registrations, and live biometric telemetry auditing.',
+            cover_image_key: 'seeds/crypto_security_hub.png',
+            gallery: '[]',
+            status: 'UI/UX Design',
+            progress_percentage: 45,
+            technologies: 'WebAuthn, Cryptographic Signatures, Cloudflare Edge, SQLite',
+            estimated_completion: '2026-12-15',
+            last_updated: new Date().toISOString().split('T')[0],
+            is_featured: 1,
+            is_published: 1,
+            display_order: 1
+          },
+          {
+            id: 'proj-2',
+            title: 'DS Tech Autonomous Client Engine (ACE)',
+            slug: 'ds-tech-autonomous-client-engine',
+            category: 'Enterprise Cloud',
+            short_description: 'A cloud-native SaaS suite that manages client SLAs, real-time ticket escalation, auto-invoicing, and ledger payment tracking.',
+            full_description: 'The Autonomous Client Engine (ACE) is engineered to automate corporate client communication and payments. It features AI-driven ticket priority triaging, automated transactional email delivery using Brevo, PDF invoice generation directly at the edge, and secure client registry logs synchronized via WebSockets.',
+            cover_image_key: 'seeds/autonomous_client_engine.png',
+            gallery: '[]',
+            status: 'Frontend Development',
+            progress_percentage: 72,
+            technologies: 'React, TypeScript, Tailwind CSS, SSE WebSockets, Cloudflare R2',
+            estimated_completion: '2026-10-01',
+            last_updated: new Date().toISOString().split('T')[0],
+            is_featured: 1,
+            is_published: 1,
+            display_order: 2
+          },
+          {
+            id: 'proj-3',
+            title: 'Unified National Identity Bridge (UNIB)',
+            slug: 'unified-national-identity-bridge',
+            category: 'Government Tech',
+            short_description: 'Strategic verification gateway connecting DS Tech biometric platforms directly with national registry ledgers for instantaneous pre-screening.',
+            full_description: 'The Unified National Identity Bridge (UNIB) integrates state biometric verification protocols with sovereign national identity registers. By using high-performance secure edge endpoints, it verifies credential badges, checks fraud threat ratings in real-time using Gemini AI models, and logs secure verification histories on a transparent audit ledger.',
+            cover_image_key: 'seeds/national_identity_bridge.png',
+            gallery: '[]',
+            status: 'Testing',
+            progress_percentage: 90,
+            technologies: 'Gemini 3.5 Flash, Cloudflare D1, secure API proxy, R2 Storage',
+            estimated_completion: '2026-08-30',
+            last_updated: new Date().toISOString().split('T')[0],
+            is_featured: 0,
+            is_published: 1,
+            display_order: 3
+          }
+        ];
+
+        for (const proj of seedProjects) {
+          await db.prepare(`
+            INSERT INTO ongoing_projects (
+              id, title, slug, category, short_description, full_description,
+              cover_image_key, gallery, status, progress_percentage, technologies,
+              estimated_completion, last_updated, is_featured, is_published,
+              display_order, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(
+            proj.id, proj.title, proj.slug, proj.category, proj.short_description, proj.full_description,
+            proj.cover_image_key, proj.gallery, proj.status, proj.progress_percentage, proj.technologies,
+            proj.estimated_completion, proj.last_updated, proj.is_featured, proj.is_published,
+            proj.display_order, new Date().toISOString(), new Date().toISOString()
+          ).run();
+        }
+      }
+    }
+  } catch (err) {
+    console.error("Bootstrapper seed Projects error:", err);
   }
 
   // Insert default notifications if none exist
@@ -2783,6 +2895,250 @@ export async function onRequest(context: { request: Request; env: any; params: a
         
         // Return beautiful placeholder matching category
         return Response.redirect('https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=1200&auto=format&fit=crop&q=80', 302);
+      } catch (e: any) {
+        return new Response(e.message, { status: 500 });
+      }
+    }
+
+    // ==========================================
+    // 6.7. ONGOING PROJECTS ENDPOINTS
+    // ==========================================
+
+    if (path === '/api/ongoing-projects') {
+      if (method === 'GET') {
+        const idParam = url.searchParams.get('id');
+        const adminParam = url.searchParams.get('admin');
+        try {
+          if (env.DB) {
+            if (idParam) {
+              const res = await env.DB.prepare('SELECT * FROM ongoing_projects WHERE id = ?').bind(idParam).all();
+              const item = res.results?.[0];
+              if (!item) {
+                return new Response(JSON.stringify({ error: "Ongoing project not found" }), { status: 404, headers });
+              }
+              return new Response(JSON.stringify(item), { headers });
+            } else {
+              let query = 'SELECT * FROM ongoing_projects';
+              const conditions: string[] = [];
+              const binds: any[] = [];
+              
+              if (adminParam !== 'true') {
+                conditions.push('is_published = 1');
+              }
+              
+              if (conditions.length > 0) {
+                query += ' WHERE ' + conditions.join(' AND ');
+              }
+              
+              query += ' ORDER BY display_order ASC, created_at DESC';
+              
+              const stmt = env.DB.prepare(query);
+              const res = binds.length > 0 ? await stmt.bind(...binds).all() : await stmt.all();
+              return new Response(JSON.stringify(res.results || []), { headers });
+            }
+          }
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+
+      if (method === 'POST') {
+        try {
+          const body = await request.json();
+          const id = body.id || ('proj_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now());
+          const title = body.title || 'Untitled Project';
+          const slug = body.slug || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+          const category = body.category || 'Development';
+          const short_description = body.short_description || '';
+          const full_description = body.full_description || '';
+          const cover_image_key = body.cover_image_key || '';
+          const gallery = body.gallery || '[]';
+          const status = body.status || 'Planning';
+          const progress_percentage = body.progress_percentage !== undefined ? Number(body.progress_percentage) : 0;
+          const technologies = body.technologies || '';
+          const estimated_completion = body.estimated_completion || '';
+          const last_updated = body.last_updated || new Date().toISOString().split('T')[0];
+          const is_featured = body.is_featured !== undefined ? (body.is_featured ? 1 : 0) : 0;
+          const is_published = body.is_published !== undefined ? (body.is_published ? 1 : 0) : 0;
+          const display_order = body.display_order !== undefined ? Number(body.display_order) : 0;
+          const now = new Date().toISOString();
+          
+          if (env.DB) {
+            let originalRecord = null;
+            if (body.id) {
+              const check = await env.DB.prepare('SELECT * FROM ongoing_projects WHERE id = ?').bind(body.id).all();
+              originalRecord = check.results?.[0];
+            }
+            
+            const created_at = originalRecord ? originalRecord.created_at : now;
+            
+            await env.DB.prepare(`
+              INSERT OR REPLACE INTO ongoing_projects (
+                id, title, slug, category, short_description, full_description,
+                cover_image_key, gallery, status, progress_percentage, technologies,
+                estimated_completion, last_updated, is_featured, is_published, display_order, created_at, updated_at
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `).bind(
+              id, title, slug, category, short_description, full_description,
+              cover_image_key, gallery, status, progress_percentage, technologies,
+              estimated_completion, last_updated, is_featured, is_published, display_order, created_at, now
+            ).run();
+            
+            const record = {
+              id, title, slug, category, short_description, full_description,
+              cover_image_key, gallery, status, progress_percentage, technologies,
+              estimated_completion, last_updated, is_featured, is_published, display_order, created_at, updated_at: now
+            };
+            
+            broadcastSyncEvent({
+              type: 'ONGOING_PROJECT_SAVED',
+              record,
+              message: `Ongoing project updated: ${title}`
+            });
+            
+            return new Response(JSON.stringify(record), { headers });
+          }
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+
+      if (method === 'DELETE') {
+        const idParam = url.searchParams.get('id');
+        if (!idParam) {
+          return new Response(JSON.stringify({ error: "Missing id query parameter" }), { status: 400, headers });
+        }
+        try {
+          if (env.DB) {
+            await env.DB.prepare('DELETE FROM ongoing_projects WHERE id = ?').bind(idParam).run();
+            broadcastSyncEvent({
+              type: 'ONGOING_PROJECT_DELETED',
+              id: idParam,
+              message: `Ongoing project deleted`
+            });
+            return new Response(JSON.stringify({ success: true, id: idParam }), { headers });
+          }
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+    }
+
+    if (path === '/api/ongoing-projects/publish' && method === 'PATCH') {
+      try {
+        const { id, is_published } = await request.json();
+        const val = is_published ? 1 : 0;
+        if (env.DB) {
+          await env.DB.prepare('UPDATE ongoing_projects SET is_published = ?, updated_at = ? WHERE id = ?')
+            .bind(val, new Date().toISOString(), id)
+            .run();
+          
+          broadcastSyncEvent({
+            type: 'ONGOING_PROJECT_PUBLISH_TOGGLED',
+            id,
+            is_published: val,
+            message: `Ongoing project publish state updated`
+          });
+          return new Response(JSON.stringify({ success: true, id, is_published: val }), { headers });
+        }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    // New API route for instant progress PATCH updates
+    if (path === '/api/ongoing-projects/progress' && method === 'PATCH') {
+      try {
+        const { id, progress_percentage } = await request.json();
+        const val = Number(progress_percentage);
+        if (env.DB) {
+          await env.DB.prepare('UPDATE ongoing_projects SET progress_percentage = ?, updated_at = ? WHERE id = ?')
+            .bind(val, new Date().toISOString(), id)
+            .run();
+          
+          broadcastSyncEvent({
+            type: 'ONGOING_PROJECT_PROGRESS_UPDATED',
+            id,
+            progress_percentage: val,
+            message: `Ongoing project progress updated`
+          });
+          return new Response(JSON.stringify({ success: true, id, progress_percentage: val }), { headers });
+        }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/ongoing-projects/upload' && method === 'POST') {
+      try {
+        const formData = await request.formData();
+        const file = formData.get('file') as File;
+        if (!file) {
+          return new Response(JSON.stringify({ error: "No file uploaded" }), { status: 400, headers });
+        }
+        
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+          return new Response(JSON.stringify({ error: "Invalid file type. Only standard web images are allowed." }), { status: 400, headers });
+        }
+        
+        const maxBytes = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxBytes) {
+          return new Response(JSON.stringify({ error: "File size exceeds 10MB limit." }), { status: 400, headers });
+        }
+        
+        const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+        const objectKey = `ongoing_projects/${Date.now()}_${sanitizedName}`;
+        
+        if (env.BUCKET) {
+          const fileBuffer = await file.arrayBuffer();
+          await env.BUCKET.put(objectKey, fileBuffer, {
+            httpMetadata: { contentType: file.type }
+          });
+        } else {
+          console.warn("R2 BUCKET binding not found. Simulating file upload.");
+        }
+        
+        return new Response(JSON.stringify({
+          success: true,
+          r2_object_key: objectKey,
+          file_name: file.name,
+          file_size: file.size,
+          mime_type: file.type
+        }), { headers });
+        
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/ongoing-projects/file' && method === 'GET') {
+      const key = url.searchParams.get('key');
+      if (!key) {
+        return new Response(JSON.stringify({ error: "Missing key parameter" }), { status: 400, headers });
+      }
+      
+      try {
+        if (env.BUCKET) {
+          const object = await env.BUCKET.get(key);
+          if (object) {
+            const fileHeaders = new Headers();
+            object.writeHttpMetadata(fileHeaders);
+            fileHeaders.set('Access-Control-Allow-Origin', '*');
+            fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
+            return new Response(object.body, { headers: fileHeaders });
+          }
+        }
+        
+        let fallbackUrl = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80';
+        if (key.includes('crypto')) {
+          fallbackUrl = 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&auto=format&fit=crop&q=80';
+        } else if (key.includes('client') || key.includes('crm')) {
+          fallbackUrl = 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&auto=format&fit=crop&q=80';
+        } else if (key.includes('national') || key.includes('identity')) {
+          fallbackUrl = 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&auto=format&fit=crop&q=80';
+        }
+        return Response.redirect(fallbackUrl, 302);
       } catch (e: any) {
         return new Response(e.message, { status: 500 });
       }

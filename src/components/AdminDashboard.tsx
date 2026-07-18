@@ -28,6 +28,7 @@ import { AdminAuthGate } from './AdminAuthGate';
 import { AdminChatCenter } from './AdminChatCenter';
 import { CacAdminCenter } from './CacAdminCenter';
 import { RecognitionAdminDashboard } from './RecognitionAdminDashboard';
+import { OngoingProjectsAdminDashboard } from './OngoingProjectsAdminDashboard';
 
 import { 
   SERVICES, 
@@ -126,7 +127,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   }, [candidateAnalyses]);
 
   // Super Admin Control Center State
-  const [adminModule, setAdminModule] = useState<'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'emails' | 'chat' | 'trust' | 'recognition'>('recruitment');
+  const [adminModule, setAdminModule] = useState<'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'emails' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects'>('recruitment');
   
   // Custom navigation header states
   const [isThreeDotsOpen, setIsThreeDotsOpen] = useState<boolean>(false);
@@ -2049,6 +2050,7 @@ export default {
         { id: 'portfolio', label: 'Portfolio Projects', icon: FolderOpen, count: adminProjects.length },
         { id: 'blog', label: 'Insights Blog', icon: BookOpen, count: adminBlogs.length },
         { id: 'recognition', label: 'Recognition Certs', icon: Award },
+        { id: 'ongoing-projects', label: 'Ongoing Projects', icon: Clock },
       ]
     },
     {
@@ -2314,6 +2316,7 @@ export default {
                    adminModule === 'analytics' ? 'Analytical Intelligence' :
                    adminModule === 'trust' ? 'Enterprise Trust & Compliance' :
                    adminModule === 'recognition' ? 'Recognition Certificates Console' :
+                   adminModule === 'ongoing-projects' ? 'Enterprise Ongoing Projects Platform' :
                    adminModule === 'emails' ? 'Email Queue & Logs' : 'Secure QR & Cloud R2 Vault'}
                 </h1>
                 <p className="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs leading-relaxed max-w-2xl font-medium">
@@ -2327,6 +2330,7 @@ export default {
                    adminModule === 'analytics' ? 'Review graphical system metrics, user action flows, WebAuthn verification tallies, and local DB logs.' :
                    adminModule === 'trust' ? 'Manage Corporate Affairs Commission (CAC) incorporation metadata, upload certificate files to Cloudflare R2, track file history, and configure public registry publishing status.' :
                    adminModule === 'recognition' ? 'Manage enterprise recognition certificates, upload verification files to Cloudflare R2, manage metadata, and toggle publishing status.' :
+                   adminModule === 'ongoing-projects' ? 'Coordinate published project pipelines, display active sprints, adjust completions dynamically, and edit specifications.' :
                    adminModule === 'emails' ? 'Audit Brevo transactional templates, dispatch queues, failed delivery retry logs, and template variables.' :
                    'Manage applicant physical credential badges, read dynamic QR scans, and review the WebAuthn security credential vault.'}
                 </p>
@@ -5223,6 +5227,10 @@ export default {
 
       {adminModule === 'recognition' && (
         <RecognitionAdminDashboard />
+      )}
+
+      {adminModule === 'ongoing-projects' && (
+        <OngoingProjectsAdminDashboard />
       )}
 
       {/* Dynamic QR Code scanner modal */}

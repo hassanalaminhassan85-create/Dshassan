@@ -8,6 +8,7 @@ import { SERVICES, TESTIMONIALS, PARTNERS } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
 import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
 import { CacTrustSection } from './CacTrustSection';
+import { OngoingProjectsSection } from './OngoingProjectsSection';
 
 interface HomeSectionProps {
   onNavigate: (path: string) => void;
@@ -421,6 +422,9 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
           ))}
         </div>
       </section>
+
+      {/* 5.5 ENTERPRISE ONGOING PROJECTS SECTION */}
+      <OngoingProjectsSection language={language} />
 
       {/* 6. CAREERS PREVIEW */}
       <section className="bg-gradient-to-br from-indigo-950 to-slate-950 text-white py-16 rounded-3xl mx-4 md:mx-6 border border-indigo-900 shadow-xl overflow-hidden relative">

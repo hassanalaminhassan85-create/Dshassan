@@ -706,4 +706,95 @@ export async function apiUploadRecognitionFile(file: File): Promise<{
   return res.json();
 }
 
+// --- Ongoing Projects Management System ---
+export interface OngoingProject {
+  id: string;
+  title: string;
+  slug: string;
+  category: string;
+  short_description: string;
+  full_description: string;
+  cover_image_key?: string;
+  gallery?: string; // JSON array of image keys or url strings
+  status: string;
+  progress_percentage: number;
+  technologies?: string; // comma-separated list or JSON array of tech
+  estimated_completion?: string;
+  last_updated: string;
+  is_featured: number; // 0 or 1
+  is_published: number; // 0 or 1
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export async function apiGetOngoingProjects(admin: boolean = false): Promise<OngoingProject[]> {
+  const url = admin ? '/api/ongoing-projects?admin=true' : '/api/ongoing-projects';
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to retrieve ongoing projects.');
+  return res.json();
+}
+
+export async function apiSaveOngoingProject(project: Partial<OngoingProject>): Promise<OngoingProject> {
+  const res = await fetch('/api/ongoing-projects', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(project)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to save ongoing project.');
+  }
+  return res.json();
+}
+
+export async function apiDeleteOngoingProject(id: string): Promise<{ success: boolean; id: string }> {
+  const res = await fetch(`/api/ongoing-projects?id=${encodeURIComponent(id)}`, {
+    method: 'DELETE'
+  });
+  if (!res.ok) throw new Error('Failed to delete ongoing project.');
+  return res.json();
+}
+
+export async function apiToggleOngoingProjectPublish(id: string, isPublished: boolean): Promise<{ success: boolean; id: string; is_published: number }> {
+  const res = await fetch('/api/ongoing-projects/publish', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, is_published: isPublished })
+  });
+  if (!res.ok) throw new Error('Failed to toggle ongoing project publish state.');
+  return res.json();
+}
+
+export async function apiUpdateOngoingProjectProgress(id: string, progress: number): Promise<{ success: boolean; id: string; progress_percentage: number }> {
+  const res = await fetch('/api/ongoing-projects/progress', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, progress_percentage: progress })
+  });
+  if (!res.ok) throw new Error('Failed to update ongoing project progress.');
+  return res.json();
+}
+
+export async function apiUploadOngoingProjectFile(file: File): Promise<{
+  success: boolean;
+  r2_object_key: string;
+  file_name: string;
+  file_size: number;
+  mime_type: string;
+}> {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const res = await fetch('/api/ongoing-projects/upload', {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to upload ongoing project asset file.');
+  }
+  return res.json();
+}
+
 
