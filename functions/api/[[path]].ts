@@ -255,6 +255,52 @@ async function hashPassword(password: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
+// Local filesystem fallback helper for sandbox environments where BUCKET is not defined
+async function handleLocalFileFallback(key: string, fileBuffer?: ArrayBuffer, fileType?: string): Promise<{ success: boolean; data?: Uint8Array; mimeType?: string }> {
+  try {
+    if (typeof globalThis.process !== 'undefined') {
+      const fs = await import('fs');
+      const path = await import('path');
+      
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+      
+      const safeFileName = key.replace(/[^a-zA-Z0-9.-]/g, "_");
+      const filePath = path.join(uploadsDir, safeFileName);
+      
+      if (fileBuffer) {
+        fs.writeFileSync(filePath, Buffer.from(fileBuffer));
+        
+        const metaPath = filePath + '.meta';
+        fs.writeFileSync(metaPath, JSON.stringify({ mimeType: fileType || 'application/octet-stream' }));
+        
+        return { success: true };
+      } else {
+        if (fs.existsSync(filePath)) {
+          const fileData = fs.readFileSync(filePath);
+          
+          let mimeType = 'application/octet-stream';
+          const metaPath = filePath + '.meta';
+          if (fs.existsSync(metaPath)) {
+            try {
+              const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+              mimeType = meta.mimeType || mimeType;
+            } catch (e) {}
+          }
+          
+          return { success: true, data: new Uint8Array(fileData), mimeType };
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("Local file fallback error:", e);
+  }
+  return { success: false };
+}
+
 // Session based middleware security check
 function getAuthorizedUser(request: Request): { userId: string; email: string; fullName: string; role: string } | null {
   const cookieHeader = request.headers.get('Cookie') || '';
@@ -2634,13 +2680,14 @@ export async function onRequest(context: { request: Request; env: any; params: a
         const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
         const objectKey = `cac_certs/${Date.now()}_${sanitizedName}`;
         
+        const fileBuffer = await file.arrayBuffer();
         if (env.BUCKET) {
-          const fileBuffer = await file.arrayBuffer();
           await env.BUCKET.put(objectKey, fileBuffer, {
             httpMetadata: { contentType: file.type }
           });
         } else {
           console.warn("R2 BUCKET binding not found. Simulating file upload.");
+          await handleLocalFileFallback(objectKey, fileBuffer, file.type);
         }
         
         return new Response(JSON.stringify({
@@ -2672,6 +2719,15 @@ export async function onRequest(context: { request: Request; env: any; params: a
             fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
             return new Response(object.body, { headers: fileHeaders });
           }
+        }
+        
+        const localFile = await handleLocalFileFallback(key);
+        if (localFile.success && localFile.data) {
+          const fileHeaders = new Headers();
+          fileHeaders.set('Content-Type', localFile.mimeType || 'application/octet-stream');
+          fileHeaders.set('Access-Control-Allow-Origin', '*');
+          fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
+          return new Response(localFile.data, { headers: fileHeaders });
         }
         
         // Return placeholder certificate graphic on fallback/mock
@@ -2853,13 +2909,14 @@ export async function onRequest(context: { request: Request; env: any; params: a
         const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
         const objectKey = `recognition/${Date.now()}_${sanitizedName}`;
         
+        const fileBuffer = await file.arrayBuffer();
         if (env.BUCKET) {
-          const fileBuffer = await file.arrayBuffer();
           await env.BUCKET.put(objectKey, fileBuffer, {
             httpMetadata: { contentType: file.type }
           });
         } else {
           console.warn("R2 BUCKET binding not found. Simulating file upload.");
+          await handleLocalFileFallback(objectKey, fileBuffer, file.type);
         }
         
         return new Response(JSON.stringify({
@@ -2891,6 +2948,15 @@ export async function onRequest(context: { request: Request; env: any; params: a
             fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
             return new Response(object.body, { headers: fileHeaders });
           }
+        }
+        
+        const localFile = await handleLocalFileFallback(key);
+        if (localFile.success && localFile.data) {
+          const fileHeaders = new Headers();
+          fileHeaders.set('Content-Type', localFile.mimeType || 'application/octet-stream');
+          fileHeaders.set('Access-Control-Allow-Origin', '*');
+          fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
+          return new Response(localFile.data, { headers: fileHeaders });
         }
         
         // Return beautiful placeholder matching category
@@ -3090,13 +3156,14 @@ export async function onRequest(context: { request: Request; env: any; params: a
         const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
         const objectKey = `ongoing_projects/${Date.now()}_${sanitizedName}`;
         
+        const fileBuffer = await file.arrayBuffer();
         if (env.BUCKET) {
-          const fileBuffer = await file.arrayBuffer();
           await env.BUCKET.put(objectKey, fileBuffer, {
             httpMetadata: { contentType: file.type }
           });
         } else {
           console.warn("R2 BUCKET binding not found. Simulating file upload.");
+          await handleLocalFileFallback(objectKey, fileBuffer, file.type);
         }
         
         return new Response(JSON.stringify({
@@ -3128,6 +3195,15 @@ export async function onRequest(context: { request: Request; env: any; params: a
             fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
             return new Response(object.body, { headers: fileHeaders });
           }
+        }
+        
+        const localFile = await handleLocalFileFallback(key);
+        if (localFile.success && localFile.data) {
+          const fileHeaders = new Headers();
+          fileHeaders.set('Content-Type', localFile.mimeType || 'application/octet-stream');
+          fileHeaders.set('Access-Control-Allow-Origin', '*');
+          fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
+          return new Response(localFile.data, { headers: fileHeaders });
         }
         
         let fallbackUrl = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80';

@@ -97,9 +97,12 @@ function readDB() {
     if (!data.users) data.users = [];
     if (!data.passkeys) data.passkeys = [];
     if (!data.biometric_logs) data.biometric_logs = [];
+    if (!data.cac_metadata) data.cac_metadata = [];
+    if (!data.recognition_certificates) data.recognition_certificates = [];
+    if (!data.ongoing_projects) data.ongoing_projects = [];
     return data;
   } catch (e) {
-    return { applications: [], scan_history: [], services: [], portfolio: [], blogs: [], courses: [], users: [], passkeys: [], biometric_logs: [] };
+    return { applications: [], scan_history: [], services: [], portfolio: [], blogs: [], courses: [], users: [], passkeys: [], biometric_logs: [], cac_metadata: [], recognition_certificates: [], ongoing_projects: [] };
   }
 }
 
@@ -169,6 +172,35 @@ const mockDB = {
             }
             if (normalizedSql.includes("FROM biometric_logs")) {
               return { results: db.biometric_logs || [] };
+            }
+            if (normalizedSql.includes("FROM cac_metadata WHERE id = ?")) {
+              const id = params[0];
+              const results = (db.cac_metadata || []).filter((r: any) => r.id === id);
+              return { results };
+            }
+            if (normalizedSql.includes("FROM cac_metadata")) {
+              return { results: db.cac_metadata || [] };
+            }
+            if (normalizedSql.includes("FROM recognition_certificates WHERE id = ?")) {
+              const id = params[0];
+              const results = (db.recognition_certificates || []).filter((r: any) => r.id === id);
+              return { results };
+            }
+            if (normalizedSql.includes("FROM recognition_certificates")) {
+              return { results: db.recognition_certificates || [] };
+            }
+            if (normalizedSql.includes("FROM ongoing_projects WHERE id = ?")) {
+              const id = params[0];
+              const results = (db.ongoing_projects || []).filter((r: any) => r.id === id);
+              return { results };
+            }
+            if (normalizedSql.includes("FROM ongoing_projects WHERE slug = ?")) {
+              const slug = params[0];
+              const results = (db.ongoing_projects || []).filter((r: any) => r.slug === slug);
+              return { results };
+            }
+            if (normalizedSql.includes("FROM ongoing_projects")) {
+              return { results: db.ongoing_projects || [] };
             }
             return { results: [] };
           },
@@ -322,6 +354,79 @@ const mockDB = {
               const [id, user_id, email, biometric_type, status, message, user_agent, created_at] = params;
               if (!db.biometric_logs) db.biometric_logs = [];
               db.biometric_logs.unshift({ id, user_id, email, biometric_type, status, message, user_agent, created_at });
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("cac_metadata") && (normalizedSql.includes("INSERT") || normalizedSql.includes("REPLACE"))) {
+              const [
+                id, company_name, registration_number, business_type, registration_date,
+                company_status, registered_address, description, verification_url,
+                r2_object_key, file_name, file_size, mime_type, is_published, display_order, created_at, updated_at
+              ] = params;
+              db.cac_metadata = (db.cac_metadata || []).filter((r: any) => r.id !== id);
+              db.cac_metadata.push({
+                id, company_name, registration_number, business_type, registration_date,
+                company_status, registered_address, description, verification_url,
+                r2_object_key, file_name, file_size, mime_type, is_published, display_order, created_at, updated_at
+              });
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("UPDATE cac_metadata")) {
+              const [is_published, updated_at, id] = params;
+              const record = (db.cac_metadata || []).find((r: any) => r.id === id);
+              if (record) {
+                record.is_published = is_published;
+                record.updated_at = updated_at;
+                writeDB(db);
+              }
+              return { success: true };
+            }
+            if (normalizedSql.includes("DELETE FROM cac_metadata")) {
+              const id = params[0];
+              db.cac_metadata = (db.cac_metadata || []).filter((r: any) => r.id !== id);
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("recognition_certificates") && (normalizedSql.includes("INSERT") || normalizedSql.includes("REPLACE"))) {
+              const [
+                id, title, category, issuing_organization, issue_date, expiry_date,
+                certificate_number, description, verification_url, r2_object_key,
+                thumbnail_key, file_name, file_size, mime_type, is_published, display_order, created_at, updated_at
+              ] = params;
+              db.recognition_certificates = (db.recognition_certificates || []).filter((r: any) => r.id !== id);
+              db.recognition_certificates.push({
+                id, title, category, issuing_organization, issue_date, expiry_date,
+                certificate_number, description, verification_url, r2_object_key,
+                thumbnail_key, file_name, file_size, mime_type, is_published, display_order, created_at, updated_at
+              });
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("DELETE FROM recognition_certificates")) {
+              const id = params[0];
+              db.recognition_certificates = (db.recognition_certificates || []).filter((r: any) => r.id !== id);
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("ongoing_projects") && (normalizedSql.includes("INSERT") || normalizedSql.includes("REPLACE"))) {
+              const [
+                id, title, slug, category, short_description, full_description,
+                cover_image_key, gallery, status, progress_percentage, technologies,
+                estimated_completion, last_updated, is_featured, is_published, display_order, created_at, updated_at
+              ] = params;
+              db.ongoing_projects = (db.ongoing_projects || []).filter((r: any) => r.id !== id);
+              db.ongoing_projects.push({
+                id, title, slug, category, short_description, full_description,
+                cover_image_key, gallery, status, progress_percentage, technologies,
+                estimated_completion, last_updated, is_featured, is_published, display_order, created_at, updated_at
+              });
+              writeDB(db);
+              return { success: true };
+            }
+            if (normalizedSql.includes("DELETE FROM ongoing_projects")) {
+              const id = params[0];
+              db.ongoing_projects = (db.ongoing_projects || []).filter((r: any) => r.id !== id);
               writeDB(db);
               return { success: true };
             }
