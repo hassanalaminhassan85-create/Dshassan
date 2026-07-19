@@ -3136,10 +3136,15 @@ export async function onRequest(context: { request: Request; env: any; params: a
     }
 
     if (path === '/api/ongoing-projects/upload' && method === 'POST') {
+      console.log("Upload request received at:", path);
       try {
+        console.log("Request content type:", request.headers.get("content-type"));
         const formData = await request.formData();
+        console.log("FormData received");
         const file = formData.get('file') as File;
+        console.log("File from formData:", file ? file.name : "null");
         if (!file) {
+          console.error("No file in formData");
           return new Response(JSON.stringify({ error: "No file uploaded" }), { status: 400, headers });
         }
         
@@ -3157,7 +3162,9 @@ export async function onRequest(context: { request: Request; env: any; params: a
         const objectKey = `ongoing_projects/${Date.now()}_${sanitizedName}`;
         
         const fileBuffer = await file.arrayBuffer();
+        console.log("File buffer size:", fileBuffer.byteLength);
         if (env.BUCKET) {
+          console.log("Using BUCKET to upload");
           await env.BUCKET.put(objectKey, fileBuffer, {
             httpMetadata: { contentType: file.type }
           });

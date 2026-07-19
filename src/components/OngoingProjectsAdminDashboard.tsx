@@ -370,14 +370,14 @@ export const OngoingProjectsAdminDashboard: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProjects.map((p) => {
+              {filteredProjects.map((p, idx) => {
                 const coverUrl = p.cover_image_key 
                   ? (p.cover_image_key.startsWith('seeds/') ? `/api/ongoing-projects/file?key=${encodeURIComponent(p.cover_image_key)}` : `/api/ongoing-projects/file?key=${encodeURIComponent(p.cover_image_key)}`)
                   : 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80';
 
                 return (
                   <motion.div
-                    key={p.id}
+                    key={`${p.id}-${p.cover_image_key}`}
                     layout
                     className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm flex flex-col justify-between group"
                   >
@@ -427,8 +427,8 @@ export const OngoingProjectsAdminDashboard: React.FC = () => {
                         
                         {p.technologies && (
                           <div className="flex flex-wrap gap-1 pt-1">
-                            {p.technologies.split(',').map((tech, idx) => (
-                              <span key={idx} className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-700/50">
+                            {p.technologies.split(',').map((tech, i) => (
+                              <span key={`${p.id}-${tech.trim()}-${i}`} className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-700/50">
                                 {tech.trim()}
                               </span>
                             ))}

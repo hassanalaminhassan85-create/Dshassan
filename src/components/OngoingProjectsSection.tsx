@@ -26,6 +26,14 @@ export const OngoingProjectsSection: React.FC<{ language?: string }> = ({ langua
       try {
         setLoading(true);
         const data = await apiGetOngoingProjects(false); // false = public mode, only published
+        
+        // Debugging duplicate keys
+        const ids = data.map(p => p.id);
+        const uniqueIds = new Set(ids);
+        if (ids.length !== uniqueIds.size) {
+            console.error("DUPLICATE PROJECT IDS FOUND!", ids);
+        }
+
         setProjects(data);
       } catch (err) {
         console.warn('Could not fetch public ongoing projects, loading fallbacks.', err);
@@ -186,7 +194,7 @@ export const OngoingProjectsSection: React.FC<{ language?: string }> = ({ langua
 
             return (
               <motion.div
-                key={proj.id}
+                key={`${proj.id}-${proj.cover_image_key}`}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -199,7 +207,7 @@ export const OngoingProjectsSection: React.FC<{ language?: string }> = ({ langua
                     src={coverUrl} 
                     alt={proj.title}
                     referrerPolicy="no-referrer"
-                    className="h-full w-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                    className="h-full w-full object-center object-cover aspect-video group-hover:scale-[1.03] transition-transform duration-500"
                     onError={(e) => {
                       (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80';
                     }}
@@ -230,7 +238,7 @@ export const OngoingProjectsSection: React.FC<{ language?: string }> = ({ langua
                   {proj.technologies && (
                     <div className="flex flex-wrap gap-1">
                       {proj.technologies.split(',').slice(0, 4).map((tech, i) => (
-                        <span key={i} className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-50 dark:bg-slate-800 text-slate-500 border border-slate-100 dark:border-slate-800">
+                        <span key={`${proj.id}-${tech.trim()}-${i}`} className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-50 dark:bg-slate-800 text-slate-500 border border-slate-100 dark:border-slate-800">
                           {tech.trim()}
                         </span>
                       ))}

@@ -783,18 +783,25 @@ export async function apiUploadOngoingProjectFile(file: File): Promise<{
   file_size: number;
   mime_type: string;
 }> {
+  console.log("Starting upload for:", file.name);
   const formData = new FormData();
   formData.append('file', file);
   
-  const res = await fetch('/api/ongoing-projects/upload', {
-    method: 'POST',
-    body: formData
-  });
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || 'Failed to upload ongoing project asset file.');
+  try {
+    const res = await fetch('/api/ongoing-projects/upload', {
+      method: 'POST',
+      body: formData
+    });
+    console.log("Upload response status:", res.status);
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.error || 'Failed to upload ongoing project asset file.');
+    }
+    return res.json();
+  } catch (err) {
+    console.error("Fetch upload error:", err);
+    throw err;
   }
-  return res.json();
 }
 
 
