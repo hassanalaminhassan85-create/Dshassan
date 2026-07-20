@@ -372,7 +372,9 @@ export const OngoingProjectsAdminDashboard: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProjects.map((p, idx) => {
                 const coverUrl = p.cover_image_key 
-                  ? (p.cover_image_key.startsWith('seeds/') ? `/api/ongoing-projects/file?key=${encodeURIComponent(p.cover_image_key)}` : `/api/ongoing-projects/file?key=${encodeURIComponent(p.cover_image_key)}`)
+                  ? (p.cover_image_key.startsWith('http://') || p.cover_image_key.startsWith('https://')
+                      ? p.cover_image_key 
+                      : `/api/ongoing-projects/file?key=${encodeURIComponent(p.cover_image_key)}`)
                   : 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80';
 
                 return (
@@ -684,58 +686,78 @@ export const OngoingProjectsAdminDashboard: React.FC = () => {
                 />
               </div>
 
-              {/* Cover Image Uploader */}
-              <div className="space-y-2">
-                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                  <span>Cover Image Asset</span>
-                  <Info className="h-3 w-3 text-slate-400" title="Upload directly to Cloudflare R2" />
-                </label>
-
-                <div 
-                  onDragEnter={handleDrag}
-                  onDragOver={handleDrag}
-                  onDragLeave={handleDrag}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                  className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 ${
-                    dragActive 
-                      ? 'border-slate-600 bg-slate-50 dark:bg-slate-850' 
-                      : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 hover:bg-slate-50 dark:hover:bg-slate-800/40'
-                  }`}
-                >
+              {/* Cover Image Uploader & Direct URL Input */}
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Direct Cover Image URL (Optional - or upload file below)</label>
                   <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileInput}
-                    className="hidden"
+                    type="text"
+                    placeholder="https://images.unsplash.com/photo-..."
+                    value={editingProject.cover_image_key || ''}
+                    onChange={(e) => setEditingProject(prev => ({ ...prev, cover_image_key: e.target.value }))}
+                    className="w-full px-3 py-2 text-xs border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-slate-500 dark:bg-slate-800 font-mono"
                   />
-                  
-                  {editingProject.cover_image_key && !selectedFile ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <img 
-                        src={`/api/ongoing-projects/file?key=${encodeURIComponent(editingProject.cover_image_key)}`}
-                        alt="Current Cover"
-                        className="h-20 w-32 object-cover rounded-lg border border-slate-200"
-                        onError={(e) => {
-                          (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80';
-                        }}
-                      />
-                      <span className="text-[10px] text-slate-500 font-medium max-w-xs truncate font-mono">{editingProject.cover_image_key}</span>
-                    </div>
-                  ) : selectedFile ? (
-                    <div className="flex flex-col items-center gap-1">
-                      <CheckCircle className="h-6 w-6 text-emerald-500" />
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate max-w-xs">{selectedFile.name}</span>
-                      <span className="text-[10px] text-slate-400">({(selectedFile.size / 1024 / 1024).toFixed(2)} MB) - Ready to save</span>
-                    </div>
-                  ) : (
-                    <>
-                      <Upload className="h-6 w-6 text-slate-400" />
-                      <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Drag & drop or click to upload cover image</span>
-                      <span className="text-[10px] text-slate-400">Only standard images (JPG, PNG, WebP) up to 10MB</span>
-                    </>
-                  )}
+                  <div className="flex gap-1.5 mt-1 overflow-x-auto pb-1">
+                    <button type="button" onClick={() => setEditingProject(prev => ({ ...prev, cover_image_key: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80' }))} className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">Tech Platform</button>
+                    <button type="button" onClick={() => setEditingProject(prev => ({ ...prev, cover_image_key: 'https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3?w=1200&auto=format&fit=crop&q=80' }))} className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">Corporate Office</button>
+                    <button type="button" onClick={() => setEditingProject(prev => ({ ...prev, cover_image_key: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&auto=format&fit=crop&q=80' }))} className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">Data Analysis</button>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                    <span>Or Upload Cover Image File to Cloudflare R2</span>
+                    <Info className="h-3 w-3 text-slate-400" title="Upload directly to Cloudflare R2" />
+                  </label>
+
+                  <div 
+                    onDragEnter={handleDrag}
+                    onDragOver={handleDrag}
+                    onDragLeave={handleDrag}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-2xl p-4 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 ${
+                      dragActive 
+                        ? 'border-slate-600 bg-slate-50 dark:bg-slate-850' 
+                        : 'border-slate-200 dark:border-slate-800 bg-slate-50/50 hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileInput}
+                      className="hidden"
+                    />
+                    
+                    {editingProject.cover_image_key && !selectedFile ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <img 
+                          src={editingProject.cover_image_key.startsWith('http://') || editingProject.cover_image_key.startsWith('https://')
+                            ? editingProject.cover_image_key
+                            : `/api/ongoing-projects/file?key=${encodeURIComponent(editingProject.cover_image_key)}`}
+                          alt="Current Cover"
+                          className="h-20 w-32 object-cover rounded-lg border border-slate-200"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80';
+                          }}
+                        />
+                        <span className="text-[10px] text-slate-500 font-medium max-w-xs truncate font-mono">{editingProject.cover_image_key}</span>
+                      </div>
+                    ) : selectedFile ? (
+                      <div className="flex flex-col items-center gap-1">
+                        <CheckCircle className="h-6 w-6 text-emerald-500" />
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate max-w-xs">{selectedFile.name}</span>
+                        <span className="text-[10px] text-slate-400">({(selectedFile.size / 1024 / 1024).toFixed(2)} MB) - Ready to save</span>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="h-6 w-6 text-slate-400" />
+                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400">Drag & drop or click to upload cover image</span>
+                        <span className="text-[10px] text-slate-400">Only standard images (JPG, PNG, WebP) up to 10MB</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

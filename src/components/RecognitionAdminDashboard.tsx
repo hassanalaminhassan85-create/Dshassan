@@ -514,7 +514,7 @@ export const RecognitionAdminDashboard: React.FC = () => {
                       </p>
                     </div>
 
-                    {/* Selected/Existing file display badge */}
+                    {/* Selected/Existing file display badge & live document preview */}
                     {selectedFile ? (
                       <div className="mt-2 flex items-center justify-between bg-[#01091b] border border-orange-500/30 px-3 py-2 rounded-lg text-xs">
                         <span className="text-slate-200 font-mono truncate">{selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)</span>
@@ -527,9 +527,35 @@ export const RecognitionAdminDashboard: React.FC = () => {
                         </button>
                       </div>
                     ) : editingCert.file_name ? (
-                      <div className="mt-2 flex items-center justify-between bg-[#01091b] border border-emerald-500/30 px-3 py-2 rounded-lg text-xs">
-                        <span className="text-emerald-400 font-mono truncate">Current file: {editingCert.file_name}</span>
-                        <span className="text-[10px] text-slate-500 font-mono">D1/R2 Secured</span>
+                      <div className="mt-2 space-y-2">
+                        <div className="flex items-center justify-between bg-[#01091b] border border-emerald-500/30 px-3 py-2 rounded-lg text-xs">
+                          <span className="text-emerald-400 font-mono truncate">Current file: {editingCert.file_name}</span>
+                          <span className="text-[10px] text-slate-500 font-mono">D1/R2 Secured</span>
+                        </div>
+                        {/* Live Image Preview of the Certificate */}
+                        {editingCert.r2_object_key && (
+                          <div className="relative h-28 w-full rounded-xl overflow-hidden border border-slate-800 bg-[#01091b]/40 flex items-center justify-center">
+                            {editingCert.file_name.toLowerCase().match(/\.(pdf)$/) ? (
+                              <div className="flex flex-col items-center gap-1.5 py-3">
+                                <FileText className="h-8 w-8 text-orange-500 animate-pulse" />
+                                <span className="text-[10px] text-slate-400 font-mono">Secured PDF Document</span>
+                              </div>
+                            ) : (
+                              <img 
+                                src={`/api/recognition/file?key=${encodeURIComponent(editingCert.r2_object_key)}`}
+                                alt="Certificate Preview" 
+                                className="w-full h-full object-contain" 
+                                referrerPolicy="no-referrer"
+                                onError={(e) => {
+                                  e.currentTarget.style.display = 'none';
+                                }}
+                              />
+                            )}
+                            <div className="absolute top-1 left-1 bg-[#01091b] text-[8px] font-mono font-bold text-slate-300 px-1.5 py-0.5 rounded shadow">
+                              LIVE FILE PREVIEW (R2 SECURED)
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ) : null}
                   </div>

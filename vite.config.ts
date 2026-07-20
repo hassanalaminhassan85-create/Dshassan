@@ -118,6 +118,28 @@ const mockDB = {
         return {
           all: async () => {
             const db = readDB();
+            if (normalizedSql.includes("FROM sqlite_master") || normalizedSql.includes("sqlite_master")) {
+              return { results: [{ count: 1 }] };
+            }
+            if (normalizedSql.includes("SELECT COUNT(*) as count FROM") || normalizedSql.includes("SELECT COUNT(*) AS count FROM") || normalizedSql.includes("count FROM")) {
+              const tableNameMatch = normalizedSql.match(/FROM\s+["']?([a-zA-Z0-9_]+)["']?/i);
+              const tableName = tableNameMatch ? tableNameMatch[1] : '';
+              let count = 0;
+              if (tableName === 'ongoing_projects') {
+                count = (db.ongoing_projects || []).length;
+              } else if (tableName === 'cac_metadata') {
+                count = (db.cac_metadata || []).length;
+              } else if (tableName === 'recognition_certificates') {
+                count = (db.recognition_certificates || []).length;
+              } else if (tableName === 'notifications') {
+                count = (db.notifications || []).length;
+              } else if (tableName === 'chat_messages') {
+                count = (db.chat_messages || []).length;
+              } else if (tableName === 'users') {
+                count = (db.users || []).length;
+              }
+              return { results: [{ count }] };
+            }
             if (normalizedSql.includes("FROM scan_history WHERE user_id = ?")) {
               const userId = params[0] || 'anonymous';
               const results = db.scan_history
@@ -200,7 +222,19 @@ const mockDB = {
               return { results };
             }
             if (normalizedSql.includes("FROM ongoing_projects")) {
-              return { results: db.ongoing_projects || [] };
+              let results = db.ongoing_projects || [];
+              if (normalizedSql.includes("is_published = 1") || normalizedSql.includes("is_published = ?")) {
+                const isPublishedVal = normalizedSql.includes("is_published = ?") ? params[0] : 1;
+                results = results.filter((r: any) => Number(r.is_published) === Number(isPublishedVal));
+              }
+              // Also respect display_order and created_at
+              results = [...results].sort((a: any, b: any) => {
+                const orderA = Number(a.display_order ?? 0);
+                const orderB = Number(b.display_order ?? 0);
+                if (orderA !== orderB) return orderA - orderB;
+                return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+              });
+              return { results };
             }
             return { results: [] };
           },
@@ -424,6 +458,26 @@ const mockDB = {
               writeDB(db);
               return { success: true };
             }
+            if (normalizedSql.includes("UPDATE ongoing_projects SET is_published = ?")) {
+              const [is_published, updated_at, id] = params;
+              const record = (db.ongoing_projects || []).find((r: any) => r.id === id);
+              if (record) {
+                record.is_published = is_published;
+                record.updated_at = updated_at;
+                writeDB(db);
+              }
+              return { success: true };
+            }
+            if (normalizedSql.includes("UPDATE ongoing_projects SET progress_percentage = ?")) {
+              const [progress_percentage, updated_at, id] = params;
+              const record = (db.ongoing_projects || []).find((r: any) => r.id === id);
+              if (record) {
+                record.progress_percentage = progress_percentage;
+                record.updated_at = updated_at;
+                writeDB(db);
+              }
+              return { success: true };
+            }
             if (normalizedSql.includes("DELETE FROM ongoing_projects")) {
               const id = params[0];
               db.ongoing_projects = (db.ongoing_projects || []).filter((r: any) => r.id !== id);
@@ -434,8 +488,30 @@ const mockDB = {
           }
         };
       },
-      all: async () => {
+       all: async () => {
         const db = readDB();
+        if (normalizedSql.includes("FROM sqlite_master") || normalizedSql.includes("sqlite_master")) {
+          return { results: [{ count: 1 }] };
+        }
+        if (normalizedSql.includes("SELECT COUNT(*) as count FROM") || normalizedSql.includes("SELECT COUNT(*) AS count FROM") || normalizedSql.includes("count FROM")) {
+          const tableNameMatch = normalizedSql.match(/FROM\s+["']?([a-zA-Z0-9_]+)["']?/i);
+          const tableName = tableNameMatch ? tableNameMatch[1] : '';
+          let count = 0;
+          if (tableName === 'ongoing_projects') {
+            count = (db.ongoing_projects || []).length;
+          } else if (tableName === 'cac_metadata') {
+            count = (db.cac_metadata || []).length;
+          } else if (tableName === 'recognition_certificates') {
+            count = (db.recognition_certificates || []).length;
+          } else if (tableName === 'notifications') {
+            count = (db.notifications || []).length;
+          } else if (tableName === 'chat_messages') {
+            count = (db.chat_messages || []).length;
+          } else if (tableName === 'users') {
+            count = (db.users || []).length;
+          }
+          return { results: [{ count }] };
+        }
         if (normalizedSql.includes("FROM applications")) {
           return { results: db.applications || [] };
         }
@@ -490,13 +566,14 @@ function cloudflarePagesDevPlugin() {
             const host = req.headers.host || 'localhost:3000';
             const url = new URL(req.url, `${protocol}://${host}`);
             
-            // Read incoming body
-            let body: string | undefined = undefined;
+            // Read incoming body as Buffer to prevent binary corruption on multipart uploads
+            let body: Buffer | undefined = undefined;
             if (req.method !== 'GET' && req.method !== 'HEAD') {
-              body = await new Promise((resolve) => {
-                let chunks = '';
-                req.on('data', (chunk: string) => chunks += chunk);
-                req.on('end', () => resolve(chunks));
+              body = await new Promise((resolve, reject) => {
+                const chunks: any[] = [];
+                req.on('data', (chunk: any) => chunks.push(chunk));
+                req.on('end', () => resolve(Buffer.concat(chunks)));
+                req.on('error', (err: any) => reject(err));
               });
             }
 
@@ -552,8 +629,9 @@ function cloudflarePagesDevPlugin() {
               }
               res.end();
             } else {
-              const responseText = await response.text();
-              res.end(responseText);
+              const arrayBuffer = await response.arrayBuffer();
+              const buffer = Buffer.from(arrayBuffer);
+              res.end(buffer);
             }
             return;
           } catch (err: any) {

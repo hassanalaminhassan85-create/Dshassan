@@ -189,7 +189,9 @@ export const OngoingProjectsSection: React.FC<{ language?: string }> = ({ langua
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filtered.map((proj, idx) => {
             const coverUrl = proj.cover_image_key 
-              ? (proj.cover_image_key.startsWith('seeds/') ? `/api/ongoing-projects/file?key=${encodeURIComponent(proj.cover_image_key)}` : `/api/ongoing-projects/file?key=${encodeURIComponent(proj.cover_image_key)}`)
+              ? (proj.cover_image_key.startsWith('http://') || proj.cover_image_key.startsWith('https://')
+                  ? proj.cover_image_key
+                  : `/api/ongoing-projects/file?key=${encodeURIComponent(proj.cover_image_key)}`)
               : 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80';
 
             return (

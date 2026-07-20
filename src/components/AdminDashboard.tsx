@@ -19,7 +19,12 @@ import {
   apiSubscribeToRealtimeSync, 
   apiSummarizeApplicant, 
   apiAnalyzeCandidate,
-  ScanHistoryRecord 
+  ScanHistoryRecord,
+  apiSavePortfolio,
+  apiUpdatePortfolio,
+  apiDeletePortfolio,
+  apiGetPortfolio,
+  apiInitializePortfolio
 } from '../lib/api';
 import { ApplicationQRScanner } from './ApplicationQRScanner';
 import { CareersFormPDFView } from './CareersFormPDFView';
@@ -29,6 +34,7 @@ import { AdminChatCenter } from './AdminChatCenter';
 import { CacAdminCenter } from './CacAdminCenter';
 import { RecognitionAdminDashboard } from './RecognitionAdminDashboard';
 import { OngoingProjectsAdminDashboard } from './OngoingProjectsAdminDashboard';
+import { AdminAssetDiagnostics } from './AdminAssetDiagnostics';
 
 import { 
   SERVICES, 
@@ -276,11 +282,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [projVideo, setProjVideo] = useState('');
   const [projContent, setProjContent] = useState('');
   const [projTags, setProjTags] = useState('');
+  const [projClientLogo, setProjClientLogo] = useState('');
+  const [projTestimonialText, setProjTestimonialText] = useState('');
+  const [projTestimonialAuthor, setProjTestimonialAuthor] = useState('');
+  const [projLiveWebsiteUrl, setProjLiveWebsiteUrl] = useState('');
+  const [projDisplayClientName, setProjDisplayClientName] = useState(true);
+  const [projDisplayClientLogo, setProjDisplayClientLogo] = useState(true);
+  const [projDisplayTestimonial, setProjDisplayTestimonial] = useState(true);
+  const [projDisplayLiveWebsite, setProjDisplayLiveWebsite] = useState(true);
 
   const [isAddingBlog, setIsAddingBlog] = useState(false);
   const [blogTitle, setBlogTitle] = useState('');
   const [blogCat, setBlogCat] = useState('Marketing');
   const [blogDesc, setBlogDesc] = useState('');
+  const [blogImage, setBlogImage] = useState('https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=400&auto=format&fit=crop&q=60');
+
+  // LMS Academy course creation states
+  const [isAddingCourse, setIsAddingCourse] = useState(false);
+  const [crsTitle, setCrsTitle] = useState('');
+  const [crsDesc, setCrsDesc] = useState('');
+  const [crsDuration, setCrsDuration] = useState('6 Weeks');
+  const [crsLevel, setCrsLevel] = useState('Intermediate');
+  const [crsPrice, setCrsPrice] = useState('₦120,000');
+  const [crsCategory, setCrsCategory] = useState('marketing');
+  const [crsImage, setCrsImage] = useState('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80');
 
   // Fetch applications
   const fetchApplications = async () => {
@@ -294,6 +319,28 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const fetchD1Portfolio = async () => {
+      try {
+        const data = await apiGetPortfolio();
+        if (data && data.length > 0) {
+          setAdminProjects(data);
+        } else {
+          try {
+            await apiInitializePortfolio(PORTFOLIO);
+            setAdminProjects(PORTFOLIO);
+          } catch (initErr) {
+            console.warn("Failed to initialize portfolio in D1, using fallbacks:", initErr);
+            setAdminProjects(PORTFOLIO);
+          }
+        }
+      } catch (err) {
+        console.warn("D1 portfolio database unreachable, using local storage/fallback:", err);
+      }
+    };
+    fetchD1Portfolio();
+  }, []);
 
   // Premium Admin Tool: Reset state back to original data central arrays
   const handleResetData = () => {
@@ -2051,6 +2098,7 @@ export default {
         { id: 'blog', label: 'Insights Blog', icon: BookOpen, count: adminBlogs.length },
         { id: 'recognition', label: 'Recognition Certs', icon: Award },
         { id: 'ongoing-projects', label: 'Ongoing Projects', icon: Clock },
+        { id: 'diagnostics', label: 'R2 Diagnostics', icon: Database },
       ]
     },
     {
@@ -2317,6 +2365,7 @@ export default {
                    adminModule === 'trust' ? 'Enterprise Trust & Compliance' :
                    adminModule === 'recognition' ? 'Recognition Certificates Console' :
                    adminModule === 'ongoing-projects' ? 'Enterprise Ongoing Projects Platform' :
+                   adminModule === 'diagnostics' ? 'Cloudflare D1 & R2 Image Diagnostics' :
                    adminModule === 'emails' ? 'Email Queue & Logs' : 'Secure QR & Cloud R2 Vault'}
                 </h1>
                 <p className="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs leading-relaxed max-w-2xl font-medium">
@@ -2332,6 +2381,7 @@ export default {
                    adminModule === 'recognition' ? 'Manage enterprise recognition certificates, upload verification files to Cloudflare R2, manage metadata, and toggle publishing status.' :
                    adminModule === 'ongoing-projects' ? 'Coordinate published project pipelines, display active sprints, adjust completions dynamically, and edit specifications.' :
                    adminModule === 'emails' ? 'Audit Brevo transactional templates, dispatch queues, failed delivery retry logs, and template variables.' :
+                    adminModule === 'diagnostics' ? 'Audit raw SQL database entries for both Portfolio and Ongoing Projects, diagnose asset streaming issues, and fix broken image paths.' :
                    'Manage applicant physical credential badges, read dynamic QR scans, and review the WebAuthn security credential vault.'}
                 </p>
               </div>
@@ -3924,7 +3974,7 @@ export default {
                       </select>
                     </div>
 
-                    {/* 4. Custom Visual Asset URL */}
+                    {/* 4. Custom Visual Asset URL & Form Preview */}
                     <div>
                       <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Cover Image Asset URL</label>
                       <input 
@@ -3940,6 +3990,24 @@ export default {
                         <button type="button" onClick={() => setSvcImage('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white rounded text-[9px] text-slate-500 whitespace-nowrap">AI Neural</button>
                         <button type="button" onClick={() => setSvcImage('https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white rounded text-[9px] text-slate-500 whitespace-nowrap">Corporate Business</button>
                       </div>
+
+                      {/* LIVE PREVIEW BOX */}
+                      {svcImage.trim() && (
+                        <div className="mt-2.5 relative h-24 w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center">
+                          <img 
+                            src={svcImage} 
+                            alt="Live Service Form Preview" 
+                            className="w-full h-full object-cover" 
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                          <div className="absolute top-1 left-1 bg-[#000E32] text-[8px] font-mono font-bold text-white px-1.5 py-0.5 rounded shadow">
+                            REAL-TIME LIVE PREVIEW (HOME VIEW)
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* 5. Custom Orders Link */}
@@ -4324,7 +4392,7 @@ export default {
 
               {/* Form Body */}
               <form 
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
                   if (!projTitle || !projDesc) {
                     alert("Please fill in the project title and brief description.");
@@ -4346,15 +4414,36 @@ export default {
                     image: projImage || "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=400&auto=format&fit=crop&q=60",
                     video: projVideo || "",
                     tags: tagList,
-                    content: projContent || `# ${projTitle}\n\nCase study written outline details for client ${projClient || 'Garki Enterprise Node'} completing successfully in ${projDate || 'June 2026'}.`
+                    content: projContent || `# ${projTitle}\n\nCase study written outline details for client ${projClient || 'Garki Enterprise Node'} completing successfully in ${projDate || 'June 2026'}.`,
+                    client_logo: projClientLogo || "",
+                    testimonial_text: projTestimonialText || "",
+                    testimonial_author: projTestimonialAuthor || "",
+                    live_website_url: projLiveWebsiteUrl || "",
+                    display_client_name: projDisplayClientName,
+                    display_client_logo: projDisplayClientLogo,
+                    display_testimonial: projDisplayTestimonial,
+                    display_live_website: projDisplayLiveWebsite,
                   };
 
-                  if (editingProj) {
-                    setAdminProjects(adminProjects.map(p => p.id === editingProj.id ? finalProj : p));
-                    alert("✅ Case study updated successfully!");
-                  } else {
-                    setAdminProjects([finalProj, ...adminProjects]);
-                    alert("✅ Brand new case study published!");
+                  try {
+                    if (editingProj) {
+                      await apiUpdatePortfolio(editingProj.id, finalProj);
+                      setAdminProjects(adminProjects.map(p => p.id === editingProj.id ? finalProj : p));
+                      alert("✅ Case study updated successfully in Cloudflare D1!");
+                    } else {
+                      await apiSavePortfolio(finalProj);
+                      setAdminProjects([finalProj, ...adminProjects]);
+                      alert("✅ Brand new case study published to Cloudflare D1!");
+                    }
+                  } catch (apiErr: any) {
+                    console.error("Failed to save to Cloudflare D1:", apiErr);
+                    // Fallback to offline local storage updates
+                    if (editingProj) {
+                      setAdminProjects(adminProjects.map(p => p.id === editingProj.id ? finalProj : p));
+                    } else {
+                      setAdminProjects([finalProj, ...adminProjects]);
+                    }
+                    alert("⚠️ Saved locally (Cloudflare DB sync failure: " + apiErr.message + ")");
                   }
 
                   // Clear out states
@@ -4369,6 +4458,14 @@ export default {
                   setProjDesc('');
                   setProjContent('');
                   setProjTags('');
+                  setProjClientLogo('');
+                  setProjTestimonialText('');
+                  setProjTestimonialAuthor('');
+                  setProjLiveWebsiteUrl('');
+                  setProjDisplayClientName(true);
+                  setProjDisplayClientLogo(true);
+                  setProjDisplayTestimonial(true);
+                  setProjDisplayLiveWebsite(true);
                   setIsAddingProj(false);
                 }}
                 className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs"
@@ -4456,7 +4553,7 @@ export default {
                   </div>
                 </div>
 
-                {/* 5. Image URL */}
+                {/* 5. Image URL & Form Preview */}
                 <div>
                   <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Image URL (Visual Asset)</label>
                   <input 
@@ -4471,6 +4568,24 @@ export default {
                     <button type="button" onClick={() => setProjImage('https://images.unsplash.com/photo-1551434678-e076c223a692?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">Office Team</button>
                     <button type="button" onClick={() => setProjImage('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">AI Cyber</button>
                   </div>
+
+                  {/* LIVE PREVIEW BOX */}
+                  {projImage.trim() && (
+                    <div className="mt-2.5 relative h-24 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+                      <img 
+                        src={projImage} 
+                        alt="Live Project Form Preview" 
+                        className="w-full h-full object-cover" 
+                        referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                      <div className="absolute top-1 left-1 bg-[#000E32] text-[8px] font-mono font-bold text-white px-1.5 py-0.5 rounded shadow">
+                        REAL-TIME PROJECT COVER PREVIEW
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* 6. Video URL */}
@@ -4527,6 +4642,142 @@ export default {
                     className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl resize-none focus:outline-none focus:border-orange-500" 
                     placeholder="Provide a concise 1-2 sentence executive summary of the case study gains..." 
                   />
+                </div>
+
+                {/* --- ENTERPRISE PRIVACY & CLIENT METADATA --- */}
+                <div className="md:col-span-3 bg-slate-50 dark:bg-slate-950 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-800 space-y-4 text-left">
+                  <div className="flex items-center gap-2 border-b border-slate-150 dark:border-slate-800 pb-2">
+                    <ShieldCheck className="text-orange-500" size={16} />
+                    <h4 className="text-xs uppercase font-extrabold tracking-wider text-[#000E32] dark:text-orange-400 font-mono">
+                      Enterprise Client Metadata & Privacy Controls
+                    </h4>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Client Logo URL & Live Form Preview */}
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Client Logo Image URL</label>
+                      <input 
+                        type="text" 
+                        value={projClientLogo} 
+                        onChange={e => setProjClientLogo(e.target.value)} 
+                        className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-[10px]" 
+                        placeholder="e.g. https://images.unsplash.com/photo-... or SVG URL" 
+                      />
+
+                      {/* CLIENT LOGO LIVE PREVIEW */}
+                      {projClientLogo.trim() && (
+                        <div className="mt-2.5 relative h-16 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-2">
+                          <img 
+                            src={projClientLogo} 
+                            alt="Live Logo Form Preview" 
+                            className="h-10 max-w-[140px] object-contain rounded" 
+                            referrerPolicy="no-referrer"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                          <div className="absolute top-1 right-1 bg-orange-500 text-[6px] font-mono font-bold text-white px-1 py-0.5 rounded shadow uppercase">
+                            Client Logo Live Preview
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Live Website URL */}
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Live Website URL</label>
+                      <input 
+                        type="text" 
+                        value={projLiveWebsiteUrl} 
+                        onChange={e => setProjLiveWebsiteUrl(e.target.value)} 
+                        className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-[10px]" 
+                        placeholder="e.g. https://garkihub.ng" 
+                      />
+                    </div>
+
+                    {/* Testimonial Author */}
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Client Testimonial Representative (Name & Title)</label>
+                      <input 
+                        type="text" 
+                        value={projTestimonialAuthor} 
+                        onChange={e => setProjTestimonialAuthor(e.target.value)} 
+                        className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500" 
+                        placeholder="e.g. Alhaji Garki, CEO" 
+                      />
+                    </div>
+
+                    {/* Testimonial Text */}
+                    <div>
+                      <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Client Testimonial Quote Text</label>
+                      <textarea 
+                        rows={1} 
+                        value={projTestimonialText} 
+                        onChange={e => setProjTestimonialText(e.target.value)} 
+                        className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500" 
+                        placeholder="e.g. 'DS Tech has delivered a highly advanced, ultra-reliable system for our trade tracking...'" 
+                      />
+                    </div>
+                  </div>
+
+                  {/* Privacy Toggles */}
+                  <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-150 dark:border-slate-800 space-y-3">
+                    <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">// Public Page Display Controls (Privacy Management)</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-[10px] font-bold">
+                      {/* Client Name Privacy Toggle */}
+                      <label className="flex items-center gap-2.5 p-2 bg-slate-50 dark:bg-slate-950/40 rounded-lg cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-800 select-none">
+                        <input 
+                          type="checkbox" 
+                          checked={projDisplayClientName} 
+                          onChange={e => setProjDisplayClientName(e.target.checked)} 
+                          className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-3.5 w-3.5"
+                        />
+                        <span className="text-slate-700 dark:text-slate-300">
+                          {projDisplayClientName ? 'Display Client Name' : 'Hide Client Name'}
+                        </span>
+                      </label>
+
+                      {/* Client Logo Privacy Toggle */}
+                      <label className="flex items-center gap-2.5 p-2 bg-slate-50 dark:bg-slate-950/40 rounded-lg cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-800 select-none">
+                        <input 
+                          type="checkbox" 
+                          checked={projDisplayClientLogo} 
+                          onChange={e => setProjDisplayClientLogo(e.target.checked)} 
+                          className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-3.5 w-3.5"
+                        />
+                        <span className="text-slate-700 dark:text-slate-300">
+                          {projDisplayClientLogo ? 'Display Client Logo' : 'Hide Client Logo'}
+                        </span>
+                      </label>
+
+                      {/* Testimonial Privacy Toggle */}
+                      <label className="flex items-center gap-2.5 p-2 bg-slate-50 dark:bg-slate-950/40 rounded-lg cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-800 select-none">
+                        <input 
+                          type="checkbox" 
+                          checked={projDisplayTestimonial} 
+                          onChange={e => setProjDisplayTestimonial(e.target.checked)} 
+                          className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-3.5 w-3.5"
+                        />
+                        <span className="text-slate-700 dark:text-slate-300">
+                          {projDisplayTestimonial ? 'Display Testimonial' : 'Hide Testimonial'}
+                        </span>
+                      </label>
+
+                      {/* Live Website Privacy Toggle */}
+                      <label className="flex items-center gap-2.5 p-2 bg-slate-50 dark:bg-slate-950/40 rounded-lg cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-800 select-none">
+                        <input 
+                          type="checkbox" 
+                          checked={projDisplayLiveWebsite} 
+                          onChange={e => setProjDisplayLiveWebsite(e.target.checked)} 
+                          className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-3.5 w-3.5"
+                        />
+                        <span className="text-slate-700 dark:text-slate-300">
+                          {projDisplayLiveWebsite ? 'Display Live Website' : 'Hide Live Website'}
+                        </span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
 
                 {/* 10. Detailed written content (Markdown editor) */}
@@ -4701,6 +4952,14 @@ export default {
                             setProjDesc(proj.description || '');
                             setProjContent(proj.content || '');
                             setProjTags(proj.tags ? proj.tags.join(', ') : '');
+                            setProjClientLogo(proj.client_logo || '');
+                            setProjTestimonialText(proj.testimonial_text || '');
+                            setProjTestimonialAuthor(proj.testimonial_author || '');
+                            setProjLiveWebsiteUrl(proj.live_website_url || '');
+                            setProjDisplayClientName(proj.display_client_name !== false);
+                            setProjDisplayClientLogo(proj.display_client_logo !== false);
+                            setProjDisplayTestimonial(proj.display_testimonial !== false);
+                            setProjDisplayLiveWebsite(proj.display_live_website !== false);
                             setIsAddingProj(false); // Make sure regular state doesn't conflict
                             window.scrollTo({ top: 150, behavior: 'smooth' });
                           }}
@@ -4711,9 +4970,17 @@ export default {
                         </button>
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={async () => {
                             if(window.confirm(`Are you sure you want to permanently delete project study "${proj.title}"?`)) {
-                              setAdminProjects(adminProjects.filter((p: any) => p.id !== proj.id));
+                              try {
+                                await apiDeletePortfolio(proj.id);
+                                setAdminProjects(adminProjects.filter((p: any) => p.id !== proj.id));
+                                alert("🗑️ Case study permanently deleted from Cloudflare D1!");
+                              } catch (delErr: any) {
+                                console.error("Cloudflare D1 delete failed:", delErr);
+                                setAdminProjects(adminProjects.filter((p: any) => p.id !== proj.id));
+                                alert("⚠️ Deleted locally (Cloudflare DB error: " + delErr.message + ")");
+                              }
                             }
                           }}
                           className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-colors border border-rose-100"
@@ -4761,13 +5028,14 @@ export default {
                   readTime: "5 min read",
                   description: blogDesc,
                   content: blogDesc,
-                  image: "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=400&auto=format&fit=crop&q=60",
+                  image: blogImage || "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=400&auto=format&fit=crop&q=60",
                   tags: ["Compliance", "SaaS"]
                 };
                 setAdminBlogs([newPost, ...adminBlogs]);
                 setIsAddingBlog(false);
                 setBlogTitle('');
                 setBlogDesc('');
+                setBlogImage('https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=400&auto=format&fit=crop&q=60');
               }}
               className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4 text-xs"
             >
@@ -4784,6 +5052,43 @@ export default {
                   <option value="Technology">Technology</option>
                 </select>
               </div>
+
+              {/* Cover Image URL field */}
+              <div className="md:col-span-3">
+                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Cover Image URL</label>
+                <input 
+                  type="text" 
+                  value={blogImage} 
+                  onChange={e=>setBlogImage(e.target.value)} 
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono text-[11px]" 
+                  placeholder="https://images.unsplash.com/photo-..." 
+                />
+                <div className="flex gap-1.5 mt-1.5 overflow-x-auto pb-1">
+                  <button type="button" onClick={() => setBlogImage('https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Compliance/Writing</button>
+                  <button type="button" onClick={() => setBlogImage('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Marketing Tech</button>
+                  <button type="button" onClick={() => setBlogImage('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">AI Cyber</button>
+                  <button type="button" onClick={() => setBlogImage('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Business Growth</button>
+                </div>
+
+                {/* LIVE BLOG PREVIEW */}
+                {blogImage.trim() && (
+                  <div className="mt-2.5 relative h-28 w-56 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shadow-sm">
+                    <img 
+                      src={blogImage} 
+                      alt="Live Blog Cover Preview" 
+                      className="w-full h-full object-cover" 
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                    <div className="absolute top-1 left-1 bg-orange-600 text-[8px] font-mono font-bold text-white px-1.5 py-0.5 rounded shadow">
+                      LIVE COVER PREVIEW (BLOG CARD)
+                    </div>
+                  </div>
+                )}
+              </div>
+
               <div className="md:col-span-3">
                 <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Article body markup</label>
                 <textarea required rows={5} value={blogDesc} onChange={e=>setBlogDesc(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl resize-none font-sans" placeholder="Type the informational article content here..." />
@@ -4798,6 +5103,7 @@ export default {
             <table className="w-full text-xs text-left">
               <thead>
                 <tr className="bg-white text-[10px] font-black uppercase text-slate-400 border-b border-slate-150">
+                  <th className="py-3 px-5 w-24">Cover</th>
                   <th className="py-3 px-5">Article Title</th>
                   <th className="py-3 px-4">Category</th>
                   <th className="py-3 px-4">Author</th>
@@ -4807,6 +5113,19 @@ export default {
               <tbody className="divide-y divide-slate-100 font-bold text-slate-700">
                 {adminBlogs.map((post: any) => (
                   <tr key={post.id} className="hover:bg-white">
+                    <td className="py-4 px-5">
+                      <div className="h-10 w-16 bg-slate-100 rounded-lg overflow-hidden border border-slate-150 flex items-center justify-center">
+                        <img 
+                          src={post.image || 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=100&auto=format&fit=crop&q=60'} 
+                          alt="Thumbnail" 
+                          className="h-full w-full object-cover"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            e.currentTarget.src = 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=100&auto=format&fit=crop&q=60';
+                          }}
+                        />
+                      </div>
+                    </td>
                     <td className="py-4 px-5">
                       <div className="space-y-0.5 text-left">
                         <span className="text-slate-900 uppercase font-serif text-xs block">{post.title}</span>
@@ -4838,19 +5157,163 @@ export default {
       {/* ================= TRAINING MODULE ================= */}
       {adminModule === 'training' && (
         <div className="space-y-8 animate-fade-in text-left">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* Courses summary */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          <div className="flex justify-between items-center bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div>
+              <h2 className="text-sm font-extrabold uppercase font-serif text-[#000E32]">LMS Academy Console</h2>
+              <p className="text-slate-400 text-[10px] font-light font-sans">Draft training courses, set duration / price / level parameters, and upload cover images.</p>
+            </div>
+            <button
+              onClick={() => setIsAddingCourse(!isAddingCourse)}
+              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/10"
+            >
+              {isAddingCourse ? 'Close Creator' : 'Design New Course'}
+            </button>
+          </div>
+
+          {isAddingCourse && (
+            <form 
+              onSubmit={(e) => {
+                e.preventDefault();
+                if(!crsTitle || !crsDesc) return;
+                const newCourse = {
+                  id: "crs_" + Math.random().toString(36).substring(2, 6),
+                  title: crsTitle,
+                  description: crsDesc,
+                  duration: crsDuration,
+                  level: crsLevel,
+                  price: crsPrice,
+                  category: crsCategory,
+                  image: crsImage || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80",
+                  lessons: [
+                    { id: "les_" + Math.random().toString(36).substring(2, 5), title: "Module 1 Foundations", duration: "1 hr", isFree: true, content: "Core structural overview." }
+                  ]
+                };
+                setAdminCourses([newCourse, ...adminCourses]);
+                setIsAddingCourse(false);
+                setCrsTitle('');
+                setCrsDesc('');
+                setCrsDuration('6 Weeks');
+                setCrsLevel('Intermediate');
+                setCrsPrice('₦120,000');
+                setCrsImage('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80');
+              }}
+              className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4 text-xs"
+            >
+              <div className="md:col-span-2">
+                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Course Title *</label>
+                <input type="text" required value={crsTitle} onChange={e=>setCrsTitle(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl" placeholder="e.g. NextJS & Server-Action Architecture" />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Course Level</label>
+                <select value={crsLevel} onChange={e=>setCrsLevel(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl">
+                  <option value="All Levels">All Levels</option>
+                  <option value="Beginner">Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Course Price (Naira) *</label>
+                <input type="text" required value={crsPrice} onChange={e=>setCrsPrice(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl" placeholder="e.g. ₦120,000" />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Course Duration *</label>
+                <input type="text" required value={crsDuration} onChange={e=>setCrsDuration(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl" placeholder="e.g. 6 Weeks (12 Lessons)" />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Course Category Node</label>
+                <select value={crsCategory} onChange={e=>setCrsCategory(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl">
+                  <option value="web">Frontend Web Engineering</option>
+                  <option value="marketing">Digital Marketing / Social Ads</option>
+                  <option value="design">UI/UX Brand Design</option>
+                </select>
+              </div>
+
+              {/* Cover Image Input with Dynamic Live Preview */}
+              <div className="md:col-span-3">
+                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Course Cover Image URL</label>
+                <input 
+                  type="text" 
+                  value={crsImage} 
+                  onChange={e=>setCrsImage(e.target.value)} 
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono text-[11px]" 
+                  placeholder="https://images.unsplash.com/photo-..." 
+                />
+                <div className="flex gap-1.5 mt-1.5 overflow-x-auto pb-1">
+                  <button type="button" onClick={() => setCrsImage('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Education Tech</button>
+                  <button type="button" onClick={() => setCrsImage('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Coding Workspace</button>
+                  <button type="button" onClick={() => setCrsImage('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Design / Analytics</button>
+                  <button type="button" onClick={() => setCrsImage('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">AI Neural</button>
+                </div>
+
+                {/* LIVE COURSE COVER PREVIEW */}
+                {crsImage.trim() && (
+                  <div className="mt-2.5 relative h-28 w-56 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shadow-sm">
+                    <img 
+                      src={crsImage} 
+                      alt="Live Course Cover Preview" 
+                      className="w-full h-full object-cover" 
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                    <div className="absolute top-1 left-1 bg-orange-600 text-[8px] font-mono font-bold text-white px-1.5 py-0.5 rounded shadow">
+                      LIVE COURSE COVER PREVIEW
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="md:col-span-3">
+                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Course Curriculum Description Brief *</label>
+                <textarea required rows={3} value={crsDesc} onChange={e=>setCrsDesc(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl resize-none font-sans" placeholder="Describe course deliverables, certifications, and target student gains..." />
+              </div>
+              <div className="md:col-span-3 flex justify-end">
+                <button type="submit" className="px-5 py-2 bg-[#000E32] text-white text-xs font-black uppercase tracking-wider rounded-xl">Publish Vocational Course</button>
+              </div>
+            </form>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Courses summary list */}
+            <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
               <h3 className="font-extrabold text-sm uppercase font-serif text-[#000E32] border-b border-slate-100 pb-2">Vocational Courses</h3>
               <div className="space-y-3">
                 {adminCourses.map((c: any) => (
-                  <div key={c.id} className="flex justify-between items-center p-3 bg-white rounded-2xl border border-slate-100/50">
-                    <div className="text-left space-y-0.5">
-                      <span className="font-extrabold uppercase font-serif text-slate-900 text-[11px] block">{c.title}</span>
-                      <span className="text-[10px] text-slate-400 block font-bold">Duration: {c.duration} • level: {c.level}</span>
+                  <div key={c.id} className="flex justify-between items-center p-3.5 bg-white rounded-2xl border border-slate-150 hover:bg-slate-50/40 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-16 rounded-lg overflow-hidden border border-slate-200 flex-shrink-0 bg-slate-100 flex items-center justify-center">
+                        <img 
+                          src={c.image || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=60"} 
+                          alt={c.title} 
+                          className="h-full w-full object-cover" 
+                          referrerPolicy="no-referrer"
+                          onError={(e) => {
+                            e.currentTarget.src = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=60";
+                          }}
+                        />
+                      </div>
+                      <div className="text-left space-y-0.5">
+                        <span className="font-extrabold uppercase font-serif text-slate-900 text-[11px] block line-clamp-1">{c.title}</span>
+                        <span className="text-[10px] text-slate-400 block font-bold">Duration: {c.duration} • level: {c.level}</span>
+                      </div>
                     </div>
-                    <span className="text-xs font-mono font-black text-orange-600">{c.price}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs font-mono font-black text-orange-600 whitespace-nowrap">{c.price}</span>
+                      <button 
+                        onClick={() => {
+                          if (window.confirm(`Purge vocational course "${c.title}"?`)) {
+                            setAdminCourses(adminCourses.filter(course => course.id !== c.id));
+                          }
+                        }}
+                        className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-colors border border-rose-100"
+                        title="Delete Course"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -5231,6 +5694,10 @@ export default {
 
       {adminModule === 'ongoing-projects' && (
         <OngoingProjectsAdminDashboard />
+      )}
+
+      {adminModule === 'diagnostics' && (
+        <AdminAssetDiagnostics />
       )}
 
       {/* Dynamic QR Code scanner modal */}

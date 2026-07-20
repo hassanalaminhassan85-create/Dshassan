@@ -430,11 +430,61 @@ export const PortfolioSection: React.FC = () => {
               
               <h3 className="font-extrabold text-[#000E32] dark:text-white text-base uppercase font-serif tracking-tight leading-tight">{selectedProject.title}</h3>
               
-              <div className="text-xs font-bold text-slate-500 space-y-1 bg-white dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/60">
-                <div>Client: <span className="text-slate-800 dark:text-slate-200">{selectedProject.client || 'Garki Enterprise Node'}</span></div>
+              <div className="text-xs font-bold text-slate-500 space-y-2 bg-white dark:bg-slate-800/40 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800/60">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    Client: <span className="text-slate-800 dark:text-slate-200">
+                      {selectedProject.display_client_name !== false 
+                        ? (selectedProject.client || 'Garki Enterprise Node') 
+                        : 'Confidential Client (Privacy Enforced)'}
+                    </span>
+                  </div>
+                  {/* Client Logo - Display if allowed & exists */}
+                  {selectedProject.display_client_logo !== false && selectedProject.client_logo && (
+                    <img 
+                      src={selectedProject.client_logo} 
+                      alt="Client Logo" 
+                      className="h-6 max-w-[80px] object-contain rounded opacity-90 hover:opacity-100 transition-opacity"
+                      referrerPolicy="no-referrer"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  )}
+                </div>
+
                 {selectedProject.stats && <div>Outcome Indicator: <span className="text-emerald-500 font-mono">{selectedProject.stats}</span></div>}
-                {selectedProject.video && <div className="text-[10px] text-indigo-500 font-mono mt-1">// Playing Case Study Video review</div>}
+                
+                {/* Live Website URL - Display if allowed & exists */}
+                {selectedProject.display_live_website !== false && selectedProject.live_website_url && (
+                  <div className="pt-1">
+                    <a 
+                      href={selectedProject.live_website_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="inline-flex items-center gap-1.5 text-orange-500 dark:text-orange-400 hover:underline text-[10px] uppercase font-black"
+                    >
+                      <Activity size={10} className="text-orange-500 animate-pulse" />
+                      <span>Visit Live Website</span>
+                      <ArrowRight size={10} />
+                    </a>
+                  </div>
+                )}
+                
+                {selectedProject.video && <div className="text-[10px] text-indigo-500 font-mono mt-0.5">// Playing Case Study Video review</div>}
               </div>
+
+              {/* Client Testimonial Block - Display if allowed & exists */}
+              {selectedProject.display_testimonial !== false && selectedProject.testimonial_text && (
+                <div className="bg-orange-500/5 dark:bg-orange-500/[0.02] border-l-2 border-orange-500 p-3.5 rounded-r-xl space-y-1.5 text-left">
+                  <p className="text-slate-600 dark:text-slate-300 italic text-[11px] leading-relaxed">
+                    "{selectedProject.testimonial_text}"
+                  </p>
+                  {selectedProject.testimonial_author && (
+                    <span className="text-[9px] font-black uppercase tracking-wider text-[#000E32] dark:text-orange-400 font-mono block">
+                      — {selectedProject.testimonial_author}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* Brief Intro */}
               <p className="text-slate-600 dark:text-slate-400 text-xs leading-relaxed font-light font-sans">{selectedProject.description}</p>
