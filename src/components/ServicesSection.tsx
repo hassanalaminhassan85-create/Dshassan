@@ -8,7 +8,7 @@ import { SERVICES, ServiceItem } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
 import { ServiceDetailView } from './ServiceDetailView';
 import { ServiceCard } from './ServiceCard';
-import { apiGetServices, apiInitializeServices } from '../lib/api';
+import { apiGetServices, apiInitializeServices, resolveImageUrl } from '../lib/api';
 
 interface ServicesSectionProps {
   language: LanguageCode;
@@ -243,7 +243,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
   // Safe image fallbacks
   const getServiceImage = (svc: ServiceItem) => {
     if (svc.image && svc.image.trim() !== '') {
-      return svc.image;
+      return resolveImageUrl(svc.image);
     }
     const fallbackImages: Record<string, string> = {
       marketing: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80",

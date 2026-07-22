@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Search, Tag, Calendar, User, BookOpen, Clock, Heart, ArrowLeft, ArrowRight, Brain, Sparkles } from 'lucide-react';
 import { BLOG_POSTS, BlogPost } from '../lib/data';
-import { apiGetBlogs, apiInitializeBlogs } from '../lib/api';
+import { apiGetBlogs, apiInitializeBlogs, resolveImageUrl } from '../lib/api';
 
 export const BlogSection: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -354,7 +354,15 @@ export const BlogSection: React.FC = () => {
                   </div>
 
                   <div className="sm:w-1/3 h-48 sm:h-auto overflow-hidden relative shrink-0">
-                    <img src={post.image} alt={post.title} referrerPolicy="no-referrer" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" />
+                    <img 
+                      src={resolveImageUrl(post.image)} 
+                      alt={post.title} 
+                      referrerPolicy="no-referrer" 
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=400&auto=format&fit=crop&q=60';
+                      }}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" 
+                    />
                   </div>
                   <div className="p-6 sm:w-2/3 text-left flex flex-col justify-between space-y-4">
                     <div className="space-y-2">

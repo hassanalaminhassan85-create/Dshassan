@@ -804,4 +804,20 @@ export async function apiUploadOngoingProjectFile(file: File): Promise<{
   }
 }
 
+// Universal image URL resolver helper
+export function resolveImageUrl(urlOrKey: string | null | undefined, fallbackUrl?: string): string {
+  if (!urlOrKey || !urlOrKey.trim()) {
+    return fallbackUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80';
+  }
+  const trimmed = urlOrKey.trim();
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('/api/')) {
+    return trimmed;
+  }
+  return `/api/ongoing-projects/file?key=${encodeURIComponent(trimmed)}`;
+}
+
+
 

@@ -6,7 +6,7 @@ import {
   UserCheck, AlertCircle, ChevronLeft, ChevronRight, Calendar, Mail, Phone, RefreshCw,  
   Edit3, ArrowLeft, Heart, BarChart3, Users, Landmark, UserMinus, ShieldAlert, LogOut,
   QrCode, MessageSquare, Send, FileText, Printer, Layers, FolderOpen, BookOpen,
-  Video, Plus, PlusCircle, Check, MoreVertical, Settings, Sliders, Database, ArrowUp,
+  Video, Plus, PlusCircle, Check, MoreVertical, Settings, Sliders, Database, ArrowUp, Camera,
   Sun, Moon, Globe, ChevronDown, Copy, X, Code, Bell, ShieldCheck, Award
 } from 'lucide-react';
 import { JobApplication } from '../types';
@@ -2098,7 +2098,7 @@ export default {
         { id: 'blog', label: 'Insights Blog', icon: BookOpen, count: adminBlogs.length },
         { id: 'recognition', label: 'Recognition Certs', icon: Award },
         { id: 'ongoing-projects', label: 'Ongoing Projects', icon: Clock },
-        { id: 'diagnostics', label: 'R2 Diagnostics', icon: Database },
+        { id: 'diagnostics', label: 'Image Verification Gallery', icon: Camera },
       ]
     },
     {
@@ -2365,7 +2365,7 @@ export default {
                    adminModule === 'trust' ? 'Enterprise Trust & Compliance' :
                    adminModule === 'recognition' ? 'Recognition Certificates Console' :
                    adminModule === 'ongoing-projects' ? 'Enterprise Ongoing Projects Platform' :
-                   adminModule === 'diagnostics' ? 'Cloudflare D1 & R2 Image Diagnostics' :
+                   adminModule === 'diagnostics' ? 'Real-Time Image Verification Gallery' :
                    adminModule === 'emails' ? 'Email Queue & Logs' : 'Secure QR & Cloud R2 Vault'}
                 </h1>
                 <p className="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs leading-relaxed max-w-2xl font-medium">
@@ -2381,7 +2381,7 @@ export default {
                    adminModule === 'recognition' ? 'Manage enterprise recognition certificates, upload verification files to Cloudflare R2, manage metadata, and toggle publishing status.' :
                    adminModule === 'ongoing-projects' ? 'Coordinate published project pipelines, display active sprints, adjust completions dynamically, and edit specifications.' :
                    adminModule === 'emails' ? 'Audit Brevo transactional templates, dispatch queues, failed delivery retry logs, and template variables.' :
-                    adminModule === 'diagnostics' ? 'Audit raw SQL database entries for both Portfolio and Ongoing Projects, diagnose asset streaming issues, and fix broken image paths.' :
+                   adminModule === 'diagnostics' ? 'Real-time image verification gallery for applicant passport photos, project covers, and corporate certificates streaming directly from Cloudflare R2 object links.' :
                    'Manage applicant physical credential badges, read dynamic QR scans, and review the WebAuthn security credential vault.'}
                 </p>
               </div>

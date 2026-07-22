@@ -5,7 +5,7 @@ import {
   Sparkles, ShieldCheck, Cpu, Code, Zap, CheckCircle, Brain, X, Activity
 } from 'lucide-react';
 import { PORTFOLIO } from '../lib/data';
-import { apiGetPortfolio, apiInitializePortfolio } from '../lib/api';
+import { apiGetPortfolio, apiInitializePortfolio, resolveImageUrl } from '../lib/api';
 
 export const PortfolioSection: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('all');
@@ -195,8 +195,12 @@ export const PortfolioSection: React.FC = () => {
             >
               <div className="relative h-48 overflow-hidden">
                 <img 
-                  src={proj.image} 
+                  src={resolveImageUrl(proj.image)} 
                   alt={proj.title} 
+                  onError={(e) => {
+                    // Fallback to Unsplash only if the original link completely fails to resolve
+                    (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=800&auto=format&fit=crop&q=80';
+                  }}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 {proj.stats && (
