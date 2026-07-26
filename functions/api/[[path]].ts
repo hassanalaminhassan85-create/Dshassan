@@ -2824,9 +2824,14 @@ export async function onRequest(context: { request: Request; env: any; params: a
         
         const fileBuffer = await file.arrayBuffer();
         if (env.BUCKET) {
-          await env.BUCKET.put(objectKey, fileBuffer, {
-            httpMetadata: { contentType: file.type }
-          });
+          try {
+            await env.BUCKET.put(objectKey, fileBuffer, {
+              httpMetadata: { contentType: file.type }
+            });
+          } catch (r2Error: any) {
+            console.error("R2 BUCKET put error, falling back to local file simulation:", r2Error);
+            await handleLocalFileFallback(objectKey, fileBuffer, file.type);
+          }
         } else {
           console.warn("R2 BUCKET binding not found. Simulating file upload.");
           await handleLocalFileFallback(objectKey, fileBuffer, file.type);
@@ -2853,13 +2858,17 @@ export async function onRequest(context: { request: Request; env: any; params: a
       
       try {
         if (env.BUCKET) {
-          const object = await env.BUCKET.get(key);
-          if (object) {
-            const fileHeaders = new Headers();
-            object.writeHttpMetadata(fileHeaders);
-            fileHeaders.set('Access-Control-Allow-Origin', '*');
-            fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
-            return new Response(object.body, { headers: fileHeaders });
+          try {
+            const object = await env.BUCKET.get(key);
+            if (object) {
+              const fileHeaders = new Headers();
+              object.writeHttpMetadata(fileHeaders);
+              fileHeaders.set('Access-Control-Allow-Origin', '*');
+              fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
+              return new Response(object.body, { headers: fileHeaders });
+            }
+          } catch (r2Error: any) {
+            console.error("R2 BUCKET get error for CAC file, falling back to local file simulation:", r2Error);
           }
         }
         
@@ -3053,9 +3062,14 @@ export async function onRequest(context: { request: Request; env: any; params: a
         
         const fileBuffer = await file.arrayBuffer();
         if (env.BUCKET) {
-          await env.BUCKET.put(objectKey, fileBuffer, {
-            httpMetadata: { contentType: file.type }
-          });
+          try {
+            await env.BUCKET.put(objectKey, fileBuffer, {
+              httpMetadata: { contentType: file.type }
+            });
+          } catch (r2Error: any) {
+            console.error("R2 BUCKET put error, falling back to local file simulation:", r2Error);
+            await handleLocalFileFallback(objectKey, fileBuffer, file.type);
+          }
         } else {
           console.warn("R2 BUCKET binding not found. Simulating file upload.");
           await handleLocalFileFallback(objectKey, fileBuffer, file.type);
@@ -3082,13 +3096,17 @@ export async function onRequest(context: { request: Request; env: any; params: a
       
       try {
         if (env.BUCKET) {
-          const object = await env.BUCKET.get(key);
-          if (object) {
-            const fileHeaders = new Headers();
-            object.writeHttpMetadata(fileHeaders);
-            fileHeaders.set('Access-Control-Allow-Origin', '*');
-            fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
-            return new Response(object.body, { headers: fileHeaders });
+          try {
+            const object = await env.BUCKET.get(key);
+            if (object) {
+              const fileHeaders = new Headers();
+              object.writeHttpMetadata(fileHeaders);
+              fileHeaders.set('Access-Control-Allow-Origin', '*');
+              fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
+              return new Response(object.body, { headers: fileHeaders });
+            }
+          } catch (r2Error: any) {
+            console.error("R2 BUCKET get error for recognition file, falling back to local file simulation:", r2Error);
           }
         }
         
@@ -3557,9 +3575,14 @@ export async function onRequest(context: { request: Request; env: any; params: a
         console.log("File buffer size:", fileBuffer.byteLength);
         if (env.BUCKET) {
           console.log("Using BUCKET to upload");
-          await env.BUCKET.put(objectKey, fileBuffer, {
-            httpMetadata: { contentType: file.type }
-          });
+          try {
+            await env.BUCKET.put(objectKey, fileBuffer, {
+              httpMetadata: { contentType: file.type }
+            });
+          } catch (r2Error: any) {
+            console.error("R2 BUCKET put error, falling back to local file simulation:", r2Error);
+            await handleLocalFileFallback(objectKey, fileBuffer, file.type);
+          }
         } else {
           console.warn("R2 BUCKET binding not found. Simulating file upload.");
           await handleLocalFileFallback(objectKey, fileBuffer, file.type);
@@ -3586,13 +3609,17 @@ export async function onRequest(context: { request: Request; env: any; params: a
       
       try {
         if (env.BUCKET) {
-          const object = await env.BUCKET.get(key);
-          if (object) {
-            const fileHeaders = new Headers();
-            object.writeHttpMetadata(fileHeaders);
-            fileHeaders.set('Access-Control-Allow-Origin', '*');
-            fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
-            return new Response(object.body, { headers: fileHeaders });
+          try {
+            const object = await env.BUCKET.get(key);
+            if (object) {
+              const fileHeaders = new Headers();
+              object.writeHttpMetadata(fileHeaders);
+              fileHeaders.set('Access-Control-Allow-Origin', '*');
+              fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
+              return new Response(object.body, { headers: fileHeaders });
+            }
+          } catch (r2Error: any) {
+            console.error("R2 BUCKET get error for ongoing project file, falling back to local file simulation:", r2Error);
           }
         }
         
@@ -4615,9 +4642,14 @@ export async function onRequest(context: { request: Request; env: any; params: a
         
         const fileBuffer = await file.arrayBuffer();
         if (env.BUCKET) {
-          await env.BUCKET.put(objectKey, fileBuffer, {
-            httpMetadata: { contentType: file.type }
-          });
+          try {
+            await env.BUCKET.put(objectKey, fileBuffer, {
+              httpMetadata: { contentType: file.type }
+            });
+          } catch (r2Error: any) {
+            console.error("R2 BUCKET put error, falling back to local file simulation:", r2Error);
+            await handleLocalFileFallback(objectKey, fileBuffer, file.type);
+          }
         } else {
           console.warn("R2 BUCKET binding not found. Simulating file upload.");
           await handleLocalFileFallback(objectKey, fileBuffer, file.type);
@@ -4641,13 +4673,17 @@ export async function onRequest(context: { request: Request; env: any; params: a
       
       try {
         if (env.BUCKET) {
-          const object = await env.BUCKET.get(key);
-          if (object) {
-            const fileHeaders = new Headers();
-            object.writeHttpMetadata(fileHeaders);
-            fileHeaders.set('Access-Control-Allow-Origin', '*');
-            fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
-            return new Response(object.body, { headers: fileHeaders });
+          try {
+            const object = await env.BUCKET.get(key);
+            if (object) {
+              const fileHeaders = new Headers();
+              object.writeHttpMetadata(fileHeaders);
+              fileHeaders.set('Access-Control-Allow-Origin', '*');
+              fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
+              return new Response(object.body, { headers: fileHeaders });
+            }
+          } catch (r2Error: any) {
+            console.error("R2 BUCKET get error for staff file, falling back to local file simulation:", r2Error);
           }
         }
         

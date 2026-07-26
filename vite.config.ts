@@ -580,6 +580,10 @@ function cloudflarePagesDevPlugin() {
             const requestHeaders = new Headers();
             for (const [key, val] of Object.entries(req.headers)) {
               if (val) {
+                const lowerKey = key.toLowerCase();
+                if (lowerKey === 'host' || lowerKey === 'content-length' || lowerKey === 'connection' || lowerKey === 'transfer-encoding') {
+                  continue;
+                }
                 if (Array.isArray(val)) {
                   val.forEach(v => requestHeaders.append(key, v));
                 } else {
