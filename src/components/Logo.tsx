@@ -98,7 +98,7 @@ export const Logo: React.FC<LogoProps> = ({
           strokeWidth="2.5" 
           animate={{ scale: [1, 1.02, 1] }}
           transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-          style={{ originX: "50px", originY: "50px" }}
+          style={{ transformOrigin: "50px 50px" }}
         />
 
         {/* Outer Highlight Ring */}
@@ -130,7 +130,7 @@ export const Logo: React.FC<LogoProps> = ({
             repeat: Infinity, 
             ease: "easeInOut" 
           }}
-          style={{ originX: "50px", originY: "14px" }}
+          style={{ transformOrigin: "50px 14px" }}
         >
           {/* Diamond Outer Shape */}
           <path 
@@ -164,7 +164,7 @@ export const Logo: React.FC<LogoProps> = ({
             rotate: { repeat: Infinity, duration: 16, ease: "linear" },
             strokeWidth: { repeat: Infinity, duration: 3, ease: "easeInOut" }
           }}
-          style={{ originX: "50px", originY: "50px" }}
+          style={{ transformOrigin: "50px 50px" }}
         />
         <motion.path 
           d="M 77 28 A 29 29 0 0 1 77 72" 
@@ -180,7 +180,7 @@ export const Logo: React.FC<LogoProps> = ({
             rotate: { repeat: Infinity, duration: 16, ease: "linear" },
             strokeWidth: { repeat: Infinity, duration: 3, ease: "easeInOut", delay: 1.5 }
           }}
-          style={{ originX: "50px", originY: "50px" }}
+          style={{ transformOrigin: "50px 50px" }}
         />
 
         {/* Thin Silver/White Accent Rings inside - Dual spinning dashed cyber lines */}
@@ -195,7 +195,7 @@ export const Logo: React.FC<LogoProps> = ({
           opacity="0.3" 
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 24, ease: "linear" }}
-          style={{ originX: "50px", originY: "50px" }}
+          style={{ transformOrigin: "50px 50px" }}
         />
         <motion.circle 
           cx="50" 
@@ -208,7 +208,7 @@ export const Logo: React.FC<LogoProps> = ({
           opacity="0.2" 
           animate={{ rotate: -360 }}
           transition={{ repeat: Infinity, duration: 18, ease: "linear" }}
-          style={{ originX: "50px", originY: "50px" }}
+          style={{ transformOrigin: "50px 50px" }}
         />
 
         {/* Main "DS" Text (Centered, Bold, Modern display) - Ambient Pulse */}
@@ -216,7 +216,7 @@ export const Logo: React.FC<LogoProps> = ({
           id="ds-brand-text"
           animate={{ scale: [1, 1.04, 1] }}
           transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-          style={{ originX: "50px", originY: "47px" }}
+          style={{ transformOrigin: "50px 47px" }}
         >
           <text 
             x="50" 
