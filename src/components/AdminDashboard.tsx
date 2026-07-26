@@ -35,6 +35,7 @@ import { CacAdminCenter } from './CacAdminCenter';
 import { RecognitionAdminDashboard } from './RecognitionAdminDashboard';
 import { OngoingProjectsAdminDashboard } from './OngoingProjectsAdminDashboard';
 import { AdminAssetDiagnostics } from './AdminAssetDiagnostics';
+import { AdminStaffManagement } from './AdminStaffManagement';
 
 import { 
   SERVICES, 
@@ -133,7 +134,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   }, [candidateAnalyses]);
 
   // Super Admin Control Center State
-  const [adminModule, setAdminModule] = useState<'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'emails' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects'>('recruitment');
+  const [adminModule, setAdminModule] = useState<'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'emails' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff'>('recruitment');
   
   // Custom navigation header states
   const [isThreeDotsOpen, setIsThreeDotsOpen] = useState<boolean>(false);
@@ -2084,10 +2085,11 @@ export default {
 
   const sidebarTabs = [
     {
-      group: 'Talent Acquisition',
+      group: 'Talent & Staff HR',
       items: [
         { id: 'recruitment', label: 'Recruitment', icon: Briefcase, count: applications.length },
         { id: 'chat', label: 'WhatsApp Live Chat', icon: MessageSquare },
+        { id: 'staff', label: 'Staff & Org HR', icon: Users },
       ]
     },
     {
@@ -2366,6 +2368,7 @@ export default {
                    adminModule === 'recognition' ? 'Recognition Certificates Console' :
                    adminModule === 'ongoing-projects' ? 'Enterprise Ongoing Projects Platform' :
                    adminModule === 'diagnostics' ? 'Real-Time Image Verification Gallery' :
+                    adminModule === 'staff' ? 'Staff & Organization HR' :
                    adminModule === 'emails' ? 'Email Queue & Logs' : 'Secure QR & Cloud R2 Vault'}
                 </h1>
                 <p className="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs leading-relaxed max-w-2xl font-medium">
@@ -2382,6 +2385,7 @@ export default {
                    adminModule === 'ongoing-projects' ? 'Coordinate published project pipelines, display active sprints, adjust completions dynamically, and edit specifications.' :
                    adminModule === 'emails' ? 'Audit Brevo transactional templates, dispatch queues, failed delivery retry logs, and template variables.' :
                    adminModule === 'diagnostics' ? 'Real-time image verification gallery for applicant passport photos, project covers, and corporate certificates streaming directly from Cloudflare R2 object links.' :
+                    adminModule === 'staff' ? 'Onboard team members, assign Heads of Departments (HOD), configure display order priorities, upload images to R2, and review audit logs.' :
                    'Manage applicant physical credential badges, read dynamic QR scans, and review the WebAuthn security credential vault.'}
                 </p>
               </div>
@@ -5694,6 +5698,10 @@ export default {
 
       {adminModule === 'ongoing-projects' && (
         <OngoingProjectsAdminDashboard />
+      )}
+
+      {adminModule === 'staff' && (
+        <AdminStaffManagement />
       )}
 
       {adminModule === 'diagnostics' && (

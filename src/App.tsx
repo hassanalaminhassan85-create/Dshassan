@@ -5,19 +5,23 @@ import { ApplicationView } from './components/ApplicationView';
 import { AdminDashboard } from './components/AdminDashboard';
 import { PremiumContactSection } from './components/PremiumContactSection';
 import { UserDashboard } from './components/UserDashboard';
+import { StaffPortal } from './components/StaffPortal';
+
 
 // Website Ecosystem Modules
 import { HomeSection } from './components/HomeSection';
 import { AboutSection } from './components/AboutSection';
 import { ServicesSection } from './components/ServicesSection';
 import { PortfolioSection } from './components/PortfolioSection';
+import { MeetOurTeamSection } from './components/MeetOurTeamSection';
 import { BlogSection } from './components/BlogSection';
 import { TrainingAcademySection } from './components/TrainingAcademySection';
 import { ClientPortalSection } from './components/ClientPortalSection';
 import { CareersSection } from './components/CareersSection';
 import { RecognitionSection } from './components/RecognitionSection';
+import { TutorDashboard } from './components/TutorDashboard';
 import { JobApplication } from './types';
-import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint } from 'lucide-react';
+import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint, Briefcase } from 'lucide-react';
 import { Logo } from './components/Logo';
 import { apiGetApplication, apiSaveApplication, apiUpdateApplication } from './lib/storage';
 import { CAREER_ROLES, CATEGORIES, CareerRole } from './lib/roles';
@@ -83,6 +87,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "About", value: "about" },
     { label: "Services", value: "services" },
     { label: "Portfolio", value: "portfolio" },
+    { label: "Our Team", value: "team" },
     { label: "Blog", value: "blog" },
     { label: "Academy", value: "training" },
     { label: "Clients", value: "clients" },
@@ -94,6 +99,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "À Propos", value: "about" },
     { label: "Services", value: "services" },
     { label: "Portfolio", value: "portfolio" },
+    { label: "Notre Équipe", value: "team" },
     { label: "Blog", value: "blog" },
     { label: "Académie", value: "training" },
     { label: "Clients", value: "clients" },
@@ -105,6 +111,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Game da Mu", value: "about" },
     { label: "Ayyuka", value: "services" },
     { label: "Ayyukan Baya", value: "portfolio" },
+    { label: "Kungiyarmu", value: "team" },
     { label: "Blog", value: "blog" },
     { label: "Makaranta", value: "training" },
     { label: "Abokan Ciniki", value: "clients" },
@@ -116,6 +123,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Nipa Wa", value: "about" },
     { label: "Awọn iṣẹ", value: "services" },
     { label: "Awọn iṣẹ Atijọ", value: "portfolio" },
+    { label: "Ẹgbẹ Wa", value: "team" },
     { label: "Blog", value: "blog" },
     { label: "Ile-ẹkọ", value: "training" },
     { label: "Awọn alabara", value: "clients" },
@@ -127,6 +135,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Nosotros", value: "about" },
     { label: "Servicios", value: "services" },
     { label: "Portafolio", value: "portfolio" },
+    { label: "Equipo", value: "team" },
     { label: "Blog", value: "blog" },
     { label: "Academia", value: "training" },
     { label: "Clientes", value: "clients" },
@@ -138,6 +147,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "من نحن", value: "about" },
     { label: "خدماتنا", value: "services" },
     { label: "أعمالنا", value: "portfolio" },
+    { label: "فريقنا", value: "team" },
     { label: "المدونة", value: "blog" },
     { label: "الأكاديمية", value: "training" },
     { label: "العملاء", value: "clients" },
@@ -202,7 +212,7 @@ export default function App() {
   const [selectedRoleTitle, setSelectedRoleTitle] = useState<string>('');
 
   // Active website ecosystem page routing state
-  const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'blog' | 'training' | 'clients' | 'careers' | 'account' | 'recognition'>('home');
+  const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'blog' | 'training' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard'>('home');
 
   // Interactive 2027 App Shell full-screen state
   const [isUserLoggedIn, setIsUserLoggedIn] = useState<boolean>(false);
@@ -342,6 +352,8 @@ export default function App() {
           setActivePage('blog');
         } else if (path === '/training') {
           setActivePage('training');
+        } else if (path === '/tutor-dashboard' || path === '/tutor') {
+          setActivePage('tutor-dashboard');
         } else if (path === '/clients') {
           setActivePage('clients');
         } else if (path === '/careers') {
@@ -350,6 +362,8 @@ export default function App() {
           setActivePage('recognition');
         } else if (path === '/account') {
           setActivePage('account');
+        } else if (path === '/staff-portal' || path === '/staff') {
+          setActivePage('staff-portal');
         }
       }
     };
@@ -823,6 +837,19 @@ export default function App() {
               <span>Candidate Hub (2026)</span>
             </button>
 
+            <button
+              onClick={() => safeNavigate('/staff-portal')}
+              type="button"
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shadow-sm border ${
+                activePage === 'staff-portal'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent'
+                  : 'bg-indigo-50/50 hover:bg-indigo-100/60 dark:bg-slate-800 dark:hover:bg-slate-700 border-indigo-100/50 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+              }`}
+            >
+              <Briefcase size={12} className={activePage === 'staff-portal' ? 'text-white' : 'text-blue-500'} />
+              <span>Staff Cockpit</span>
+            </button>
+
             {!currentAppId && !isAdminView && !isApplying && (
               <button
                 onClick={loadDemoSeed}
@@ -944,6 +971,22 @@ export default function App() {
                     >
                       <Fingerprint size={12} className={activePage === 'account' ? 'text-white' : 'text-orange-500'} />
                       <span>Candidate Hub (2026)</span>
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        safeNavigate('/staff-portal');
+                        setIsMobileMenuOpen(false);
+                      }}
+                      type="button"
+                      className={`w-full justify-center py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border ${
+                        activePage === 'staff-portal'
+                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent'
+                          : 'bg-indigo-50/50 hover:bg-indigo-100/60 dark:bg-slate-800 dark:hover:bg-slate-700 border-indigo-100/50 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
+                      <Briefcase size={12} className={activePage === 'staff-portal' ? 'text-white' : 'text-blue-500'} />
+                      <span>Staff Cockpit</span>
                     </button>
 
                     {!currentAppId && !isAdminView && !isApplying && (
@@ -1114,6 +1157,16 @@ export default function App() {
               >
                 <PortfolioSection />
               </motion.div>
+             ) : activePage === 'team' ? (
+              <motion.div
+                key="team-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full"
+              >
+                <MeetOurTeamSection language={language} />
+              </motion.div>
              ) : activePage === 'blog' ? (
               <motion.div
                 key="blog-section"
@@ -1133,6 +1186,16 @@ export default function App() {
                 className="w-full"
               >
                 <TrainingAcademySection />
+              </motion.div>
+             ) : activePage === 'tutor-dashboard' ? (
+              <motion.div
+                key="tutor-dashboard-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full"
+              >
+                <TutorDashboard />
               </motion.div>
              ) : activePage === 'clients' ? (
               <motion.div
@@ -1164,6 +1227,21 @@ export default function App() {
               >
                 <UserDashboard 
                   onLoginStatusChange={setIsUserLoggedIn} 
+                  onBackToPortal={() => {
+                    setActivePage('home');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }} 
+                />
+              </motion.div>
+             ) : activePage === 'staff-portal' ? (
+              <motion.div
+                key="staff-portal-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full"
+              >
+                <StaffPortal 
                   onBackToPortal={() => {
                     setActivePage('home');
                     window.scrollTo({ top: 0, behavior: 'smooth' });

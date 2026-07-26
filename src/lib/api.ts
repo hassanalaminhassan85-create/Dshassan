@@ -1,6 +1,8 @@
 // 2026 Advanced Client API Helpers for DS Tech Portal
 // Connects UI to secure backend Cloudflare Functions / Express server
 
+import { Department, StaffMember, StaffActivityLog } from '../types';
+
 export interface ScanHistoryRecord {
   id: string;
   user_id: string;
@@ -817,6 +819,115 @@ export function resolveImageUrl(urlOrKey: string | null | undefined, fallbackUrl
     return trimmed;
   }
   return `/api/ongoing-projects/file?key=${encodeURIComponent(trimmed)}`;
+}
+
+// Staff image resolver helper
+export function resolveStaffImageUrl(urlOrKey: string | null | undefined, fallbackUrl?: string): string {
+  if (!urlOrKey || !urlOrKey.trim()) {
+    return fallbackUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80';
+  }
+  const trimmed = urlOrKey.trim();
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
+    return trimmed;
+  }
+  if (trimmed.startsWith('/api/')) {
+    return trimmed;
+  }
+  return `/api/staff/file?key=${encodeURIComponent(trimmed)}`;
+}
+
+// Enterprise Staff & Departments client-side helpers
+export async function apiGetDepartments(admin: boolean = false): Promise<Department[]> {
+  const url = `/api/departments${admin ? '?admin=true' : ''}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch departments');
+  return res.json();
+}
+
+export async function apiSaveDepartment(dept: Partial<Department>): Promise<{ success: boolean; department: Department }> {
+  const res = await fetch('/api/departments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(dept)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to save department');
+  }
+  return res.json();
+}
+
+export async function apiDeleteDepartment(id: string): Promise<{ success: boolean }> {
+  const res = await fetch(`/api/departments?id=${encodeURIComponent(id)}`, {
+    method: 'DELETE'
+  });
+  if (!res.ok) throw new Error('Failed to delete department');
+  return res.json();
+}
+
+export async function apiGetStaff(admin: boolean = false, departmentId?: string): Promise<StaffMember[]> {
+  let url = `/api/staff?${admin ? 'admin=true' : ''}`;
+  if (departmentId) {
+    url += `&department_id=${encodeURIComponent(departmentId)}`;
+  }
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch staff members');
+  return res.json();
+}
+
+export async function apiSaveStaff(member: Partial<StaffMember>): Promise<{ success: boolean; staff: StaffMember }> {
+  const res = await fetch('/api/staff', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(member)
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to save staff member');
+  }
+  return res.json();
+}
+
+export async function apiDeleteStaff(id: string): Promise<{ success: boolean }> {
+  const res = await fetch(`/api/staff?id=${encodeURIComponent(id)}`, {
+    method: 'DELETE'
+  });
+  if (!res.ok) throw new Error('Failed to delete staff member');
+  return res.json();
+}
+
+export async function apiUploadStaffFile(file: File): Promise<{
+  success: boolean;
+  r2_object_key: string;
+  file_name: string;
+}> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch('/api/staff/upload', {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to upload staff file');
+  }
+  return res.json();
+}
+
+export async function apiGetStaffLogs(): Promise<StaffActivityLog[]> {
+  const res = await fetch('/api/staff/logs');
+  if (!res.ok) throw new Error('Failed to fetch staff activity logs');
+  return res.json();
+}
+
+export async function apiAddStaffLog(log: { operator_email: string; action: string; details: string }): Promise<{ success: boolean }> {
+  const res = await fetch('/api/staff/logs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(log)
+  });
+  if (!res.ok) throw new Error('Failed to append activity log');
+  return res.json();
 }
 
 

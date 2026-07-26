@@ -91,3 +91,59 @@ export interface JobApplication {
   status?: 'pending' | 'approved' | 'rejected';
   adminNotes?: string;
 }
+
+export interface Department {
+  id: string;
+  name: string;
+  description: string;
+  image_key?: string;
+  hod_id?: string | null;
+  display_order?: number;
+  is_published?: number | boolean;
+  is_archived?: number | boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface StaffMember {
+  id: string;
+  employee_id?: string;
+  full_name: string;
+  profile_photo_key?: string;
+  gender?: string;
+  dob?: string;
+  nationality?: string;
+  job_title: string;
+  role?: string; // e.g. CEO, Department Head, Staff Member
+  department_id?: string | null;
+  specialization?: string;
+  biography?: string;
+  skills?: string; // comma-separated or JSON
+  qualifications?: string;
+  certifications?: string;
+  date_joined?: string;
+  years_of_experience?: number;
+  email?: string;
+  phone?: string;
+  social_links?: string; // JSON string
+  reports_to?: string | null;
+  team?: string;
+  display_order?: number;
+  status?: 'Active' | 'Pending' | 'On Leave' | 'Suspended' | 'Archived';
+  is_published?: number | boolean;
+  show_phone_publicly?: number | boolean;
+  show_email_publicly?: number | boolean;
+  show_bio_publicly?: number | boolean;
+  show_qualifications_publicly?: number | boolean;
+  show_social_publicly?: number | boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface StaffActivityLog {
+  id: string;
+  operator_email: string;
+  action: string;
+  details: string;
+  created_at: string;
+}

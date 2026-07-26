@@ -513,7 +513,146 @@ async function ensureDatabaseTables(db: any) {
     `CREATE INDEX IF NOT EXISTS idx_ongoing_projects_status ON ongoing_projects (status);`,
     `CREATE INDEX IF NOT EXISTS idx_ongoing_projects_published ON ongoing_projects (is_published);`,
     `CREATE INDEX IF NOT EXISTS idx_ongoing_projects_category ON ongoing_projects (category);`,
-    `CREATE INDEX IF NOT EXISTS idx_ongoing_projects_order ON ongoing_projects (display_order);`
+    `CREATE INDEX IF NOT EXISTS idx_ongoing_projects_order ON ongoing_projects (display_order);`,
+
+    `CREATE TABLE IF NOT EXISTS departments (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      image_key TEXT,
+      hod_id TEXT,
+      display_order INTEGER DEFAULT 0,
+      is_published INTEGER DEFAULT 1,
+      is_archived INTEGER DEFAULT 0,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );`,
+    `CREATE TABLE IF NOT EXISTS staff_members (
+      id TEXT PRIMARY KEY,
+      employee_id TEXT,
+      full_name TEXT NOT NULL,
+      profile_photo_key TEXT,
+      gender TEXT,
+      dob TEXT,
+      nationality TEXT,
+      job_title TEXT NOT NULL,
+      role TEXT DEFAULT 'Staff Member',
+      department_id TEXT,
+      specialization TEXT,
+      biography TEXT,
+      skills TEXT,
+      qualifications TEXT,
+      certifications TEXT,
+      date_joined TEXT,
+      years_of_experience INTEGER,
+      email TEXT,
+      phone TEXT,
+      social_links TEXT,
+      reports_to TEXT,
+      team TEXT,
+      display_order INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'Active',
+      is_published INTEGER DEFAULT 1,
+      show_phone_publicly INTEGER DEFAULT 0,
+      show_email_publicly INTEGER DEFAULT 0,
+      show_bio_publicly INTEGER DEFAULT 1,
+      show_qualifications_publicly INTEGER DEFAULT 1,
+      show_social_publicly INTEGER DEFAULT 1,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );`,
+    `CREATE TABLE IF NOT EXISTS staff_activity_logs (
+      id TEXT PRIMARY KEY,
+      operator_email TEXT,
+      action TEXT,
+      details TEXT,
+      created_at TEXT NOT NULL
+    );`,
+    `CREATE INDEX IF NOT EXISTS idx_staff_published ON staff_members (is_published);`,
+    `CREATE INDEX IF NOT EXISTS idx_staff_department ON staff_members (department_id);`,
+    `CREATE INDEX IF NOT EXISTS idx_departments_published ON departments (is_published);`,
+    `CREATE TABLE IF NOT EXISTS staff_announcements (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      image_key TEXT,
+      attachment_key TEXT,
+      target_audience TEXT DEFAULT 'All',
+      department_id TEXT,
+      priority TEXT DEFAULT 'Medium',
+      published_at TEXT,
+      expires_at TEXT,
+      created_by TEXT,
+      created_at TEXT NOT NULL
+    );`,
+    `CREATE TABLE IF NOT EXISTS staff_documents (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT,
+      file_name TEXT,
+      file_size INTEGER,
+      mime_type TEXT,
+      r2_object_key TEXT NOT NULL,
+      target_role TEXT DEFAULT 'All',
+      department_id TEXT,
+      uploaded_by TEXT,
+      created_at TEXT NOT NULL
+    );`,
+    `CREATE TABLE IF NOT EXISTS academy_enrollments (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      course_id TEXT NOT NULL,
+      progress INTEGER DEFAULT 0,
+      status TEXT DEFAULT 'enrolled',
+      completed_lessons TEXT,
+      assigned_tutor_id TEXT,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );`,
+    `CREATE TABLE IF NOT EXISTS academy_tutors (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      full_name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      bio TEXT,
+      expertise TEXT,
+      status TEXT DEFAULT 'pending',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );`,
+    `CREATE TABLE IF NOT EXISTS academy_submissions (
+      id TEXT PRIMARY KEY,
+      enrollment_id TEXT NOT NULL,
+      course_id TEXT NOT NULL,
+      lesson_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      submission_text TEXT,
+      submission_file_key TEXT,
+      grade TEXT,
+      feedback TEXT,
+      status TEXT DEFAULT 'submitted',
+      submitted_at TEXT NOT NULL,
+      graded_at TEXT
+    );`,
+    `CREATE TABLE IF NOT EXISTS academy_quizzes (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      course_id TEXT NOT NULL,
+      lesson_id TEXT NOT NULL,
+      score INTEGER NOT NULL,
+      total_questions INTEGER NOT NULL,
+      passed INTEGER DEFAULT 0,
+      completed_at TEXT NOT NULL
+    );`,
+    `CREATE TABLE IF NOT EXISTS academy_certificates (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      course_id TEXT NOT NULL,
+      course_title TEXT NOT NULL,
+      full_name TEXT NOT NULL,
+      hash TEXT NOT NULL,
+      issued_at TEXT NOT NULL
+    );`
   ];
 
   // Force clean up old unquoted schema to avoid SQL keyword parse errors
@@ -581,6 +720,9 @@ async function ensureDatabaseTables(db: any) {
   } catch (e) {}
   try {
     await db.prepare("ALTER TABLE users ADD COLUMN profile_photo TEXT").run();
+  } catch (e) {}
+  try {
+    await db.prepare("ALTER TABLE staff_members ADD COLUMN password_hash TEXT").run();
   } catch (e) {}
 
   // Insert default user seed if none exists
@@ -3090,6 +3232,256 @@ export async function onRequest(context: { request: Request; env: any; params: a
       }
     }
 
+    // ==========================================
+    // ACADEMY ECOSYSTEM ENDPOINTS
+    // ==========================================
+
+    if (path === '/api/academy/enrollments' && method === 'GET') {
+      const user_id = url.searchParams.get('userId');
+      const tutor_id = url.searchParams.get('tutorId');
+      try {
+        if (env.DB) {
+          let sql = 'SELECT * FROM academy_enrollments';
+          const params: any[] = [];
+          if (user_id) {
+            sql += ' WHERE user_id = ?';
+            params.push(user_id);
+          } else if (tutor_id) {
+            sql += ' WHERE assigned_tutor_id = ?';
+            params.push(tutor_id);
+          }
+          const stmt = env.DB.prepare(sql);
+          const res = params.length > 0 ? await stmt.bind(...params).all() : await stmt.all();
+          return new Response(JSON.stringify(res.results || []), { headers });
+        }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/academy/enrollments' && method === 'POST') {
+      try {
+        const body = await request.json();
+        const id = body.id || ('enroll_' + Math.random().toString(36).substring(2, 11));
+        const user_id = body.user_id;
+        const course_id = body.course_id;
+        const progress = body.progress !== undefined ? Number(body.progress) : 0;
+        const status = body.status || 'enrolled';
+        const completed_lessons = body.completed_lessons || '[]';
+        const assigned_tutor_id = body.assigned_tutor_id || '';
+        const now = new Date().toISOString();
+        if (env.DB) {
+          await env.DB.prepare(`
+            INSERT OR REPLACE INTO academy_enrollments (id, user_id, course_id, progress, status, completed_lessons, assigned_tutor_id, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(id, user_id, course_id, progress, status, completed_lessons, assigned_tutor_id, now, now).run();
+          
+          const record = { id, user_id, course_id, progress, status, completed_lessons, assigned_tutor_id, created_at: now, updated_at: now };
+          
+          broadcastSyncEvent({
+            type: 'ACADEMY_ENROLLMENT_UPDATED',
+            data: record,
+            message: `Enrollment status updated for student ${user_id}`
+          });
+          
+          return new Response(JSON.stringify(record), { headers });
+        }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/academy/tutors' && method === 'GET') {
+      try {
+        if (env.DB) {
+          const res = await env.DB.prepare('SELECT * FROM academy_tutors').all();
+          return new Response(JSON.stringify(res.results || []), { headers });
+        }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/academy/tutors' && method === 'POST') {
+      try {
+        const body = await request.json();
+        const id = body.id || ('tutor_' + Math.random().toString(36).substring(2, 11));
+        const user_id = body.user_id;
+        const full_name = body.full_name;
+        const email = body.email;
+        const bio = body.bio || '';
+        const expertise = body.expertise || '';
+        const status = body.status || 'pending';
+        const now = new Date().toISOString();
+        if (env.DB) {
+          await env.DB.prepare(`
+            INSERT OR REPLACE INTO academy_tutors (id, user_id, full_name, email, bio, expertise, status, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(id, user_id, full_name, email, bio, expertise, status, now, now).run();
+          
+          const record = { id, user_id, full_name, email, bio, expertise, status, created_at: now, updated_at: now };
+          
+          broadcastSyncEvent({
+            type: 'ACADEMY_TUTOR_UPDATED',
+            data: record,
+            message: `Tutor application updated: ${full_name}`
+          });
+          
+          return new Response(JSON.stringify(record), { headers });
+        }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/academy/submissions' && method === 'GET') {
+      const user_id = url.searchParams.get('userId');
+      const course_id = url.searchParams.get('courseId');
+      try {
+        if (env.DB) {
+          let sql = 'SELECT * FROM academy_submissions';
+          const params: any[] = [];
+          if (user_id) {
+            sql += ' WHERE user_id = ?';
+            params.push(user_id);
+          } else if (course_id) {
+            sql += ' WHERE course_id = ?';
+            params.push(course_id);
+          }
+          const stmt = env.DB.prepare(sql);
+          const res = params.length > 0 ? await stmt.bind(...params).all() : await stmt.all();
+          return new Response(JSON.stringify(res.results || []), { headers });
+        }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/academy/submissions' && method === 'POST') {
+      try {
+        const body = await request.json();
+        const id = body.id || ('sub_' + Math.random().toString(36).substring(2, 11));
+        const enrollment_id = body.enrollment_id;
+        const course_id = body.course_id;
+        const lesson_id = body.lesson_id;
+        const user_id = body.user_id;
+        const submission_text = body.submission_text || '';
+        const submission_file_key = body.submission_file_key || '';
+        const grade = body.grade || '';
+        const feedback = body.feedback || '';
+        const status = body.status || 'submitted';
+        const submitted_at = body.submitted_at || new Date().toISOString();
+        const graded_at = body.graded_at || null;
+        if (env.DB) {
+          await env.DB.prepare(`
+            INSERT OR REPLACE INTO academy_submissions (id, enrollment_id, course_id, lesson_id, user_id, submission_text, submission_file_key, grade, feedback, status, submitted_at, graded_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(id, enrollment_id, course_id, lesson_id, user_id, submission_text, submission_file_key, grade, feedback, status, submitted_at, graded_at).run();
+          
+          const record = { id, enrollment_id, course_id, lesson_id, user_id, submission_text, submission_file_key, grade, feedback, status, submitted_at, graded_at };
+          
+          broadcastSyncEvent({
+            type: 'ACADEMY_SUBMISSION_SAVED',
+            data: record,
+            message: `Academy coursework submission logged`
+          });
+          
+          return new Response(JSON.stringify(record), { headers });
+        }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/academy/quizzes' && method === 'GET') {
+      const user_id = url.searchParams.get('userId');
+      try {
+        if (env.DB) {
+          let sql = 'SELECT * FROM academy_quizzes';
+          const params: any[] = [];
+          if (user_id) {
+            sql += ' WHERE user_id = ?';
+            params.push(user_id);
+          }
+          const stmt = env.DB.prepare(sql);
+          const res = params.length > 0 ? await stmt.bind(...params).all() : await stmt.all();
+          return new Response(JSON.stringify(res.results || []), { headers });
+        }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/academy/quizzes' && method === 'POST') {
+      try {
+        const body = await request.json();
+        const id = body.id || ('quiz_' + Math.random().toString(36).substring(2, 11));
+        const user_id = body.user_id;
+        const course_id = body.course_id;
+        const lesson_id = body.lesson_id;
+        const score = Number(body.score);
+        const total_questions = Number(body.total_questions);
+        const passed = body.passed ? 1 : 0;
+        const completed_at = new Date().toISOString();
+        if (env.DB) {
+          await env.DB.prepare(`
+            INSERT OR REPLACE INTO academy_quizzes (id, user_id, course_id, lesson_id, score, total_questions, passed, completed_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(id, user_id, course_id, lesson_id, score, total_questions, passed, completed_at).run();
+          
+          const record = { id, user_id, course_id, lesson_id, score, total_questions, passed, completed_at };
+          
+          return new Response(JSON.stringify(record), { headers });
+        }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/academy/certificates' && method === 'GET') {
+      const user_id = url.searchParams.get('userId');
+      try {
+        if (env.DB) {
+          let sql = 'SELECT * FROM academy_certificates';
+          const params: any[] = [];
+          if (user_id) {
+            sql += ' WHERE user_id = ?';
+            params.push(user_id);
+          }
+          const stmt = env.DB.prepare(sql);
+          const res = params.length > 0 ? await stmt.bind(...params).all() : await stmt.all();
+          return new Response(JSON.stringify(res.results || []), { headers });
+        }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/academy/certificates' && method === 'POST') {
+      try {
+        const body = await request.json();
+        const id = body.id || ('cert_' + Math.random().toString(36).substring(2, 11));
+        const user_id = body.user_id;
+        const course_id = body.course_id;
+        const course_title = body.course_title;
+        const full_name = body.full_name;
+        const hash = body.hash || ('dstech_' + Math.random().toString(36).substring(2, 15));
+        const issued_at = new Date().toISOString();
+        if (env.DB) {
+          await env.DB.prepare(`
+            INSERT OR REPLACE INTO academy_certificates (id, user_id, course_id, course_title, full_name, hash, issued_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+          `).bind(id, user_id, course_id, course_title, full_name, hash, issued_at).run();
+          
+          const record = { id, user_id, course_id, course_title, full_name, hash, issued_at };
+          
+          return new Response(JSON.stringify(record), { headers });
+        }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
     if (path === '/api/ongoing-projects/publish' && method === 'PATCH') {
       try {
         const { id, is_published } = await request.json();
@@ -3975,6 +4367,797 @@ export async function onRequest(context: { request: Request; env: any; params: a
           ).bind(key, value).run();
         }
         return new Response(JSON.stringify({ success: true }), { headers });
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+      }
+    }
+
+    // ==========================================
+    // ENTERPRISE STAFF & DEPARTMENT ENDPOINTS
+    // ==========================================
+
+    if (path === '/api/departments') {
+      if (method === 'GET') {
+        const adminParam = url.searchParams.get('admin');
+        try {
+          if (env.DB) {
+            let queryStr = 'SELECT * FROM departments';
+            if (adminParam !== 'true') {
+              queryStr += ' WHERE is_published = 1 AND is_archived = 0';
+            }
+            queryStr += ' ORDER BY display_order ASC, name ASC';
+            const results = await env.DB.prepare(queryStr).all();
+            return new Response(JSON.stringify(results.results || []), { headers });
+          }
+          return new Response(JSON.stringify([]), { headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+
+      if (method === 'POST') {
+        try {
+          const body = await request.json();
+          const id = body.id || ('dept_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now());
+          const name = body.name || 'Untitled Department';
+          const description = body.description || '';
+          const image_key = body.image_key || '';
+          const hod_id = body.hod_id || null;
+          const display_order = body.display_order !== undefined ? Number(body.display_order) : 0;
+          const is_published = body.is_published !== undefined ? (body.is_published ? 1 : 0) : 1;
+          const is_archived = body.is_archived !== undefined ? (body.is_archived ? 1 : 0) : 0;
+          const now = new Date().toISOString();
+
+          if (env.DB) {
+            const check = await env.DB.prepare('SELECT created_at FROM departments WHERE id = ?').bind(id).all();
+            const created_at = check.results?.[0]?.created_at || now;
+
+            await env.DB.prepare(`
+              INSERT OR REPLACE INTO departments (id, name, description, image_key, hod_id, display_order, is_published, is_archived, created_at, updated_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `).bind(id, name, description, image_key, hod_id, display_order, is_published, is_archived, created_at, now).run();
+
+            const record = { id, name, description, image_key, hod_id, display_order, is_published, is_archived, created_at, updated_at: now };
+            
+            broadcastSyncEvent({
+              type: 'DEPARTMENT_SAVED',
+              record,
+              message: `Department saved: ${name}`
+            });
+
+            return new Response(JSON.stringify({ success: true, department: record }), { headers });
+          }
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+
+      if (method === 'DELETE') {
+        const idParam = url.searchParams.get('id');
+        if (!idParam) {
+          return new Response(JSON.stringify({ error: "Missing id query parameter" }), { status: 400, headers });
+        }
+        try {
+          if (env.DB) {
+            await env.DB.prepare('DELETE FROM departments WHERE id = ?').bind(idParam).run();
+            await env.DB.prepare('UPDATE staff_members SET department_id = NULL WHERE department_id = ?').bind(idParam).run();
+            
+            broadcastSyncEvent({
+              type: 'DEPARTMENT_DELETED',
+              id: idParam,
+              message: `Department deleted`
+            });
+
+            return new Response(JSON.stringify({ success: true, id: idParam }), { headers });
+          }
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+    }
+
+    if (path === '/api/staff') {
+      if (method === 'GET') {
+        const adminParam = url.searchParams.get('admin');
+        const deptId = url.searchParams.get('department_id');
+        try {
+          if (env.DB) {
+            let queryStr = 'SELECT * FROM staff_members';
+            const params: any[] = [];
+            const conditions: string[] = [];
+
+            if (adminParam !== 'true') {
+              conditions.push("is_published = 1 AND status = 'Active'");
+            }
+            if (deptId) {
+              conditions.push("department_id = ?");
+              params.push(deptId);
+            }
+
+            if (conditions.length > 0) {
+              queryStr += ' WHERE ' + conditions.join(' AND ');
+            }
+            queryStr += ' ORDER BY display_order ASC, full_name ASC';
+
+            const results = await env.DB.prepare(queryStr).bind(...params).all();
+            return new Response(JSON.stringify(results.results || []), { headers });
+          }
+          return new Response(JSON.stringify([]), { headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+
+      if (method === 'POST') {
+        try {
+          const body = await request.json();
+          const id = body.id || ('staff_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now());
+          const employee_id = body.employee_id || '';
+          const full_name = body.full_name || 'Untitled Staff';
+          const profile_photo_key = body.profile_photo_key || '';
+          const gender = body.gender || '';
+          const dob = body.dob || '';
+          const nationality = body.nationality || '';
+          const job_title = body.job_title || '';
+          const role = body.role || 'Staff Member';
+          const department_id = body.department_id || null;
+          const specialization = body.specialization || '';
+          const biography = body.biography || '';
+          const skills = body.skills || '';
+          const qualifications = body.qualifications || '';
+          const certifications = body.certifications || '';
+          const date_joined = body.date_joined || '';
+          const years_of_experience = body.years_of_experience !== undefined ? Number(body.years_of_experience) : 0;
+          const email = body.email || '';
+          const phone = body.phone || '';
+          const social_links = body.social_links || '{}';
+          const reports_to = body.reports_to || null;
+          const team = body.team || '';
+          const display_order = body.display_order !== undefined ? Number(body.display_order) : 0;
+          const status = body.status || 'Active';
+          const is_published = body.is_published !== undefined ? (body.is_published ? 1 : 0) : 1;
+          const show_phone_publicly = body.show_phone_publicly !== undefined ? (body.show_phone_publicly ? 1 : 0) : 0;
+          const show_email_publicly = body.show_email_publicly !== undefined ? (body.show_email_publicly ? 1 : 0) : 0;
+          const show_bio_publicly = body.show_bio_publicly !== undefined ? (body.show_bio_publicly ? 1 : 0) : 1;
+          const show_qualifications_publicly = body.show_qualifications_publicly !== undefined ? (body.show_qualifications_publicly ? 1 : 0) : 1;
+          const show_social_publicly = body.show_social_publicly !== undefined ? (body.show_social_publicly ? 1 : 0) : 1;
+          const now = new Date().toISOString();
+
+          if (env.DB) {
+            const check = await env.DB.prepare('SELECT created_at FROM staff_members WHERE id = ?').bind(id).all();
+            const created_at = check.results?.[0]?.created_at || now;
+
+            await env.DB.prepare(`
+              INSERT OR REPLACE INTO staff_members (
+                id, employee_id, full_name, profile_photo_key, gender, dob, nationality, job_title, role, department_id,
+                specialization, biography, skills, qualifications, certifications, date_joined, years_of_experience,
+                email, phone, social_links, reports_to, team, display_order, status, is_published,
+                show_phone_publicly, show_email_publicly, show_bio_publicly, show_qualifications_publicly, show_social_publicly,
+                created_at, updated_at
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `).bind(
+              id, employee_id, full_name, profile_photo_key, gender, dob, nationality, job_title, role, department_id,
+              specialization, biography, skills, qualifications, certifications, date_joined, years_of_experience,
+              email, phone, social_links, reports_to, team, display_order, status, is_published,
+              show_phone_publicly, show_email_publicly, show_bio_publicly, show_qualifications_publicly, show_social_publicly,
+              created_at, now
+            ).run();
+
+            const record = {
+              id, employee_id, full_name, profile_photo_key, gender, dob, nationality, job_title, role, department_id,
+              specialization, biography, skills, qualifications, certifications, date_joined, years_of_experience,
+              email, phone, social_links, reports_to, team, display_order, status, is_published,
+              show_phone_publicly, show_email_publicly, show_bio_publicly, show_qualifications_publicly, show_social_publicly,
+              created_at, updated_at: now
+            };
+
+            broadcastSyncEvent({
+              type: 'STAFF_SAVED',
+              record,
+              message: `Staff member saved: ${full_name}`
+            });
+
+            return new Response(JSON.stringify({ success: true, staff: record }), { headers });
+          }
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+
+      if (method === 'DELETE') {
+        const idParam = url.searchParams.get('id');
+        if (!idParam) {
+          return new Response(JSON.stringify({ error: "Missing id query parameter" }), { status: 400, headers });
+        }
+        try {
+          if (env.DB) {
+            await env.DB.prepare('DELETE FROM staff_members WHERE id = ?').bind(idParam).run();
+            await env.DB.prepare('UPDATE departments SET hod_id = NULL WHERE hod_id = ?').bind(idParam).run();
+            
+            broadcastSyncEvent({
+              type: 'STAFF_DELETED',
+              id: idParam,
+              message: `Staff member deleted`
+            });
+
+            return new Response(JSON.stringify({ success: true, id: idParam }), { headers });
+          }
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+    }
+
+    if (path === '/api/staff/upload' && method === 'POST') {
+      try {
+        const formData = await request.formData();
+        const file = formData.get('file') as File;
+        if (!file) {
+          return new Response(JSON.stringify({ error: "No file uploaded" }), { status: 400, headers });
+        }
+        
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+          return new Response(JSON.stringify({ error: "Invalid file type. Only standard web images are allowed." }), { status: 400, headers });
+        }
+        
+        const maxBytes = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxBytes) {
+          return new Response(JSON.stringify({ error: "File size exceeds 5MB limit." }), { status: 400, headers });
+        }
+        
+        const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+        const objectKey = `staff/${Date.now()}_${sanitizedName}`;
+        
+        const fileBuffer = await file.arrayBuffer();
+        if (env.BUCKET) {
+          await env.BUCKET.put(objectKey, fileBuffer, {
+            httpMetadata: { contentType: file.type }
+          });
+        } else {
+          console.warn("R2 BUCKET binding not found. Simulating file upload.");
+          await handleLocalFileFallback(objectKey, fileBuffer, file.type);
+        }
+        
+        return new Response(JSON.stringify({
+          success: true,
+          r2_object_key: objectKey,
+          file_name: file.name
+        }), { headers });
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/staff/file' && method === 'GET') {
+      const key = url.searchParams.get('key');
+      if (!key) {
+        return new Response(JSON.stringify({ error: "Missing key parameter" }), { status: 400, headers });
+      }
+      
+      try {
+        if (env.BUCKET) {
+          const object = await env.BUCKET.get(key);
+          if (object) {
+            const fileHeaders = new Headers();
+            object.writeHttpMetadata(fileHeaders);
+            fileHeaders.set('Access-Control-Allow-Origin', '*');
+            fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
+            return new Response(object.body, { headers: fileHeaders });
+          }
+        }
+        
+        const localFile = await handleLocalFileFallback(key);
+        if (localFile.success && localFile.data) {
+          const fileHeaders = new Headers();
+          fileHeaders.set('Content-Type', localFile.mimeType || 'application/octet-stream');
+          fileHeaders.set('Access-Control-Allow-Origin', '*');
+          return new Response(localFile.data, { headers: fileHeaders });
+        }
+        
+        return new Response(null, { status: 302, headers: { 'Location': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80' } });
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/staff/logs') {
+      if (method === 'GET') {
+        try {
+          if (env.DB) {
+            const logs = await env.DB.prepare('SELECT * FROM staff_activity_logs ORDER BY created_at DESC LIMIT 100').all();
+            return new Response(JSON.stringify(logs.results || []), { headers });
+          }
+          return new Response(JSON.stringify([]), { headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+
+      if (method === 'POST') {
+        try {
+          const body = await request.json();
+          const id = 'log_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+          const operator_email = body.operator_email || 'System';
+          const action = body.action || 'Action';
+          const details = body.details || '';
+          const now = new Date().toISOString();
+          if (env.DB) {
+            await env.DB.prepare('INSERT INTO staff_activity_logs (id, operator_email, action, details, created_at) VALUES (?, ?, ?, ?, ?)')
+              .bind(id, operator_email, action, details, now).run();
+            return new Response(JSON.stringify({ success: true, id }), { headers });
+          }
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+    }
+
+    // ==========================================
+    // 8.1 STAFF REGISTRATION & AUTHENTICATION (Prompt 6)
+    // ==========================================
+
+    if (path === '/api/staff/register' && method === 'POST') {
+      try {
+        const body = await request.json();
+        const { 
+          email, password, fullName, phone, jobTitle, departmentId, 
+          gender, dob, nationality, specialization, biography, 
+          skills, qualifications, certifications, dateJoined 
+        } = body;
+
+        if (!email || !password || !fullName) {
+          return new Response(JSON.stringify({ error: "Missing required core fields: email, password, and fullName." }), { status: 400, headers });
+        }
+
+        if (!env.DB) {
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        }
+
+        // Check if staff member already exists
+        const check = await env.DB.prepare("SELECT * FROM staff_members WHERE LOWER(email) = ?").bind(email.toLowerCase()).all();
+        const existing = check.results?.[0];
+
+        const passHash = await hashPassword(password);
+        const now = new Date().toISOString();
+        const staffId = existing?.id || 'staff_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+
+        if (existing) {
+          // Update credentials and reset to pending approval
+          await env.DB.prepare(`
+            UPDATE staff_members SET 
+              full_name = ?, phone = ?, job_title = ?, department_id = ?, password_hash = ?, 
+              gender = ?, dob = ?, nationality = ?, specialization = ?, biography = ?, 
+              skills = ?, qualifications = ?, certifications = ?, date_joined = ?, 
+              status = 'Pending Approval', updated_at = ?
+            WHERE id = ?
+          `).bind(
+            fullName, phone || existing.phone, jobTitle || existing.job_title, departmentId || existing.department_id, passHash,
+            gender || existing.gender, dob || existing.dob, nationality || existing.nationality, specialization || existing.specialization, biography || existing.biography,
+            skills || existing.skills, qualifications || existing.qualifications, certifications || existing.certifications, dateJoined || existing.date_joined,
+            now, existing.id
+          ).run();
+        } else {
+          // Insert new staff member as Pending Approval
+          await env.DB.prepare(`
+            INSERT INTO staff_members (
+              id, employee_id, full_name, profile_photo_key, gender, dob, nationality, job_title, role, department_id,
+              specialization, biography, skills, qualifications, certifications, date_joined, years_of_experience,
+              email, phone, social_links, reports_to, team, display_order, status, is_published,
+              show_phone_publicly, show_email_publicly, show_bio_publicly, show_qualifications_publicly, show_social_publicly,
+              password_hash, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(
+            staffId, 'STF-' + Math.floor(1000 + Math.random() * 9000), fullName, '', gender || '', dob || '', nationality || '', jobTitle || 'Specialist', 'Staff Member', departmentId || null,
+            specialization || '', biography || '', skills || '', qualifications || '', certifications || '', dateJoined || now, 0,
+            email.toLowerCase(), phone || '', '{}', null, '', 0, 'Pending Approval', 0,
+            0, 0, 1, 1, 1,
+            passHash, now, now
+          ).run();
+        }
+
+        // Add to staff activity log
+        const logId = 'log_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+        await env.DB.prepare('INSERT INTO staff_activity_logs (id, operator_email, action, details, created_at) VALUES (?, ?, ?, ?, ?)')
+          .bind(logId, email.toLowerCase(), 'Registration', `Staff account registered for ${fullName} (${email}). Status set to Pending Approval.`, now).run();
+
+        broadcastSyncEvent({
+          type: 'STAFF_REGISTERED',
+          email,
+          fullName,
+          message: `New staff member registered: ${fullName}. Awaiting admin review.`
+        });
+
+        return new Response(JSON.stringify({ success: true, message: "Staff registration completed. Awaiting admin review." }), { headers });
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/staff/login' && method === 'POST') {
+      try {
+        const body = await request.json();
+        const { email, password } = body;
+
+        if (!email || !password) {
+          return new Response(JSON.stringify({ error: "Missing email or password." }), { status: 400, headers });
+        }
+
+        if (!env.DB) {
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        }
+
+        const results = await env.DB.prepare("SELECT * FROM staff_members WHERE LOWER(email) = ?").bind(email.toLowerCase()).all();
+        const staff = results.results?.[0];
+
+        if (!staff) {
+          return new Response(JSON.stringify({ error: "Access Denied: Incorrect email or password." }), { status: 401, headers });
+        }
+
+        if (!staff.password_hash) {
+          return new Response(JSON.stringify({ error: "Account profile exists, but has no password set. Please register first." }), { status: 401, headers });
+        }
+
+        const inputHash = await hashPassword(password);
+        if (staff.password_hash !== inputHash) {
+          return new Response(JSON.stringify({ error: "Access Denied: Incorrect email or password." }), { status: 401, headers });
+        }
+
+        if (staff.status === 'Pending Approval' || staff.status === 'Pending') {
+          return new Response(JSON.stringify({ error: "Account pending review. Please contact HR or wait for administrator activation." }), { status: 403, headers });
+        }
+
+        if (staff.status === 'Suspended') {
+          return new Response(JSON.stringify({ error: "Account suspended due to security compliance reviews. Please contact security/HR." }), { status: 403, headers });
+        }
+
+        if (staff.status === 'Deactivated') {
+          return new Response(JSON.stringify({ error: "Account deactivated. Please contact your Department Head." }), { status: 403, headers });
+        }
+
+        const staffSession = {
+          userId: staff.id,
+          email: staff.email,
+          fullName: staff.full_name,
+          role: staff.role || 'Staff Member',
+          isStaff: true,
+          departmentId: staff.department_id,
+          status: staff.status
+        };
+
+        headers.append('Set-Cookie', `dstech_session=${btoa(JSON.stringify(staffSession))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
+
+        // Log session
+        const logId = 'log_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+        await env.DB.prepare('INSERT INTO staff_activity_logs (id, operator_email, action, details, created_at) VALUES (?, ?, ?, ?, ?)')
+          .bind(logId, staff.email, 'Login', `Staff login successful. Role: ${staff.role}.`, new Date().toISOString()).run();
+
+        return new Response(JSON.stringify({ success: true, user: staffSession }), { headers });
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/staff/me' && method === 'GET') {
+      try {
+        const authUser = getAuthorizedUser(request);
+        if (!authUser) {
+          return new Response(JSON.stringify({ loggedIn: false }), { headers });
+        }
+
+        if (!env.DB) {
+          return new Response(JSON.stringify({ loggedIn: true, user: authUser }), { headers });
+        }
+
+        const results = await env.DB.prepare("SELECT * FROM staff_members WHERE id = ?").bind(authUser.userId).all();
+        const staff = results.results?.[0];
+
+        if (!staff) {
+          // If no staff record found but user has a session, they might be a general admin or candidate
+          return new Response(JSON.stringify({ loggedIn: true, user: authUser }), { headers });
+        }
+
+        const staffDetails = {
+          id: staff.id,
+          employeeId: staff.employee_id,
+          email: staff.email,
+          fullName: staff.full_name,
+          role: staff.role,
+          departmentId: staff.department_id,
+          status: staff.status,
+          gender: staff.gender,
+          dob: staff.dob,
+          nationality: staff.nationality,
+          jobTitle: staff.job_title,
+          specialization: staff.specialization,
+          biography: staff.biography,
+          skills: staff.skills,
+          qualifications: staff.qualifications,
+          certifications: staff.certifications,
+          dateJoined: staff.date_joined,
+          profilePhotoKey: staff.profile_photo_key,
+          isStaff: true
+        };
+
+        return new Response(JSON.stringify({ loggedIn: true, user: staffDetails }), { headers });
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/staff/logout' && method === 'POST') {
+      headers.append('Set-Cookie', 'dstech_session=; Path=/; HttpOnly; SameSite=Lax; Max-Age=0');
+      return new Response(JSON.stringify({ success: true }), { headers });
+    }
+
+    // ==========================================
+    // 8.2 STAFF ANNOUNCEMENTS API
+    // ==========================================
+
+    if (path === '/api/staff/announcements') {
+      if (!env.DB) {
+        return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+      }
+
+      if (method === 'GET') {
+        const deptId = url.searchParams.get('department_id');
+        try {
+          let query = "SELECT * FROM staff_announcements";
+          const params: any[] = [];
+          if (deptId) {
+            query += " WHERE department_id = ? OR target_audience = 'All'";
+            params.push(deptId);
+          }
+          query += " ORDER BY created_at DESC";
+          const res = await env.DB.prepare(query).bind(...params).all();
+          return new Response(JSON.stringify(res.results || []), { headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+
+      if (method === 'POST') {
+        try {
+          const body = await request.json();
+          const id = 'ann_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+          const { title, content, imageKey, attachmentKey, targetAudience, departmentId, priority, createdBy } = body;
+
+          const now = new Date().toISOString();
+          await env.DB.prepare(`
+            INSERT INTO staff_announcements (id, title, content, image_key, attachment_key, target_audience, department_id, priority, published_at, created_by, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(id, title, content, imageKey || '', attachmentKey || '', targetAudience || 'All', departmentId || null, priority || 'Medium', now, createdBy || 'Admin', now).run();
+
+          // Push a persistent notification to staff
+          const notifId = 'notif_' + Math.random().toString(36).substring(2, 11);
+          await env.DB.prepare(`
+            INSERT INTO "notifications" ("id", "title", "message", "read", "createdAt", "recipientRole", "userId", "type", "priority", "actionUrl")
+            VALUES (?, ?, ?, 0, ?, 'staff', 'all', 'info', ?, ?)
+          `).bind(notifId, `New Announcement: ${title}`, content.substring(0, 100), now, priority || 'Medium', `/`).run();
+
+          broadcastSyncEvent({
+            type: 'ANNOUNCEMENT_CREATED',
+            title,
+            message: `New announcement published: ${title}`
+          });
+
+          return new Response(JSON.stringify({ success: true, id }), { headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+
+      if (method === 'DELETE') {
+        const idParam = url.searchParams.get('id');
+        if (!idParam) {
+          return new Response(JSON.stringify({ error: "Missing id parameter" }), { status: 400, headers });
+        }
+        try {
+          await env.DB.prepare("DELETE FROM staff_announcements WHERE id = ?").bind(idParam).run();
+          return new Response(JSON.stringify({ success: true }), { headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+    }
+
+    if (path === '/api/staff/announcements/init' && method === 'POST') {
+      try {
+        if (env.DB) {
+          const check = await env.DB.prepare("SELECT COUNT(*) as count FROM staff_announcements").all();
+          if (check.results?.[0]?.count === 0) {
+            const now = new Date().toISOString();
+            await env.DB.prepare(`
+              INSERT INTO staff_announcements (id, title, content, target_audience, priority, published_at, created_by, created_at)
+              VALUES 
+              ('ann_1', 'Welcome to DS Tech Hub Portal!', 'We are excited to launch our secure internal employee cockpit. This portal lets you check team directories, company announcements, policy books, and department documents safely.', 'All', 'High', ?, 'Managing Director', ?),
+              ('ann_2', 'Q3 Performance and KPI Appraisals', 'All team leads must submit their departmental self-assessments before August 15. The HR review cycle commences thereafter.', 'All', 'Medium', ?, 'HR Team', ?),
+              ('ann_3', 'System Security compliance upgrade', 'Please check that your professional profiles have updated skills, qualifications, and correct employee identifiers to enable biometric ID badge generator.', 'All', 'High', ?, 'Security Officer', ?)
+            `).bind(now, now, now, now, now, now).run();
+          }
+          return new Response(JSON.stringify({ success: true }), { headers });
+        }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    // ==========================================
+    // 8.3 STAFF DOCUMENTS API
+    // ==========================================
+
+    if (path === '/api/staff/documents') {
+      if (!env.DB) {
+        return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+      }
+
+      if (method === 'GET') {
+        try {
+          const res = await env.DB.prepare("SELECT * FROM staff_documents ORDER BY created_at DESC").all();
+          return new Response(JSON.stringify(res.results || []), { headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+
+      if (method === 'POST') {
+        try {
+          const body = await request.json();
+          const id = 'doc_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+          const { title, description, fileName, fileSize, mimeType, r2ObjectKey, targetRole, departmentId, uploadedBy } = body;
+
+          const now = new Date().toISOString();
+          await env.DB.prepare(`
+            INSERT INTO staff_documents (id, title, description, file_name, file_size, mime_type, r2_object_key, target_role, department_id, uploaded_by, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(id, title, description || '', fileName || '', fileSize || 0, mimeType || '', r2ObjectKey, targetRole || 'All', departmentId || null, uploadedBy || 'Admin', now).run();
+
+          return new Response(JSON.stringify({ success: true, id }), { headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+
+      if (method === 'DELETE') {
+        const idParam = url.searchParams.get('id');
+        if (!idParam) {
+          return new Response(JSON.stringify({ error: "Missing id parameter" }), { status: 400, headers });
+        }
+        try {
+          await env.DB.prepare("DELETE FROM staff_documents WHERE id = ?").bind(idParam).run();
+          return new Response(JSON.stringify({ success: true }), { headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+    }
+
+    if (path === '/api/staff/documents/init' && method === 'POST') {
+      try {
+        if (env.DB) {
+          const check = await env.DB.prepare("SELECT COUNT(*) as count FROM staff_documents").all();
+          if (check.results?.[0]?.count === 0) {
+            const now = new Date().toISOString();
+            await env.DB.prepare(`
+              INSERT INTO staff_documents (id, title, description, file_name, file_size, mime_type, r2_object_key, target_role, uploaded_by, created_at)
+              VALUES 
+              ('doc_1', 'DS Tech Corporate Handbook v2', 'Detailed corporate code of conduct, compensation schemes, and information disclosure policies.', 'Corporate_Handbook_v2.pdf', 3421000, 'application/pdf', 'staff_docs/Corporate_Handbook_v2.pdf', 'All', 'HR Director', ?),
+              ('doc_2', 'Decentralized Workspace Security Protocol', 'Instructions on access controls, Cloudflare tunnel configurations, and secret key practices.', 'Security_Protocol.pdf', 1245000, 'application/pdf', 'staff_docs/Security_Protocol.pdf', 'All', 'Security Chief', ?)
+            `).bind(now, now).run();
+          }
+          return new Response(JSON.stringify({ success: true }), { headers });
+        }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    // ==========================================
+    // 8.4 STAFF PROFILE UPDATE & ADMIN CONTROLS
+    // ==========================================
+
+    if (path === '/api/staff/profile/update' && method === 'PUT') {
+      try {
+        const authUser = getAuthorizedUser(request);
+        if (!authUser) {
+          return new Response(JSON.stringify({ error: "Unauthorized session." }), { status: 401, headers });
+        }
+
+        const body = await request.json();
+        const { profilePhotoKey, biography, skills, phone, specialization, qualifications, certifications } = body;
+
+        if (!env.DB) {
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        }
+
+        const now = new Date().toISOString();
+        await env.DB.prepare(`
+          UPDATE staff_members SET 
+            profile_photo_key = ?, biography = ?, skills = ?, phone = ?, specialization = ?, qualifications = ?, certifications = ?, updated_at = ?
+          WHERE id = ?
+        `).bind(
+          profilePhotoKey, biography, skills, phone, specialization, qualifications, certifications, now, authUser.userId
+        ).run();
+
+        // Log action
+        const logId = 'log_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+        await env.DB.prepare('INSERT INTO staff_activity_logs (id, operator_email, action, details, created_at) VALUES (?, ?, ?, ?, ?)')
+          .bind(logId, authUser.email, 'Profile Update', `Self-updated bio, skills, photo key, and qualifications details.`, now).run();
+
+        return new Response(JSON.stringify({ success: true, message: "Profile updated successfully!" }), { headers });
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/staff/admin/status' && method === 'POST') {
+      try {
+        const authUser = getAuthorizedUser(request);
+        // Ensure operator has admin permissions
+        if (!authUser || (authUser.role !== 'Admin' && authUser.role !== 'HR Officer' && authUser.role !== 'Super Admin')) {
+          return new Response(JSON.stringify({ error: "Forbidden: Administrative access required." }), { status: 403, headers });
+        }
+
+        const body = await request.json();
+        const { staffId, status, role, departmentId, jobTitle, employeeId } = body;
+
+        if (!staffId) {
+          return new Response(JSON.stringify({ error: "Missing staffId parameter." }), { status: 400, headers });
+        }
+
+        if (!env.DB) {
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        }
+
+        const checkResult = await env.DB.prepare("SELECT * FROM staff_members WHERE id = ?").bind(staffId).all();
+        const staff = checkResult.results?.[0];
+
+        if (!staff) {
+          return new Response(JSON.stringify({ error: "Staff member profile not found." }), { status: 404, headers });
+        }
+
+        const now = new Date().toISOString();
+        await env.DB.prepare(`
+          UPDATE staff_members SET 
+            status = ?, role = ?, department_id = ?, job_title = ?, employee_id = ?, updated_at = ?, is_published = ?
+          WHERE id = ?
+        `).bind(
+          status || staff.status,
+          role || staff.role,
+          departmentId !== undefined ? departmentId : staff.department_id,
+          jobTitle || staff.job_title,
+          employeeId || staff.employee_id,
+          now,
+          (status === 'Active' ? 1 : 0), // publish automatically if active, unpublish if suspended/pending
+          staffId
+        ).run();
+
+        // Push status change notification to this staff
+        const notifId = 'notif_' + Math.random().toString(36).substring(2, 11);
+        await env.DB.prepare(`
+          INSERT INTO "notifications" ("id", "title", "message", "read", "createdAt", "recipientRole", "userId", "type", "priority", "actionUrl")
+          VALUES (?, ?, ?, 0, ?, 'staff', ?, 'info', 'high', ?)
+        `).bind(notifId, `Account status update: ${status}`, `An administrator has set your account status to ${status} and role to ${role || staff.role}.`, now, staff.email, `/`).run();
+
+        // Log action
+        const logId = 'log_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
+        await env.DB.prepare('INSERT INTO staff_activity_logs (id, operator_email, action, details, created_at) VALUES (?, ?, ?, ?, ?)')
+          .bind(logId, authUser.email, 'Admin Staff Mod', `Modified staff member ${staff.full_name} (${staff.email}): Status=${status}, Role=${role}, Dept=${departmentId}.`, now).run();
+
+        broadcastSyncEvent({
+          type: 'STAFF_STATUS_UPDATED',
+          staffId,
+          status,
+          role,
+          message: `Administrative settings updated for ${staff.full_name}`
+        });
+
+        return new Response(JSON.stringify({ success: true, message: "Administrative updates saved." }), { headers });
       } catch (err: any) {
         return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
       }
