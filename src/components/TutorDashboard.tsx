@@ -5,7 +5,7 @@ import {
   ArrowRight, Users, Eye, HelpCircle, Trophy, UserCheck, ShieldAlert,
   Plus, Send, ClipboardList, TrendingUp, Sparkles, Check, CheckCircle2,
   Bookmark, User, FileText, AlertCircle, RefreshCw, Trash2, Edit, 
-  Search, MessageSquare, Mail, Calendar, Sparkle
+  Search, MessageSquare, Mail, Calendar, Sparkle, Globe
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
@@ -61,7 +61,7 @@ interface Certificate {
   issued_at: string;
 }
 
-export const TutorDashboard: React.FC = () => {
+export const TutorDashboard: React.FC<{ onBackToPortal?: () => void }> = ({ onBackToPortal }) => {
   // Current Active Tutor User Context (Matches David Alao Lead Trainer)
   const [currentUser, setCurrentUser] = useState({
     id: 'usr_david',
@@ -71,7 +71,7 @@ export const TutorDashboard: React.FC = () => {
   });
 
   // Database States
-  const [courses, setCourses] = useState<Course[]>(COURSES);
+  const [courses, setCourses] = useState<Course[]>([]);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [tutors, setTutors] = useState<Tutor[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -527,6 +527,16 @@ export const TutorDashboard: React.FC = () => {
         </div>
 
         <div className="flex flex-wrap gap-2.5 shrink-0 relative z-10">
+          {onBackToPortal && (
+            <button
+              onClick={onBackToPortal}
+              className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <Globe size={14} className="text-orange-400" />
+              <span>Back to Main Site</span>
+            </button>
+          )}
+
           <button
             onClick={() => setShowCourseCreator(prev => !prev)}
             className="px-4.5 py-2.5 bg-orange-600 hover:bg-orange-500 text-white text-[11px] font-black uppercase tracking-wider rounded-xl flex items-center gap-2 shadow-md transition-all transform hover:scale-[1.02] cursor-pointer"

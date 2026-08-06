@@ -192,7 +192,7 @@ const getSeedDataForFocus = (focus: string, companyName: string, budget: string)
   return { projects, invoices, tickets };
 };
 
-export const ClientPortalSection: React.FC = () => {
+export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({ onBackToPortal }) => {
   // Theme dark mode state
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
 
@@ -640,6 +640,18 @@ export const ClientPortalSection: React.FC = () => {
 
           <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden relative z-10 p-8 space-y-6">
             
+            {onBackToPortal && (
+              <button
+                type="button"
+                onClick={onBackToPortal}
+                className="absolute top-6 left-6 p-2.5 sm:px-4 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all cursor-pointer shadow-sm flex items-center gap-1.5 z-50"
+                title="Back to Main Site"
+              >
+                <ArrowLeft size={15} className="text-orange-500" />
+                <span className="hidden sm:inline text-xs font-bold uppercase tracking-widest text-slate-500">Back</span>
+              </button>
+            )}
+
             {/* Theme Toggle Button */}
             <button
               type="button"
@@ -649,7 +661,7 @@ export const ClientPortalSection: React.FC = () => {
               {isDarkMode ? <Sun size={15} className="text-orange-400" /> : <Moon size={15} className="text-indigo-500" />}
             </button>
 
-            <div className="flex flex-col items-center text-center space-y-3">
+            <div className="flex flex-col items-center text-center space-y-3 pt-6">
               <Logo size="md" variant={isDarkMode ? 'light' : 'dark'} className="mx-auto" />
               <div className="space-y-1">
                 <span className="px-3 py-1 bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-orange-500/20">
@@ -662,22 +674,6 @@ export const ClientPortalSection: React.FC = () => {
                   Manage projects, select services, build deliverables, and settle invoices.
                 </p>
               </div>
-            </div>
-
-            {/* Convenience Demo Login Box */}
-            <div className="p-4 bg-orange-500/5 dark:bg-orange-950/20 border border-orange-500/20 rounded-2xl flex items-center justify-between gap-3 text-xs">
-              <div>
-                <span className="font-extrabold text-slate-900 dark:text-white block">Reviewer Demo Node</span>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400">Instant login for Garki Logistics Ltd</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleDemoLogin}
-                className="px-3 py-2 bg-orange-600 hover:bg-orange-500 text-white font-black text-[10px] uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-sm shrink-0 flex items-center gap-1"
-              >
-                <span>Demo Login</span>
-                <ChevronRight size={12} />
-              </button>
             </div>
 
             {/* Auth Tabs */}
@@ -887,6 +883,18 @@ export const ClientPortalSection: React.FC = () => {
                 <span className="text-xs font-black uppercase text-slate-900 dark:text-white">{activeClient?.companyName}</span>
                 <span className="text-[10px] text-orange-500 font-mono font-bold">{activeClient?.contactName}</span>
               </div>
+
+              {onBackToPortal && (
+                <button
+                  type="button"
+                  onClick={onBackToPortal}
+                  className="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
+                  title="Back to Main Site"
+                >
+                  <ArrowLeft size={15} className="text-orange-500" />
+                  <span className="hidden sm:inline text-xs font-bold uppercase tracking-widest text-slate-500">Back</span>
+                </button>
+              )}
 
               <button
                 type="button"

@@ -21,9 +21,10 @@ import { CareersSection } from './components/CareersSection';
 import { RecognitionSection } from './components/RecognitionSection';
 import { TutorDashboard } from './components/TutorDashboard';
 import { JobApplication } from './types';
-import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint, Briefcase } from 'lucide-react';
+import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, ArrowLeft, ArrowRight, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint, Briefcase } from 'lucide-react';
 import { Logo } from './components/Logo';
 import { apiGetApplication, apiSaveApplication, apiUpdateApplication } from './lib/storage';
+import { apiGetCacMetadata } from './lib/api';
 import { CAREER_ROLES, CATEGORIES, CareerRole } from './lib/roles';
 import { TRANSLATIONS, LANGUAGES, LanguageCode } from './lib/translations';
 import { RolesCatalog } from './components/RolesCatalog';
@@ -217,6 +218,20 @@ export default function App() {
 
   // Active website ecosystem page routing state
   const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard'>('home');
+
+  const [publishedCac, setPublishedCac] = useState<any>(null);
+
+  useEffect(() => {
+    async function loadCac() {
+      try {
+        const data = await apiGetCacMetadata(false);
+        if (data && data.length > 0) {
+          setPublishedCac(data[0]);
+        }
+      } catch (e) {}
+    }
+    loadCac();
+  }, []);
 
   // Interactive 2027 App Shell full-screen state
   const [isUserLoggedIn, setIsUserLoggedIn] = useState<boolean>(false);
@@ -453,7 +468,7 @@ export default function App() {
       className="min-h-screen bg-white dark:bg-slate-950 flex flex-col font-sans selection:bg-orange-500 selection:text-white transition-colors duration-300"
     >
       {/* Upper Navigation Header Bar */}
-      {!isAdminView && !isUserLoggedIn && !['account', 'clients', 'training', 'staff-portal'].includes(activePage) && (
+      {!isAdminView && !isUserLoggedIn && !['account', 'clients', 'training', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog'].includes(activePage) && (
         <header className="no-print bg-white dark:bg-slate-900/85 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-50 shadow-sm px-4 py-3 sm:px-6 sm:py-3.5 flex flex-col lg:flex-row gap-3 lg:gap-4 justify-between items-center transition-colors duration-300 animate-fade-in">
           
           {/* Logo Container and Mobile Controls (Language + Theme + Menu Toggle) */}
@@ -883,44 +898,48 @@ export default function App() {
           <AnimatePresence>
             {isMobileMenuOpen && (
               <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: 'auto', opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
+                initial={{ height: 0, opacity: 0, y: -20 }}
+                animate={{ height: 'auto', opacity: 1, y: 0 }}
+                exit={{ height: 0, opacity: 0, y: -20 }}
                 transition={{ type: "spring", stiffness: 220, damping: 26 }}
-                className="lg:hidden w-full overflow-hidden border-t border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900 flex flex-col gap-4 py-4"
+                className="lg:hidden w-[calc(100%-2rem)] mx-auto overflow-hidden border border-slate-100 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl flex flex-col gap-2 py-4 px-2 rounded-3xl shadow-2xl mt-2 mb-4"
               >
                 {/* Navigation Links List */}
-                <div className="flex flex-col gap-1 px-2">
-                  <span className="text-[9px] font-black tracking-widest uppercase text-slate-400 px-3 py-1 font-mono">NAVIGATION</span>
+                <div className="grid grid-cols-2 gap-2 px-2">
+                  <span className="col-span-2 text-[8px] font-black tracking-widest uppercase text-slate-400 py-1 font-mono pl-2">QUICK NAVIGATION</span>
                   {navMenuTranslations[language as LanguageCode].map((item, idx) => {
                     const isActive = activePage === item.value;
                     return (
                       <motion.button
                         key={item.value}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.04, type: "spring", stiffness: 300, damping: 20 }}
-                        whileHover={{ x: 6, scale: 1.02 }}
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: idx * 0.02, type: "spring", stiffness: 400, damping: 25 }}
+                        whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => {
                           safeNavigate(item.value === 'home' ? '/' : `/${item.value}`);
                           setIsMobileMenuOpen(false);
                         }}
-                        className={`relative w-full text-left px-4 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-between overflow-hidden`}
+                        className={`relative w-full text-left px-4 py-2.5 text-[10px] font-bold rounded-2xl transition-all flex items-center justify-between overflow-hidden border ${
+                          isActive 
+                            ? 'border-orange-500/30 dark:border-orange-500/20' 
+                            : 'border-slate-100/80 dark:border-slate-800/80 hover:border-orange-500/20'
+                        }`}
                         type="button"
                       >
                         {isActive && (
                           <motion.div
                             layoutId="activeMobileNavBackground"
-                            className="absolute inset-0 bg-gradient-to-r from-orange-500 to-amber-500 z-0"
+                            className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-amber-500/10 z-0"
                             transition={{ type: "spring", stiffness: 350, damping: 25 }}
                           />
                         )}
-                        <span className={`relative z-10 ${isActive ? 'text-white font-black' : 'text-slate-700 dark:text-slate-300'}`}>{item.label}</span>
+                        <span className={`relative z-10 ${isActive ? 'text-orange-600 dark:text-orange-400 font-black' : 'text-slate-600 dark:text-slate-400'}`}>{item.label}</span>
                         {item.value === 'careers' && (
-                          <span className="relative z-10 flex h-2 w-2">
+                          <span className="relative z-10 flex h-1.5 w-1.5">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500"></span>
                           </span>
                         )}
                       </motion.button>
@@ -928,15 +947,10 @@ export default function App() {
                   })}
                 </div>
 
-                <div className="h-px bg-white dark:bg-slate-800 mx-4" />
-
-                {/* Mobile System Utilities Block */}
-                <div className="flex flex-col gap-3 px-4">
-                  <span className="text-[9px] font-black tracking-widest uppercase text-slate-400 py-1 font-mono">SYSTEM CONTROLS</span>
-
-
-                  {/* Portals and Seed Helper buttons */}
-                  <div className="flex flex-col gap-2 mt-1">
+                {/* Mobile System Portals Block */}
+                <div className="flex flex-col gap-2 px-2 mt-1 pt-2 border-t border-slate-100 dark:border-slate-800/30">
+                  <span className="text-[8px] font-black tracking-widest uppercase text-slate-400 py-1 font-mono pl-2">SYSTEM PORTALS</span>
+                  <div className="grid grid-cols-1 gap-1.5 px-1">
                     {isAdminView ? (
                       <button
                         onClick={() => {
@@ -944,10 +958,15 @@ export default function App() {
                           setIsMobileMenuOpen(false);
                         }}
                         type="button"
-                        className="w-full justify-center py-2 bg-white hover:bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-gray-200 dark:border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                        className="w-full flex items-center justify-between px-3.5 py-2 bg-slate-50 dark:bg-slate-800/40 border border-slate-100/80 dark:border-slate-800/80 rounded-2xl transition-all"
                       >
-                        <ClipboardEdit size={12} className="text-orange-600" />
-                        <span>{t.portalTitle}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 bg-orange-500/10 rounded-lg flex items-center justify-center">
+                            <ClipboardEdit size={12} className="text-orange-500" />
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{t.portalTitle}</span>
+                        </div>
+                        <ArrowRight size={10} className="text-slate-400" />
                       </button>
                     ) : (
                       <button
@@ -956,10 +975,15 @@ export default function App() {
                           setIsMobileMenuOpen(false);
                         }}
                         type="button"
-                        className="w-full justify-center py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 text-[#000E32] dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
+                        className="w-full flex items-center justify-between px-3.5 py-2 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100/50 dark:border-indigo-900/50 rounded-2xl transition-all"
                       >
-                        <ShieldAlert size={12} className="text-orange-600 animate-pulse" />
-                        <span>{t.adminTitle}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 bg-orange-600/10 rounded-lg flex items-center justify-center">
+                            <ShieldAlert size={12} className="text-orange-600 animate-pulse" />
+                          </div>
+                          <span className="text-[10px] font-bold text-[#000E32] dark:text-indigo-300">{t.adminTitle}</span>
+                        </div>
+                        <ArrowRight size={10} className="text-slate-400" />
                       </button>
                     )}
 
@@ -969,14 +993,19 @@ export default function App() {
                         setIsMobileMenuOpen(false);
                       }}
                       type="button"
-                      className={`w-full justify-center py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border ${
+                      className={`w-full flex items-center justify-between px-3.5 py-2 border rounded-2xl transition-all ${
                         activePage === 'account'
-                          ? 'bg-gradient-to-r from-orange-600 to-indigo-600 text-white border-transparent'
-                          : 'bg-indigo-50/50 hover:bg-indigo-100/60 dark:bg-slate-800 dark:hover:bg-slate-700 border-indigo-100/50 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+                          ? 'bg-orange-500/5 border-orange-500/20'
+                          : 'bg-slate-50 dark:bg-slate-800/40 border-slate-100/80 dark:border-slate-800/80'
                       }`}
                     >
-                      <Fingerprint size={12} className={activePage === 'account' ? 'text-white' : 'text-orange-500'} />
-                      <span>Candidate Hub (2026)</span>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${activePage === 'account' ? 'bg-orange-500/10' : 'bg-slate-200/50 dark:bg-slate-700/50'}`}>
+                          <Fingerprint size={12} className={activePage === 'account' ? 'text-orange-500' : 'text-slate-500'} />
+                        </div>
+                        <span className={`text-[10px] font-bold ${activePage === 'account' ? 'text-orange-600 dark:text-orange-400' : 'text-slate-600 dark:text-slate-400'}`}>Candidate Hub</span>
+                      </div>
+                      <ArrowRight size={10} className="text-slate-400" />
                     </button>
 
                     <button
@@ -985,43 +1014,20 @@ export default function App() {
                         setIsMobileMenuOpen(false);
                       }}
                       type="button"
-                      className={`w-full justify-center py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border ${
+                      className={`w-full flex items-center justify-between px-3.5 py-2 border rounded-2xl transition-all ${
                         activePage === 'staff-portal'
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent'
-                          : 'bg-indigo-50/50 hover:bg-indigo-100/60 dark:bg-slate-800 dark:hover:bg-slate-700 border-indigo-100/50 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+                          ? 'bg-blue-500/5 border-blue-500/20'
+                          : 'bg-slate-50 dark:bg-slate-800/40 border-slate-100/80 dark:border-slate-800/80'
                       }`}
                     >
-                      <Briefcase size={12} className={activePage === 'staff-portal' ? 'text-white' : 'text-blue-500'} />
-                      <span>Staff Cockpit</span>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${activePage === 'staff-portal' ? 'bg-blue-500/10' : 'bg-slate-200/50 dark:bg-slate-700/50'}`}>
+                          <Briefcase size={12} className={activePage === 'staff-portal' ? 'text-blue-500' : 'text-slate-500'} />
+                        </div>
+                        <span className={`text-[10px] font-bold ${activePage === 'staff-portal' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400'}`}>Staff Cockpit</span>
+                      </div>
+                      <ArrowRight size={10} className="text-slate-400" />
                     </button>
-
-                    {!currentAppId && !isAdminView && !isApplying && (
-                      <button
-                        onClick={() => {
-                          loadDemoSeed();
-                          setIsMobileMenuOpen(false);
-                        }}
-                        type="button"
-                        className="w-full justify-center py-2 bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/40 text-orange-700 dark:text-orange-400 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm border border-orange-100 dark:border-orange-900"
-                      >
-                        <Play size={12} className="fill-current text-orange-600" />
-                        <span>{t.demoAutofill}</span>
-                      </button>
-                    )}
-
-                    {currentAppId && !isAdminView && (
-                      <button
-                        onClick={() => {
-                          navigateToRoot();
-                          setIsMobileMenuOpen(false);
-                        }}
-                        type="button"
-                        className="w-full justify-center py-2 bg-[#000E32] dark:bg-orange-600 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
-                      >
-                        <ClipboardEdit size={12} />
-                        <span>{t.applyAccreditation}</span>
-                      </button>
-                    )}
                   </div>
                 </div>
               </motion.div>
@@ -1137,7 +1143,13 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 className="w-full"
               >
-                <AboutSection />
+                <AboutSection 
+                  isAdmin={isAdminView} 
+                  onBackToMain={() => {
+                    setActivePage('home');
+                    window.scrollTo(0, 0);
+                  }}
+                />
               </motion.div>
              ) : activePage === 'services' ? (
               <motion.div
@@ -1151,6 +1163,10 @@ export default function App() {
                   language={language}
                   selectedId={selectedServiceId}
                   onSelectId={setSelectedServiceId}
+                  onBackToMain={() => {
+                    setActivePage('home');
+                    window.scrollTo(0, 0);
+                  }}
                 />
               </motion.div>
              ) : activePage === 'portfolio' ? (
@@ -1161,7 +1177,7 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 className="w-full"
               >
-                <PortfolioSection />
+                <PortfolioSection onBackToMain={navigateToRoot} />
               </motion.div>
              ) : activePage === 'team' ? (
               <motion.div
@@ -1171,7 +1187,10 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 className="w-full"
               >
-                <MeetOurTeamSection language={language} />
+                <MeetOurTeamSection language={language} onBackToPortal={() => {
+                  setActivePage('home');
+                  window.scrollTo(0, 0);
+                }} />
               </motion.div>
              ) : activePage === 'staff-portal' ? (
               <motion.div
@@ -1196,7 +1215,12 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 className="w-full"
               >
-                <BlogSection />
+                <BlogSection 
+                  onBackToMain={() => {
+                    setActivePage('home');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }} 
+                />
               </motion.div>
              ) : activePage === 'training' ? (
               <motion.div
@@ -1206,7 +1230,12 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 className="w-full"
               >
-                <TrainingAcademySection />
+                <TrainingAcademySection 
+                  onBackToPortal={() => {
+                    setActivePage('home');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                />
               </motion.div>
              ) : activePage === 'tutor-dashboard' ? (
               <motion.div
@@ -1216,7 +1245,12 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 className="w-full"
               >
-                <TutorDashboard />
+                <TutorDashboard 
+                  onBackToPortal={() => {
+                    setActivePage('home');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                />
               </motion.div>
              ) : activePage === 'clients' ? (
               <motion.div
@@ -1226,7 +1260,10 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 className="w-full"
               >
-                <ClientPortalSection />
+                <ClientPortalSection onBackToPortal={() => {
+                    setActivePage('home');
+                    window.scrollTo(0, 0);
+                  }} />
               </motion.div>
              ) : activePage === 'recognition' ? (
               <motion.div
@@ -1236,7 +1273,10 @@ export default function App() {
                 exit={{ opacity: 0 }}
                 className="w-full"
               >
-                <RecognitionSection />
+                <RecognitionSection onBackToPortal={() => {
+                    setActivePage('home');
+                    window.scrollTo(0, 0);
+                  }} />
               </motion.div>
              ) : activePage === 'account' ? (
               <motion.div
@@ -1269,13 +1309,43 @@ export default function App() {
                   }} 
                 />
               </motion.div>
-             ) : !isApplying ? (
-              <motion.div
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                className="w-full"
-              >
+             ) : activePage === 'careers' ? (
+              <div className={`min-h-screen ${theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} font-sans antialiased transition-colors duration-500 relative flex flex-col w-full`}>
+                <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 px-4 py-3.5 sm:px-8 flex items-center justify-between w-full">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 cursor-pointer" onClick={() => { setActivePage('home'); window.scrollTo(0, 0); }}>
+                      <Logo size="sm" showText={true} variant={theme === 'dark' ? 'light' : 'dark'} />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => { setActivePage('home'); window.scrollTo(0, 0); }}
+                      className="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
+                      title="Back to Main Site"
+                    >
+                      <ArrowLeft size={15} className="text-orange-500" />
+                      <span className="hidden sm:inline text-xs font-bold uppercase tracking-widest text-slate-500">Back</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                      className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all cursor-pointer shadow-sm"
+                    >
+                      {theme === 'dark' ? <Sun size={15} className="text-orange-400" /> : <Moon size={15} className="text-indigo-500" />}
+                    </button>
+                  </div>
+                </header>
+                <main className="flex-1 flex flex-col w-full">
+                  {!isApplying ? (
+                    <motion.div
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                      className="w-full"
+                    >
                 <div className="w-full max-w-6xl mx-auto px-4 py-4 md:py-6 space-y-6">
                   
                   {/* Majestic, Premium Corporate Hero Banner */}
@@ -1591,12 +1661,15 @@ export default function App() {
                 />
               </motion.div>
             )}
+                </main>
+              </div>
+            ) : null}
           </div>
         )}
       </main>
 
       {/* Document bottom footer info */}
-      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'staff-portal'].includes(activePage) && (
+      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog'].includes(activePage) && (
         <footer className="no-print bg-slate-900 text-slate-400 border-t border-slate-800 mt-auto pt-16 pb-12 px-6 md:px-12 relative overflow-hidden font-sans">
         {/* Decorative ambient background light */}
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none" />
@@ -1622,8 +1695,8 @@ export default function App() {
                 Amplifying digital footprints and building next-generation digital products across West Africa and beyond. We combine high-performance marketing, creative brand storytelling, and modern React/Web engineering.
               </p>
               <div className="text-[11px] text-slate-400 font-bold space-y-1">
-                <div>RC Number: <span className="text-slate-200 font-mono">1845921</span></div>
-                <div>Status: <span className="text-emerald-400">Incorporated & Active</span></div>
+                <div>RC Number: <span className="text-slate-200 font-mono">{publishedCac?.registration_number || '1845921'}</span></div>
+                <div>Status: <span className="text-emerald-400">{publishedCac?.company_status || 'Incorporated & Active'}</span></div>
               </div>
             </motion.div>
 

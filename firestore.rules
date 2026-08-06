@@ -60,5 +60,23 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.role == 'hr');
     }
+
+    // CAC Metadata
+    match /cac_metadata/{cacId} {
+      function isValidCac(data) {
+        return data.keys().hasAll(['company_name', 'registration_number', 'registration_date']) &&
+               data.company_name is string && data.company_name.size() <= 200 &&
+               data.registration_number is string && data.registration_number.size() <= 50 &&
+               data.registration_date is string;
+      }
+      allow read: if true; // Publicly accessible
+      allow write: if isAdmin();
+    }
+
+    // Page Content
+    match /page_content/{docId} {
+      allow read: if true;
+      allow write: if true;
+    }
   }
 }

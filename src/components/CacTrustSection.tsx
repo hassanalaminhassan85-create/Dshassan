@@ -10,11 +10,13 @@ import { apiGetCacMetadata, CacMetadata } from '../lib/api';
 interface CacTrustSectionProps {
   language?: string;
   theme?: string;
+  onBack?: () => void;
 }
 
 export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
   language = 'en',
-  theme = 'dark'
+  theme = 'dark',
+  onBack
 }) => {
   const [loading, setLoading] = React.useState<boolean>(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -49,28 +51,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
     }
   };
 
-  // Default record if API is empty or fails
-  const fallbackRecord: CacMetadata = {
-    id: 'cac-default-2026',
-    company_name: 'DS TECH AND DIGITAL MARKETING AGENCY LIMITED',
-    registration_number: '9550925',
-    business_type: 'Private Company Limited by Shares',
-    registration_date: '2026-05-15',
-    company_status: 'Active',
-    registered_address: 'Abuja, Federal Republic of Nigeria',
-    description: 'DS Tech and Digital Marketing Agency Limited is officially registered under the Companies and Allied Matters Act 2020 by the Corporate Affairs Commission (CAC) of Nigeria. This corporate clearing authorizes our enterprise system, smart ledger, and freelancer recruitment operations.',
-    verification_url: 'https://search.cac.gov.ng/',
-    r2_object_key: 'cac_certificate_default.png',
-    file_name: 'cac_certificate.png',
-    file_size: 485120,
-    mime_type: 'image/png',
-    is_published: 1,
-    display_order: 1,
-    created_at: '2026-05-15T12:00:00.000Z',
-    updated_at: '2026-05-15T12:00:00.000Z'
-  };
-
-  const activeCac = certificates.length > 0 ? certificates[activeIndex] : fallbackRecord;
+  const activeCac = certificates.length > 0 ? certificates[activeIndex] : null;
 
   // Zoom controls
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.25, 3));
@@ -117,6 +98,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
 
   // Handle Share / Copy Link
   const handleShare = () => {
+    if (!activeCac) return;
     const url = `${window.location.origin}/api/cac/file?key=${encodeURIComponent(activeCac.r2_object_key)}`;
     navigator.clipboard.writeText(url).then(() => {
       setCopySuccess(true);
@@ -133,6 +115,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
 
   // Generate File URL
   const getFileUrl = () => {
+    if (!activeCac) return '';
     if (activeCac.r2_object_key === 'cac_certificate_default.png') {
       return ''; // Will render our gorgeous custom SVG certificate
     }
@@ -148,7 +131,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
     return (
       <div 
         style={scaleStyle}
-        className="w-[794px] h-[1123px] bg-[#f2fcf6] p-12 shadow-2xl relative select-none font-sans flex flex-col justify-between shrink-0 text-slate-800 border-[16px] border-emerald-600"
+        className="w-full max-w-[794px] aspect-[794/1123] bg-[#f2fcf6] p-4 sm:p-8 md:p-12 shadow-2xl relative select-none font-sans flex flex-col justify-between shrink-0 text-slate-800 border-[8px] sm:border-[16px] border-emerald-600 rounded-xl overflow-hidden text-[9px] sm:text-xs md:text-sm"
         id="cac-vector-cert"
       >
         {/* Ornate Green Border Pattern Overlay */}
@@ -270,7 +253,11 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
 
         {/* Abuja Hand Given Date Signature */}
         <div className="text-center relative z-10 font-serif text-[12.5px] text-slate-700 italic px-10 my-1">
-          Given under my hand at <span className="font-bold font-sans not-italic text-slate-900">Abuja</span> this <span className="font-bold font-sans not-italic text-slate-900">15th</span> day of <span className="font-bold font-sans not-italic text-slate-900">May, 2026</span>.
+          Given under my hand at <span className="font-bold font-sans not-italic text-slate-900">Abuja</span> this <span className="font-bold font-sans not-italic text-slate-900">
+            {new Date(activeCac.registration_date).getDate()}{([ 'st', 'nd', 'rd' ][((((new Date(activeCac.registration_date).getDate() + 90) % 100) - 10) % 10) - 1] || 'th')}
+          </span> day of <span className="font-bold font-sans not-italic text-slate-900">
+            {new Date(activeCac.registration_date).toLocaleString('en-US', { month: 'long' })}, {new Date(activeCac.registration_date).getFullYear()}
+          </span>.
         </div>
 
         {/* Footer Area: Green stamp (left-center), Barcode (center), Signature (right) */}
@@ -347,7 +334,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
 
         {/* TIN Tax Identification Row */}
         <div className="text-left text-[9px] font-mono font-black text-slate-700 relative z-10 -mb-2 mt-2 border-t border-emerald-600/10 pt-2">
-          TAX IDENTIFICATION NUMBER: <span className="text-slate-950 font-bold">2623797059893</span>
+          TAX IDENTIFICATION NUMBER: <span className="text-slate-950 font-bold">{activeCac.registration_number.replace(/\D/g, '')}26237</span>
         </div>
       </div>
     );
@@ -361,6 +348,24 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
 
       <div className="max-w-6xl mx-auto relative z-10">
         
+        {/* Back Navigation Bar */}
+        <div className="flex items-center justify-start mb-8">
+          <motion.button
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              if (onBack) onBack();
+              else window.history.back();
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 rounded-2xl text-slate-200 hover:text-white text-xs font-bold uppercase tracking-wider transition-all duration-200 cursor-pointer shadow-xl backdrop-blur-md"
+          >
+            <ChevronLeft size={16} className="text-orange-400" />
+            <span>Back</span>
+          </motion.button>
+        </div>
+
         {/* Section Header */}
         <div className="text-center max-w-2xl mx-auto mb-16">
           <motion.div 
@@ -386,7 +391,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-sm md:text-base text-slate-400 mt-4 leading-relaxed"
+            className="text-sm md:text-base text-slate-300 mt-4 leading-relaxed"
           >
             Verify our corporate credentials registered with the Federal Republic of Nigeria. Our digital agency operates under full legislative authorizations to safeguard your contract continuity.
           </motion.p>
@@ -413,17 +418,29 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
               ))}
             </div>
           </div>
-        ) : error && certificates.length === 0 ? (
-          /* Graceful Fallback if DB completely fails */
-          <div className="bg-orange-500/5 border border-orange-500/20 rounded-2xl p-6 text-center space-y-4">
-            <Info className="mx-auto text-orange-400" size={24} />
-            <p className="text-sm text-slate-300 font-mono">Secure fallback initialized.</p>
+        ) : !activeCac ? (
+          /* Empty state if no published certificates found */
+          <div className="max-w-xl mx-auto bg-slate-900/40 border border-slate-800/80 rounded-3xl p-12 text-center space-y-6">
+            <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto text-slate-500">
+              <FileText size={32} />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-xl font-bold text-white tracking-tight">No Certificates Published</h3>
+              <p className="text-slate-400 text-sm">
+                There are currently no active Corporate Affairs Commission certificates published for this organization.
+              </p>
+            </div>
+            {error && (
+              <p className="text-orange-400/80 text-[10px] font-mono uppercase tracking-widest">
+                System Log: {error}
+              </p>
+            )}
             <button 
               onClick={fetchCacData}
-              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 mx-auto cursor-pointer"
+              className="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs transition-colors flex items-center gap-2 mx-auto cursor-pointer border border-slate-700"
             >
-              <RotateCw size={12} />
-              Retry Fetching Verified Logs
+              <RotateCw size={14} className={loading ? "animate-spin" : ""} />
+              Refresh Compliance Data
             </button>
           </div>
         ) : (
@@ -447,7 +464,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
                       <CheckCircle size={10} className="text-emerald-400 animate-pulse" />
                       {activeCac.company_status}
                     </span>
-                    <span className="text-xs font-mono text-slate-500">
+                    <span className="text-xs font-mono text-slate-400">
                       ID: {activeCac.id}
                     </span>
                   </div>
@@ -455,7 +472,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
                   <h3 className="text-xl md:text-2xl font-black text-white tracking-tight leading-tight uppercase">
                     {activeCac.company_name}
                   </h3>
-                  <p className="text-slate-400 mt-4 text-xs md:text-sm leading-relaxed">
+                  <p className="text-slate-300 mt-4 text-xs md:text-sm leading-relaxed">
                     {activeCac.description}
                   </p>
                 </div>
@@ -468,8 +485,8 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
                       <Building size={16} />
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">RC REGISTRATION NUMBER</span>
-                      <span className="text-xs font-mono font-bold text-slate-200">{activeCac.registration_number}</span>
+                      <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">RC REGISTRATION NUMBER</span>
+                      <span className="text-xs font-mono font-bold text-slate-100">{activeCac.registration_number}</span>
                     </div>
                   </div>
 
@@ -478,8 +495,8 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
                       <Calendar size={16} />
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">INCORPORATION DATE</span>
-                      <span className="text-xs font-semibold text-slate-200">
+                      <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">INCORPORATION DATE</span>
+                      <span className="text-xs font-semibold text-slate-100">
                         {new Date(activeCac.registration_date).toLocaleDateString('en-US', {
                           year: 'numeric', month: 'long', day: 'numeric'
                         })}
@@ -492,8 +509,8 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
                       <FileText size={16} />
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">BUSINESS CLASSIFICATION</span>
-                      <span className="text-xs font-semibold text-slate-200">{activeCac.business_type}</span>
+                      <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">BUSINESS CLASSIFICATION</span>
+                      <span className="text-xs font-semibold text-slate-100">{activeCac.business_type}</span>
                     </div>
                   </div>
 
@@ -502,8 +519,8 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
                       <MapPin size={16} />
                     </div>
                     <div>
-                      <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider block">REGISTERED ADDRESS</span>
-                      <span className="text-xs font-semibold text-slate-200 line-clamp-1">{activeCac.registered_address}</span>
+                      <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">REGISTERED ADDRESS</span>
+                      <span className="text-xs font-semibold text-slate-100 line-clamp-1">{activeCac.registered_address}</span>
                     </div>
                   </div>
 
@@ -716,9 +733,9 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
             {/* 3. BOTTOM UTILITY PANEL */}
             <div className="p-3 bg-slate-900/80 border-t border-slate-800/60 flex items-center justify-between text-slate-400 text-[10px] font-mono relative z-50">
               <div className="flex items-center gap-4">
-                <span>FILE NAME: <span className="text-slate-200">{activeCac.file_name}</span></span>
-                <span>SIZE: <span className="text-slate-200">{(activeCac.file_size / 1024).toFixed(1)} KB</span></span>
-                <span>TYPE: <span className="text-slate-200">{activeCac.mime_type}</span></span>
+                <span>FILE NAME: <span className="text-slate-100">{activeCac.file_name}</span></span>
+                <span>SIZE: <span className="text-slate-100">{(activeCac.file_size / 1024).toFixed(1)} KB</span></span>
+                <span>TYPE: <span className="text-slate-100">{activeCac.mime_type}</span></span>
               </div>
               <div className="flex items-center gap-1">
                 <span className="px-1.5 py-0.5 bg-slate-800 rounded font-bold text-slate-300">Pinch-to-zoom active</span>

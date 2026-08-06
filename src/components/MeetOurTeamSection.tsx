@@ -4,163 +4,32 @@ import {
   Users, Search, Filter, Mail, Phone, Calendar, Award, 
   MapPin, Globe, ChevronRight, X, Heart, Shield, Cpu, 
   Linkedin, Twitter, Github, Star, Sparkles, Network,
-  Briefcase, GraduationCap, ChevronDown
+  Briefcase, GraduationCap, ChevronDown, Sun, Moon, ArrowLeft
 } from 'lucide-react';
 import { Department, StaffMember } from '../types';
 import { apiGetDepartments, apiGetStaff, resolveStaffImageUrl } from '../lib/api';
+import { Logo } from './Logo';
 
-// Seeded/Fallback data to ensure the page looks stunning instantly and handles local preview gracefully
-const FALLBACK_DEPARTMENTS: Department[] = [
-  {
-    id: 'dept_exec',
-    name: 'Executive Leadership',
-    description: 'Corporate strategy, enterprise governance, and global expansion initiatives.',
-    display_order: 1,
-    is_published: 1
-  },
-  {
-    id: 'dept_engineering',
-    name: 'Advanced Engineering',
-    description: 'Cloud native computing, cryptography, biometric gateways, and secure ledgers.',
-    display_order: 2,
-    is_published: 1
-  },
-  {
-    id: 'dept_security',
-    name: 'Cyber Security & Biometrics',
-    description: 'Zero-trust architecture, identity security, WebAuthn integration, and digital vault protection.',
-    display_order: 3,
-    is_published: 1
-  },
-  {
-    id: 'dept_operations',
-    name: 'Operations & Academics',
-    description: 'Campaign deployment, physical centers, CAC verification, and technical training.',
-    display_order: 4,
-    is_published: 1
-  }
-];
+export const MeetOurTeamSection: React.FC<{ language?: string, onBackToPortal?: () => void }> = ({ language = 'en', onBackToPortal }) => {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('theme');
+      return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    } catch {
+      return false;
+    }
+  });
 
-const FALLBACK_STAFF: StaffMember[] = [
-  {
-    id: 'staff_1',
-    employee_id: 'DST-EXEC-001',
-    full_name: 'Dr. Hassan Al-Amin',
-    job_title: 'Chief Executive Officer',
-    role: 'CEO',
-    department_id: 'dept_exec',
-    specialization: 'Distributed Enterprise Systems & Cryptography',
-    biography: 'With over two decades of engineering and leadership experience, Dr. Al-Amin guides the strategic vision of DS Tech. He previously spearheaded cryptographic security solutions for international financial consortiums and pioneered decentralized identity models in West Africa.',
-    skills: 'Strategic Leadership, Cryptography, Enterprise Architecture, High-Scale Infrastructure',
-    qualifications: 'Ph.D. in Computer Science (MIT), M.Sc. in Distributed Systems',
-    certifications: 'CISSP, Certified Blockchain Solution Architect',
-    date_joined: '2021-03-15',
-    years_of_experience: 22,
-    email: 'h.alamin@dstech.com',
-    phone: '+234 803 111 2222',
-    social_links: '{"linkedin":"https://linkedin.com","twitter":"https://twitter.com","github":"https://github."}',
-    reports_to: null,
-    team: 'Executive Board',
-    display_order: 1,
-    status: 'Active',
-    is_published: 1,
-    show_phone_publicly: 1,
-    show_email_publicly: 1,
-    show_bio_publicly: 1,
-    show_qualifications_publicly: 1,
-    show_social_publicly: 1,
-    profile_photo_key: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=500&auto=format&fit=crop&q=80'
-  },
-  {
-    id: 'staff_2',
-    employee_id: 'DST-ENG-001',
-    full_name: 'Amara Nwosu',
-    job_title: 'Director of Advanced Engineering',
-    role: 'Department Head',
-    department_id: 'dept_engineering',
-    specialization: 'Cloud Engineering & Microservices',
-    biography: 'Amara manages DS Tech\'s multi-region Cloudflare Worker and D1 ecosystem. She is a passionate advocate for serverless architectures, performance optimization, and edge computing, ensuring our core biometric endpoints maintain sub-10ms response times.',
-    skills: 'Cloudflare Workers, Rust, TypeScript, Distributed SQL, Performance Profiling',
-    qualifications: 'B.Eng. in Software Engineering (UNN)',
-    certifications: 'AWS Certified Solutions Architect - Professional',
-    date_joined: '2022-06-01',
-    years_of_experience: 12,
-    email: 'a.nwosu@dstech.com',
-    phone: '+234 812 345 6789',
-    social_links: '{"linkedin":"https://linkedin.com","github":"https://github."}',
-    reports_to: 'staff_1',
-    team: 'Core Platform Group',
-    display_order: 2,
-    status: 'Active',
-    is_published: 1,
-    show_phone_publicly: 0,
-    show_email_publicly: 1,
-    show_bio_publicly: 1,
-    show_qualifications_publicly: 1,
-    show_social_publicly: 1,
-    profile_photo_key: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=500&auto=format&fit=crop&q=80'
-  },
-  {
-    id: 'staff_3',
-    employee_id: 'DST-SEC-001',
-    full_name: 'Tunde Yusuf',
-    job_title: 'Head of Cyber Security & Biometrics',
-    role: 'Department Head',
-    department_id: 'dept_security',
-    specialization: 'Identity Security & FIDO2/WebAuthn',
-    biography: 'Tunde leads the security defense programs at DS Tech. His work focuses on biometric vault hardening, WebAuthn secure passkey setups, and ensuring zero-trust credential pathways. He was previously an independent security researcher and white-hat penetration tester.',
-    skills: 'Zero-Trust Architecture, WebAuthn Server Validation, Penetration Testing, Risk Compliance',
-    qualifications: 'B.Sc. in Cybersecurity (Federal University of Technology, Minna)',
-    certifications: 'CEH (Certified Ethical Hacker), OSCP',
-    date_joined: '2022-10-10',
-    years_of_experience: 10,
-    email: 't.yusuf@dstech.com',
-    phone: '+234 816 777 8888',
-    social_links: '{"linkedin":"https://linkedin.com","twitter":"https://twitter.com"}',
-    reports_to: 'staff_1',
-    team: 'SecOps',
-    display_order: 3,
-    status: 'Active',
-    is_published: 1,
-    show_phone_publicly: 0,
-    show_email_publicly: 1,
-    show_bio_publicly: 1,
-    show_qualifications_publicly: 1,
-    show_social_publicly: 1,
-    profile_photo_key: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=500&auto=format&fit=crop&q=80'
-  },
-  {
-    id: 'staff_4',
-    employee_id: 'DST-ENG-002',
-    full_name: 'Fatima Bello',
-    job_title: 'Senior Cryptographic Engineer',
-    role: 'Staff Member',
-    department_id: 'dept_engineering',
-    specialization: 'Asymmetric Cryptography & Zero-Knowledge Proofs',
-    biography: 'Fatima is responsible for designing the secure cryptographic signatures on DS Tech educational ledger entries. Her mathematical background helps design elegant zero-knowledge verifications for candidate credentials.',
-    skills: 'Asymmetric Key Management, RSA/ECC, Rust, Zero-Knowledge Frameworks',
-    qualifications: 'M.Sc. in Pure Mathematics (ABU Zaria)',
-    certifications: 'Cryptographic Security Specialist (CSS)',
-    date_joined: '2023-01-15',
-    years_of_experience: 8,
-    email: 'f.bello@dstech.com',
-    phone: '+234 905 555 4444',
-    social_links: '{"linkedin":"https://linkedin.com","github":"https://github."}',
-    reports_to: 'staff_2',
-    team: 'Core Platform Group',
-    display_order: 4,
-    status: 'Active',
-    is_published: 1,
-    show_phone_publicly: 0,
-    show_email_publicly: 1,
-    show_bio_publicly: 1,
-    show_qualifications_publicly: 1,
-    show_social_publicly: 1,
-    profile_photo_key: 'https://images.unsplash.com/photo-1534751516642-a131ffd473fd?w=500&auto=format&fit=crop&q=80'
-  }
-];
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
-export const MeetOurTeamSection: React.FC<{ language?: string }> = ({ language = 'en' }) => {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [selectedDeptId, setSelectedDeptId] = useState<string>('all');
@@ -178,21 +47,12 @@ export const MeetOurTeamSection: React.FC<{ language?: string }> = ({ language =
           apiGetStaff(false)
         ]);
         
-        if (deptsData && deptsData.length > 0) {
-          setDepartments(deptsData);
-        } else {
-          setDepartments(FALLBACK_DEPARTMENTS);
-        }
-
-        if (staffData && staffData.length > 0) {
-          setStaff(staffData);
-        } else {
-          setStaff(FALLBACK_STAFF);
-        }
+        setDepartments(deptsData && deptsData.length > 0 ? deptsData : []);
+        setStaff(staffData && staffData.length > 0 ? staffData : []);
       } catch (err) {
-        console.warn('Could not load live staff/departments. Using fallback.', err);
-        setDepartments(FALLBACK_DEPARTMENTS);
-        setStaff(FALLBACK_STAFF);
+        console.warn('Could not load live staff/departments.', err);
+        setDepartments([]);
+        setStaff([]);
       } finally {
         setLoading(false);
       }
@@ -301,14 +161,36 @@ export const MeetOurTeamSection: React.FC<{ language?: string }> = ({ language =
   };
 
   return (
-    <section id="meet-our-team" className="py-20 relative overflow-hidden bg-slate-50/50 dark:bg-slate-950/20">
+    <section id="meet-our-team" className={`min-h-screen py-24 ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} font-sans antialiased transition-colors duration-500 relative overflow-hidden`}>
       {/* Decorative Gradients */}
-      <div className="absolute top-1/4 -left-40 w-96 h-96 bg-indigo-500/5 dark:indigo-500/10 rounded-full filter blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 -right-40 w-96 h-96 bg-orange-500/5 dark:orange-500/10 rounded-full filter blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[100px] pointer-events-none animate-pulse" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="max-w-6xl mx-auto px-6">
+      {onBackToPortal && (
+        <button
+          type="button"
+          onClick={onBackToPortal}
+          className="absolute top-6 left-6 p-2.5 sm:px-4 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all cursor-pointer shadow-sm flex items-center gap-1.5 z-50"
+          title="Back to Main Site"
+        >
+          <ArrowLeft size={15} className="text-orange-500" />
+          <span className="hidden sm:inline text-xs font-bold uppercase tracking-widest text-slate-500">Back</span>
+        </button>
+      )}
+
+      {/* Theme Toggle Button */}
+      <button
+        type="button"
+        onClick={() => setIsDarkMode(!isDarkMode)}
+        className="absolute top-6 right-6 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all cursor-pointer shadow-sm flex items-center gap-1.5 z-50"
+      >
+        {isDarkMode ? <Sun size={15} className="text-orange-400" /> : <Moon size={15} className="text-indigo-500" />}
+      </button>
+
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
         {/* Header Block with mathematical tracking */}
-        <div className="text-center space-y-4 mb-16">
+        <div className="text-center space-y-4 mb-16 flex flex-col items-center">
+          <Logo size="md" variant={isDarkMode ? 'light' : 'dark'} className="mx-auto mb-2" />
           <motion.span 
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}

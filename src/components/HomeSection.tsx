@@ -200,54 +200,54 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
   return (
     <div className="w-full space-y-20 pb-16 animate-fade-in">
       {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#000E32] via-[#011442] to-slate-950 text-white rounded-3xl mx-4 md:mx-6 p-6 md:p-12 lg:p-16 border border-indigo-950 shadow-2xl mt-4">
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#000E32] via-[#011442] to-slate-950 text-white rounded-3xl mx-4 md:mx-6 p-4 md:p-6 lg:p-7 border border-indigo-950 shadow-2xl mt-1.5 min-h-[340px] flex flex-col justify-center">
         {/* Animated Background Lights */}
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-br from-orange-500/25 to-transparent rounded-full filter blur-[100px] pointer-events-none" />
-        <div className="absolute -bottom-40 -left-20 w-[300px] h-[300px] bg-indigo-50/15 rounded-full filter blur-[100px] pointer-events-none" />
+        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-br from-orange-500/20 to-transparent rounded-full filter blur-[100px] pointer-events-none" />
+        <div className="absolute -bottom-40 -left-20 w-[300px] h-[300px] bg-indigo-50/10 rounded-full filter blur-[100px] pointer-events-none" />
 
-        <div className="relative z-10 max-w-4xl space-y-6 text-left">
-          <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 px-3 py-1 rounded-full text-orange-400 text-xs font-bold uppercase tracking-widest shadow-inner">
-            <Sparkles size={12} className="animate-pulse" />
-            <span className="font-hand text-xs normal-case tracking-wide text-orange-200">{t.heroBadge}</span>
+        <div className="relative z-10 max-w-4xl space-y-3.5 text-left">
+          <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 px-2.5 py-0.5 rounded-full text-orange-400 text-[10px] font-black uppercase tracking-widest shadow-inner">
+            <Sparkles size={10} className="animate-pulse" />
+            <span className="font-hand text-[11px] normal-case tracking-wide text-orange-100">{t.heroBadge}</span>
           </div>
 
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight leading-none uppercase font-serif">
+          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-[1.1] uppercase font-serif">
             {t.heroTitlePrefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-orange-500 to-amber-500 font-extrabold italic">{t.heroTitleSuffix}</span>
           </h1>
 
-          <p className="text-slate-300 text-sm md:text-base leading-relaxed max-w-2xl font-light">
+          <p className="text-slate-200 text-xs md:text-sm leading-relaxed max-w-2xl font-light opacity-95">
             {t.heroDesc}
           </p>
 
-          <div className="flex flex-wrap gap-4 pt-2">
+          <div className="flex flex-wrap gap-3 pt-1">
             <motion.button
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => onNavigate('/services')}
-              className="px-6 py-3 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-700 hover:to-orange-600 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all duration-300 shadow-lg shadow-orange-600/20 flex items-center gap-1.5 cursor-pointer"
+              className="px-5 py-2.5 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-700 hover:to-orange-600 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all duration-300 shadow-lg shadow-orange-600/20 flex items-center gap-1.5 cursor-pointer"
             >
               <span>{t.exploreServices}</span>
-              <ArrowRight size={14} />
+              <ArrowRight size={12} />
             </motion.button>
 
             <motion.button
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.97 }}
               onClick={() => onNavigate('/client')}
-              className="px-6 py-3 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center gap-1.5 cursor-pointer"
+              className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center gap-1.5 cursor-pointer"
             >
               <span>{t.clientDashboard}</span>
-              <ArrowUpRight size={14} />
+              <ArrowUpRight size={12} />
             </motion.button>
           </div>
         </div>
 
         {/* Statistics Counter */}
-        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-6 pt-12 mt-12 border-t border-white/5">
+        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 mt-6 border-t border-white/10">
           {stats.map((stat, i) => (
-            <div key={i} className="text-left space-y-1">
-              <span className="text-2xl md:text-3xl font-extrabold text-orange-400 block font-serif tracking-tight">{stat.value}</span>
-              <span className="text-xs text-slate-400 uppercase tracking-wider font-bold">{stat.label}</span>
+            <div key={i} className="text-left space-y-0.5">
+              <span className="text-lg md:text-xl font-black text-orange-400 block font-serif tracking-tight">{stat.value}</span>
+              <span className="text-[9px] text-slate-300 uppercase tracking-widest font-black opacity-80">{stat.label}</span>
             </div>
           ))}
         </div>

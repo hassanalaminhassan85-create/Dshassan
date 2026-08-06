@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Search, Filter, ShieldCheck, Award, FileText, Globe, CheckCircle2, 
   ExternalLink, Download, Share2, ZoomIn, ZoomOut, RotateCw, RotateCcw, 
-  X, Maximize2, Minimize2, Printer, AlertTriangle, Calendar, Building, FileDigit, Loader2, ArrowRight
+  X, Maximize2, Minimize2, Printer, AlertTriangle, Calendar, Building, FileDigit, Loader2, ArrowRight, Sun, Moon, ArrowLeft
 } from 'lucide-react';
 import { apiGetRecognitionCertificates, RecognitionCertificate } from '../lib/api';
+import { Logo } from './Logo';
 
 // Supported Categories
 const CATEGORIES = [
@@ -21,7 +22,11 @@ const CATEGORIES = [
   'Other Recognitions'
 ];
 
-export const RecognitionSection: React.FC = () => {
+interface RecognitionSectionProps {
+  onBackToPortal?: () => void;
+}
+
+export const RecognitionSection: React.FC<RecognitionSectionProps> = ({ onBackToPortal }) => {
   const [certs, setCerts] = useState<RecognitionCertificate[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +43,25 @@ export const RecognitionSection: React.FC = () => {
   const [rotation, setRotation] = useState<number>(0);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('theme');
+      return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    } catch {
+      return false;
+    }
+  });
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
 
   // Load certificates
   const fetchCertificates = async () => {
@@ -213,11 +237,37 @@ export const RecognitionSection: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-[#000a21] text-slate-100 min-h-screen py-10" id="recognition-certifications-section">
-      <div className="max-w-7xl mx-auto px-4 md:px-6 space-y-12">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} font-sans antialiased transition-colors duration-500 relative overflow-hidden`} id="recognition-certifications-section">
+      {/* Ambient background lights with smooth animation */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[100px] pointer-events-none animate-pulse" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
+
+      {onBackToPortal && (
+        <button
+          type="button"
+          onClick={onBackToPortal}
+          className="absolute top-6 left-6 p-2.5 sm:px-4 sm:py-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all cursor-pointer shadow-sm flex items-center gap-1.5 z-50"
+          title="Back to Main Site"
+        >
+          <ArrowLeft size={15} className="text-orange-500" />
+          <span className="hidden sm:inline text-xs font-bold uppercase tracking-widest text-slate-500">Back</span>
+        </button>
+      )}
+
+      {/* Theme Toggle Button */}
+      <button
+        type="button"
+        onClick={() => setIsDarkMode(!isDarkMode)}
+        className="absolute top-6 right-6 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all cursor-pointer shadow-sm flex items-center gap-1.5 z-50"
+      >
+        {isDarkMode ? <Sun size={15} className="text-orange-400" /> : <Moon size={15} className="text-indigo-500" />}
+      </button>
+
+      <div className="max-w-7xl mx-auto px-4 md:px-6 pt-24 pb-12 space-y-12 relative z-10">
         
         {/* Section Header */}
-        <div className="text-center space-y-4 max-w-3xl mx-auto">
+        <div className="text-center space-y-4 max-w-3xl mx-auto flex flex-col items-center">
+          <Logo size="md" variant={isDarkMode ? 'light' : 'dark'} className="mx-auto mb-2" />
           <motion.div 
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -231,7 +281,7 @@ export const RecognitionSection: React.FC = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-3xl md:text-5xl font-black tracking-tight font-serif uppercase text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-orange-500 to-amber-500"
+            className="text-3xl md:text-5xl font-black tracking-tight font-serif uppercase text-slate-900 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-orange-400 dark:via-orange-500 dark:to-amber-500"
           >
             Recognition & Certifications
           </motion.h1>
@@ -240,14 +290,14 @@ export const RecognitionSection: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-slate-400 text-sm md:text-base font-light leading-relaxed"
+            className="text-slate-600 dark:text-slate-400 text-sm md:text-base font-light leading-relaxed"
           >
             Browse our accredited licensing, technological partnerships, academic standard achievements, and national governmental recognitions demonstrating premium excellence.
           </motion.p>
         </div>
 
         {/* Filter Center Control Deck */}
-        <div className="bg-[#031336]/65 border border-indigo-950 p-6 rounded-2xl shadow-2xl backdrop-blur-md space-y-6">
+        <div className="bg-white/80 dark:bg-[#031336]/65 border border-slate-200 dark:border-indigo-950 p-6 rounded-2xl shadow-xl dark:shadow-2xl backdrop-blur-md space-y-6">
           <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
             {/* Search Input */}
             <div className="relative w-full lg:max-w-md">
@@ -257,12 +307,12 @@ export const RecognitionSection: React.FC = () => {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search award, certificate number, description..."
-                className="w-full bg-[#01091b] border border-slate-700/60 rounded-lg pl-10 pr-4 py-2.5 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 transition-colors"
+                className="w-full bg-slate-100 dark:bg-[#01091b] border border-slate-200 dark:border-slate-700/60 rounded-lg pl-10 pr-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:border-orange-500 transition-colors"
               />
               {searchQuery && (
                 <button 
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white"
                 >
                   <X size={14} />
                 </button>
@@ -271,28 +321,28 @@ export const RecognitionSection: React.FC = () => {
 
             {/* Verification & Sorting Options */}
             <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto justify-start lg:justify-end">
-              <label className="flex items-center gap-2 cursor-pointer select-none group text-sm text-slate-300">
+              <label className="flex items-center gap-2 cursor-pointer select-none group text-sm text-slate-600 dark:text-slate-300">
                 <input
                   type="checkbox"
                   checked={showOnlyVerified}
                   onChange={(e) => setShowOnlyVerified(e.target.checked)}
-                  className="rounded bg-[#01091b] border-slate-700 text-orange-500 focus:ring-orange-500/20"
+                  className="rounded bg-slate-100 dark:bg-[#01091b] border-slate-300 dark:border-slate-700 text-orange-500 focus:ring-orange-500/20"
                 />
-                <span className="group-hover:text-orange-400 transition-colors flex items-center gap-1.5">
-                  <CheckCircle2 size={14} className="text-emerald-500" />
+                <span className="group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors flex items-center gap-1.5">
+                  <CheckCircle2 size={14} className="text-emerald-600 dark:text-emerald-500" />
                   Verified Credentials Only
                 </span>
               </label>
 
-              <div className="h-4 w-[1px] bg-indigo-950 hidden sm:block" />
+              <div className="h-4 w-[1px] bg-slate-300 dark:bg-indigo-950 hidden sm:block" />
 
-              <div className="flex items-center gap-2 text-sm text-slate-300">
+              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
                 <Filter size={14} className="text-orange-500" />
                 <span>Sort:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bg-[#01091b] border border-slate-700 rounded-md px-2 py-1 text-xs text-slate-100 focus:outline-none focus:border-orange-500"
+                  className="bg-slate-100 dark:bg-[#01091b] border border-slate-200 dark:border-slate-700 rounded-md px-2 py-1 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-orange-500"
                 >
                   <option value="order">Custom Order</option>
                   <option value="date-desc">Newest First</option>
@@ -303,7 +353,7 @@ export const RecognitionSection: React.FC = () => {
           </div>
 
           {/* Category Scrolling Horizontal Tabs */}
-          <div className="border-t border-indigo-950/40 pt-4 overflow-x-auto scrollbar-none flex items-center gap-2">
+          <div className="border-t border-slate-200 dark:border-indigo-950/40 pt-4 overflow-x-auto scrollbar-none flex items-center gap-2">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
@@ -311,7 +361,7 @@ export const RecognitionSection: React.FC = () => {
                 className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap tracking-wide transition-all ${
                   activeCategory === cat 
                     ? 'bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/10' 
-                    : 'bg-[#01091b] hover:bg-[#02102c] text-slate-300 border border-slate-800'
+                    : 'bg-slate-100 dark:bg-[#01091b] hover:bg-slate-200 dark:hover:bg-[#02102c] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-800'
                 }`}
               >
                 {cat}
@@ -324,26 +374,26 @@ export const RecognitionSection: React.FC = () => {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="bg-[#031336]/40 border border-indigo-950/50 rounded-2xl p-5 space-y-4 animate-pulse">
-                <div className="h-48 bg-[#01091b]/80 rounded-xl" />
-                <div className="h-6 bg-[#01091b]/80 rounded w-3/4" />
-                <div className="h-4 bg-[#01091b]/80 rounded w-1/2" />
+              <div key={i} className="bg-slate-100 dark:bg-[#031336]/40 border border-slate-200 dark:border-indigo-950/50 rounded-2xl p-5 space-y-4 animate-pulse">
+                <div className="h-48 bg-slate-200 dark:bg-[#01091b]/80 rounded-xl" />
+                <div className="h-6 bg-slate-200 dark:bg-[#01091b]/80 rounded w-3/4" />
+                <div className="h-4 bg-slate-200 dark:bg-[#01091b]/80 rounded w-1/2" />
                 <div className="space-y-2 pt-2">
-                  <div className="h-3 bg-[#01091b]/80 rounded w-full" />
-                  <div className="h-3 bg-[#01091b]/80 rounded w-5/6" />
+                  <div className="h-3 bg-slate-200 dark:bg-[#01091b]/80 rounded w-full" />
+                  <div className="h-3 bg-slate-200 dark:bg-[#01091b]/80 rounded w-5/6" />
                 </div>
-                <div className="flex justify-between pt-4 border-t border-indigo-950/20">
-                  <div className="h-8 bg-[#01091b]/80 rounded w-1/3" />
-                  <div className="h-8 bg-[#01091b]/80 rounded w-1/4" />
+                <div className="flex justify-between pt-4 border-t border-slate-200 dark:border-indigo-950/20">
+                  <div className="h-8 bg-slate-200 dark:bg-[#01091b]/80 rounded w-1/3" />
+                  <div className="h-8 bg-slate-200 dark:bg-[#01091b]/80 rounded w-1/4" />
                 </div>
               </div>
             ))}
           </div>
         ) : error ? (
-          <div className="flex flex-col items-center justify-center p-12 bg-red-950/10 border border-red-500/20 rounded-2xl text-center space-y-4 max-w-xl mx-auto">
+          <div className="flex flex-col items-center justify-center p-12 bg-red-50 dark:bg-red-950/10 border border-red-200 dark:border-red-500/20 rounded-2xl text-center space-y-4 max-w-xl mx-auto">
             <AlertTriangle className="text-rose-500 w-12 h-12 animate-bounce" />
-            <h3 className="text-lg font-bold text-slate-100 font-serif">Security Hub Disrupted</h3>
-            <p className="text-xs text-rose-300/80 leading-relaxed">{error}</p>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 font-serif">Security Hub Disrupted</h3>
+            <p className="text-xs text-rose-600 dark:text-rose-300/80 leading-relaxed">{error}</p>
             <button 
               onClick={fetchCertificates}
               className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase px-4 py-2 rounded-md transition-all shadow-md"
@@ -352,10 +402,10 @@ export const RecognitionSection: React.FC = () => {
             </button>
           </div>
         ) : filteredAndSortedCerts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center p-12 bg-[#031336]/30 border border-indigo-950/60 rounded-2xl text-center space-y-4 max-w-xl mx-auto">
-            <FileText className="text-slate-500 w-12 h-12 opacity-60" />
-            <h3 className="text-lg font-bold text-slate-200 font-serif">No Credentials Located</h3>
-            <p className="text-xs text-slate-400/85">
+          <div className="flex flex-col items-center justify-center p-12 bg-slate-100 dark:bg-[#031336]/30 border border-slate-200 dark:border-indigo-950/60 rounded-2xl text-center space-y-4 max-w-xl mx-auto">
+            <FileText className="text-slate-400 dark:text-slate-500 w-12 h-12 opacity-60" />
+            <h3 className="text-lg font-bold text-slate-700 dark:text-slate-200 font-serif">No Credentials Located</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400/85">
               We couldn't locate any active, published certificates matching your search or category filter.
             </p>
             <button 
@@ -364,7 +414,7 @@ export const RecognitionSection: React.FC = () => {
                 setActiveCategory('All');
                 setShowOnlyVerified(false);
               }}
-              className="bg-orange-500/10 border border-orange-500/30 hover:bg-orange-500/20 text-orange-400 font-bold text-xs uppercase px-4 py-2 rounded-md transition-all"
+              className="bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 hover:bg-orange-100 dark:hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 font-bold text-xs uppercase px-4 py-2 rounded-md transition-all"
             >
               Reset Filters
             </button>
@@ -383,16 +433,16 @@ export const RecognitionSection: React.FC = () => {
                     exit={{ opacity: 0, scale: 0.95 }}
                     transition={{ duration: 0.3 }}
                     whileHover={{ y: -6, boxShadow: "0 20px 40px rgba(249, 115, 22, 0.08)" }}
-                    className="group relative bg-[#031336]/45 border border-indigo-950 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between"
+                    className="group relative bg-white dark:bg-[#031336]/45 border border-slate-200 dark:border-indigo-950 rounded-2xl overflow-hidden shadow-xl flex flex-col justify-between"
                   >
                     
                     {/* Upper decorative glow block */}
-                    <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 opacity-60 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r from-orange-500 via-amber-500 to-yellow-500 opacity-0 dark:opacity-60 group-hover:opacity-100 transition-opacity" />
                     
                     <div className="p-5 space-y-4">
                       
                       {/* Interactive Thumbnail frame */}
-                      <div className="relative h-48 w-full bg-[#01091b] rounded-xl overflow-hidden border border-indigo-950 flex items-center justify-center group-hover:border-orange-500/40 transition-colors">
+                      <div className="relative h-48 w-full bg-slate-100 dark:bg-[#01091b] rounded-xl overflow-hidden border border-slate-200 dark:border-indigo-950 flex items-center justify-center group-hover:border-orange-500/40 transition-colors">
                         <img 
                           src={getCertImageSrc(cert)}
                           alt={cert.title}
@@ -404,17 +454,17 @@ export const RecognitionSection: React.FC = () => {
                         {/* Overlay elements */}
                         <div className="absolute top-3 right-3 flex items-center gap-1.5">
                           {verified && (
-                            <span className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider backdrop-blur-md flex items-center gap-1 shadow-md">
-                              <ShieldCheck size={11} className="text-emerald-400" />
+                            <span className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider backdrop-blur-md flex items-center gap-1 shadow-md">
+                              <ShieldCheck size={11} className="text-emerald-600 dark:text-emerald-400" />
                               VERIFIED
                             </span>
                           )}
-                          <span className="bg-orange-500/10 border border-orange-500/30 text-orange-400 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider backdrop-blur-md shadow-md">
+                          <span className="bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 text-orange-600 dark:text-orange-400 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider backdrop-blur-md shadow-md">
                             {cert.category}
                           </span>
                         </div>
                         
-                        <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
+                        <div className="absolute inset-0 bg-slate-900/40 dark:bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
                           <button 
                             onClick={() => setActivePreviewCert(cert)}
                             className="bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase px-4 py-2 rounded-lg flex items-center gap-1.5 shadow-lg transform translate-y-2 group-hover:translate-y-0 transition-all duration-300"
@@ -427,47 +477,47 @@ export const RecognitionSection: React.FC = () => {
 
                       {/* Header and title text */}
                       <div className="space-y-1.5 text-left">
-                        <p className="text-[10px] font-mono tracking-wider text-slate-400 uppercase flex items-center gap-1.5">
+                        <p className="text-[10px] font-mono tracking-wider text-slate-500 dark:text-slate-400 uppercase flex items-center gap-1.5">
                           <Building size={11} className="text-orange-500" />
                           {cert.issuing_organization}
                         </p>
-                        <h3 className="text-base font-bold text-slate-100 line-clamp-1 font-serif group-hover:text-orange-400 transition-colors">
+                        <h3 className="text-base font-bold text-slate-900 dark:text-slate-100 line-clamp-1 font-serif group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">
                           {cert.title}
                         </h3>
                       </div>
 
                       {/* Dynamic Issue & Expiry Dates */}
-                      <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono bg-[#01091b]/60 border border-indigo-950/40 p-2 rounded-lg">
+                      <div className="flex items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 font-mono bg-slate-50 dark:bg-[#01091b]/60 border border-slate-200 dark:border-indigo-950/40 p-2 rounded-lg">
                         <span className="flex items-center gap-1">
                           <Calendar size={11} className="text-orange-500" />
                           Issued: {cert.issue_date}
                         </span>
                         {cert.expiry_date && (
-                          <span className="text-yellow-500/90">
+                          <span className="text-amber-600 dark:text-yellow-500/90">
                             Exp: {cert.expiry_date}
                           </span>
                         )}
                       </div>
 
                       {/* Brief description */}
-                      <p className="text-xs text-slate-400/90 line-clamp-3 text-left leading-relaxed">
+                      <p className="text-xs text-slate-500 dark:text-slate-400/90 line-clamp-3 text-left leading-relaxed">
                         {cert.description || 'No digital metadata description provided for this certificate record.'}
                       </p>
 
                       {/* Certificate Registration Number Block */}
                       {cert.certificate_number && (
-                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-mono text-left bg-[#01091b]/30 p-1.5 rounded border border-indigo-950/20">
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-600 dark:text-slate-400 font-mono text-left bg-slate-50 dark:bg-[#01091b]/30 p-1.5 rounded border border-slate-200 dark:border-indigo-950/20">
                           <FileDigit size={12} className="text-orange-400 shrink-0" />
-                          <span>Ref: <strong className="text-slate-200">{cert.certificate_number}</strong></span>
+                          <span>Ref: <strong className="text-slate-800 dark:text-slate-200">{cert.certificate_number}</strong></span>
                         </div>
                       )}
                     </div>
 
                     {/* Footer Interactive Actions Row */}
-                    <div className="p-4 border-t border-indigo-950/60 bg-[#02102c]/50 flex items-center justify-between gap-2 rounded-b-2xl">
+                    <div className="p-4 border-t border-slate-200 dark:border-indigo-950/60 bg-slate-50 dark:bg-[#02102c]/50 flex items-center justify-between gap-2 rounded-b-2xl">
                       <button
                         onClick={() => setActivePreviewCert(cert)}
-                        className="text-xs font-bold text-slate-300 hover:text-white flex items-center gap-1 transition-colors"
+                        className="text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 transition-colors"
                       >
                         <ExternalLink size={12} className="text-orange-500" />
                         Preview
@@ -476,7 +526,7 @@ export const RecognitionSection: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={(e) => handleShare(cert, e)}
-                          className="p-1.5 rounded-lg bg-[#01091b] hover:bg-orange-500/10 hover:text-orange-400 border border-slate-800 text-slate-400 transition-all"
+                          className="p-1.5 rounded-lg bg-white dark:bg-[#01091b] hover:bg-orange-50 dark:hover:bg-orange-500/10 hover:text-orange-500 dark:hover:text-orange-400 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 transition-all shadow-sm dark:shadow-none"
                           title="Copy Shareable URL"
                         >
                           <Share2 size={13} />
@@ -487,7 +537,7 @@ export const RecognitionSection: React.FC = () => {
                           download={cert.file_name || 'certificate.png'}
                           target="_blank"
                           rel="noreferrer"
-                          className="p-1.5 rounded-lg bg-[#01091b] hover:bg-emerald-500/10 hover:text-emerald-400 border border-slate-800 text-slate-400 transition-all flex items-center justify-center"
+                          className="p-1.5 rounded-lg bg-white dark:bg-[#01091b] hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-500 dark:hover:text-emerald-400 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 transition-all flex items-center justify-center shadow-sm dark:shadow-none"
                           title="Download Document"
                         >
                           <Download size={13} />
@@ -517,50 +567,50 @@ export const RecognitionSection: React.FC = () => {
               initial={{ y: -30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -30, opacity: 0 }}
-              className="bg-[#031336] border border-indigo-900/60 rounded-full px-5 py-2 mb-4 flex items-center gap-4 text-slate-300 shadow-2xl relative z-10 max-w-4xl w-full justify-between"
+              className={`border rounded-full px-5 py-2 mb-4 flex items-center gap-4 shadow-2xl relative z-10 max-w-4xl w-full justify-between ${isDarkMode ? 'bg-[#031336] border-indigo-900/60 text-slate-300' : 'bg-white border-slate-200 text-slate-700'}`}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex items-center gap-2 text-xs font-mono">
                 <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-ping shrink-0" />
-                <span className="text-slate-100 font-bold max-w-[180px] md:max-w-xs truncate">{activePreviewCert.title}</span>
+                <span className={`font-bold max-w-[180px] md:max-w-xs truncate ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>{activePreviewCert.title}</span>
               </div>
 
               {/* View control deck */}
               <div className="flex items-center gap-1.5 md:gap-3">
                 <button 
                   onClick={handleZoomIn}
-                  className="p-1.5 hover:text-white rounded-md bg-[#01091b] hover:bg-orange-500/20 text-slate-300 transition-all"
+                  className={`p-1.5 rounded-md transition-all ${isDarkMode ? 'hover:text-white bg-[#01091b] hover:bg-orange-500/20 text-slate-300' : 'hover:text-orange-500 bg-slate-100 hover:bg-orange-500/10 text-slate-600'}`}
                   title="Zoom In (+)"
                 >
                   <ZoomIn size={15} />
                 </button>
                 <button 
                   onClick={handleZoomOut}
-                  className="p-1.5 hover:text-white rounded-md bg-[#01091b] hover:bg-orange-500/20 text-slate-300 transition-all"
+                  className={`p-1.5 rounded-md transition-all ${isDarkMode ? 'hover:text-white bg-[#01091b] hover:bg-orange-500/20 text-slate-300' : 'hover:text-orange-500 bg-slate-100 hover:bg-orange-500/10 text-slate-600'}`}
                   title="Zoom Out (-)"
                 >
                   <ZoomOut size={15} />
                 </button>
                 <button 
                   onClick={handleRotateCw}
-                  className="p-1.5 hover:text-white rounded-md bg-[#01091b] hover:bg-orange-500/20 text-slate-300 transition-all"
+                  className={`p-1.5 rounded-md transition-all ${isDarkMode ? 'hover:text-white bg-[#01091b] hover:bg-orange-500/20 text-slate-300' : 'hover:text-orange-500 bg-slate-100 hover:bg-orange-500/10 text-slate-600'}`}
                   title="Rotate Right (R)"
                 >
                   <RotateCw size={15} />
                 </button>
                 <button 
                   onClick={resetZoomRotate}
-                  className="text-xs uppercase px-2 py-1.5 rounded-md bg-[#01091b] hover:text-white transition-all hover:bg-slate-800 font-mono"
+                  className={`text-xs uppercase px-2 py-1.5 rounded-md transition-all font-mono ${isDarkMode ? 'bg-[#01091b] hover:text-white hover:bg-slate-800' : 'bg-slate-100 hover:text-orange-500 hover:bg-slate-200'}`}
                   title="Reset view adjustments"
                 >
                   Reset
                 </button>
 
-                <div className="h-4 w-[1px] bg-slate-700/50" />
+                <div className={`h-4 w-[1px] ${isDarkMode ? 'bg-slate-700/50' : 'bg-slate-300'}`} />
 
                 <button 
                   onClick={handlePrint}
-                  className="p-1.5 hover:text-white rounded-md bg-[#01091b] hover:bg-slate-800 transition-all"
+                  className={`p-1.5 rounded-md transition-all ${isDarkMode ? 'hover:text-white bg-[#01091b] hover:bg-slate-800' : 'hover:text-orange-500 bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
                   title="Print Document"
                 >
                   <Printer size={15} />
@@ -569,7 +619,7 @@ export const RecognitionSection: React.FC = () => {
                 <a 
                   href={activePreviewCert.r2_object_key ? `/api/recognition/file?key=${encodeURIComponent(activePreviewCert.r2_object_key)}` : 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=1200'}
                   download={activePreviewCert.file_name || 'certificate.png'}
-                  className="p-1.5 hover:text-emerald-400 rounded-md bg-[#01091b] hover:bg-slate-800 transition-all flex items-center justify-center text-slate-300"
+                  className={`p-1.5 rounded-md transition-all flex items-center justify-center ${isDarkMode ? 'hover:text-emerald-400 bg-[#01091b] hover:bg-slate-800 text-slate-300' : 'hover:text-emerald-500 bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
                   title="Direct download file"
                   target="_blank"
                   rel="noreferrer"
@@ -582,7 +632,7 @@ export const RecognitionSection: React.FC = () => {
                     href={activePreviewCert.verification_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="p-1.5 hover:text-orange-400 rounded-md bg-[#01091b] hover:bg-slate-800 transition-all flex items-center justify-center text-slate-300"
+                    className={`p-1.5 rounded-md transition-all flex items-center justify-center ${isDarkMode ? 'hover:text-orange-400 bg-[#01091b] hover:bg-slate-800 text-slate-300' : 'hover:text-orange-500 bg-slate-100 hover:bg-slate-200 text-slate-600'}`}
                     title="Visit Verification Portal"
                   >
                     <Globe size={15} />
@@ -592,7 +642,7 @@ export const RecognitionSection: React.FC = () => {
 
               <button 
                 onClick={closePreview}
-                className="p-1.5 hover:bg-rose-950/40 hover:text-rose-400 text-rose-500 rounded-full transition-colors bg-[#01091b]"
+                className={`p-1.5 rounded-full transition-colors ${isDarkMode ? 'hover:bg-rose-950/40 hover:text-rose-400 text-rose-500 bg-[#01091b]' : 'hover:bg-rose-100 hover:text-rose-600 text-rose-500 bg-slate-100'}`}
                 title="Close (ESC)"
               >
                 <X size={15} />
@@ -609,7 +659,7 @@ export const RecognitionSection: React.FC = () => {
                   maxHeight: '75vh',
                   maxWidth: '100%'
                 }}
-                className="bg-slate-900 border border-indigo-900/40 rounded-xl overflow-hidden shadow-2xl relative select-none"
+                className={`border rounded-xl overflow-hidden shadow-2xl relative select-none ${isDarkMode ? 'bg-slate-900 border-indigo-900/40' : 'bg-white border-slate-200'}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 <img 
@@ -626,15 +676,15 @@ export const RecognitionSection: React.FC = () => {
               initial={{ y: 30, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 30, opacity: 0 }}
-              className="bg-[#031336]/90 border border-indigo-900/40 rounded-xl p-4 mt-4 shadow-2xl max-w-2xl w-full text-slate-300 text-xs md:text-sm text-left relative z-10 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between"
+              className={`border rounded-xl p-4 mt-4 shadow-2xl max-w-2xl w-full text-xs md:text-sm text-left relative z-10 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between ${isDarkMode ? 'bg-[#031336]/90 border-indigo-900/40 text-slate-300' : 'bg-white/90 border-slate-200 text-slate-700'}`}
               onClick={(e) => e.stopPropagation()}
             >
               <div className="space-y-1">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-orange-400 font-mono">
+                <span className={`text-[10px] uppercase font-bold tracking-wider font-mono ${isDarkMode ? 'text-orange-400' : 'text-orange-500'}`}>
                   {activePreviewCert.category} • Reference No: {activePreviewCert.certificate_number || 'N/A'}
                 </span>
-                <p className="text-slate-100 font-bold font-serif">{activePreviewCert.title}</p>
-                <p className="text-slate-400 text-[11px] leading-relaxed line-clamp-2">
+                <p className={`font-bold font-serif ${isDarkMode ? 'text-slate-100' : 'text-slate-900'}`}>{activePreviewCert.title}</p>
+                <p className={`text-[11px] leading-relaxed line-clamp-2 ${isDarkMode ? 'text-slate-400' : 'text-slate-500'}`}>
                   {activePreviewCert.description || 'No digital metadata description provided.'}
                 </p>
               </div>
@@ -663,7 +713,7 @@ export const RecognitionSection: React.FC = () => {
             initial={{ opacity: 0, y: 50, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
-            className="fixed bottom-6 right-6 z-50 bg-[#031336] border border-orange-500 text-slate-100 font-sans text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2"
+            className="fixed bottom-6 right-6 z-50 bg-white dark:bg-[#031336] border border-orange-200 dark:border-orange-500 text-slate-800 dark:text-slate-100 font-sans text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2"
           >
             <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
             <span>{toastMessage}</span>

@@ -7,7 +7,7 @@ import {
   Edit3, ArrowLeft, Heart, BarChart3, Users, Landmark, UserMinus, ShieldAlert, LogOut,
   QrCode, MessageSquare, Send, FileText, Printer, Layers, FolderOpen, BookOpen,
   Video, Plus, PlusCircle, Check, MoreVertical, Settings, Sliders, Database, ArrowUp, Camera,
-  Sun, Moon, Globe, ChevronDown, Copy, X, Code, Bell, ShieldCheck, Award, FolderKanban
+  Sun, Moon, Globe, ChevronDown, Copy, X, Code, Bell, ShieldCheck, Award, FolderKanban, Info, LayoutDashboard
 } from 'lucide-react';
 import { JobApplication } from '../types';
 import { useNotifications } from './NotificationProvider';
@@ -35,7 +35,7 @@ import {
 } from '../lib/api';
 import { ApplicationQRScanner } from './ApplicationQRScanner';
 import { CareersFormPDFView } from './CareersFormPDFView';
-import { BrevoEmailDashboard } from './BrevoEmailDashboard';
+import { AboutSection } from './AboutSection';
 import { AdminAuthGate } from './AdminAuthGate';
 import { AdminChatCenter } from './AdminChatCenter';
 import { CacAdminCenter } from './CacAdminCenter';
@@ -45,6 +45,13 @@ import { AdminAssetDiagnostics } from './AdminAssetDiagnostics';
 import { AdminStaffManagement } from './AdminStaffManagement';
 import { AnimatedHomeSectionImagePreview } from './AnimatedHomeSectionImagePreview';
 import { generateDynamicSvgUrl } from '../lib/mediaUtils';
+
+// Modular CMS Components
+import { ServicesCMS } from './ServicesCMS';
+import { PortfolioCMS } from './PortfolioCMS';
+import { BlogCMS } from './BlogCMS';
+import { TrainingCMS } from './TrainingCMS';
+import { RecruitmentCMS } from './RecruitmentCMS';
 
 import { 
   SERVICES, 
@@ -292,62 +299,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Filtering & Search state
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
-  const [roleFilter, setRoleFilter] = useState<string>('all');
-  const [eduFilter, setEduFilter] = useState<'all' | 'student' | 'graduate'>('all');
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
-  
-  // Selected candidate details drawer/modal
-  const [selectedApp, setSelectedApp] = useState<JobApplication | null>(null);
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
-  const [adminNotesText, setAdminNotesText] = useState<string>('');
-  const [offerRoleInput, setOfferRoleInput] = useState<string>('');
-  const [salaryInput, setSalaryInput] = useState<string>('');
-  const [isScannerOpen, setIsScannerOpen] = useState<boolean>(false);
-
-  // 2026 Advanced Features States
-  const [scanHistory, setScanHistory] = useState<ScanHistoryRecord[]>([]);
-  const [scanHistoryLoading, setScanHistoryLoading] = useState<boolean>(false);
-  const [realtimeConnected, setRealtimeConnected] = useState<boolean>(false);
-  const [aiSummaries, setAiSummaries] = useState<Record<string, string>>({});
-  const [aiSummaryLoading, setAiSummaryLoading] = useState<boolean>(false);
-
-  // New features: PDF View toggle and Message Presets
-  const [adminDetailTab, setAdminDetailTab] = useState<'actions' | 'pdf' | 'ai'>('actions');
-  const [selectedPreset, setSelectedPreset] = useState<string>('review');
-  const [customMessage, setCustomMessage] = useState<string>('');
-
-  const [candidateAnalyses, setCandidateAnalyses] = useState<Record<string, {
-    compatibilityScore: number;
-    keyStrengths: string[];
-    potentialRisks: string[];
-    interviewQuestions: string[];
-  }>>(() => {
-    try {
-      const saved = localStorage.getItem('candidate_analyses');
-      return saved ? JSON.parse(saved) : {};
-    } catch (e) {
-      return {};
-    }
-  });
-  const [candidateAnalysisLoading, setCandidateAnalysisLoading] = useState<boolean>(false);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('candidate_analyses', JSON.stringify(candidateAnalyses));
-    } catch (e) {}
-  }, [candidateAnalyses]);
 
   // Super Admin Control Center State
-  const [adminModule, setAdminModule] = useState<'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'emails' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'client-projects'>('recruitment');
+  const [adminModule, setAdminModule] = useState<'dashboard' | 'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'client-projects' | 'about'>('dashboard');
   
   // Custom navigation header states
   const [isThreeDotsOpen, setIsThreeDotsOpen] = useState<boolean>(false);
   const [isAdminLangDropdownOpen, setIsAdminLangDropdownOpen] = useState<boolean>(false);
   const [showAdminNotification, setShowAdminNotification] = useState<string | null>(null);
   const [showSQLSchemaModal, setShowSQLSchemaModal] = useState<boolean>(false);
+  const [isScannerOpen, setIsScannerOpen] = useState<boolean>(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
+  const [realtimeConnected, setRealtimeConnected] = useState<boolean>(false);
+  const [scanHistoryLoading, setScanHistoryLoading] = useState<boolean>(false);
   const [showDeploymentGuideModal, setShowDeploymentGuideModal] = useState<boolean>(false);
   const [guidePage, setGuidePage] = useState<number>(0);
   const [copiedSQL, setCopiedSQL] = useState<boolean>(false);
@@ -401,21 +365,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }).catch(err => console.error("Failed to load services from API", err));
   }, []);
 
-  const handleUpdateService = async (service: any) => {
-    try {
-      await apiUpdateService(service.id, service);
-      setAdminServices(prev => prev.map(s => s.id === service.id ? service : s));
-      setShowAdminNotification("Service updated successfully!");
-    } catch (err) {
-      console.error("Failed to update service", err);
-      setShowAdminNotification("Failed to update service.");
-    }
-    setTimeout(() => setShowAdminNotification(null), 3000);
-  };
+
   
-  const [adminProjects, setAdminProjects] = useState<any[]>(PORTFOLIO);
-  const [adminBlogs, setAdminBlogs] = useState<any[]>(BLOG_POSTS);
-  const [adminCourses, setAdminCourses] = useState<any[]>(COURSES);
+  const [adminProjects, setAdminProjects] = useState<any[]>([]);
+  const [adminBlogs, setAdminBlogs] = useState<any[]>([]);
+  const [adminCourses, setAdminCourses] = useState<any[]>([]);
   
   useEffect(() => {
     Promise.all([
@@ -426,9 +380,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     ]).catch(err => console.error("Failed to load catalog data from API", err));
   }, []);
 
-  const [adminInvoices, setAdminInvoices] = useState(() => CLIENT_INVOICES);
+  const [adminInvoices, setAdminInvoices] = useState<any[]>([]);
 
-  const [adminTickets, setAdminTickets] = useState(() => CLIENT_TICKETS);
+  const [adminTickets, setAdminTickets] = useState<any[]>([]);
+
+  // Function to refresh all master state data from API/Firestore
+  const refreshMasterData = async () => {
+    try {
+      const [svcs, projs, blgs, crss] = await Promise.all([
+        apiGetServices(),
+        apiGetPortfolio(),
+        apiGetBlogs(),
+        apiGetCourses()
+      ]);
+      if (svcs && svcs.length > 0) setAdminServices(svcs);
+      if (projs && projs.length > 0) setAdminProjects(projs);
+      if (blgs && blgs.length > 0) setAdminBlogs(blgs);
+      if (crss && crss.length > 0) setAdminCourses(crss);
+    } catch (err) {
+      console.error("Failed to refresh master data", err);
+    }
+  };
 
   // Dynamic notification settings
   const [notifConfig, setNotifConfig] = useState({
@@ -439,53 +411,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     emailTemplate: "Hello {{name}},\n\nWe are pleased to inform you that your application for {{role}} has been successfully {{status}}.\n\nWarm regards,\nHR Team"
   });
 
-  // State to manage adding elements in admin panels
-  const [isAddingSvc, setIsAddingSvc] = useState(false);
-  const [svcName, setSvcName] = useState('');
-  const [svcPrice, setSvcPrice] = useState('₦150,000');
-  const [svcCategory, setSvcCategory] = useState('marketing');
-  const [svcDesc, setSvcDesc] = useState('');
-  const [editingSvc, setEditingSvc] = useState<any | null>(null);
-  const [svcImage, setSvcImage] = useState('');
-  const [svcUrl, setSvcUrl] = useState('');
-  const [svcFilterCat, setSvcFilterCat] = useState('all');
 
-  const [isAddingProj, setIsAddingProj] = useState(false);
-  const [projTitle, setProjTitle] = useState('');
-  const [projCat, setProjCat] = useState('Digital Marketing');
-  const [projStats, setProjStats] = useState('');
-  const [projDesc, setProjDesc] = useState('');
-  const [editingProj, setEditingProj] = useState<any | null>(null);
-  const [projClient, setProjClient] = useState('');
-  const [projDate, setProjDate] = useState('');
-  const [projImage, setProjImage] = useState('');
-  const [projVideo, setProjVideo] = useState('');
-  const [projContent, setProjContent] = useState('');
-  const [projTags, setProjTags] = useState('');
-  const [projClientLogo, setProjClientLogo] = useState('');
-  const [projTestimonialText, setProjTestimonialText] = useState('');
-  const [projTestimonialAuthor, setProjTestimonialAuthor] = useState('');
-  const [projLiveWebsiteUrl, setProjLiveWebsiteUrl] = useState('');
-  const [projDisplayClientName, setProjDisplayClientName] = useState(true);
-  const [projDisplayClientLogo, setProjDisplayClientLogo] = useState(true);
-  const [projDisplayTestimonial, setProjDisplayTestimonial] = useState(true);
-  const [projDisplayLiveWebsite, setProjDisplayLiveWebsite] = useState(true);
-
-  const [isAddingBlog, setIsAddingBlog] = useState(false);
-  const [blogTitle, setBlogTitle] = useState('');
-  const [blogCat, setBlogCat] = useState('Marketing');
-  const [blogDesc, setBlogDesc] = useState('');
-  const [blogImage, setBlogImage] = useState('https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=400&auto=format&fit=crop&q=60');
-
-  // LMS Academy course creation states
-  const [isAddingCourse, setIsAddingCourse] = useState(false);
-  const [crsTitle, setCrsTitle] = useState('');
-  const [crsDesc, setCrsDesc] = useState('');
-  const [crsDuration, setCrsDuration] = useState('6 Weeks');
-  const [crsLevel, setCrsLevel] = useState('Intermediate');
-  const [crsPrice, setCrsPrice] = useState('₦120,000');
-  const [crsCategory, setCrsCategory] = useState('marketing');
-  const [crsImage, setCrsImage] = useState('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80');
 
   // Fetch applications
   const fetchApplications = async () => {
@@ -500,43 +426,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  useEffect(() => {
-    const fetchD1Portfolio = async () => {
-      try {
-        const data = await apiGetPortfolio();
-        if (data && data.length > 0) {
-          setAdminProjects(data);
-        } else {
-          try {
-            await apiInitializePortfolio(PORTFOLIO);
-            setAdminProjects(PORTFOLIO);
-          } catch (initErr) {
-            console.warn("Failed to initialize portfolio in D1, using fallbacks:", initErr);
-            setAdminProjects(PORTFOLIO);
-          }
-        }
-      } catch (err) {
-        console.warn("D1 portfolio database unreachable, using local storage/fallback:", err);
-      }
-    };
-    fetchD1Portfolio();
-  }, []);
 
-  // Premium Admin Tool: Reset state back to original data central arrays
+
+  // Premium Admin Tool: Reset state back to empty records
   const handleResetData = () => {
-    if (window.confirm("Are you sure you want to reset all website catalogs, portfolios, blogs, and courses to default central records? This will clear your custom additions.")) {
+    if (window.confirm("Are you sure you want to clear all website catalogs, portfolios, blogs, and courses?")) {
       localStorage.removeItem('admin_services');
       localStorage.removeItem('admin_portfolio_projects');
       localStorage.removeItem('admin_blogs');
       localStorage.removeItem('admin_courses');
-      setAdminServices(SERVICES);
-      setAdminProjects(PORTFOLIO);
-      setAdminBlogs(BLOG_POSTS);
-      setAdminCourses(COURSES);
+      setAdminServices([]);
+      setAdminProjects([]);
+      setAdminBlogs([]);
+      setAdminCourses([]);
       
       // Notify components & trigger brief toast notification
       window.dispatchEvent(new Event('storage'));
-      setShowAdminNotification("System state rolled back to pristine central static records.");
+      setShowAdminNotification("System state cleared.");
       setTimeout(() => setShowAdminNotification(null), 3500);
       setIsThreeDotsOpen(false);
     }
@@ -1572,143 +1478,11 @@ export default {
   };
 
   // Delete / purge record
-  const handleDeleteRecord = async (id: string) => {
-    if (!window.confirm('🚨 CRITICAL ACTION REQUIRED:\n\nAre you absolutely sure you want to completely purge and delete this candidate\'s record? This cannot be undone and will erase all electronic signatures and documents from memory.')) {
-      return;
-    }
-    try {
-      await apiDeleteApplication(id);
-      
-      setApplications(prev => prev.filter(app => app.id !== id));
-      if (selectedApp && selectedApp.id === id) {
-        setSelectedApp(null);
-      }
-      alert('Application purged successfully.');
-    } catch (err: any) {
-      alert(err.message || 'Error purging application.');
-    }
-  };
 
   // Export all filtered applicants as CSV
-  const handleExportCSV = () => {
-    const headers = ['ID', 'Full Name', 'Email', 'Phone', 'Role Applied', 'Highest Qualification', 'Status', 'Date Applied', 'Salary Offer', 'Accepted'];
-    const rows = filteredApps.map(app => [
-      app.id,
-      app.personalInfo?.fullName || '',
-      app.personalInfo?.emailAddress || '',
-      app.personalInfo?.phoneNumbers || '',
-      app.positionSkills?.majorRole || '',
-      app.educationalBg?.highestQualification || '',
-      app.status || 'pending',
-      app.createdAt ? app.createdAt.substring(0, 10) : 'N/A',
-      app.approvedBy?.monthlySalary || 'N/A',
-      app.appointmentAccepted ? 'YES' : 'NO'
-    ]);
 
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + [headers.join(','), ...rows.map(e => e.map(val => `"${String(val).replace(/"/g, '""')}"`).join(','))].join('\n');
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `dstech_applicants_export_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
-  // Export single applicant details as JSON Profile
-  const handleExportJSON = (app: JobApplication) => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(app, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `profile_${(app.personalInfo?.fullName || 'applicant').replace(/\s+/g, '_')}_${app.id}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    document.body.removeChild(downloadAnchor);
-  };
 
-  const getMessageTemplate = (app: JobApplication, preset: string): string => {
-    const name = app.personalInfo?.fullName || 'Candidate';
-    const role = app.positionSkills?.majorRole || 'Staff Member';
-    const company = 'DS Tech and Digital Marketing Agency Limited';
-    const portalUrl = `${window.location.origin}/application/${app.id}`;
-
-    switch (preset) {
-      case 'review':
-        return `Hello ${name},\n\n` +
-          `Thank you for your application to ${company} for the role of "${role}".\n\n` +
-          `Our technical team is currently reviewing your submitted details and qualifications. We will get back to you shortly regarding the next stages of our selection process.\n\n` +
-          `You can view your submitted details anytime via your secure candidate portal:\n${portalUrl}\n\n` +
-          `Best regards,\nHR Team\n${company}`;
-      
-      case 'interview':
-        return `Dear ${name},\n\n` +
-          `We have carefully reviewed your application for the "${role}" position, and we are highly impressed with your background and skills.\n\n` +
-          `We would like to invite you for a virtual technical assessment and interview with our team. Please reply to this message with your availability over the next three working days.\n\n` +
-          `You can keep track of your active application status here:\n${portalUrl}\n\n` +
-          `Warm regards,\nRecruitment Unit\n${company}`;
-
-      case 'offer':
-        return `Congratulations ${name}!\n\n` +
-          `We are delighted to inform you that your application has been officially APPROVED, and you have been offered the position of "${role}" at ${company}!\n\n` +
-          `Your official Appointment Letter has been signed by the CEO and published to your candidate portal. Please sign into your portal below to accept the terms and secure your spot:\n` +
-          `${portalUrl}\n\n` +
-          `Welcome to the team!\n\n` +
-          `Sincerely,\nManagement Board\n${company}`;
-
-      case 'regret':
-        return `Hello ${name},\n\n` +
-          `Thank you for your time and interest in the "${role}" position with ${company}.\n\n` +
-          `While we were impressed with your application, we have decided to move forward with other candidates whose experience more closely aligns with our current project requirements.\n\n` +
-          `We will keep your profile in our talent pool for future vacancies that fit your expertise.\n\n` +
-          `We wish you the very best in your career pursuits.\n\n` +
-          `Best regards,\nTalent Acquisition\n${company}`;
-
-      default:
-        return '';
-    }
-  };
-
-  // Open candidate details & fill editing inputs
-  const handleSelectCandidate = (app: JobApplication) => {
-    setSelectedApp(app);
-    setAdminNotesText(app.adminNotes || '');
-    setOfferRoleInput(app.approvedBy?.offerRole || app.positionSkills?.majorRole || '');
-    setSalaryInput(app.approvedBy?.monthlySalary || '₦150,000');
-    
-    // Auto-populate custom message based on default 'review' template
-    const defaultTemplateText = getMessageTemplate(app, 'review');
-    setCustomMessage(defaultTemplateText);
-    setSelectedPreset('review');
-    setAdminDetailTab('actions');
-  };
-
-  // Unique roles for filtering
-  const uniqueRoles = Array.from(new Set(applications.map(app => app.positionSkills?.majorRole))).filter(Boolean);
-
-  // Filter logic
-  const filteredApps = applications.filter(app => {
-    const query = searchQuery.toLowerCase();
-    const matchesSearch = 
-      (app.personalInfo?.fullName || '').toLowerCase().includes(query) ||
-      (app.personalInfo?.emailAddress || '').toLowerCase().includes(query) ||
-      (app.personalInfo?.phoneNumbers || '').includes(query) ||
-      app.id.toLowerCase().includes(query);
-
-    const matchesStatus = statusFilter === 'all' || (app.status || 'pending') === statusFilter;
-    const matchesRole = roleFilter === 'all' || app.positionSkills?.majorRole === roleFilter;
-    const matchesEdu = eduFilter === 'all' || app.educationalBg?.isStudentOrGraduate === eduFilter;
-
-    return matchesSearch && matchesStatus && matchesRole && matchesEdu;
-  });
-
-  // Calculate stats
-  const totalCount = applications.length;
-  const pendingCount = applications.filter(a => !a.status || a.status === 'pending').length;
-  const approvedCount = applications.filter(a => a.status === 'approved').length;
-  const rejectedCount = applications.filter(a => a.status === 'rejected').length;
-  const acceptedOffersCount = applications.filter(a => a.appointmentAccepted).length;
 
   const guideSlides = [
     {
@@ -2264,10 +2038,16 @@ export default {
 
   const sidebarTabs = [
     {
-      group: 'Talent & Staff HR',
+      group: 'Overview',
       items: [
+        { id: 'dashboard', label: 'Dashboard Home', icon: LayoutDashboard },
+      ]
+    },
+    {
+      group: 'Administrative Actions',
+      items: [
+        { id: 'about', label: 'About Company CMS', icon: Info, count: 0 },
         { id: 'recruitment', label: 'Recruitment', icon: Briefcase, count: applications.length },
-        { id: 'chat', label: 'WhatsApp Live Chat', icon: MessageSquare },
         { id: 'staff', label: 'Staff & Org HR', icon: Users },
       ]
     },
@@ -2283,25 +2063,18 @@ export default {
       ]
     },
     {
-      group: 'Academy LMS',
-      items: [
-        { id: 'training', label: 'LMS Academy', icon: GraduationCap, count: adminCourses.length },
-      ]
-    },
-    {
       group: 'Enterprise CRM',
       items: [
         { id: 'clients', label: 'Clients CRM', icon: Landmark, count: CLIENT_INVOICES.length + CLIENT_TICKETS.length },
         { id: 'client-projects', label: 'Client Projects & Staff', icon: FolderKanban },
+        { id: 'chat', label: 'WhatsApp Live Chat', icon: MessageSquare },
       ]
     },
     {
       group: 'Ecosystem Security',
       items: [
         { id: 'analytics', label: 'Intelligence Charts', icon: BarChart3 },
-        { id: 'notifications', label: 'Secure QR & Vault', icon: QrCode },
         { id: 'trust', label: 'Trust & Compliance', icon: ShieldCheck },
-        { id: 'emails', label: 'Brevo Email Console', icon: Mail },
       ]
     }
   ];
@@ -2353,18 +2126,27 @@ export default {
                   const Icon = tab.icon;
                   const isActive = adminModule === tab.id;
                   return (
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.03, x: 6 }}
+                      whileTap={{ scale: 0.97 }}
                       key={tab.id}
                       onClick={() => {
                         setAdminModule(tab.id as any);
                         setIsMobileSidebarOpen(false);
                       }}
-                      className={`w-full px-3 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all duration-150 flex items-center justify-between cursor-pointer ${
+                      className={`w-full px-3 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-colors flex items-center justify-between cursor-pointer relative ${
                         isActive 
-                          ? 'bg-orange-600 text-white shadow-md' 
+                          ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/30' 
                           : 'text-slate-300 hover:text-white hover:bg-white/10'
                       }`}
                     >
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeAdminNavIndicator"
+                          className="absolute inset-0 bg-orange-600 rounded-xl -z-10 shadow-lg shadow-orange-600/40"
+                          transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                        />
+                      )}
                       <div className="flex items-center gap-2">
                         <Icon size={13} />
                         <span>{tab.label}</span>
@@ -2376,50 +2158,13 @@ export default {
                           {tab.count}
                         </span>
                       )}
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
             </div>
           ))}
 
-          {/* Quick Actions Card inside Sidebar */}
-          <div className="mx-1 p-3 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-2 text-left">
-            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest block">ADMIN UTILITIES</span>
-            <div className="space-y-1.5">
-              <button
-                onClick={handleExportData}
-                className="w-full flex items-center gap-1.5 text-slate-400 hover:text-white text-[10px] transition-colors font-bold cursor-pointer"
-              >
-                <FileDown size={11} className="text-indigo-400" />
-                <span>Backup Database (JSON)</span>
-              </button>
-              <button
-                onClick={() => {
-                  setSqlCode(generateSQLSchemaString());
-                  setShowSQLSchemaModal(true);
-                }}
-                className="w-full flex items-center gap-1.5 text-slate-400 hover:text-white text-[10px] transition-colors font-bold cursor-pointer"
-              >
-                <Code size={11} className="text-cyan-400" />
-                <span>View & Copy SQL (D1)</span>
-              </button>
-              <button
-                onClick={handleExportSQLSchema}
-                className="w-full flex items-center gap-1.5 text-slate-400 hover:text-white text-[10px] transition-colors font-bold cursor-pointer"
-              >
-                <Database size={11} className="text-emerald-400" />
-                <span>Export SQL Schema</span>
-              </button>
-              <button
-                onClick={handleResetData}
-                className="w-full flex items-center gap-1.5 text-red-400 hover:text-red-300 text-[10px] transition-colors font-bold cursor-pointer"
-              >
-                <Trash2 size={11} className="text-red-500" />
-                <span>Reset to Default</span>
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Sidebar Footer with Admin Profile Node */}
@@ -2520,3018 +2265,249 @@ export default {
         </AnimatePresence>
 
         {/* Main Workspace Body Content */}
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-sans no-print">
+        <div className={`w-full ${adminModule === 'dashboard' ? 'max-w-7xl' : 'max-w-full'} mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-sans no-print`}>
           
-          {/* Dynamic Breadcrumb Header Row */}
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl md:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm text-left"
-          >
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
-              <Logo size="sm" showText={false} variant="light" className="bg-[#000E32] p-2.5 rounded-2xl shrink-0 shadow-inner w-12 h-12 flex items-center justify-center" />
-              <div className="text-left space-y-1 w-full min-w-0">
-                <div className="inline-flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 px-2.5 py-0.5 rounded-full text-[10px] font-black border border-indigo-100 dark:border-indigo-900 w-max uppercase tracking-wider">
-                  <ShieldAlert size={11} />
-                  Super Admin Control Panel / {adminModule}
-                </div>
-                <h1 className="text-lg sm:text-2xl font-extrabold text-[#000E32] dark:text-white uppercase tracking-wide leading-tight break-words">
-                  {adminModule === 'recruitment' ? 'Recruitment Console' :
-                   adminModule === 'chat' ? 'WhatsApp Real-Time Chat Center' :
-                   adminModule === 'website' ? 'Website Catalog Console' :
-                   adminModule === 'portfolio' ? 'Portfolio Case Studies' :
-                   adminModule === 'blog' ? 'Insights Blog Node' :
-                   adminModule === 'training' ? 'LMS Academy Console' :
-                   adminModule === 'clients' ? 'CRM Client Registry' :
-                   adminModule === 'analytics' ? 'Analytical Intelligence' :
-                   adminModule === 'trust' ? 'Enterprise Trust & Compliance' :
-                   adminModule === 'recognition' ? 'Recognition Certificates Console' :
-                   adminModule === 'ongoing-projects' ? 'Enterprise Ongoing Projects Platform' :
-                   adminModule === 'diagnostics' ? 'Real-Time Image Verification Gallery' :
-                    adminModule === 'staff' ? 'Staff & Organization HR' :
-                   adminModule === 'emails' ? 'Email Queue & Logs' : 'Secure QR & Cloud R2 Vault'}
-                </h1>
-                <p className="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs leading-relaxed max-w-2xl font-medium">
-                  {adminModule === 'recruitment' ? 'Filter and manage applicants, schedule dynamic multi-modal video screening nodes, and dispatch cryptographic WebAuthn challenges.' :
-                   adminModule === 'chat' ? 'Communicate with active candidates in real-time using secure edge Server-Sent Events, voice synthesis, and image attachment channels.' :
-                   adminModule === 'website' ? 'Coordinate published landing-page catalog service structures, capabilities matrix definitions, and structural database rows.' :
-                   adminModule === 'portfolio' ? 'Review published case study lists, developer profiles, technology matrices, and localized catalog assets.' :
-                   adminModule === 'blog' ? 'Compose industry perspectives, tech journals, structural updates, and draft candidate learning items.' :
-                   adminModule === 'training' ? 'Manage curriculum courses, chapter lists, masterclass guide documents, and final graduate credentials.' :
-                   adminModule === 'clients' ? 'Monitor corporate client invoices, SLA support tickets, active client profiles, and payment ledger trails.' :
-                   adminModule === 'analytics' ? 'Review graphical system metrics, user action flows, WebAuthn verification tallies, and local DB logs.' :
-                   adminModule === 'trust' ? 'Manage Corporate Affairs Commission (CAC) incorporation metadata, upload certificate files to Cloudflare R2, track file history, and configure public registry publishing status.' :
-                   adminModule === 'recognition' ? 'Manage enterprise recognition certificates, upload verification files to Cloudflare R2, manage metadata, and toggle publishing status.' :
-                   adminModule === 'ongoing-projects' ? 'Coordinate published project pipelines, display active sprints, adjust completions dynamically, and edit specifications.' :
-                   adminModule === 'emails' ? 'Audit Brevo transactional templates, dispatch queues, failed delivery retry logs, and template variables.' :
-                   adminModule === 'diagnostics' ? 'Real-time image verification gallery for applicant passport photos, project covers, and corporate certificates streaming directly from Cloudflare R2 object links.' :
-                    adminModule === 'staff' ? 'Onboard team members, assign Heads of Departments (HOD), configure display order priorities, upload images to R2, and review audit logs.' :
-                   'Manage applicant physical credential badges, read dynamic QR scans, and review the WebAuthn security credential vault.'}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full lg:w-auto shrink-0 border-t border-slate-100 dark:border-slate-800 pt-3 lg:border-none lg:pt-0">
-              {/* Language Selection */}
-              <div className="relative">
-                <button
-                  onClick={() => setIsAdminLangDropdownOpen(!isAdminLangDropdownOpen)}
-                  className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-transparent flex items-center gap-1.5 text-xs font-black cursor-pointer"
-                >
-                  <Globe size={13} className="text-indigo-400" />
-                  <span className="font-mono uppercase font-black">{language}</span>
-                </button>
-                {isAdminLangDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-32 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden p-1 z-50 text-xs">
-                    {[
-                      { code: 'en', flag: '🇺🇸', label: 'English' },
-                      { code: 'ar', flag: '🇸🇦', label: 'العربية' }
-                    ].map((lang) => (
-                      <button
-                        key={lang.code}
-                        onClick={() => {
-                          setLanguage(lang.code);
-                          setIsAdminLangDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-2 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
-                          language === lang.code ? 'bg-orange-600 text-white' : 'text-slate-300 hover:bg-white/5'
-                        }`}
-                      >
-                        <span>{lang.flag}</span>
-                        <span>{lang.label}</span>
-                      </button>
-                    ))}
+          {/* Dynamic Breadcrumb Header Row - ONLY for Dashboard Home */}
+          {adminModule === 'dashboard' && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl md:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm text-left"
+            >
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
+                <Logo size="sm" showText={false} variant="light" className="bg-[#000E32] p-2.5 rounded-2xl shrink-0 shadow-inner w-12 h-12 flex items-center justify-center" />
+                <div className="text-left space-y-1 w-full min-w-0">
+                  <div className="inline-flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 px-2.5 py-0.5 rounded-full text-[10px] font-black border border-indigo-100 dark:border-indigo-900 w-max uppercase tracking-wider">
+                    <ShieldAlert size={11} />
+                    Super Admin Control Panel / Overview
                   </div>
-                )}
+                  <h1 className="text-lg sm:text-2xl font-extrabold text-[#000E32] dark:text-white uppercase tracking-wide leading-tight break-words">
+                    Dashboard Overview
+                  </h1>
+                  <p className="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs leading-relaxed max-w-2xl font-medium">
+                    Welcome back to the DS Tech Suite administrative engine. Monitor your ecosystem, manage certificates, and coordinate enterprise projects from a unified command node.
+                  </p>
+                </div>
               </div>
 
-              {/* Theme Selector */}
-              <button
-                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-transparent cursor-pointer"
-                title="Toggle Theme"
-              >
-                {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
-              </button>
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full lg:w-auto shrink-0 border-t border-slate-100 dark:border-slate-800 pt-3 lg:border-none lg:pt-0">
+                {/* Language Selection */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsAdminLangDropdownOpen(!isAdminLangDropdownOpen)}
+                    className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-transparent flex items-center gap-1.5 text-xs font-black cursor-pointer"
+                  >
+                    <Globe size={13} className="text-indigo-400" />
+                    <span className="font-mono uppercase font-black">{language}</span>
+                  </button>
+                  {isAdminLangDropdownOpen && (
+                    <div className="absolute right-0 mt-2 w-32 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden p-1 z-50 text-xs">
+                      {[
+                        { code: 'en', flag: '🇺🇸', label: 'English' },
+                        { code: 'ar', flag: '🇸🇦', label: 'العربية' }
+                      ].map((lang) => (
+                        <button
+                          key={lang.code}
+                          onClick={() => {
+                            setLanguage(lang.code);
+                            setIsAdminLangDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-2 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+                            language === lang.code ? 'bg-orange-600 text-white' : 'text-slate-300 hover:bg-white/5'
+                          }`}
+                        >
+                          <span>{lang.flag}</span>
+                          <span>{lang.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
-              {/* Notifications bell */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                type="button"
-                onClick={() => setIsNotifCenterOpen(true)}
-                className="relative p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors border border-transparent shadow-sm shrink-0 flex items-center justify-center cursor-pointer"
-                title="Notifications Center"
-              >
-                <Bell size={14} />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white ring-2 ring-white dark:ring-slate-900 animate-pulse">
-                    {unreadCount}
-                  </span>
-                )}
-              </motion.button>
+                {/* Theme Selector */}
+                <button
+                  onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                  className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-transparent cursor-pointer"
+                  title="Toggle Theme"
+                >
+                  {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
+                </button>
 
-              {/* Refresh Button */}
-              <motion.button
-                whileHover={{ scale: 1.05, rotate: 15 }}
-                whileTap={{ scale: 0.95 }}
-                type="button"
-                onClick={fetchApplications}
-                className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors border border-transparent shadow-sm shrink-0 flex items-center justify-center cursor-pointer"
-                title="Refresh Records"
-              >
-                <RefreshCw size={14} />
-              </motion.button>
-              
-              {/* Scan QR Badge */}
-              <motion.button
-                whileHover={{ scale: 1.03, y: -1 }}
-                whileTap={{ scale: 0.97 }}
-                type="button"
-                onClick={() => setIsScannerOpen(true)}
-                className="flex-1 sm:flex-none py-2 px-3 bg-[#000E32] hover:bg-slate-900 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
-                title="Scan QR"
-              >
-                <QrCode size={13} className="text-orange-400 animate-pulse" />
-                <span className="whitespace-nowrap">Scan QR Badge</span>
-              </motion.button>
-              
-              {/* Back to Portal */}
-              <motion.button
-                whileHover={{ scale: 1.03, y: -1 }}
-                whileTap={{ scale: 0.97 }}
-                type="button"
-                onClick={onBackToPortal}
-                className="flex-1 sm:flex-none py-2 px-4 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1 cursor-pointer"
-              >
-                <ArrowLeft size={13} className="shrink-0" />
-                <span className="whitespace-nowrap">Careers Portal</span>
-              </motion.button>
-            </div>
-          </motion.div>
+                {/* Notifications bell */}
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  onClick={() => setIsNotifCenterOpen(true)}
+                  className="relative p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors border border-transparent shadow-sm shrink-0 flex items-center justify-center cursor-pointer"
+                  title="Notifications Center"
+                >
+                  <Bell size={14} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white ring-2 ring-white dark:ring-slate-900 animate-pulse">
+                      {unreadCount}
+                    </span>
+                  )}
+                </motion.button>
+
+                {/* Refresh Button */}
+                <motion.button
+                  whileHover={{ scale: 1.05, rotate: 15 }}
+                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  onClick={fetchApplications}
+                  className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors border border-transparent shadow-sm shrink-0 flex items-center justify-center cursor-pointer"
+                  title="Refresh Records"
+                >
+                  <RefreshCw size={14} />
+                </motion.button>
+                
+                {/* Scan QR Badge */}
+                <motion.button
+                  whileHover={{ scale: 1.03, y: -1 }}
+                  whileTap={{ scale: 0.97 }}
+                  type="button"
+                  onClick={() => setIsScannerOpen(true)}
+                  className="flex-1 sm:flex-none py-2 px-3 bg-[#000E32] hover:bg-slate-900 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+                  title="Scan QR"
+                >
+                  <QrCode size={13} className="text-orange-400 animate-pulse" />
+                  <span className="whitespace-nowrap">Scan QR Badge</span>
+                </motion.button>
+                
+                {/* Back to Portal */}
+                <motion.button
+                  whileHover={{ scale: 1.03, y: -1 }}
+                  whileTap={{ scale: 0.97 }}
+                  type="button"
+                  onClick={onBackToPortal}
+                  className="flex-1 sm:flex-none py-2 px-4 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <ArrowLeft size={13} className="shrink-0" />
+                  <span className="whitespace-nowrap">Careers Portal</span>
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
           
           {/* Main workspace slot is loaded dynamically based on adminModule */}
 
-      {adminModule === 'recruitment' && (
-        <>
-
-      {/* Corporate Statistics Bento Row */}
-      <motion.div 
-        initial="hidden"
-        animate="visible"
-        variants={{
-          hidden: { opacity: 0 },
-          visible: {
-            opacity: 1,
-            transition: {
-              staggerChildren: 0.1
-            }
-          }
-        }}
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4"
-      >
-        {/* Stat 1: Total Applicants */}
-        <motion.div 
-          variants={{
-            hidden: { opacity: 0, y: 20, scale: 0.95 },
-            visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 260, damping: 20 } }
-          }}
-          whileHover={{ y: -4, scale: 1.02, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.05)" }}
-          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 transition-shadow cursor-pointer"
+      {/* High-motion animated page transition wrapper for all admin modules */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={adminModule}
+          initial={{ opacity: 0, y: 24, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -24, scale: 0.98 }}
+          transition={{ type: "spring", stiffness: 260, damping: 22 }}
+          className={adminModule === 'dashboard' ? "space-y-8" : "space-y-0"}
         >
-          <div className="w-12 h-12 rounded-xl bg-[#000E32]/10 text-[#000E32] flex items-center justify-center shrink-0">
-            <Users size={22} />
-          </div>
-          <div className="text-left">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Total Profiles</span>
-            <span className="text-2xl font-extrabold text-[#000E32]">{totalCount}</span>
-          </div>
-        </motion.div>
+          {adminModule === 'dashboard' && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Welcome Stats */}
+              <div className="bg-gradient-to-br from-[#000E32] to-indigo-950 p-6 rounded-3xl text-white space-y-4 shadow-xl">
+                <div className="flex items-center justify-between">
+                  <div className="p-2 bg-white/10 rounded-xl">
+                    <Sparkles size={20} className="text-orange-400" />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">System Ready</span>
+                </div>
+                <h3 className="text-xl font-bold font-serif uppercase tracking-tight">Active Recruitment</h3>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-orange-400">{applications.length}</span>
+                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Live Applications</span>
+                </div>
+                <button 
+                  onClick={() => setAdminModule('recruitment')}
+                  className="w-full py-2.5 bg-orange-600 hover:bg-orange-500 text-white text-[10px] font-black uppercase rounded-xl transition-all shadow-lg active:scale-95 cursor-pointer"
+                >
+                  Manage Console
+                </button>
+              </div>
 
-        {/* Stat 2: Pending Reviews */}
-        <motion.div 
-          variants={{
-            hidden: { opacity: 0, y: 20, scale: 0.95 },
-            visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 260, damping: 20 } }
-          }}
-          whileHover={{ y: -4, scale: 1.02, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.05)" }}
-          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 transition-shadow cursor-pointer"
-        >
-          <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 border border-amber-100">
-            <Clock size={22} className="animate-spin-slow" />
-          </div>
-          <div className="text-left">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Pending Review</span>
-            <span className="text-2xl font-extrabold text-amber-600">{pendingCount}</span>
-          </div>
-        </motion.div>
+              {/* CRM Card */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="p-2 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 rounded-xl">
+                    <Landmark size={20} />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Enterprise CRM</span>
+                </div>
+                <h3 className="text-xl font-bold font-serif uppercase tracking-tight text-[#000E32] dark:text-white">Clients Center</h3>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-indigo-600 dark:text-indigo-400">{CLIENT_INVOICES.length}</span>
+                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Active Ledgers</span>
+                </div>
+                <button 
+                  onClick={() => setAdminModule('clients')}
+                  className="w-full py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#000E32] dark:text-white text-[10px] font-black uppercase rounded-xl transition-all cursor-pointer"
+                >
+                  Open CRM Node
+                </button>
+              </div>
 
-        {/* Stat 3: Approved */}
-        <motion.div 
-          variants={{
-            hidden: { opacity: 0, y: 20, scale: 0.95 },
-            visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 260, damping: 20 } }
-          }}
-          whileHover={{ y: -4, scale: 1.02, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.05)" }}
-          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 transition-shadow cursor-pointer"
-        >
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-100">
-            <CheckCircle2 size={22} />
-          </div>
-          <div className="text-left">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Approved Offers</span>
-            <span className="text-2xl font-extrabold text-emerald-600">{approvedCount}</span>
-          </div>
-        </motion.div>
+              {/* Cloud Storage Card */}
+              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="p-2 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-xl">
+                    <Layers size={20} />
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cloud Assets</span>
+                </div>
+                <h3 className="text-xl font-bold font-serif uppercase tracking-tight text-[#000E32] dark:text-white">Services Catalog</h3>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black text-emerald-600 dark:text-emerald-400">{adminServices.length}</span>
+                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Node Definitions</span>
+                </div>
+                <button 
+                  onClick={() => setAdminModule('website')}
+                  className="w-full py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#000E32] dark:text-white text-[10px] font-black uppercase rounded-xl transition-all cursor-pointer"
+                >
+                  Configure Catalog
+                </button>
+              </div>
+            </div>
+          )}
 
-        {/* Stat 4: Rejected */}
-        <motion.div 
-          variants={{
-            hidden: { opacity: 0, y: 20, scale: 0.95 },
-            visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 260, damping: 20 } }
-          }}
-          whileHover={{ y: -4, scale: 1.02, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.05)" }}
-          className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4 transition-shadow cursor-pointer"
-        >
-          <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-100">
-            <XCircle size={22} />
-          </div>
-          <div className="text-left">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block">Rejected Applicants</span>
-            <span className="text-2xl font-extrabold text-rose-600">{rejectedCount}</span>
-          </div>
-        </motion.div>
-
-        {/* Stat 5: Contract Accepted */}
-        <motion.div 
-          variants={{
-            hidden: { opacity: 0, y: 20, scale: 0.95 },
-            visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 260, damping: 20 } }
-          }}
-          whileHover={{ y: -4, scale: 1.02, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.15)" }}
-          className="col-span-1 sm:col-span-2 lg:col-span-1 bg-gradient-to-br from-[#000E32] to-indigo-950 p-5 rounded-2xl shadow-md text-white flex items-center gap-4 cursor-pointer"
-        >
-          <div className="w-12 h-12 rounded-xl bg-white/10 text-orange-400 flex items-center justify-center shrink-0">
-            <UserCheck size={22} />
-          </div>
-          <div className="text-left">
-            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest block">Agreements Signed</span>
-            <span className="text-2xl font-extrabold text-orange-400">{acceptedOffersCount}</span>
-          </div>
-        </motion.div>
+          {adminModule === 'recruitment' && (
+            <RecruitmentCMS 
+              applications={applications} 
+              loading={loading} 
+              onRefresh={fetchApplications} 
+              onViewApplicant={onViewApplicant} 
+            />
+          )}
 
       </motion.div>
-
-      {/* Database Search & Advanced Filters Bar */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 md:p-5 shadow-sm space-y-4">
-        
-        <div className="flex flex-col md:flex-row gap-3">
-          {/* Main search */}
-          <div className="relative flex-1 w-full">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-            <input
-              type="text"
-              placeholder="Search by full name, email, phone number, or document ID..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#000E32]/10 focus:border-[#000E32] transition-all"
-            />
-          </div>
-
-          {/* Export tools */}
-          <div className="flex w-full md:w-auto">
-            <button
-              type="button"
-              onClick={handleExportCSV}
-              className="w-full md:w-auto py-2.5 px-4 bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors"
-            >
-              <FileSpreadsheet size={15} className="text-emerald-600" />
-              Export Filtered CSV
-            </button>
-          </div>
-        </div>
-
-        {/* Dropdown Select Filters */}
-        <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-3 pt-3 border-t border-slate-100">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
-            <Filter size={13} className="text-orange-500" />
-            Filters:
-          </div>
-
-          <div className="grid grid-cols-1 min-[480px]:grid-cols-3 sm:flex sm:flex-wrap gap-2.5 w-full sm:w-auto">
-            {/* Status Filter */}
-            <div className="flex items-center justify-between sm:justify-start gap-2 bg-white border border-slate-250/60 px-2.5 py-1.5 rounded-xl">
-              <span className="text-[9px] uppercase font-black text-slate-400 whitespace-nowrap">Status</span>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="bg-transparent text-slate-700 text-xs focus:outline-none font-bold cursor-pointer"
-              >
-                <option value="all">All Statuses</option>
-                <option value="pending">⏳ Pending Review</option>
-                <option value="approved">✅ Approved</option>
-                <option value="rejected">❌ Rejected</option>
-              </select>
-            </div>
-
-            {/* Role Filter */}
-            <div className="flex items-center justify-between sm:justify-start gap-2 bg-white border border-slate-250/60 px-2.5 py-1.5 rounded-xl">
-              <span className="text-[9px] uppercase font-black text-slate-400 whitespace-nowrap">Position</span>
-              <select
-                value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
-                className="bg-transparent text-slate-700 text-xs focus:outline-none font-bold cursor-pointer max-w-[150px] truncate"
-              >
-                <option value="all">All Roles</option>
-                {uniqueRoles.map((role, idx) => (
-                  <option key={idx} value={role}>{role}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Academic/Education Filter */}
-            <div className="flex items-center justify-between sm:justify-start gap-2 bg-white border border-slate-250/60 px-2.5 py-1.5 rounded-xl">
-              <span className="text-[9px] uppercase font-black text-slate-400 whitespace-nowrap">Academic</span>
-              <select
-                value={eduFilter}
-                onChange={(e) => setEduFilter(e.target.value as any)}
-                className="bg-transparent text-slate-700 text-xs focus:outline-none font-bold cursor-pointer"
-              >
-                <option value="all">All Candidates</option>
-                <option value="student">Undergrads</option>
-                <option value="graduate">Graduates</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Reset Filters */}
-          {(searchQuery || statusFilter !== 'all' || roleFilter !== 'all' || eduFilter !== 'all') && (
-            <button
-              onClick={() => {
-                setSearchQuery('');
-                setStatusFilter('all');
-                setRoleFilter('all');
-                setEduFilter('all');
-              }}
-              className="text-[10px] uppercase font-bold text-orange-600 hover:text-orange-700 tracking-wider w-full sm:w-auto text-left sm:text-right sm:ml-auto"
-            >
-              Clear Active Filters
-            </button>
-          )}
-        </div>
-
-      </div>
-
-      {/* Main Core Lists and Selection Sidebar Details Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
-        
-        {/* Candidates Table/Cards List */}
-        <div className={`${selectedApp ? 'md:col-span-4' : 'md:col-span-7'} bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm transition-all duration-300`}>
-          <div className="p-4 sm:p-5 border-b border-slate-100 bg-white flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-            <h3 className="font-extrabold text-[#000E32] text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
-              <Users size={16} className="text-orange-500" />
-              Applicant Profile Records ({filteredApps.length})
-            </h3>
-            <span className="text-[9px] sm:text-[10px] font-mono font-bold text-slate-400">Real-Time Sync</span>
-          </div>
-
-          {loading ? (
-            <div className="p-20 text-center flex flex-col items-center justify-center gap-3">
-              <div className="w-10 h-10 border-4 border-[#000E32]/20 border-t-orange-600 rounded-full animate-spin" />
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Querying applicants...</span>
-            </div>
-          ) : error ? (
-            <div className="p-12 text-center text-rose-600 space-y-2">
-              <AlertCircle className="mx-auto" size={30} />
-              <p className="text-xs font-bold">{error}</p>
-            </div>
-          ) : filteredApps.length === 0 ? (
-            <div className="p-20 text-center text-slate-400 space-y-4">
-              <AlertCircle className="mx-auto text-slate-300" size={40} />
-              <p className="text-xs font-bold uppercase tracking-widest">No applicant records found matching search filters.</p>
-              <p className="text-[11px] text-slate-400">Try adjusting your filters or search keywords above.</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-slate-100">
-              {/* Desktop Table View */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="bg-white text-[10px] font-extrabold text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                      <th className="py-3.5 px-5">Candidate</th>
-                      <th className="py-3.5 px-4">Applied Role</th>
-                      <th className="py-3.5 px-4">Work Preferences</th>
-                      <th className="py-3.5 px-4 text-center">Status</th>
-                      <th className="py-3.5 px-5 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <motion.tbody 
-                    initial="hidden"
-                    animate="visible"
-                    variants={{
-                      hidden: { opacity: 0 },
-                      visible: {
-                        opacity: 1,
-                        transition: { staggerChildren: 0.05 }
-                      }
-                    }}
-                    className="divide-y divide-slate-150"
-                  >
-                    {filteredApps.map((app) => {
-                      const isSelected = selectedApp?.id === app.id;
-                      const statusVal = app.status || 'pending';
-                      
-                      return (
-                        <motion.tr 
-                          variants={{
-                            hidden: { opacity: 0, x: -15 },
-                            visible: { opacity: 1, x: 0, transition: { type: "spring", stiffness: 200, damping: 18 } }
-                          }}
-                          whileHover={{ backgroundColor: "rgba(238, 242, 255, 0.4)", scale: 1.005 }}
-                          key={app.id} 
-                          className={`hover:bg-indigo-50/35 transition-colors cursor-pointer group ${
-                            isSelected ? 'bg-indigo-50/50' : ''
-                          }`}
-                          onClick={() => onViewApplicant(app.id)}
-                          title="Click to view candidate's profile, filled forms, and appointment letter"
-                        >
-                          {/* Profile photo & basic metadata */}
-                          <td className="py-4 px-5">
-                            <div className="flex items-center gap-3">
-                              <div className="w-9 h-9 rounded-full bg-[#000E32] text-white flex items-center justify-center overflow-hidden shrink-0 font-extrabold relative border border-slate-100 shadow-sm">
-                                {app.personalInfo?.passportPhoto ? (
-                                  <img src={app.personalInfo.passportPhoto} className="w-full h-full object-cover" alt="candidate" />
-                                ) : (
-                                  (app.personalInfo?.fullName || 'A').charAt(0)
-                                )}
-                                {app.appointmentAccepted && (
-                                  <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-white" />
-                                )}
-                              </div>
-                              <div className="text-left space-y-0.5">
-                                <div className="font-extrabold text-slate-900 group-hover:text-[#000E32] transition-colors line-clamp-1">
-                                  {app.personalInfo?.fullName}
-                                </div>
-                                <div className="text-[10px] font-semibold text-slate-450 line-clamp-1 flex items-center gap-1 font-mono">
-                                  <Mail size={10} className="text-slate-400 shrink-0" />
-                                  {app.personalInfo?.emailAddress}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* Major role */}
-                          <td className="py-4 px-4 font-bold text-[#000E32]">
-                            <span className="line-clamp-1">{app.positionSkills?.majorRole}</span>
-                            <span className="text-[9px] text-slate-400 font-bold block capitalize">
-                              {app.educationalBg?.isStudentOrGraduate === 'student' ? '🎓 Undergrad' : '🏅 Graduate'}
-                            </span>
-                          </td>
-
-                          {/* Work modes */}
-                          <td className="py-4 px-4 text-slate-600">
-                            <div className="space-y-0.5">
-                              <div className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
-                                <Briefcase size={10} />
-                                Salary: <span className="text-slate-700 capitalize font-mono">{app.workMode?.monthlySalaryJob || 'N/A'}</span>
-                              </div>
-                              <div className="text-[10px] font-bold text-slate-500 flex items-center gap-1">
-                                <Landmark size={10} />
-                                Contract: <span className="text-slate-700 capitalize font-mono">{app.workMode?.contractFreelanceJob || 'N/A'}</span>
-                              </div>
-                            </div>
-                          </td>
-
-                          {/* Status Badge */}
-                          <td className="py-4 px-4 text-center">
-                            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
-                              statusVal === 'approved' 
-                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                                : statusVal === 'rejected'
-                                ? 'bg-rose-50 text-rose-700 border border-rose-100'
-                                : 'bg-amber-50 text-amber-700 border border-amber-100'
-                            }`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${
-                                statusVal === 'approved' ? 'bg-emerald-500' : statusVal === 'rejected' ? 'bg-rose-500' : 'bg-amber-500 animate-pulse'
-                              }`} />
-                              {statusVal}
-                            </span>
-                          </td>
-
-                          {/* Quick View actions */}
-                          <td className="py-4 px-5 text-right" onClick={(e) => e.stopPropagation()}>
-                            <div className="flex items-center justify-end gap-2.5">
-                              <button
-                                onClick={() => handleSelectCandidate(app)}
-                                type="button"
-                                className={`px-2.5 py-1.5 rounded-lg transition-all border shadow-sm flex items-center gap-1 font-extrabold text-[10px] ${
-                                  isSelected 
-                                    ? 'bg-orange-500 text-white border-orange-600 ring-2 ring-orange-500/35' 
-                                    : 'bg-indigo-50 text-indigo-700 hover:bg-[#000E32] hover:text-white border-indigo-150'
-                                }`}
-                                title="Manage Application, Send Messages & Sign contracts"
-                              >
-                                <UserCheck size={12} />
-                                <span>HR Panel</span>
-                              </button>
-                              <button
-                                onClick={() => onViewApplicant(app.id)}
-                                type="button"
-                                className="p-1.5 bg-white text-slate-700 hover:bg-[#000E32] hover:text-white rounded-lg transition-colors border border-slate-200 shadow-sm"
-                                title="Review Rendered Documents & Print agreements"
-                              >
-                                <Eye size={13} />
-                              </button>
-                              <button
-                                onClick={() => handleDeleteRecord(app.id)}
-                                type="button"
-                                className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg transition-colors border border-rose-100 shadow-sm"
-                                title="Purge Application Record"
-                              >
-                                <Trash2 size={13} />
-                              </button>
-                            </div>
-                          </td>
-                        </motion.tr>
-                      );
-                    })}
-                  </motion.tbody>
-                </table>
-              </div>
-
-              {/* Mobile Card List View with high motion staggered entrance */}
-              <motion.div 
-                initial="hidden"
-                animate="visible"
-                variants={{
-                  hidden: { opacity: 0 },
-                  visible: {
-                    opacity: 1,
-                    transition: { staggerChildren: 0.06 }
-                  }
-                }}
-                className="block md:hidden divide-y divide-slate-100"
-              >
-                {filteredApps.map((app) => {
-                  const isSelected = selectedApp?.id === app.id;
-                  const statusVal = app.status || 'pending';
-                  
-                  return (
-                    <motion.div 
-                      variants={{
-                        hidden: { opacity: 0, y: 15, scale: 0.98 },
-                        visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 220, damping: 19 } }
-                      }}
-                      whileTap={{ scale: 0.98 }}
-                      key={app.id} 
-                      onClick={() => onViewApplicant(app.id)}
-                      className={`p-4 hover:bg-indigo-50/20 transition-colors cursor-pointer space-y-3 relative text-left ${
-                        isSelected ? 'bg-indigo-50/40 border-l-4 border-orange-500' : ''
-                      }`}
-                      title="Click to view candidate's profile, filled forms, and appointment letter"
-                    >
-                      {/* Avatar, Name, and Status */}
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-9 h-9 rounded-full bg-[#000E32] text-white flex items-center justify-center overflow-hidden shrink-0 font-extrabold relative border border-slate-100 shadow-sm">
-                            {app.personalInfo?.passportPhoto ? (
-                              <img src={app.personalInfo.passportPhoto} className="w-full h-full object-cover" alt="candidate" />
-                            ) : (
-                              (app.personalInfo?.fullName || 'A').charAt(0)
-                            )}
-                            {app.appointmentAccepted && (
-                              <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border border-white" />
-                            )}
-                          </div>
-                          <div className="min-w-0 text-left">
-                            <h4 className="font-extrabold text-slate-900 text-xs leading-tight truncate">
-                              {app.personalInfo?.fullName || 'Untitled'}
-                            </h4>
-                            <p className="text-[10px] text-slate-500 font-mono mt-0.5 truncate flex items-center gap-1">
-                              <Mail size={10} className="text-slate-400 shrink-0" />
-                              {app.personalInfo?.emailAddress || 'N/A'}
-                            </p>
-                          </div>
-                        </div>
-
-                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase shrink-0 ${
-                          statusVal === 'approved' 
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-                            : statusVal === 'rejected'
-                            ? 'bg-rose-50 text-rose-700 border border-rose-100'
-                            : 'bg-amber-50 text-amber-700 border border-amber-100'
-                        }`}>
-                          {statusVal}
-                        </span>
-                      </div>
-
-                      {/* Info grid */}
-                      <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px] bg-white p-2.5 rounded-xl border border-slate-100 font-medium">
-                        <div>
-                          <span className="text-slate-400 font-bold block uppercase text-[8px] tracking-wider">Position</span>
-                          <span className="text-[#000E32] font-bold line-clamp-1">{app.positionSkills?.majorRole || 'N/A'}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 font-bold block uppercase text-[8px] tracking-wider">Qualification</span>
-                          <span className="text-slate-700 line-clamp-1">
-                            {app.educationalBg?.isStudentOrGraduate === 'student' ? '🎓 Undergrad' : '🏅 Graduate'}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 font-bold block uppercase text-[8px] tracking-wider">Salary Job</span>
-                          <span className="text-slate-700 font-mono line-clamp-1">{app.workMode?.monthlySalaryJob || 'N/A'}</span>
-                        </div>
-                        <div>
-                          <span className="text-slate-400 font-bold block uppercase text-[8px] tracking-wider">Contract Mode</span>
-                          <span className="text-slate-700 font-mono line-clamp-1">{app.workMode?.contractFreelanceJob || 'N/A'}</span>
-                        </div>
-                      </div>
-
-                      {/* Footer ID and interactive actions */}
-                      <div className="flex items-center justify-between pt-2 border-t border-slate-100/60">
-                        <span className="text-[9px] font-bold text-slate-400">ID: {app.id.substring(0, 8)}</span>
-                        <div className="flex gap-1.5" onClick={(e) => e.stopPropagation()}>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => handleSelectCandidate(app)}
-                            type="button"
-                            className={`py-1 px-2 rounded-lg transition-all border flex items-center gap-1 font-bold text-[9px] ${
-                              isSelected 
-                                ? 'bg-orange-500 text-white border-orange-600' 
-                                : 'bg-indigo-50 text-indigo-700 hover:bg-[#000E32] hover:text-white border-indigo-150'
-                            }`}
-                          >
-                            <UserCheck size={11} />
-                            <span>HR Panel</span>
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => onViewApplicant(app.id)}
-                            type="button"
-                            className="py-1 px-2 bg-white hover:bg-[#000E32] text-slate-700 hover:text-white rounded-lg transition-colors border border-slate-200 flex items-center gap-1 font-bold text-[9px]"
-                          >
-                            <Eye size={11} />
-                            <span>Profile</span>
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => handleDeleteRecord(app.id)}
-                            type="button"
-                            className="p-1 px-2 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg transition-colors border border-rose-100"
-                          >
-                            <Trash2 size={11} />
-                          </motion.button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
-            </div>
-          )}
-        </div>
-
-        {/* Selected Candidate Detailed Side-Console / HR Management Box */}
-        <div className={`${selectedApp ? 'md:col-span-4' : 'md:col-span-5'} transition-all duration-300`}>
-          <AnimatePresence mode="wait">
-            {selectedApp ? (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#000E32]/60 backdrop-blur-sm overflow-y-auto md:static md:z-auto md:p-0 md:bg-transparent md:backdrop-blur-none md:overflow-visible">
-                {/* Backdrop click to close on mobile */}
-                <div className="absolute inset-0 md:hidden cursor-pointer" onClick={() => setSelectedApp(null)} />
-                
-                <motion.div
-                  key={selectedApp.id}
-                  initial={{ opacity: 0, scale: 0.95, y: 15 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: -15 }}
-                  className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-2xl md:shadow-md w-full max-w-lg md:max-w-none relative z-10"
-                >
-                  {/* Header branding */}
-                  <div className="p-5 border-b border-slate-100 bg-[#000E32] text-white flex justify-between items-center">
-                    <div className="text-left">
-                      <span className="text-[9px] uppercase font-bold text-orange-400 tracking-wider">HR Management Console</span>
-                      <h3 className="font-extrabold text-white text-xs uppercase tracking-wide mt-0.5 line-clamp-1">
-                        {selectedApp.personalInfo?.fullName || 'Untitled Candidate'}
-                      </h3>
-                    </div>
-                    <button
-                      onClick={() => setSelectedApp(null)}
-                      className="text-white/80 hover:text-white text-xs font-bold bg-white/10 hover:bg-white/20 px-2.5 py-1.5 rounded-xl transition-all"
-                    >
-                      Close
-                    </button>
-                  </div>
-
-                  {/* Tab Selector for Actions, AI Insights, and PDF Form */}
-                  <div className="flex bg-white p-1 border-b border-slate-200">
-                    <button
-                      type="button"
-                      onClick={() => setAdminDetailTab('actions')}
-                      className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all ${
-                        adminDetailTab === 'actions' ? 'bg-[#000E32] text-white shadow' : 'text-slate-500 hover:text-[#000E32]'
-                      }`}
-                    >
-                      📊 Action Panel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAdminDetailTab('ai')}
-                      className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all ${
-                        adminDetailTab === 'ai' ? 'bg-[#000E32] text-white shadow' : 'text-slate-500 hover:text-[#000E32]'
-                      }`}
-                    >
-                      ✨ AI Insights
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setAdminDetailTab('pdf')}
-                      className={`flex-1 py-2 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all ${
-                        adminDetailTab === 'pdf' ? 'bg-[#000E32] text-white shadow' : 'text-slate-500 hover:text-[#000E32]'
-                      }`}
-                    >
-                      📄 PDF Form
-                    </button>
-                  </div>
-
-                  {adminDetailTab === 'pdf' ? (
-                    <div className="p-4 bg-white max-h-[75vh] overflow-y-auto space-y-4">
-                      <div className="border border-slate-300 rounded-2xl overflow-hidden shadow-sm bg-white p-2">
-                        <CareersFormPDFView application={selectedApp} />
-                      </div>
-                    </div>
-                  ) : adminDetailTab === 'ai' ? (
-                    <div className="p-6 bg-white max-h-[75vh] overflow-y-auto space-y-6 text-left scrollbar-thin">
-                      {/* Title & Badge */}
-                      <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                        <div className="flex items-center gap-2">
-                          <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
-                            <Sparkles size={18} className="animate-pulse" />
-                          </div>
-                          <div>
-                            <h4 className="font-extrabold text-slate-800 text-sm">Gemini AI Cognitive Analysis</h4>
-                            <p className="text-[10px] text-slate-400 font-medium">Real-Time Secure Cloud Evaluation</p>
-                          </div>
-                        </div>
-                        <span className="text-[9px] font-mono px-2 py-0.5 bg-emerald-100/60 text-emerald-800 rounded-full font-black uppercase">
-                          Secure API
-                        </span>
-                      </div>
-
-                      {candidateAnalysisLoading ? (
-                        <div className="py-12 flex flex-col items-center justify-center gap-4 text-center">
-                          {/* AI Thinking Animation with framer-motion */}
-                          <div className="relative flex items-center justify-center">
-                            <motion.div
-                              animate={{ scale: [1, 1.3, 1], rotate: 360 }}
-                              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                              className="w-16 h-16 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 opacity-20 filter blur-md absolute"
-                            />
-                            <motion.div
-                              animate={{ scale: [1.2, 1, 1.2] }}
-                              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                              className="w-12 h-12 rounded-full border-2 border-indigo-500 border-t-pink-500 animate-spin flex items-center justify-center"
-                            />
-                            <Sparkles size={20} className="text-indigo-600 absolute animate-pulse" />
-                          </div>
-                          <div className="space-y-1">
-                            <p className="text-xs font-black text-indigo-900 animate-pulse uppercase tracking-wider">AI Engines Thinking...</p>
-                            <p className="text-[10px] text-slate-400 max-w-xs leading-normal">
-                              Parsing resume documents, scanning educational background, and conducting cross-role match modeling...
-                            </p>
-                          </div>
-                        </div>
-                      ) : candidateAnalyses[selectedApp.id] ? (() => {
-                        const analysis = candidateAnalyses[selectedApp.id];
-                        const score = analysis.compatibilityScore;
-                        
-                        return (
-                          <motion.div 
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="space-y-6"
-                          >
-                            {/* Compatibility Meter Section */}
-                            <div className="bg-white rounded-2xl p-5 border border-slate-200/60 shadow-sm flex flex-col md:flex-row items-center gap-5 relative overflow-hidden">
-                              <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-indigo-50 to-transparent rounded-bl-full pointer-events-none" />
-                              
-                              {/* Visual Circle Meter */}
-                              <div className="relative w-28 h-28 flex-shrink-0 flex items-center justify-center">
-                                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
-                                  {/* Background Track */}
-                                  <circle
-                                    cx="50"
-                                    cy="50"
-                                    r="40"
-                                    fill="none"
-                                    stroke="#F1F5F9"
-                                    strokeWidth="8"
-                                  />
-                                  {/* Progress Path */}
-                                  <motion.circle
-                                    cx="50"
-                                    cy="50"
-                                    r="40"
-                                    fill="none"
-                                    stroke="url(#meterGradient)"
-                                    strokeWidth="8"
-                                    strokeDasharray="251.2"
-                                    initial={{ strokeDashoffset: 251.2 }}
-                                    animate={{ strokeDashoffset: 251.2 - (251.2 * score) / 100 }}
-                                    transition={{ duration: 1.5, ease: "easeOut" }}
-                                    strokeLinecap="round"
-                                  />
-                                  <defs>
-                                    <linearGradient id="meterGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                      <stop offset="0%" stopColor="#6366F1" />
-                                      <stop offset="50%" stopColor="#8B5CF6" />
-                                      <stop offset="100%" stopColor="#EC4899" />
-                                    </linearGradient>
-                                  </defs>
-                                </svg>
-                                {/* Center Text */}
-                                <div className="absolute flex flex-col items-center">
-                                  <span className="text-2xl font-black text-slate-800 leading-none">{score}%</span>
-                                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider mt-1">Match Rate</span>
-                                </div>
-                              </div>
-
-                              <div className="text-center md:text-left space-y-2">
-                                <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border bg-indigo-50 border-indigo-100 text-indigo-700">
-                                  <Sparkles size={10} />
-                                  Match Quality Index
-                                </div>
-                                <h5 className="font-extrabold text-slate-800 text-xs">
-                                  {score >= 80 ? 'Highly Compatible candidate' : score >= 60 ? 'Moderate Role alignment' : 'Low Alignment (Review recommended)'}
-                                </h5>
-                                <p className="text-[10px] text-slate-500 leading-normal max-w-xs">
-                                  Our secure Gemini neural modeling checked their position skills, education, and credentials relative to technical criteria.
-                                </p>
-                              </div>
-                            </div>
-
-                            {/* Glass-morphism Cards Grid */}
-                            <div className="grid grid-cols-1 gap-4">
-                              {/* Strengths Card */}
-                              <div className="bg-emerald-50/40 border border-emerald-100/60 rounded-2xl p-4 backdrop-blur-md shadow-sm relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-12 h-12 bg-emerald-500/5 rounded-full filter blur-md" />
-                                <h6 className="text-[10px] font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1.5 mb-2.5">
-                                  <CheckCircle2 size={13} className="text-emerald-500" />
-                                  Key Strengths
-                                </h6>
-                                <ul className="space-y-2">
-                                  {analysis.keyStrengths?.map((str: string, idx: number) => (
-                                    <li key={idx} className="flex items-start gap-2 text-[11px] text-slate-700 leading-snug">
-                                      <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mt-1.5 flex-shrink-0" />
-                                      <span>{str}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-
-                              {/* Potential Risks Card */}
-                              <div className="bg-rose-50/40 border border-rose-100/60 rounded-2xl p-4 backdrop-blur-md shadow-sm relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-12 h-12 bg-rose-500/5 rounded-full filter blur-md" />
-                                <h6 className="text-[10px] font-black uppercase tracking-wider text-rose-800 flex items-center gap-1.5 mb-2.5">
-                                  <AlertCircle size={13} className="text-rose-500" />
-                                  Potential Risks
-                                </h6>
-                                <ul className="space-y-2">
-                                  {analysis.potentialRisks?.map((risk: string, idx: number) => (
-                                    <li key={idx} className="flex items-start gap-2 text-[11px] text-slate-700 leading-snug">
-                                      <span className="w-1.5 h-1.5 bg-rose-500 rounded-full mt-1.5 flex-shrink-0" />
-                                      <span>{risk}</span>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-
-                              {/* Interview Questions Card */}
-                              <div className="bg-indigo-50/40 border border-indigo-100/60 rounded-2xl p-4 backdrop-blur-md shadow-sm relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-12 h-12 bg-indigo-500/5 rounded-full filter blur-md" />
-                                <h6 className="text-[10px] font-black uppercase tracking-wider text-indigo-800 flex items-center gap-1.5 mb-2.5">
-                                  <MessageSquare size={13} className="text-indigo-500" />
-                                  Targeted Interview Questions
-                                </h6>
-                                <div className="space-y-2.5">
-                                  {analysis.interviewQuestions?.map((q: string, idx: number) => (
-                                    <div key={idx} className="bg-white/60 rounded-xl p-2.5 border border-indigo-50/40 text-[10.5px] text-slate-700 leading-relaxed font-medium">
-                                      <span className="font-black text-indigo-600 block text-[9px] uppercase tracking-wider mb-0.5">Question {idx + 1}</span>
-                                      {q}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Recalculate Button */}
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                setCandidateAnalysisLoading(true);
-                                try {
-                                  const result = await apiAnalyzeCandidate(selectedApp);
-                                  setCandidateAnalyses(prev => ({
-                                    ...prev,
-                                    [selectedApp.id]: result
-                                  }));
-                                  setShowAdminNotification("✨ Recalculated AI applicant evaluation!");
-                                  setTimeout(() => setShowAdminNotification(null), 3000);
-                                } catch (err) {
-                                  console.error(err);
-                                  alert("Failed to run Gemini AI analysis. Please check your credentials.");
-                                } finally {
-                                  setCandidateAnalysisLoading(false);
-                                }
-                              }}
-                              className="w-full py-2 border border-dashed border-indigo-200 hover:border-indigo-400 text-indigo-600 text-[10px] font-extrabold uppercase tracking-widest rounded-xl transition-all cursor-pointer bg-white"
-                            >
-                              🔄 Recalculate AI Insights
-                            </button>
-                          </motion.div>
-                        );
-                      })() : (
-                        <div className="py-8 text-center space-y-4">
-                          <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto">
-                            <Sparkles size={20} className="animate-pulse" />
-                          </div>
-                          <div className="space-y-2">
-                            <h5 className="font-bold text-slate-800 text-xs">No Cognitive Analysis Found</h5>
-                            <p className="text-[11px] text-slate-400 leading-relaxed max-w-xs mx-auto">
-                              Unlock secure server-side neural scoring for compatibility, key candidate advantages, potential risks, and custom generated screening questions.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              setCandidateAnalysisLoading(true);
-                              try {
-                                const result = await apiAnalyzeCandidate(selectedApp);
-                                setCandidateAnalyses(prev => ({
-                                  ...prev,
-                                  [selectedApp.id]: result
-                                }));
-                                setShowAdminNotification("✨ Generated secure AI candidate insights!");
-                                setTimeout(() => setShowAdminNotification(null), 3000);
-                              } catch (err) {
-                                console.error(err);
-                                alert("Failed to run Gemini AI analysis. Please check your credentials.");
-                              } finally {
-                                setCandidateAnalysisLoading(false);
-                              }
-                            }}
-                            className="px-5 py-2.5 bg-[#000E32] hover:bg-slate-900 text-white font-extrabold text-[10px] uppercase tracking-widest rounded-xl transition-all cursor-pointer flex items-center gap-1.5 mx-auto"
-                          >
-                            <Sparkles size={11} className="text-amber-400" />
-                            Run Cognitive Analysis
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto text-left">
-                      {/* Photo & Quick Overview Grid */}
-                      <div className="flex gap-4 items-start pb-4 border-b border-slate-100">
-                        <div className="w-16 h-20 bg-white border border-slate-200 rounded-lg overflow-hidden p-0.5 flex-shrink-0 flex items-center justify-center">
-                          {selectedApp.personalInfo?.passportPhoto ? (
-                            <img src={selectedApp.personalInfo.passportPhoto} className="w-full h-full object-cover" alt="candidate" />
-                          ) : (
-                            <GraduationCap size={24} className="text-slate-400" />
-                          )}
-                        </div>
-
-                        <div className="text-left space-y-1.5 text-xs">
-                          <div>
-                            <span className="text-slate-400 font-bold uppercase text-[9px] block">Applied Position</span>
-                            <span className="font-extrabold text-slate-900">{selectedApp.positionSkills?.majorRole || 'N/A'}</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-400 font-bold uppercase text-[9px] block">Highest Degree</span>
-                            <span className="font-semibold text-slate-700">{selectedApp.educationalBg?.highestQualification || 'N/A'}</span>
-                          </div>
-                          <div>
-                            <span className="text-slate-400 font-bold uppercase text-[9px] block">Contact Channels</span>
-                            <span className="font-mono text-slate-600 leading-tight block">{selectedApp.personalInfo?.phoneNumbers || 'N/A'}</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* 🌌 GEMINI AI SECURE EXECUTIVE SUMMARY */}
-                      <div className="bg-indigo-50/50 border border-indigo-100/70 rounded-2xl p-4 space-y-3 relative overflow-hidden shadow-sm">
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-500/10 rounded-full filter blur-xl pointer-events-none" />
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="flex items-center gap-1.5 font-extrabold uppercase tracking-wider text-[10px] text-indigo-900">
-                            <Sparkles size={14} className="text-amber-500 animate-pulse" />
-                            Gemini 1.5 Flash Executive Digest
-                          </span>
-                          <span className="text-[9px] font-mono px-2 py-0.5 bg-indigo-100/60 text-indigo-800 rounded-full font-black uppercase">
-                            Secure Cloud Vault
-                          </span>
-                        </div>
-
-                        {aiSummaryLoading ? (
-                          <div className="py-4 flex flex-col items-center justify-center gap-2 text-center">
-                            <RefreshCw size={18} className="animate-spin text-indigo-600" />
-                            <span className="text-xs font-mono text-indigo-600 animate-pulse">Consulting Gemini secure API gateway...</span>
-                          </div>
-                        ) : aiSummaries[selectedApp.id] ? (
-                          <div className="text-xs text-slate-700 leading-relaxed font-sans space-y-1.5 whitespace-pre-line bg-white/40 p-3 rounded-xl border border-indigo-100/40">
-                            {aiSummaries[selectedApp.id]}
-                          </div>
-                        ) : (
-                          <div className="space-y-2">
-                            <p className="text-[11px] text-slate-500 leading-normal">
-                              Generate a highly condensed, server-side Gemini AI summary of this applicant's qualifications, skills, and organizational fit.
-                            </p>
-                            <button
-                              type="button"
-                              onClick={async () => {
-                                setAiSummaryLoading(true);
-                                try {
-                                  const summaryRes = await apiSummarizeApplicant(selectedApp);
-                                  setAiSummaries(prev => ({
-                                    ...prev,
-                                    [selectedApp.id]: summaryRes.summary
-                                  }));
-                                  setShowAdminNotification("✨ Gemini AI summary generated successfully via secure backend!");
-                                  setTimeout(() => setShowAdminNotification(null), 3000);
-                                } catch (sumErr: any) {
-                                  console.error(sumErr);
-                                  alert("Failed to connect to Gemini API. Please configure GEMINI_API_KEY.");
-                                } finally {
-                                  setAiSummaryLoading(false);
-                                }
-                              }}
-                              className="w-full py-2 bg-gradient-to-r from-indigo-900 to-[#000E32] hover:from-indigo-850 hover:to-indigo-950 text-white font-black text-[10px] uppercase tracking-widest rounded-xl shadow-md shadow-indigo-900/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
-                            >
-                              <Sparkles size={12} className="text-amber-400" />
-                              Generate Executive Summary
-                            </button>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Status Badge Action & Control Room */}
-                      <div className="space-y-3">
-                        <span className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block">
-                          Change Application Status
-                        </span>
-
-                        <div className="grid grid-cols-2 gap-2.5">
-                          <button
-                            onClick={() => handleUpdateStatus(selectedApp.id, 'approved')}
-                            disabled={updatingId === selectedApp.id}
-                            type="button"
-                            className={`py-2 px-3 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
-                              selectedApp.status === 'approved'
-                                ? 'bg-emerald-600 text-white shadow shadow-emerald-600/25 border border-emerald-600'
-                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200'
-                            }`}
-                          >
-                            <CheckCircle2 size={13} />
-                            Approve Candidate
-                          </button>
-                          <button
-                            onClick={() => handleUpdateStatus(selectedApp.id, 'rejected')}
-                            disabled={updatingId === selectedApp.id}
-                            type="button"
-                            className={`py-2 px-3 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center justify-center gap-1.5 transition-all ${
-                              selectedApp.status === 'rejected'
-                                ? 'bg-rose-600 text-white shadow shadow-rose-600/25 border border-rose-600'
-                                : 'bg-white border border-slate-200 text-slate-700 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200'
-                            }`}
-                          >
-                            <XCircle size={13} />
-                            Reject Candidate
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* APPOINTMENT OFFER SPECIFICATIONS (For generating official appointment letter) */}
-                      <div className="p-4 bg-white rounded-2xl border border-slate-200/80 space-y-4 text-xs">
-                        <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
-                          <Edit3 size={13} className="text-orange-500" />
-                          <span className="font-extrabold text-[#000E32] uppercase text-[10px] tracking-wide">
-                            Appointment Offer Specifications
-                          </span>
-                        </div>
-
-                        <div className="space-y-3.5">
-                          {/* Offer Role */}
-                          <div>
-                            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
-                              Official Title (to display on offer letter)
-                            </label>
-                            <input
-                              type="text"
-                              value={offerRoleInput}
-                              onChange={(e) => setOfferRoleInput(e.target.value)}
-                              placeholder="e.g. Lead Frontend Developer"
-                              className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 font-semibold text-slate-800 focus:outline-none focus:border-[#000E32]"
-                            />
-                          </div>
-
-                          {/* Salary */}
-                          <div>
-                            <label className="text-[10px] font-bold text-slate-500 uppercase block mb-1">
-                              Monthly Salary Package
-                            </label>
-                            <input
-                              type="text"
-                              value={salaryInput}
-                              onChange={(e) => setSalaryInput(e.target.value)}
-                              placeholder="e.g. ₦180,000 / month"
-                              className="w-full bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 font-semibold text-slate-800 focus:outline-none focus:border-[#000E32]"
-                            />
-                          </div>
-
-                          {/* Apply changes button */}
-                          <button
-                            onClick={() => {
-                              handleUpdateStatus(selectedApp.id, 'approved', {
-                                approvedBy: {
-                                  approved: true,
-                                  role: 'HR Executive',
-                                  signature: selectedApp.approvedBy?.signature || 'HR_STAMP_APPROVED_L401',
-                                  date: selectedApp.approvedBy?.date || new Date().toISOString().split('T')[0],
-                                  offerRole: offerRoleInput,
-                                  monthlySalary: salaryInput
-                                }
-                              });
-                            }}
-                            disabled={updatingId === selectedApp.id}
-                            type="button"
-                            className="w-full py-2 bg-[#000E32] hover:bg-slate-900 text-white font-extrabold uppercase tracking-widest text-[10px] rounded-lg transition-colors flex items-center justify-center gap-1.5"
-                          >
-                            <Sparkles size={11} className="text-orange-400" />
-                            Generate & Save Official Offer Letter
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* QUICK PRESET AND CUSTOM MESSAGING CENTER */}
-                      <div className="p-4 bg-orange-50/40 border border-orange-200/50 rounded-2xl space-y-4 text-xs">
-                        <div className="flex items-center gap-2 border-b border-orange-100 pb-2">
-                          <MessageSquare size={13} className="text-orange-600 animate-pulse" />
-                          <span className="font-extrabold text-[#000E32] uppercase text-[10px] tracking-wide">
-                            Quick Dispatch Communications
-                          </span>
-                        </div>
-
-                        {/* Preset templates selector */}
-                        <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-slate-500 uppercase block">
-                            Select Preset Template
-                          </label>
-                          <div className="grid grid-cols-2 gap-1.5">
-                            {[
-                              { id: 'review', label: '⏳ Under Review' },
-                              { id: 'interview', label: '📞 Interview Invite' },
-                              { id: 'offer', label: '🎉 Offer Letter Ready' },
-                              { id: 'regret', label: '✉️ Polite Regrets' }
-                            ].map((preset) => (
-                              <button
-                                key={preset.id}
-                                type="button"
-                                onClick={() => {
-                                  setSelectedPreset(preset.id);
-                                  setCustomMessage(getMessageTemplate(selectedApp, preset.id));
-                                }}
-                                className={`py-1.5 px-2 rounded-lg text-[9.5px] font-bold text-left transition-all border ${
-                                  selectedPreset === preset.id
-                                    ? 'bg-[#000E32] text-white border-[#000E32]'
-                                    : 'bg-white hover:bg-white text-slate-700 border-slate-200'
-                                }`}
-                              >
-                                {preset.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Customizable Text Area */}
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-bold text-slate-500 uppercase block">
-                            Customizable Message
-                          </label>
-                          <textarea
-                            value={customMessage}
-                            onChange={(e) => setCustomMessage(e.target.value)}
-                            rows={6}
-                            placeholder="Draft your applicant message here..."
-                            className="w-full text-[11px] bg-white border border-slate-200 focus:border-[#000E32] rounded-xl p-2.5 text-slate-800 leading-normal font-medium placeholder-slate-400 focus:outline-none"
-                          />
-                        </div>
-
-                        {/* Sending Action buttons */}
-                        <div className="grid grid-cols-2 gap-2">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const email = selectedApp.personalInfo?.emailAddress;
-                              const subject = encodeURIComponent(`Update on your DS Tech Application`);
-                              window.open(`mailto:${email}?subject=${subject}&body=${encodeURIComponent(customMessage)}`, '_blank');
-                            }}
-                            className="py-2 bg-slate-900 hover:bg-black text-white text-[10px] font-extrabold uppercase tracking-wide rounded-lg flex items-center justify-center gap-1.5 transition-colors"
-                          >
-                            <Send size={11} className="text-orange-400" />
-                            Dispatch via Email
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const phone = selectedApp.personalInfo?.phoneNumbers || '';
-                              // Clean phone number: remove non-digits
-                              const cleanedPhone = phone.replace(/\D/g, '');
-                              const finalPhone = cleanedPhone.startsWith('0') 
-                                ? '234' + cleanedPhone.substring(1) 
-                                : cleanedPhone.startsWith('+') 
-                                ? cleanedPhone.substring(1) 
-                                : cleanedPhone;
-                              window.open(`https://wa.me/${finalPhone}?text=${encodeURIComponent(customMessage)}`, '_blank');
-                            }}
-                            className="py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-extrabold uppercase tracking-wide rounded-lg flex items-center justify-center gap-1.5 transition-colors"
-                          >
-                            <MessageSquare size={11} />
-                            Dispatch via WhatsApp
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* HR / Private evaluation Notes */}
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest block">
-                          Private HR Review Notes
-                        </label>
-                        <textarea
-                          value={adminNotesText}
-                          onChange={(e) => setAdminNotesText(e.target.value)}
-                          rows={3}
-                          placeholder="Add assessment highlights, verified references, interviews feedback, or background checks remarks..."
-                          className="w-full text-xs bg-white border border-slate-200 focus:border-[#000E32] rounded-xl p-3 text-slate-700 leading-relaxed font-medium placeholder-slate-400 focus:outline-none"
-                        />
-                        <button
-                          onClick={() => handleUpdateStatus(selectedApp.id, selectedApp.status || 'pending')}
-                          disabled={updatingId === selectedApp.id}
-                          type="button"
-                          className="py-1.5 px-4 bg-white hover:bg-slate-200 text-slate-700 rounded-lg text-[10px] font-extrabold uppercase tracking-wide transition-colors float-right"
-                        >
-                          Save Notes Only
-                        </button>
-                      </div>
-
-                      {/* Profile record export metadata */}
-                      <div className="clear-both pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
-                        <span className="text-[10px] text-slate-400 font-semibold">
-                          Created: {new Date(selectedApp.createdAt).toLocaleDateString()}
-                        </span>
-
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleExportJSON(selectedApp)}
-                            type="button"
-                            className="py-1.5 px-3 bg-white hover:bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 flex items-center gap-1 transition-colors"
-                            title="Download raw JSON Profile"
-                          >
-                            <Download size={11} />
-                            Export JSON
-                          </button>
-                          <button
-                            onClick={() => onViewApplicant(selectedApp.id)}
-                            type="button"
-                            className="py-1.5 px-3.5 bg-orange-50 hover:bg-orange-100 text-orange-700 border border-orange-200 rounded-lg text-[10px] font-extrabold uppercase tracking-wider flex items-center gap-1.5 transition-colors"
-                          >
-                            <FileDown size={11} />
-                            Full Portal view
-                          </button>
-                        </div>
-                      </div>
-
-                    </div>
-                  )}
-
-              </motion.div>
-              </div>
-            ) : (
-              <div className="hidden md:block bg-white border-2 border-dashed border-slate-200 rounded-3xl p-12 text-center text-slate-400 space-y-3.5">
-                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mx-auto text-slate-350">
-                  <UserMinus size={20} />
-                </div>
-                <h4 className="text-xs font-bold uppercase tracking-widest text-[#000E32]">HR Action Console</h4>
-                <p className="text-[11px] leading-relaxed max-w-xs mx-auto">
-                  Select any applicant card from the table left to review their details, modify approval statuses, write private notes, and instantly output customized salary offer letters!
-                </p>
-              </div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Persistent 'Application Preview' Sidebar */}
-        {selectedApp && (
-          <div className="hidden md:flex md:flex-col md:col-span-4 bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-md h-[78vh] sticky top-6">
-            <div className="p-4 border-b border-slate-150 bg-[#000E32] text-white flex justify-between items-center shrink-0">
-              <div className="text-left">
-                <span className="text-[9px] uppercase font-bold text-orange-400 tracking-wider">Real-Time PDF Rendering</span>
-                <h3 className="font-extrabold text-white text-[11px] uppercase tracking-wide mt-0.5 flex items-center gap-1.5">
-                  <FileText size={13} className="text-orange-400" />
-                  Application Preview
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  try {
-                    window.print();
-                  } catch (err) {
-                    console.error('Print failed:', err);
-                  }
-                }}
-                className="text-white hover:text-orange-400 p-1.5 hover:bg-white/10 rounded-xl transition-all flex items-center gap-1 text-[9px] font-black uppercase tracking-wider border border-slate-700 bg-slate-800/50 hover:border-slate-600 px-2.5 py-1"
-                title="Print Form"
-              >
-                <Printer size={12} />
-                <span>Print</span>
-              </button>
-            </div>
-
-            {/* Document body viewport with real-time feedback */}
-            <div className="p-3 bg-white overflow-y-auto flex-1 text-left scrollbar-thin scrollbar-thumb-slate-300">
-              <div className="bg-white border border-slate-200 rounded-2xl p-1.5 shadow-sm scale-[0.98] origin-top">
-                <CareersFormPDFView application={selectedApp} />
-              </div>
-            </div>
-          </div>
-        )}
-
-      </div>
-      </>)}
+      </AnimatePresence>
 
       {/* ================= WEBSITE CATALOG MODULE ================= */}
-      {adminModule === 'website' && (() => {
-        // We define meta details for the 9 service categories
-        const CATEGORY_META: Record<string, { label: string; icon: any; color: string; bg: string; border: string; desc: string }> = {
-          marketing: { label: 'Digital Marketing', icon: Briefcase, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-950/20', border: 'border-orange-100 dark:border-orange-900/30', desc: 'Social ads, strategy campaigns, and copy content management.' },
-          web: { label: 'Web Development', icon: Layers, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950/20', border: 'border-blue-100 dark:border-blue-900/30', desc: 'Corporate websites, landing pages, and web engines.' },
-          software: { label: 'Software Development', icon: FileSpreadsheet, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/20', border: 'border-emerald-100 dark:border-emerald-900/30', desc: 'Custom enterprise softwares, mobile apps, and parallel APIs.' },
-          ai: { label: 'AI Solutions', icon: Sparkles, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/20', border: 'border-indigo-100 dark:border-indigo-900/30', desc: 'Generative models, custom cognitive pipelines, and automation.' },
-          business: { label: 'Business Services', icon: Landmark, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/20', border: 'border-amber-100 dark:border-amber-900/30', desc: 'Business plan frameworks, investment pitches, and consultation.' },
-          branding: { label: 'Branding & Graphics', icon: Heart, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-950/20', border: 'border-rose-100 dark:border-rose-900/30', desc: 'Logos, physical flyers, and visual branding identities.' },
-          ict: { label: 'ICT Solutions', icon: QrCode, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-950/20', border: 'border-cyan-100 dark:border-cyan-900/30', desc: 'Network setups, hardware sourcing, and workstation configurations.' },
-          training: { label: 'Training Academy', icon: GraduationCap, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-950/20', border: 'border-purple-100 dark:border-purple-900/30', desc: 'Full engineering masterclasses, digital advertising, and mentorship.' },
-          compliance: { label: 'Legal Compliance', icon: ShieldAlert, color: 'text-slate-500', bg: 'bg-white dark:bg-slate-950/20', border: 'border-slate-100 dark:border-slate-900/30', desc: 'CAC incorporation files, annual returns, and tax registrations.' }
-        };
+      {adminModule === 'website' && (
+        <ServicesCMS onRefresh={refreshMasterData} />
+      )}
 
-        // Filtered list based on active selector
-        const displayedSvc = adminServices.filter((svc: any) => {
-          if (svcFilterCat === 'all') return true;
-          return svc.category === svcFilterCat;
-        });
-
-        return (
-          <div className="space-y-8 animate-fade-in text-left">
-            {/* Header section with metrics summary banner */}
-            <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-gradient-to-r from-[#000E32] to-[#0a2364] p-6 rounded-3xl border border-slate-200 shadow-lg text-white gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Layers className="text-orange-400" size={20} />
-                  <h2 className="text-sm font-extrabold uppercase font-serif tracking-wide text-white">Services Ecosystem Console</h2>
-                </div>
-                <p className="text-slate-300 text-[10px] font-light mt-1">
-                  Manage the full directory catalog. Filter services by interactive category bento-cards with premium CRUD controls and AI assistants.
-                </p>
-              </div>
-              
-              <div className="flex gap-2 shrink-0">
-                {/* AI Instant Draft Injector */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const presets = [
-                      {
-                        name: "Google Ads Conversions API Integrator",
-                        price: "₦180,000",
-                        category: "ai",
-                        description: "Establish robust parallel server-side pixel tracking bypassing iOS content blockages directly into your business database.",
-                        image: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80",
-                        url: "https://wa.me/2348123456789"
-                      },
-                      {
-                        name: "Automated Corporate CAC Filing Suite",
-                        price: "₦75,000",
-                        category: "compliance",
-                        description: "Complete paperwork, filing fee coverage, and digital certificate delivery within 5 business days without physical logistics hassles.",
-                        image: "https://images.unsplash.com/photo-1450133064473-71024230f91b?w=600&auto=format&fit=crop&q=80",
-                        url: "https://wa.me/2348123456789"
-                      },
-                      {
-                        name: "Full-Stack React Native Android/iOS App Node",
-                        price: "₦1,500,000 – ₦5,000,000+",
-                        category: "software",
-                        description: "High-performance hybrid codebase containing custom telemetry maps, push messaging gates, and local persistence cache layers.",
-                        image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&auto=format&fit=crop&q=80",
-                        url: "https://wa.me/2348123456789"
-                      }
-                    ];
-                    const rand = presets[Math.floor(Math.random() * presets.length)];
-                    const generatedId = "svc_" + Math.random().toString(36).substring(2, 6);
-                    const newSvc = {
-                      id: generatedId,
-                      ...rand,
-                      name: rand.name + " (AI Draft)"
-                    };
-                    setAdminServices([newSvc, ...adminServices]);
-                    alert("✨ AI Autocomplete: Immersive new service node draft created in " + rand.category.toUpperCase() + " successfully!");
-                  }}
-                  className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white text-[10px] font-black uppercase tracking-wider rounded-xl transition-all flex items-center gap-1.5 shadow-md shadow-indigo-600/10"
-                >
-                  <Sparkles size={11} className="animate-pulse" />
-                  <span>AI Injector</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    if (isAddingSvc || editingSvc) {
-                      setEditingSvc(null);
-                      setSvcName('');
-                      setSvcPrice('₦150,000');
-                      setSvcCategory('marketing');
-                      setSvcDesc('');
-                      setSvcImage('');
-                      setSvcUrl('');
-                      setIsAddingSvc(false);
-                    } else {
-                      setIsAddingSvc(true);
-                    }
-                  }}
-                  className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/10 flex items-center gap-1"
-                >
-                  {isAddingSvc || editingSvc ? 'Cancel' : <><Plus size={13} /><span>Add Service</span></>}
-                </button>
-              </div>
-            </div>
-
-            {/* HIGH MOTION CATEGORY BENTO-CARDS PANEL */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center px-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#000E32] font-mono flex items-center gap-1.5">
-                  <Filter size={11} className="text-orange-500" />
-                  Ecosystem Categories Board
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setSvcFilterCat('all')}
-                  className={`px-3 py-1 text-[10px] font-black uppercase tracking-wider rounded-lg transition-all ${
-                    svcFilterCat === 'all'
-                      ? 'bg-[#000E32] text-white shadow-sm'
-                      : 'bg-white hover:bg-slate-200 text-slate-500'
-                  }`}
-                >
-                  Show All ({adminServices.length})
-                </button>
-              </div>
-
-              {/* Bento Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.entries(CATEGORY_META).map(([catId, meta]) => {
-                  const IconComponent = meta.icon;
-                  const catServices = adminServices.filter((s: any) => s.category === catId);
-                  const isActive = svcFilterCat === catId;
-
-                  return (
-                    <motion.div
-                      key={catId}
-                      whileHover={{ scale: 1.03, y: -4, transition: { type: "spring", stiffness: 350, damping: 25 } }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setSvcFilterCat(catId)}
-                      className={`cursor-pointer p-5 rounded-2xl border transition-all relative overflow-hidden flex flex-col justify-between text-left h-36 ${
-                        isActive
-                          ? 'bg-gradient-to-br from-[#000E32] to-[#041d5e] border-orange-500/80 shadow-md text-white'
-                          : 'bg-white hover:bg-white border-slate-200 text-slate-800'
-                      }`}
-                    >
-                      {/* Ambient Glowing Background Effect when active */}
-                      {isActive && (
-                        <div className="absolute -right-6 -bottom-6 w-24 h-24 rounded-full bg-orange-500/10 blur-xl"></div>
-                      )}
-
-                      {/* Top Row: Icon + Service Count Badge */}
-                      <div className="flex justify-between items-start">
-                        <div className={`p-2.5 rounded-xl ${isActive ? 'bg-orange-500/15' : meta.bg}`}>
-                          <IconComponent className={`w-5 h-5 ${isActive ? 'text-orange-400' : meta.color}`} />
-                        </div>
-                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold font-mono ${
-                          isActive 
-                            ? 'bg-orange-500 text-white' 
-                            : 'bg-white text-slate-600'
-                        }`}>
-                          {catServices.length} {catServices.length === 1 ? 'Node' : 'Nodes'}
-                        </span>
-                      </div>
-
-                      {/* Bottom Row: Label & Subtext */}
-                      <div className="mt-4 space-y-1">
-                        <h4 className="text-xs font-black uppercase font-serif tracking-wide">{meta.label}</h4>
-                        <p className={`text-[9px] line-clamp-2 leading-snug font-light ${
-                          isActive ? 'text-slate-300' : 'text-slate-400'
-                        }`}>
-                          {meta.desc}
-                        </p>
-                      </div>
-
-                      {/* Active Indicator Check Circle */}
-                      {isActive && (
-                        <div className="absolute top-3 right-3 text-orange-400">
-                          <Check size={14} className="stroke-[3]" />
-                        </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* EXPANDED INTERACTIVE CRUD FORM (ADD/EDIT WITH AI CAPABILITIES) */}
-            <AnimatePresence mode="wait">
-              {(isAddingSvc || editingSvc) && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, height: "auto", scale: 1 }}
-                  exit={{ opacity: 0, height: 0, scale: 0.95 }}
-                  className="bg-white p-6 rounded-3xl border border-slate-200 shadow-lg text-slate-800 text-xs overflow-hidden"
-                >
-                  <div className="flex justify-between items-center border-b border-slate-100 pb-3 mb-5">
-                    <span className="text-[10px] uppercase font-black tracking-widest text-[#000E32] font-mono">
-                      {editingSvc ? `// EDITING SERVICE NODE: ${editingSvc.id}` : '// PUBLISH NEW SERVICE NODE'}
-                    </span>
-                    {editingSvc && (
-                      <span className="px-2.5 py-0.5 bg-indigo-50 text-indigo-600 text-[9px] font-mono rounded-full font-bold">
-                        Target ID: {editingSvc.id}
-                      </span>
-                    )}
-                  </div>
-
-                  <form 
-                    onSubmit={async (e) => {
-                      e.preventDefault();
-                      if(!svcName || !svcDesc) {
-                        alert("Please fill in the service name and description brief.");
-                        return;
-                      }
-
-                      const finalSvc = {
-                        id: editingSvc ? editingSvc.id : ("svc_" + Math.random().toString(36).substring(2, 6)),
-                        name: svcName,
-                        price: svcPrice || "₦150,000",
-                        category: svcCategory as any,
-                        description: svcDesc,
-                        image: svcImage || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&auto=format&fit=crop&q=60",
-                        url: svcUrl || "https://wa.me/2348123456789"
-                      };
-
-                      if (editingSvc) {
-                        try {
-                          await apiUpdateService(editingSvc.id, finalSvc);
-                          setAdminServices(adminServices.map((s: any) => s.id === editingSvc.id ? finalSvc : s));
-                          setShowAdminNotification("✅ Service updated successfully!");
-                        } catch (err) {
-                          console.error("Failed to update service:", err);
-                          setShowAdminNotification("❌ Failed to update service.");
-                        }
-                      } else {
-                        try {
-                          await apiSaveService(finalSvc);
-                          setAdminServices([finalSvc, ...adminServices]);
-                          setShowAdminNotification("✅ Service published successfully!");
-                        } catch (err) {
-                          console.error("Failed to publish service:", err);
-                          setShowAdminNotification("❌ Failed to publish service.");
-                        }
-                      }
-                      setTimeout(() => setShowAdminNotification(null), 3000);
-
-                      // Clear input states
-                      setEditingSvc(null);
-                      setSvcName('');
-                      setSvcPrice('₦150,000');
-                      setSvcCategory('marketing');
-                      setSvcDesc('');
-                      setSvcImage('');
-                      setSvcUrl('');
-                      setIsAddingSvc(false);
-                    }}
-                    className="grid grid-cols-1 md:grid-cols-3 gap-5"
-                  >
-                    {/* 1. Service Name */}
-                    <div>
-                      <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Service Name *</label>
-                      <input 
-                        type="text" 
-                        required 
-                        value={svcName} 
-                        onChange={e => setSvcName(e.target.value)} 
-                        className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 font-bold" 
-                        placeholder="e.g. Meta Conversions API Node" 
-                      />
-                    </div>
-
-                    {/* 2. Price Tier */}
-                    <div>
-                      <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Price Tier *</label>
-                      <input 
-                        type="text" 
-                        required 
-                        value={svcPrice} 
-                        onChange={e => setSvcPrice(e.target.value)} 
-                        className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 font-mono font-bold" 
-                        placeholder="e.g. ₦150,000 – ₦850,000+" 
-                      />
-                    </div>
-
-                    {/* 3. Category selector */}
-                    <div>
-                      <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Ecosystem Category</label>
-                      <select 
-                        value={svcCategory} 
-                        onChange={e => setSvcCategory(e.target.value)} 
-                        className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500"
-                      >
-                        <option value="marketing">Digital Marketing</option>
-                        <option value="web">Web Development</option>
-                        <option value="software">Software Development</option>
-                        <option value="ai">AI Solutions</option>
-                        <option value="business">Business Services</option>
-                        <option value="branding">Branding & Graphics</option>
-                        <option value="ict">ICT Solutions</option>
-                        <option value="training">Training Academy</option>
-                        <option value="compliance">Legal Compliance</option>
-                      </select>
-                    </div>
-
-                    {/* 4. Custom Visual Asset URL & Form Preview */}
-                    <div>
-                      <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Cover Image Asset URL</label>
-                      <input 
-                        type="text" 
-                        value={svcImage} 
-                        onChange={e => setSvcImage(e.target.value)} 
-                        className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-[10px]" 
-                        placeholder="https://images.unsplash.com/photo-..." 
-                      />
-                      {/* Clickable Image Presets */}
-                      <div className="flex gap-1 mt-1.5 overflow-x-auto pb-1">
-                        <button type="button" onClick={() => setSvcImage('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white rounded text-[9px] text-slate-500 whitespace-nowrap">Tech Theme</button>
-                        <button type="button" onClick={() => setSvcImage('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white rounded text-[9px] text-slate-500 whitespace-nowrap">AI Neural</button>
-                        <button type="button" onClick={() => setSvcImage('https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white rounded text-[9px] text-slate-500 whitespace-nowrap">Corporate Business</button>
-                      </div>
-
-                      {/* LIVE PREVIEW BOX */}
-                      {svcImage.trim() && (
-                        <div className="mt-2.5 relative h-24 w-full rounded-xl overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center">
-                          <img 
-                            src={svcImage} 
-                            alt="Live Service Form Preview" 
-                            className="w-full h-full object-cover" 
-                            referrerPolicy="no-referrer"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                          <div className="absolute top-1 left-1 bg-[#000E32] text-[8px] font-mono font-bold text-white px-1.5 py-0.5 rounded shadow">
-                            REAL-TIME LIVE PREVIEW (HOME VIEW)
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* 5. Custom Orders Link */}
-                    <div className="md:col-span-2">
-                      <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">WhatsApp Direct Order / Catalog Link</label>
-                      <input 
-                        type="text" 
-                        value={svcUrl} 
-                        onChange={e => setSvcUrl(e.target.value)} 
-                        className="w-full p-3 bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-orange-500 font-mono" 
-                        placeholder="https://wa.me/p/..." 
-                      />
-                    </div>
-
-                    {/* 6. Description with AI copywriter integration */}
-                    <div className="md:col-span-3">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-[10px] uppercase font-bold text-slate-400 block">Service Deliverables Brief *</label>
-                        
-                        {/* Copywriter triggering button */}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (!svcName) {
-                              alert("Please fill out the Service Name first so the AI copywriter knows what to describe!");
-                              return;
-                            }
-                            
-                            let count = 0;
-                            const intv = setInterval(() => {
-                              count++;
-                              setSvcDesc(`[AI copywriting module optimizing content${'.'.repeat(count % 4)}]`);
-                            }, 200);
-
-                            setTimeout(() => {
-                              clearInterval(intv);
-                              const copy = `Achieve maximum operational reliability and customer acquisition velocity. Our bespoke "${svcName}" package includes standard automated SLA pipelines, professional custom integration reports, and 24/7 dedicated engineering support tailored directly for modern Nigerian scaleups.`;
-                              setSvcDesc(copy);
-                              alert("✨ AI Copywriter: Custom professional sales-oriented description generated successfully!");
-                            }, 1200);
-                          }}
-                          className="text-[9px] text-orange-500 hover:text-orange-600 font-black uppercase tracking-wider flex items-center gap-1 font-mono hover:underline"
-                        >
-                          <Sparkles size={11} className="animate-spin" />
-                          <span>Optimize Description with AI Copywriter</span>
-                        </button>
-                      </div>
-                      <textarea 
-                        required 
-                        rows={3} 
-                        value={svcDesc} 
-                        onChange={e => setSvcDesc(e.target.value)} 
-                        className="w-full p-3 bg-white border border-slate-200 rounded-xl resize-none focus:outline-none focus:border-orange-500" 
-                        placeholder="Provide detail on service timelines, value metrics, and exact client benefits..." 
-                      />
-                    </div>
-
-                    {/* Form control row */}
-                    <div className="md:col-span-3 flex justify-between items-center border-t border-slate-150 pt-4 mt-2">
-                      <p className="text-[9px] text-slate-400 italic">Fields marked with (*) are required.</p>
-                      <div className="flex gap-2">
-                        <button 
-                          type="button" 
-                          onClick={() => {
-                            setEditingSvc(null);
-                            setSvcName('');
-                            setSvcPrice('₦150,000');
-                            setSvcCategory('marketing');
-                            setSvcDesc('');
-                            setSvcImage('');
-                            setSvcUrl('');
-                            setIsAddingSvc(false);
-                          }}
-                          className="px-4 py-2 text-slate-500 hover:text-slate-700 bg-white text-[10px] font-bold uppercase rounded-xl transition-all"
-                        >
-                          Close Panel
-                        </button>
-                        <button 
-                          type="submit" 
-                          className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-[10px] font-black uppercase tracking-wider rounded-xl shadow-md shadow-orange-500/20 transition-all"
-                        >
-                          {editingSvc ? 'Save Changes' : 'Publish Service'}
-                        </button>
-                      </div>
-                    </div>
-                  </form>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* SERVICES DIRECTORY - HIGH MOTION CARDS LIST */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center px-1">
-                <div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-[#000E32] font-mono">
-                    // SERVICE NODES IN {svcFilterCat.toUpperCase()}
-                  </span>
-                  <p className="text-slate-400 text-[9px] font-light mt-0.5">Showing {displayedSvc.length} registered nodes.</p>
-                </div>
-                <div className="flex items-center gap-2 text-[10px] text-slate-500 font-mono font-bold shrink-0">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>Sync: Live Storage Active</span>
-                </div>
-              </div>
-
-              {/* Grid of animated Cards */}
-              {displayedSvc.length === 0 ? (
-                <div className="bg-white border border-slate-200 border-dashed p-10 rounded-3xl text-center">
-                  <Layers className="mx-auto text-slate-300 mb-3" size={32} />
-                  <p className="text-xs font-bold text-slate-600 uppercase">No service nodes in this category yet</p>
-                  <p className="text-[10px] text-slate-400 font-light mt-1">Click "Add Service" above to build the first node for this sector.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {displayedSvc.map((svc: any) => {
-                    const catMeta = CATEGORY_META[svc.category] || CATEGORY_META.marketing;
-                    const IconComp = catMeta.icon;
-
-                    return (
-                      <motion.div
-                        key={svc.id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        whileHover={{ scale: 1.02, y: -5, transition: { duration: 0.2 } }}
-                        className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col justify-between h-[400px] text-left"
-                      >
-                        {/* Top Cover Image Box with interactive tag overlays */}
-                        <div className="h-44 relative bg-slate-900 group overflow-hidden shrink-0">
-                          <img 
-                            src={svc.image || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&auto=format&fit=crop&q=60"} 
-                            alt={svc.name} 
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                            referrerPolicy="no-referrer"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/10 to-transparent"></div>
-                          
-                          {/* Top-Right Price tag */}
-                          <div className="absolute top-4 right-4 bg-[#000E32] text-white font-mono text-[10px] font-black px-2.5 py-1 rounded-xl border border-slate-750/30 shadow-md">
-                            {svc.price}
-                          </div>
-
-                          {/* Top-Left Category Badge */}
-                          <div className="absolute top-4 left-4 flex gap-1.5 items-center bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-xl border border-slate-200/50 shadow-sm">
-                            <IconComp size={10} className={`${catMeta.color}`} />
-                            <span className="text-[9px] font-mono tracking-wider font-extrabold text-slate-800 uppercase">
-                              {catMeta.label}
-                            </span>
-                          </div>
-
-                          {/* ID Overlay Tag */}
-                          <span className="absolute bottom-3 left-4 text-[9px] text-slate-300 font-mono font-bold tracking-widest bg-black/40 px-2 py-0.5 rounded">
-                            ID: {svc.id}
-                          </span>
-                        </div>
-
-                        {/* Mid-Content Section */}
-                        <div className="p-5 flex-1 flex flex-col justify-between space-y-3 overflow-hidden">
-                          <div className="space-y-2">
-                            <h3 className="font-extrabold text-slate-900 uppercase font-serif text-xs tracking-tight line-clamp-2 leading-tight">
-                              {svc.name}
-                            </h3>
-                            <p className="text-slate-500 text-[10px] leading-relaxed font-light line-clamp-3">
-                              {svc.description}
-                            </p>
-                          </div>
-
-                          {/* Bulleted visual "Features List" preview */}
-                          <div className="bg-white p-2.5 rounded-xl border border-slate-100 space-y-1">
-                            <span className="text-[8px] font-mono uppercase tracking-widest text-slate-400 font-bold block">// Active Deliverables</span>
-                            <ul className="text-[9px] text-slate-600 font-bold space-y-0.5">
-                              {svc.category === 'marketing' && (
-                                <>
-                                  <li className="flex items-center gap-1">✓ Conversion Event Pixel Tracing</li>
-                                  <li className="flex items-center gap-1">✓ Weekly Performance ROAS Auditing</li>
-                                </>
-                              )}
-                              {svc.category === 'web' && (
-                                <>
-                                  <li className="flex items-center gap-1">✓ 100% Mobile Responsive Tailwind</li>
-                                  <li className="flex items-center gap-1">✓ SEO & Page Performance Optimized</li>
-                                </>
-                              )}
-                              {svc.category === 'software' && (
-                                <>
-                                  <li className="flex items-center gap-1">✓ End-to-End Enterprise API Nodes</li>
-                                  <li className="flex items-center gap-1">✓ Modular Type-Safe Clean Architecture</li>
-                                </>
-                              )}
-                              {svc.category === 'ai' && (
-                                <>
-                                  <li className="flex items-center gap-1">✓ Generative Cognitive Models</li>
-                                  <li className="flex items-center gap-1">✓ Parallel Automation Workflow Logs</li>
-                                </>
-                              )}
-                              {!['marketing', 'web', 'software', 'ai'].includes(svc.category) && (
-                                <>
-                                  <li className="flex items-center gap-1">✓ SLA Guarantee & Tech Support</li>
-                                  <li className="flex items-center gap-1">✓ Verified Legal Compliance backing</li>
-                                </>
-                              )}
-                            </ul>
-                          </div>
-                        </div>
-
-                        {/* Card bottom controller row */}
-                        <div className="p-4 bg-white border-t border-slate-100 flex justify-between items-center shrink-0">
-                          <a 
-                            href={svc.url || "https://wa.me/2348123456789"} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-[9px] text-indigo-500 font-mono hover:underline truncate max-w-[50%]"
-                            title="Direct Order WhatsApp Link"
-                          >
-                            🔗 Direct Order Trigger
-                          </a>
-                          
-                          <div className="flex gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingSvc(svc);
-                                setSvcName(svc.name);
-                                setSvcPrice(svc.price);
-                                setSvcCategory(svc.category);
-                                setSvcDesc(svc.description);
-                                setSvcImage(svc.image || '');
-                                setSvcUrl(svc.url || '');
-                                setIsAddingSvc(false); // Close generic form to avoid collision
-                                window.scrollTo({ top: 150, behavior: 'smooth' });
-                              }}
-                              className="p-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl transition-all border border-indigo-100 flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2.5"
-                              title="Edit Service Details"
-                            >
-                              <Edit3 size={11} />
-                              <span>Edit</span>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if(window.confirm(`Are you sure you want to permanently delete service node "${svc.name}"?`)) {
-                                  setAdminServices(adminServices.filter((s: any) => s.id !== svc.id));
-                                }
-                              }}
-                              className="p-2 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl transition-all border border-rose-100 flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2"
-                              title="Delete Service Node"
-                            >
-                              <Trash2 size={11} />
-                              <span>Delete</span>
-                            </button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      })()}
 
       {/* ================= PORTFOLIO MODULE ================= */}
       {adminModule === 'portfolio' && (
-        <div className="space-y-8 animate-fade-in text-left">
-          {/* Main Module Header */}
-          <div className="flex flex-col sm:flex-row justify-between sm:items-center bg-gradient-to-r from-[#000E32] to-[#041d5e] p-6 rounded-3xl border border-slate-200 shadow-lg text-white gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <FolderOpen className="text-orange-400" size={20} />
-                <h2 className="text-sm font-extrabold uppercase font-serif tracking-wide text-white">Portfolio Works Console</h2>
-              </div>
-              <p className="text-slate-300 text-[10px] font-light mt-1">Full CRUD capability. Publish case studies, embed video reviews, generate metrics, and write complete detailed contents.</p>
-            </div>
-            
-            <div className="flex gap-2 shrink-0">
-              {/* AI Auto-generate Case Study Button */}
-              <button
-                type="button"
-                onClick={() => {
-                  const presets = [
-                    {
-                      title: "Kano Agro-Export Hub Cold-Chain Tracking Integration",
-                      category: "AI Solutions",
-                      client: "Kano Agro-Alliance Ltd",
-                      date: "May 2026",
-                      stats: "99.4% Fresher Delivery Rate",
-                      desc: "Integrated real-time IoT computer vision sensors and lightweight mobile-first status dashboards for rural shipping hubs.",
-                      image: "https://images.unsplash.com/photo-1595246140625-573b715d11dc?w=600&auto=format&fit=crop&q=80",
-                      video: "https://www.w3schools.com/html/mov_bbb.mp4",
-                      tags: "IoT, AI Computer Vision, Kano, Logistics",
-                      content: "# Executive Summary\n Agro-Allied deliveries across Northern Nigeria suffered 22% spoilage due to thermal variations.\n\n## Solution & Tech Stack\nWe deployed low-cost thermal computer vision sensors connected to a lightweight, offline-first dashboard running on low-power devices. The system sends micro-SMS alerts when temperatures cross critical thresholds.\n\n## Project Outcomes\n- Thermal variance detection down to 0.1°C.\n- Eliminated product loss on trans-shipments by 99%.\n- Improved overall driver accountability and optimized regional routing."
-                    },
-                    {
-                      title: "Lekki FinTech Micro-Lending Ad Pipeline",
-                      category: "Digital Marketing",
-                      client: "Lekki Credit Union",
-                      date: "April 2026",
-                      stats: "6.2x Ad ROAS Increase",
-                      desc: "Designed and ran geo-targeted Facebook and TikTok pipelines focusing on instant WhatsApp Credit chat funnels.",
-                      image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&auto=format&fit=crop&q=80",
-                      video: "",
-                      tags: "ROAS, FinTech, Lekki, WhatsApp Funnel",
-                      content: "# Campaign Brief\nTraditional landing pages had high bounce rates (78%) on mobile browsers in Southern Nigeria.\n\n## The WhatsApp Strategy\nInstead of guiding users to a heavy web portal, we deployed a micro-targeted direct CTA that launches localized WhatsApp Business dialogue nodes instantly.\n\n## Business Achievements\n- Customer acquisition cost (CAC) dropped by 44%.\n- Overall qualified micro-loan queries increased by 620%."
-                    },
-                    {
-                      title: "Abuja Real Estate Automatic KYC Filing Portal",
-                      category: "Compliance Services",
-                      client: "Villa Oasis Properties",
-                      date: "June 2026",
-                      stats: "92% Compliance Check Speedup",
-                      desc: "Automated standard property ownership validation and legal corporate checking through an electronic parallel API.",
-                      image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=600&auto=format&fit=crop&q=80",
-                      video: "https://www.w3schools.com/html/movie.mp4",
-                      tags: "KYC, Real Estate, Compliance, Automated Filing",
-                      content: "# Background\nManual processing of land Registry search applications took an average of 18 days in Abuja, dragging property transaction completions.\n\n## Regulatory Integration\nWe engineered a secure platform that parallelizes search API requests across corporate registries and automatically flags verification discrepancies.\n\n## Realized Improvements\n- Reduced standard land query check delays to 4 hours.\n- Enabled zero-paper physical courier validation for compliance managers."
-                    }
-                  ];
-                  const rand = presets[Math.floor(Math.random() * presets.length)];
-                  const generatedId = "proj_" + Math.random().toString(36).substring(2, 6);
-                  const newProj = {
-                    id: generatedId,
-                    title: rand.title + " (AI Draft)",
-                    category: rand.category,
-                    client: rand.client,
-                    date: rand.date,
-                    stats: rand.stats,
-                    description: rand.desc,
-                    image: rand.image,
-                    video: rand.video,
-                    tags: rand.tags.split(',').map(t => t.trim()),
-                    content: rand.content
-                  };
-                  setAdminProjects([newProj, ...adminProjects]);
-                  alert("✨ AI Autocomplete: Brand new completed project draft injected successfully into your catalog!");
-                }}
-                className="px-3.5 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-[10px] font-black uppercase tracking-wider rounded-xl transition-all flex items-center gap-1.5 shadow-md shadow-indigo-600/20"
-              >
-                <Sparkles size={12} className="animate-pulse" />
-                <span>AI Quick-Fill Draft</span>
-              </button>
+        <PortfolioCMS onRefresh={refreshMasterData} />
+      )}
 
-              <button
-                type="button"
-                onClick={() => {
-                  if (isAddingProj || editingProj) {
-                    // Clear and close
-                    setEditingProj(null);
-                    setProjTitle('');
-                    setProjStats('');
-                    setProjClient('');
-                    setProjDate('');
-                    setProjImage('');
-                    setProjVideo('');
-                    setProjDesc('');
-                    setProjContent('');
-                    setProjTags('');
-                    setIsAddingProj(false);
-                  } else {
-                    setIsAddingProj(true);
-                  }
-                }}
-                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/10 flex items-center gap-1.5"
-              >
-                {isAddingProj || editingProj ? 'Cancel' : <><Plus size={12} /><span>Add Project</span></>}
-              </button>
-            </div>
-          </div>
 
           {/* CRUD Form (Add or Edit Mode) */}
-          {(isAddingProj || editingProj) && (
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-lg text-slate-800 dark:text-slate-100 space-y-6">
-              <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
-                <h3 className="text-xs uppercase font-extrabold tracking-widest text-[#000E32] dark:text-orange-400 font-mono">
-                  {editingProj ? `// EDITING CASE STUDY: ${editingProj.id}` : '// PUBLISH NEW CASE STUDY'}
-                </h3>
-                {editingProj && (
-                  <span className="px-2.5 py-0.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-500 text-[10px] font-mono rounded-full font-bold">
-                    Active Edit ID: {editingProj.id}
-                  </span>
-                )}
-              </div>
 
-              {/* Form Body */}
-              <form 
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  if (!projTitle || !projDesc) {
-                    alert("Please fill in the project title and brief description.");
-                    return;
-                  }
 
-                  const tagList = projTags 
-                    ? projTags.split(',').map(t => t.trim()).filter(Boolean)
-                    : ["System Node", "Tailwind"];
-
-                  const finalProj = {
-                    id: editingProj ? editingProj.id : ("proj_" + Math.random().toString(36).substring(2, 6)),
-                    title: projTitle,
-                    category: projCat,
-                    client: projClient || "Garki Enterprise Node",
-                    date: projDate || "June 2026",
-                    stats: projStats || "Successful Integration",
-                    description: projDesc,
-                    image: projImage || "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=400&auto=format&fit=crop&q=60",
-                    video: projVideo || "",
-                    tags: tagList,
-                    content: projContent || `# ${projTitle}\n\nCase study written outline details for client ${projClient || 'Garki Enterprise Node'} completing successfully in ${projDate || 'June 2026'}.`,
-                    client_logo: projClientLogo || "",
-                    testimonial_text: projTestimonialText || "",
-                    testimonial_author: projTestimonialAuthor || "",
-                    live_website_url: projLiveWebsiteUrl || "",
-                    display_client_name: projDisplayClientName,
-                    display_client_logo: projDisplayClientLogo,
-                    display_testimonial: projDisplayTestimonial,
-                    display_live_website: projDisplayLiveWebsite,
-                  };
-
-                  try {
-                    if (editingProj) {
-                      await apiUpdatePortfolio(editingProj.id, finalProj);
-                      setAdminProjects(adminProjects.map(p => p.id === editingProj.id ? finalProj : p));
-                      alert("✅ Case study updated successfully in Cloudflare D1!");
-                    } else {
-                      await apiSavePortfolio(finalProj);
-                      setAdminProjects([finalProj, ...adminProjects]);
-                      alert("✅ Brand new case study published to Cloudflare D1!");
-                    }
-                  } catch (apiErr: any) {
-                    console.error("Failed to save to Cloudflare D1:", apiErr);
-                    // Fallback to offline local storage updates
-                    if (editingProj) {
-                      setAdminProjects(adminProjects.map(p => p.id === editingProj.id ? finalProj : p));
-                    } else {
-                      setAdminProjects([finalProj, ...adminProjects]);
-                    }
-                    alert("⚠️ Saved locally (Cloudflare DB sync failure: " + apiErr.message + ")");
-                  }
-
-                  // Clear out states
-                  setEditingProj(null);
-                  setProjTitle('');
-                  setProjCat('Digital Marketing');
-                  setProjStats('');
-                  setProjClient('');
-                  setProjDate('');
-                  setProjImage('');
-                  setProjVideo('');
-                  setProjDesc('');
-                  setProjContent('');
-                  setProjTags('');
-                  setProjClientLogo('');
-                  setProjTestimonialText('');
-                  setProjTestimonialAuthor('');
-                  setProjLiveWebsiteUrl('');
-                  setProjDisplayClientName(true);
-                  setProjDisplayClientLogo(true);
-                  setProjDisplayTestimonial(true);
-                  setProjDisplayLiveWebsite(true);
-                  setIsAddingProj(false);
-                }}
-                className="grid grid-cols-1 md:grid-cols-3 gap-5 text-xs"
-              >
-                {/* 1. Title */}
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Project Title *</label>
-                  <input 
-                    type="text" 
-                    required 
-                    value={projTitle} 
-                    onChange={e => setProjTitle(e.target.value)} 
-                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500" 
-                    placeholder="e.g. Abuja Logistics Database API Integration" 
-                  />
-                </div>
-
-                {/* 2. Client Name */}
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Client Business / Node</label>
-                  <input 
-                    type="text" 
-                    value={projClient} 
-                    onChange={e => setProjClient(e.target.value)} 
-                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500" 
-                    placeholder="e.g. Garki Logistics Hub" 
-                  />
-                </div>
-
-                {/* 3. Category Select */}
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Sector Category</label>
-                  <select 
-                    value={projCat} 
-                    onChange={e => setProjCat(e.target.value)} 
-                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500"
-                  >
-                    <option value="Digital Marketing">Digital Marketing</option>
-                    <option value="Software Development">Software Development</option>
-                    <option value="Compliance Services">Compliance Services</option>
-                    <option value="AI Solutions">AI Solutions</option>
-                  </select>
-                </div>
-
-                {/* 4. Performance Metrics / Stats */}
-                <div className="relative">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1 flex justify-between items-center">
-                    <span>Performance Metrics</span>
-                    <span className="text-[9px] text-indigo-400 font-mono lowercase font-bold">// AI suggestions</span>
-                  </label>
-                  <input 
-                    type="text" 
-                    value={projStats} 
-                    onChange={e => setProjStats(e.target.value)} 
-                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono" 
-                    placeholder="e.g. 5.4x ROAS / 12ms delay" 
-                  />
-                  {/* Metric Suggesters */}
-                  <div className="flex gap-1 mt-1.5 overflow-x-auto pb-1">
-                    {projCat === 'Digital Marketing' ? (
-                      <>
-                        <button type="button" onClick={() => setProjStats('5.4x ROAS Improvement')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">5.4x ROAS</button>
-                        <button type="button" onClick={() => setProjStats('+420% Lead Generation')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">+420% Leads</button>
-                        <button type="button" onClick={() => setProjStats('62% Lower Acquisition Cost')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">62% lower CAC</button>
-                      </>
-                    ) : projCat === 'Software Development' ? (
-                      <>
-                        <button type="button" onClick={() => setProjStats('12ms Real-Time Latency')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">12ms Latency</button>
-                        <button type="button" onClick={() => setProjStats('99.99% Node Uptime')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">99.99% Uptime</button>
-                        <button type="button" onClick={() => setProjStats('Zero Runtime Compile Errors')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">0 Errors</button>
-                      </>
-                    ) : projCat === 'AI Solutions' ? (
-                      <>
-                        <button type="button" onClick={() => setProjStats('85% Task Automation Ratio')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">85% Automated</button>
-                        <button type="button" onClick={() => setProjStats('3.8x Data Analytics Efficiency')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">3.8x Data</button>
-                        <button type="button" onClick={() => setProjStats('Cognitive Parse Sub-Seconds')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">Sub-Sec Parse</button>
-                      </>
-                    ) : (
-                      <>
-                        <button type="button" onClick={() => setProjStats('100% Regulatory Compliance')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">100% Legal</button>
-                        <button type="button" onClick={() => setProjStats('Zero Corporate Audit Deficiencies')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">0 Audits</button>
-                        <button type="button" onClick={() => setProjStats('5 Days Turnaround Acceleration')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">5 Days Speed</button>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* 5. Image URL & Form Preview */}
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Image URL (Visual Asset)</label>
-                  <input 
-                    type="text" 
-                    value={projImage} 
-                    onChange={e => setProjImage(e.target.value)} 
-                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-[10px]" 
-                    placeholder="https://images.unsplash.com/photo-..." 
-                  />
-                  <div className="flex gap-1.5 mt-1.5 overflow-x-auto pb-1">
-                    <button type="button" onClick={() => setProjImage('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">Tech Theme</button>
-                    <button type="button" onClick={() => setProjImage('https://images.unsplash.com/photo-1551434678-e076c223a692?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">Office Team</button>
-                    <button type="button" onClick={() => setProjImage('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">AI Cyber</button>
-                  </div>
-
-                  {/* ANIMATED MOTION PREVIEW FOR HOME SECTION */}
-                  <div className="mt-3">
-                    <AnimatedHomeSectionImagePreview 
-                      imageSrc={projImage.trim() || null}
-                      title={projTitle || "Case Study Project Title"}
-                      category={projCat || "Software Development"}
-                      status="Live Deployed"
-                      progress={100}
-                      shortDescription={projDesc || "Enterprise client implementation summary..."}
-                      technologies={projTags || "React, Cloudflare, D1 SQLite"}
-                    />
-                  </div>
-                </div>
-
-                {/* 6. Video URL */}
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Embedded Video URL (MP4 or YouTube) - optional</label>
-                  <div className="relative">
-                    <input 
-                      type="text" 
-                      value={projVideo} 
-                      onChange={e => setProjVideo(e.target.value)} 
-                      className="w-full p-3 pr-8 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-[10px]" 
-                      placeholder="e.g. https://www.w3schools.com/html/mov_bbb.mp4" 
-                    />
-                    <Video size={12} className="absolute right-3 top-3.5 text-slate-400" />
-                  </div>
-                  <div className="flex gap-1.5 mt-1.5 overflow-x-auto pb-1">
-                    <button type="button" onClick={() => setProjVideo('https://www.w3schools.com/html/mov_bbb.mp4')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-indigo-500 hover:underline whitespace-nowrap">Big Buck Bunny MP4</button>
-                    <button type="button" onClick={() => setProjVideo('https://www.w3schools.com/html/movie.mp4')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-indigo-500 hover:underline whitespace-nowrap">Bear Wilderness MP4</button>
-                  </div>
-                </div>
-
-                {/* 7. Date Completion */}
-                <div>
-                  <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Completion Date</label>
-                  <input 
-                    type="text" 
-                    value={projDate} 
-                    onChange={e => setProjDate(e.target.value)} 
-                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500" 
-                    placeholder="e.g. June 2026" 
-                  />
-                </div>
-
-                {/* 8. Tags comma-separated */}
-                <div className="md:col-span-2">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Skills & Keywords Tags (comma separated)</label>
-                  <input 
-                    type="text" 
-                    value={projTags} 
-                    onChange={e => setProjTags(e.target.value)} 
-                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono" 
-                    placeholder="e.g. React 19, Automated compliance, IoT telemetry, Kano" 
-                  />
-                </div>
-
-                {/* 9. Description Brief */}
-                <div className="md:col-span-3">
-                  <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Description Brief *</label>
-                  <textarea 
-                    required 
-                    rows={2} 
-                    value={projDesc} 
-                    onChange={e => setProjDesc(e.target.value)} 
-                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl resize-none focus:outline-none focus:border-orange-500" 
-                    placeholder="Provide a concise 1-2 sentence executive summary of the case study gains..." 
-                  />
-                </div>
-
-                {/* --- ENTERPRISE PRIVACY & CLIENT METADATA --- */}
-                <div className="md:col-span-3 bg-slate-50 dark:bg-slate-950 p-5 rounded-2xl border border-slate-200/60 dark:border-slate-800 space-y-4 text-left">
-                  <div className="flex items-center gap-2 border-b border-slate-150 dark:border-slate-800 pb-2">
-                    <ShieldCheck className="text-orange-500" size={16} />
-                    <h4 className="text-xs uppercase font-extrabold tracking-wider text-[#000E32] dark:text-orange-400 font-mono">
-                      Enterprise Client Metadata & Privacy Controls
-                    </h4>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Client Logo URL & Live Form Preview */}
-                    <div>
-                      <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Client Logo Image URL</label>
-                      <input 
-                        type="text" 
-                        value={projClientLogo} 
-                        onChange={e => setProjClientLogo(e.target.value)} 
-                        className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-[10px]" 
-                        placeholder="e.g. https://images.unsplash.com/photo-... or SVG URL" 
-                      />
-
-                      {/* CLIENT LOGO LIVE PREVIEW */}
-                      {projClientLogo.trim() && (
-                        <div className="mt-2.5 relative h-16 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 flex items-center justify-center p-2">
-                          <img 
-                            src={projClientLogo} 
-                            alt="Live Logo Form Preview" 
-                            className="h-10 max-w-[140px] object-contain rounded" 
-                            referrerPolicy="no-referrer"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                          <div className="absolute top-1 right-1 bg-orange-500 text-[6px] font-mono font-bold text-white px-1 py-0.5 rounded shadow uppercase">
-                            Client Logo Live Preview
-                          </div>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Live Website URL */}
-                    <div>
-                      <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Live Website URL</label>
-                      <input 
-                        type="text" 
-                        value={projLiveWebsiteUrl} 
-                        onChange={e => setProjLiveWebsiteUrl(e.target.value)} 
-                        className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 font-mono text-[10px]" 
-                        placeholder="e.g. https://garkihub.ng" 
-                      />
-                    </div>
-
-                    {/* Testimonial Author */}
-                    <div>
-                      <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Client Testimonial Representative (Name & Title)</label>
-                      <input 
-                        type="text" 
-                        value={projTestimonialAuthor} 
-                        onChange={e => setProjTestimonialAuthor(e.target.value)} 
-                        className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500" 
-                        placeholder="e.g. Alhaji Garki, CEO" 
-                      />
-                    </div>
-
-                    {/* Testimonial Text */}
-                    <div>
-                      <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block mb-1">Client Testimonial Quote Text</label>
-                      <textarea 
-                        rows={1} 
-                        value={projTestimonialText} 
-                        onChange={e => setProjTestimonialText(e.target.value)} 
-                        className="w-full p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500" 
-                        placeholder="e.g. 'DS Tech has delivered a highly advanced, ultra-reliable system for our trade tracking...'" 
-                      />
-                    </div>
-                  </div>
-
-                  {/* Privacy Toggles */}
-                  <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-150 dark:border-slate-800 space-y-3">
-                    <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">// Public Page Display Controls (Privacy Management)</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-[10px] font-bold">
-                      {/* Client Name Privacy Toggle */}
-                      <label className="flex items-center gap-2.5 p-2 bg-slate-50 dark:bg-slate-950/40 rounded-lg cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-800 select-none">
-                        <input 
-                          type="checkbox" 
-                          checked={projDisplayClientName} 
-                          onChange={e => setProjDisplayClientName(e.target.checked)} 
-                          className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-3.5 w-3.5"
-                        />
-                        <span className="text-slate-700 dark:text-slate-300">
-                          {projDisplayClientName ? 'Display Client Name' : 'Hide Client Name'}
-                        </span>
-                      </label>
-
-                      {/* Client Logo Privacy Toggle */}
-                      <label className="flex items-center gap-2.5 p-2 bg-slate-50 dark:bg-slate-950/40 rounded-lg cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-800 select-none">
-                        <input 
-                          type="checkbox" 
-                          checked={projDisplayClientLogo} 
-                          onChange={e => setProjDisplayClientLogo(e.target.checked)} 
-                          className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-3.5 w-3.5"
-                        />
-                        <span className="text-slate-700 dark:text-slate-300">
-                          {projDisplayClientLogo ? 'Display Client Logo' : 'Hide Client Logo'}
-                        </span>
-                      </label>
-
-                      {/* Testimonial Privacy Toggle */}
-                      <label className="flex items-center gap-2.5 p-2 bg-slate-50 dark:bg-slate-950/40 rounded-lg cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-800 select-none">
-                        <input 
-                          type="checkbox" 
-                          checked={projDisplayTestimonial} 
-                          onChange={e => setProjDisplayTestimonial(e.target.checked)} 
-                          className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-3.5 w-3.5"
-                        />
-                        <span className="text-slate-700 dark:text-slate-300">
-                          {projDisplayTestimonial ? 'Display Testimonial' : 'Hide Testimonial'}
-                        </span>
-                      </label>
-
-                      {/* Live Website Privacy Toggle */}
-                      <label className="flex items-center gap-2.5 p-2 bg-slate-50 dark:bg-slate-950/40 rounded-lg cursor-pointer border border-transparent hover:border-slate-200 dark:hover:border-slate-800 select-none">
-                        <input 
-                          type="checkbox" 
-                          checked={projDisplayLiveWebsite} 
-                          onChange={e => setProjDisplayLiveWebsite(e.target.checked)} 
-                          className="rounded border-slate-300 text-orange-500 focus:ring-orange-500 h-3.5 w-3.5"
-                        />
-                        <span className="text-slate-700 dark:text-slate-300">
-                          {projDisplayLiveWebsite ? 'Display Live Website' : 'Hide Live Website'}
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 10. Detailed written content (Markdown editor) */}
-                <div className="md:col-span-3">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <label className="text-[10px] uppercase font-bold text-slate-400 dark:text-slate-500 block">Detailed Case Study Contents (Markdown Enabled)</label>
-                    
-                    {/* AI Copywriter Action Button */}
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!projTitle) {
-                          alert("Please fill out the Project Title first so the AI knows what to write about!");
-                          return;
-                        }
-                        const contentArea = document.getElementById("ai-terminal-log");
-                        if (contentArea) contentArea.scrollIntoView({ behavior: 'smooth' });
-                        
-                        let dotCount = 0;
-                        const originalText = projDesc;
-                        const interval = setInterval(() => {
-                          dotCount++;
-                          setProjContent(`# [AI COGNITIVE GENERATION RUNNING]${'.'.repeat(dotCount % 4)}`);
-                        }, 250);
-
-                        setTimeout(() => {
-                          clearInterval(interval);
-                          const aiPolishedBrief = `Successfully deployed a bespoke enterprise ${projCat} architecture for ${projClient || 'our client'} in ${projDate || '2026'}. By automating low-latency checks, eliminating redundant server calls, and deploying high-impact data schemas, we realized a guaranteed ${projStats || 'sustainable growth margin'} that fully protects critical regulatory integrity records.`;
-                          
-                          const aiPolishedContent = `# Case Study Analysis: ${projTitle}\n\n## 1. Executive Summary\n${projClient || 'Our client'} faced severe structural latency and processing overhead. The operational throughput was severely bottlenecked by redundant data-transfer models across multiple physical database clusters.\n\n## 2. Our Implementation Blueprint\nOur team engineered a customized, highly responsive client-server system using the absolute best modern framework configurations. We stripped unnecessary runtime bundles, optimized image pipeline payloads, and implemented local client caching structures.\n\n## 3. Results and Performance Metrics\n- **Metric Accomplishment:** **${projStats || 'Verified 100% complete uptime'}** on all transactions.\n- **Efficiency Gains:** Accelerated manual task completion timelines by over 4.5x.\n- **Network Cost Reduction:** Slashed bandwidth consumption fees by 58%.\n\n## 4. Key Takeaways\nType-safe modular frameworks paired with lightweight localized edge processing guarantees bulletproof reliability even during regional communication failures.`;
-                          
-                          setProjDesc(aiPolishedBrief);
-                          setProjContent(aiPolishedContent);
-                          alert("✨ AI Copywriter: Optimized brief summary and generated standard complete markdown Case Study contents successfully!");
-                        }, 1800);
-                      }}
-                      className="text-[10px] text-orange-500 hover:text-orange-600 font-bold uppercase tracking-wider flex items-center gap-1 font-mono hover:underline"
-                    >
-                      <Sparkles size={11} className="animate-spin" />
-                      <span>Optimize Content with AI Copywriter</span>
-                    </button>
-                  </div>
-                  <textarea 
-                    rows={8} 
-                    value={projContent} 
-                    onChange={e => setProjContent(e.target.value)} 
-                    className="w-full p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl font-mono text-xs focus:outline-none focus:border-orange-500" 
-                    placeholder="# Project Detailed Title&#10;&#10;## 1. Challenges faced&#10;Describe details here...&#10;&#10;## 2. Solution blueprint&#10;Describe solution here...&#10;&#10;## 3. Measurable results..." 
-                  />
-                </div>
-
-                {/* Form Buttons */}
-                <div className="md:col-span-3 flex justify-between items-center border-t border-slate-100 dark:border-slate-800 pt-4">
-                  <p className="text-[10px] text-slate-400 italic">Fields marked with (*) are required.</p>
-                  <div className="flex gap-2">
-                    <button 
-                      type="button" 
-                      onClick={() => {
-                        setEditingProj(null);
-                        setProjTitle('');
-                        setProjStats('');
-                        setProjClient('');
-                        setProjDate('');
-                        setProjImage('');
-                        setProjVideo('');
-                        setProjDesc('');
-                        setProjContent('');
-                        setProjTags('');
-                        setIsAddingProj(false);
-                      }}
-                      className="px-4 py-2 text-slate-500 hover:text-slate-700 bg-white dark:bg-slate-800 text-xs font-bold uppercase rounded-xl"
-                    >
-                      Close Form
-                    </button>
-                    <button 
-                      type="submit" 
-                      className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg shadow-orange-500/20"
-                    >
-                      {editingProj ? 'Apply Changes' : 'Publish Case Study'}
-                    </button>
-                  </div>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* Projects Registry Directory Table list */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
-            <div className="bg-white dark:bg-slate-950 px-5 py-3 border-b border-slate-150 dark:border-slate-800 flex justify-between items-center">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 font-mono">// Active Works Catalog</span>
-              <span className="text-[10px] text-slate-500 font-mono font-bold">Total Record Count: {adminProjects.length}</span>
-            </div>
-
-            <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="bg-white dark:bg-slate-950 text-[10px] font-black uppercase text-slate-400 border-b border-slate-150 dark:border-slate-800">
-                  <th className="py-3 px-5">Preview</th>
-                  <th className="py-3 px-4">Project Title & Metadata</th>
-                  <th className="py-3 px-4">Category & Client</th>
-                  <th className="py-3 px-4">Performance Indicator</th>
-                  <th className="py-3 px-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-bold text-slate-700 dark:text-slate-300">
-                {adminProjects.map((proj: any) => (
-                  <tr key={proj.id} className="hover:bg-white dark:hover:bg-slate-850/50 transition-colors">
-                    {/* Visual Asset Preview (Image or Video indicator) */}
-                    <td className="py-4 px-5">
-                      <div className="relative w-16 h-10 rounded-xl overflow-hidden bg-white border border-slate-200/60 dark:border-slate-800">
-                        {proj.image ? (
-                          <img 
-                            src={proj.image} 
-                            alt={proj.title} 
-                            className="w-full h-full object-cover"
-                            referrerPolicy="no-referrer"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[10px] bg-slate-200 text-slate-400">
-                            No Image
-                          </div>
-                        )}
-                        {proj.video && (
-                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                            <Video size={12} className="text-white" />
-                          </div>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Title and date brief */}
-                    <td className="py-4 px-4">
-                      <div className="space-y-0.5 text-left">
-                        <span className="text-slate-900 dark:text-white uppercase font-serif text-xs block">{proj.title}</span>
-                        <div className="flex items-center gap-2 text-[9px] text-slate-400 font-light font-mono uppercase">
-                          <span>ID: {proj.id}</span>
-                          <span>•</span>
-                          <span>Done in: {proj.date || 'June 2026'}</span>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Category and Client */}
-                    <td className="py-4 px-4 text-left">
-                      <div className="space-y-0.5">
-                        <span className="text-indigo-500 font-mono text-[10px] uppercase block">{proj.category}</span>
-                        <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono block">{proj.client || 'Garki Enterprise Node'}</span>
-                      </div>
-                    </td>
-
-                    {/* Performance Indicator */}
-                    <td className="py-4 px-4">
-                      <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 text-[10px] font-mono rounded-lg border border-emerald-500/20">
-                        {proj.stats}
-                      </span>
-                    </td>
-
-                    {/* Actions button (Edit / Delete) */}
-                    <td className="py-4 px-5 text-right">
-                      <div className="flex gap-1.5 justify-end">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            // Populate states and focus editor
-                            setEditingProj(proj);
-                            setProjTitle(proj.title);
-                            setProjCat(proj.category);
-                            setProjStats(proj.stats || '');
-                            setProjClient(proj.client || 'Garki Enterprise Node');
-                            setProjDate(proj.date || 'June 2026');
-                            setProjImage(proj.image || '');
-                            setProjVideo(proj.video || '');
-                            setProjDesc(proj.description || '');
-                            setProjContent(proj.content || '');
-                            setProjTags(proj.tags ? proj.tags.join(', ') : '');
-                            setProjClientLogo(proj.client_logo || '');
-                            setProjTestimonialText(proj.testimonial_text || '');
-                            setProjTestimonialAuthor(proj.testimonial_author || '');
-                            setProjLiveWebsiteUrl(proj.live_website_url || '');
-                            setProjDisplayClientName(proj.display_client_name !== false);
-                            setProjDisplayClientLogo(proj.display_client_logo !== false);
-                            setProjDisplayTestimonial(proj.display_testimonial !== false);
-                            setProjDisplayLiveWebsite(proj.display_live_website !== false);
-                            setIsAddingProj(false); // Make sure regular state doesn't conflict
-                            window.scrollTo({ top: 150, behavior: 'smooth' });
-                          }}
-                          className="p-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg transition-colors border border-indigo-100"
-                          title="Edit Case Study Details"
-                        >
-                          <Edit3 size={13} />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={async () => {
-                            if(window.confirm(`Are you sure you want to permanently delete project study "${proj.title}"?`)) {
-                              try {
-                                await apiDeletePortfolio(proj.id);
-                                setAdminProjects(adminProjects.filter((p: any) => p.id !== proj.id));
-                                alert("🗑️ Case study permanently deleted from Cloudflare D1!");
-                              } catch (delErr: any) {
-                                console.error("Cloudflare D1 delete failed:", delErr);
-                                setAdminProjects(adminProjects.filter((p: any) => p.id !== proj.id));
-                                alert("⚠️ Deleted locally (Cloudflare DB error: " + delErr.message + ")");
-                              }
-                            }
-                          }}
-                          className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-colors border border-rose-100"
-                          title="Delete Case Study"
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
 
       {/* ================= BLOG MODULE ================= */}
       {adminModule === 'blog' && (
-        <div className="space-y-8 animate-fade-in text-left">
-          <div className="flex justify-between items-center bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <div>
-              <h2 className="text-sm font-extrabold uppercase font-serif text-[#000E32]">Insights Blog Engine</h2>
-              <p className="text-slate-400 text-[10px] font-light">Draft, write, and index strategic analytical guides on compliance, code, and sales.</p>
-            </div>
-            <button
-              onClick={() => setIsAddingBlog(!isAddingBlog)}
-              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/10"
-            >
-              {isAddingBlog ? 'Close Editor' : 'Write New Article'}
-            </button>
-          </div>
-
-          {isAddingBlog && (
-            <form 
-              onSubmit={(e) => {
-                e.preventDefault();
-                if(!blogTitle || !blogDesc) return;
-                const newPost = {
-                  id: "blog_" + Math.random().toString(36).substring(2, 6),
-                  title: blogTitle,
-                  category: blogCat,
-                  date: "June 25, 2026",
-                  author: "Executive Editor",
-                  readTime: "5 min read",
-                  description: blogDesc,
-                  content: blogDesc,
-                  image: blogImage || "https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=400&auto=format&fit=crop&q=60",
-                  tags: ["Compliance", "SaaS"]
-                };
-                setAdminBlogs([newPost, ...adminBlogs]);
-                setIsAddingBlog(false);
-                setBlogTitle('');
-                setBlogDesc('');
-                setBlogImage('https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=400&auto=format&fit=crop&q=60');
-              }}
-              className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4 text-xs"
-            >
-              <div className="md:col-span-2">
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Article Title</label>
-                <input type="text" required value={blogTitle} onChange={e=>setBlogTitle(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl" placeholder="e.g. Navigating SCUML compliance thresholds" />
-              </div>
-              <div>
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Category Node</label>
-                <select value={blogCat} onChange={e=>setBlogCat(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl">
-                  <option value="Marketing">Marketing</option>
-                  <option value="Business Growth">Business Growth</option>
-                  <option value="AI">AI</option>
-                  <option value="Technology">Technology</option>
-                </select>
-              </div>
-
-              {/* Cover Image URL field */}
-              <div className="md:col-span-3">
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Cover Image URL</label>
-                <input 
-                  type="text" 
-                  value={blogImage} 
-                  onChange={e=>setBlogImage(e.target.value)} 
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono text-[11px]" 
-                  placeholder="Dynamic SVG generated or custom URL..." 
-                />
-                <div className="flex gap-1.5 mt-1.5 overflow-x-auto pb-1">
-                  <button type="button" onClick={() => setBlogImage(generateDynamicSvgUrl('Compliance & Legal Guidance', 'compliance', 'blog'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Compliance/Writing</button>
-                  <button type="button" onClick={() => setBlogImage(generateDynamicSvgUrl('Marketing Technology Growth', 'marketing', 'blog'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Marketing Tech</button>
-                  <button type="button" onClick={() => setBlogImage(generateDynamicSvgUrl('AI & Cyber Infrastructure', 'ai', 'blog'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">AI Cyber</button>
-                  <button type="button" onClick={() => setBlogImage(generateDynamicSvgUrl('Business Growth Strategy', 'business', 'blog'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Business Growth</button>
-                </div>
-
-                {/* LIVE BLOG PREVIEW */}
-                {blogImage.trim() && (
-                  <div className="mt-2.5 relative h-28 w-56 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shadow-sm">
-                    <img 
-                      src={blogImage} 
-                      alt="Live Blog Cover Preview" 
-                      className="w-full h-full object-cover" 
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                    <div className="absolute top-1 left-1 bg-orange-600 text-[8px] font-mono font-bold text-white px-1.5 py-0.5 rounded shadow">
-                      LIVE COVER PREVIEW (BLOG CARD)
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="md:col-span-3">
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Article body markup</label>
-                <textarea required rows={5} value={blogDesc} onChange={e=>setBlogDesc(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl resize-none font-sans" placeholder="Type the informational article content here..." />
-              </div>
-              <div className="md:col-span-3 flex justify-end">
-                <button type="submit" className="px-5 py-2 bg-[#000E32] text-white text-xs font-black uppercase tracking-wider rounded-xl">Publish Article Node</button>
-              </div>
-            </form>
-          )}
-
-          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
-            <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="bg-white text-[10px] font-black uppercase text-slate-400 border-b border-slate-150">
-                  <th className="py-3 px-5 w-24">Cover</th>
-                  <th className="py-3 px-5">Article Title</th>
-                  <th className="py-3 px-4">Category</th>
-                  <th className="py-3 px-4">Author</th>
-                  <th className="py-3 px-5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-bold text-slate-700">
-                {adminBlogs.map((post: any) => (
-                  <tr key={post.id} className="hover:bg-white">
-                    <td className="py-4 px-5">
-                      <div className="h-10 w-16 bg-slate-100 rounded-lg overflow-hidden border border-slate-150 flex items-center justify-center">
-                        <img 
-                          src={post.image || generateDynamicSvgUrl(post.title || 'Blog Post', post.category || 'marketing', 'blog')} 
-                          alt="Thumbnail" 
-                          className="h-full w-full object-cover"
-                          referrerPolicy="no-referrer"
-                          onError={(e) => {
-                            e.currentTarget.src = generateDynamicSvgUrl(post.title || 'Blog Post', post.category || 'marketing', 'blog');
-                          }}
-                        />
-                      </div>
-                    </td>
-                    <td className="py-4 px-5">
-                      <div className="space-y-0.5 text-left">
-                        <span className="text-slate-900 uppercase font-serif text-xs block">{post.title}</span>
-                        <span className="text-[10px] text-slate-400 font-light block font-mono">{post.date} • {post.readTime}</span>
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 text-indigo-500 font-mono text-[10px] uppercase">{post.category}</td>
-                    <td className="py-4 px-4 text-slate-500">{post.author}</td>
-                    <td className="py-4 px-5 text-right">
-                      <button
-                        onClick={() => {
-                          if(window.confirm('Purge article?')) {
-                            setAdminBlogs(adminBlogs.filter((b: any) => b.id !== post.id));
-                          }
-                        }}
-                        className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-colors border border-rose-100"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <BlogCMS onRefresh={refreshMasterData} />
       )}
+
 
       {/* ================= TRAINING MODULE ================= */}
       {adminModule === 'training' && (
-        <div className="space-y-8 animate-fade-in text-left">
-          <div className="flex justify-between items-center bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-            <div>
-              <h2 className="text-sm font-extrabold uppercase font-serif text-[#000E32]">LMS Academy Console</h2>
-              <p className="text-slate-400 text-[10px] font-light font-sans">Draft training courses, set duration / price / level parameters, and upload cover images.</p>
-            </div>
-            <button
-              onClick={() => setIsAddingCourse(!isAddingCourse)}
-              className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/10"
-            >
-              {isAddingCourse ? 'Close Creator' : 'Design New Course'}
-            </button>
-          </div>
-
-          {isAddingCourse && (
-            <form 
-              onSubmit={(e) => {
-                e.preventDefault();
-                if(!crsTitle || !crsDesc) return;
-                const newCourse = {
-                  id: "crs_" + Math.random().toString(36).substring(2, 6),
-                  title: crsTitle,
-                  description: crsDesc,
-                  duration: crsDuration,
-                  level: crsLevel,
-                  price: crsPrice,
-                  category: crsCategory,
-                  image: crsImage || generateDynamicSvgUrl(crsTitle || "Vocational Course", crsCategory || "training", "course"),
-                  lessons: [
-                    { id: "les_" + Math.random().toString(36).substring(2, 5), title: "Module 1 Foundations", duration: "1 hr", isFree: true, content: "Core structural overview." }
-                  ]
-                };
-                setAdminCourses([newCourse, ...adminCourses]);
-                setIsAddingCourse(false);
-                setCrsTitle('');
-                setCrsDesc('');
-                setCrsDuration('6 Weeks');
-                setCrsLevel('Intermediate');
-                setCrsPrice('₦120,000');
-                setCrsImage(generateDynamicSvgUrl("Vocational Course Academy", "training", "course"));
-              }}
-              className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4 text-xs"
-            >
-              <div className="md:col-span-2">
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Course Title *</label>
-                <input type="text" required value={crsTitle} onChange={e=>setCrsTitle(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl" placeholder="e.g. NextJS & Server-Action Architecture" />
-              </div>
-              <div>
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Course Level</label>
-                <select value={crsLevel} onChange={e=>setCrsLevel(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl">
-                  <option value="All Levels">All Levels</option>
-                  <option value="Beginner">Beginner</option>
-                  <option value="Intermediate">Intermediate</option>
-                  <option value="Advanced">Advanced</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Course Price (Naira) *</label>
-                <input type="text" required value={crsPrice} onChange={e=>setCrsPrice(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl" placeholder="e.g. ₦120,000" />
-              </div>
-              <div>
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Course Duration *</label>
-                <input type="text" required value={crsDuration} onChange={e=>setCrsDuration(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl" placeholder="e.g. 6 Weeks (12 Lessons)" />
-              </div>
-              <div>
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Course Category Node</label>
-                <select value={crsCategory} onChange={e=>setCrsCategory(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl">
-                  <option value="web">Frontend Web Engineering</option>
-                  <option value="marketing">Digital Marketing / Social Ads</option>
-                  <option value="design">UI/UX Brand Design</option>
-                </select>
-              </div>
-
-              {/* Cover Image Input with Dynamic Live Preview */}
-              <div className="md:col-span-3">
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Course Cover Image URL</label>
-                <input 
-                  type="text" 
-                  value={crsImage} 
-                  onChange={e=>setCrsImage(e.target.value)} 
-                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono text-[11px]" 
-                  placeholder="Dynamic SVG generated or custom URL..." 
-                />
-                <div className="flex gap-1.5 mt-1.5 overflow-x-auto pb-1">
-                  <button type="button" onClick={() => setCrsImage(generateDynamicSvgUrl('Education Tech & Software', 'web', 'course'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Education Tech</button>
-                  <button type="button" onClick={() => setCrsImage(generateDynamicSvgUrl('Coding & Web Development', 'web', 'course'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Coding Workspace</button>
-                  <button type="button" onClick={() => setCrsImage(generateDynamicSvgUrl('Design & Analytics Academy', 'marketing', 'course'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Design / Analytics</button>
-                  <button type="button" onClick={() => setCrsImage(generateDynamicSvgUrl('AI & Neural Automation Mastery', 'ai', 'course'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">AI Neural</button>
-                </div>
-
-                {/* LIVE COURSE COVER PREVIEW */}
-                {crsImage.trim() && (
-                  <div className="mt-2.5 relative h-28 w-56 rounded-xl overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center shadow-sm">
-                    <img 
-                      src={crsImage} 
-                      alt="Live Course Cover Preview" 
-                      className="w-full h-full object-cover" 
-                      referrerPolicy="no-referrer"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                    />
-                    <div className="absolute top-1 left-1 bg-orange-600 text-[8px] font-mono font-bold text-white px-1.5 py-0.5 rounded shadow">
-                      LIVE COURSE COVER PREVIEW
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="md:col-span-3">
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">Course Curriculum Description Brief *</label>
-                <textarea required rows={3} value={crsDesc} onChange={e=>setCrsDesc(e.target.value)} className="w-full p-2.5 bg-white border border-slate-200 rounded-xl resize-none font-sans" placeholder="Describe course deliverables, certifications, and target student gains..." />
-              </div>
-              <div className="md:col-span-3 flex justify-end">
-                <button type="submit" className="px-5 py-2 bg-[#000E32] text-white text-xs font-black uppercase tracking-wider rounded-xl">Publish Vocational Course</button>
-              </div>
-            </form>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Courses summary list */}
-            <div className="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-              <h3 className="font-extrabold text-sm uppercase font-serif text-[#000E32] border-b border-slate-100 pb-2">Vocational Courses</h3>
-              <div className="space-y-3">
-                {adminCourses.map((c: any) => (
-                  <div key={c.id} className="flex justify-between items-center p-3.5 bg-white rounded-2xl border border-slate-150 hover:bg-slate-50/40 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-16 rounded-lg overflow-hidden border border-slate-200 flex-shrink-0 bg-slate-100 flex items-center justify-center">
-                        <img 
-                          src={c.image || generateDynamicSvgUrl(c.title || "Vocational Course", c.category || "training", "course")} 
-                          alt={c.title} 
-                          className="h-full w-full object-cover" 
-                          referrerPolicy="no-referrer"
-                          onError={(e) => {
-                            e.currentTarget.src = generateDynamicSvgUrl(c.title || "Vocational Course", c.category || "training", "course");
-                          }}
-                        />
-                      </div>
-                      <div className="text-left space-y-0.5">
-                        <span className="font-extrabold uppercase font-serif text-slate-900 text-[11px] block line-clamp-1">{c.title}</span>
-                        <span className="text-[10px] text-slate-400 block font-bold">Duration: {c.duration} • level: {c.level}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs font-mono font-black text-orange-600 whitespace-nowrap">{c.price}</span>
-                      <button 
-                        onClick={() => {
-                          if (window.confirm(`Purge vocational course "${c.title}"?`)) {
-                            setAdminCourses(adminCourses.filter(course => course.id !== c.id));
-                          }
-                        }}
-                        className="p-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg transition-colors border border-rose-100"
-                        title="Delete Course"
-                      >
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Certificate registry verification */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-              <h3 className="font-extrabold text-sm uppercase font-serif text-[#000E32] border-b border-slate-100 pb-2">Active Student Registry</h3>
-              <div className="space-y-2.5 text-xs font-semibold text-slate-700">
-                <div className="flex justify-between p-3 border-b border-slate-100/60">
-                  <span>David Alao (React Student)</span>
-                  <span className="text-emerald-500 font-bold uppercase text-[10px]">100% Score (Issued)</span>
-                </div>
-                <div className="flex justify-between p-3 border-b border-slate-100/60">
-                  <span>Amara Nwosu (Marketing Student)</span>
-                  <span className="text-indigo-500 font-bold uppercase text-[10px]">L3 Lecture Running</span>
-                </div>
-                <div className="flex justify-between p-3 border-b border-slate-100/60">
-                  <span>Tunde Olanrewaju (TypeScript Student)</span>
-                  <span className="text-orange-500 font-bold uppercase text-[10px]">L1 Registration Completed</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <TrainingCMS onRefresh={refreshMasterData} />
       )}
+
 
       {/* ================= CLIENTS CRM MODULE ================= */}
       {adminModule === 'clients' && (
@@ -5868,8 +2844,8 @@ export default {
         </div>
       )}
 
-      {adminModule === 'emails' && (
-        <BrevoEmailDashboard />
+      {adminModule === 'about' && (
+        <AboutSection isAdmin={true} hideHeader={true} />
       )}
 
       {adminModule === 'chat' && (
@@ -5899,6 +2875,7 @@ export default {
       {adminModule === 'diagnostics' && (
         <AdminAssetDiagnostics />
       )}
+
 
       {/* Dynamic QR Code scanner modal */}
       <ApplicationQRScanner

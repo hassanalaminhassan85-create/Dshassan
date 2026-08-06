@@ -55,9 +55,38 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["title", "fileName", "createdAt"]
+    },
+    "CacMetadata": {
+      "title": "CAC Metadata",
+      "description": "Metadata for Corporate Affairs Commission certificates.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "company_name": { "type": "string" },
+        "registration_number": { "type": "string" },
+        "business_type": { "type": "string" },
+        "registration_date": { "type": "string" },
+        "company_status": { "type": "string" },
+        "registered_address": { "type": "string" },
+        "description": { "type": "string" },
+        "verification_url": { "type": "string" },
+        "r2_object_key": { "type": "string" },
+        "file_name": { "type": "string" },
+        "file_size": { "type": "number" },
+        "mime_type": { "type": "string" },
+        "is_published": { "type": "number" },
+        "display_order": { "type": "number" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      },
+      "required": ["company_name", "registration_number", "registration_date"]
     }
   },
   "firestore": {
+    "/cac_metadata/{cacId}": {
+      "schema": "CacMetadata",
+      "description": "CAC certificates metadata."
+    },
     "/staff/{staffId}": {
       "schema": "StaffMember",
       "description": "Staff profiles collection."

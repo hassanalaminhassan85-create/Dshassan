@@ -128,17 +128,17 @@ export const CacAdminCenter: React.FC = () => {
   // Initialize new form
   const handleNewCertificate = () => {
     setEditingCert({
-      company_name: 'DS TECH AND DIGITAL MARKETING AGENCY LIMITED',
+      company_name: '',
       registration_number: '',
       business_type: 'Private Company Limited by Shares',
       registration_date: new Date().toISOString().split('T')[0],
       company_status: 'Active',
-      registered_address: 'Abuja, Federal Republic of Nigeria',
-      description: 'DS Tech and Digital Marketing Agency Limited is officially registered under the Companies and Allied Matters Act 2020 by the Corporate Affairs Commission (CAC) of Nigeria.',
+      registered_address: '',
+      description: '',
       verification_url: 'https://search.cac.gov.ng/',
-      r2_object_key: 'cac_certificate_default.png',
-      file_name: 'cac_certificate.png',
-      file_size: 485120,
+      r2_object_key: '',
+      file_name: '',
+      file_size: 0,
       mime_type: 'image/png',
       is_published: 0,
       display_order: certificates.length + 1
@@ -553,12 +553,12 @@ export const CacAdminCenter: React.FC = () => {
             </div>
 
             {certificates.length === 0 ? (
-              <p className="text-xs text-slate-400 italic text-center py-4">No historic records found. Database seed is operating fallbacks.</p>
+              <p className="text-xs text-slate-400 italic text-center py-4">No historic records found. Please upload a new certificate to begin.</p>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-xs text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 uppercase tracking-wider">
+                    <tr className="border-b border-slate-100 dark:border-slate-800 text-[10px] text-slate-300 uppercase tracking-wider">
                       <th className="py-2.5 font-bold">Document</th>
                       <th className="py-2.5 font-bold">RC / Reg Date</th>
                       <th className="py-2.5 font-bold">Status</th>
@@ -677,15 +677,15 @@ export const CacAdminCenter: React.FC = () => {
 
                   <div className="p-3 bg-slate-900/60 rounded-2xl border border-slate-800 space-y-2.5 text-left font-sans text-[10px]">
                     <div className="flex justify-between">
-                      <span className="text-slate-500 uppercase font-bold">CLASSIFICATION:</span>
+                      <span className="text-slate-400 uppercase font-bold">CLASSIFICATION:</span>
                       <span className="text-slate-300 font-semibold">{active.business_type}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500 uppercase font-bold">REGISTRATION:</span>
+                      <span className="text-slate-400 uppercase font-bold">REGISTRATION:</span>
                       <span className="text-slate-300 font-semibold">{new Date(active.registration_date).toLocaleDateString()}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-500 uppercase font-bold">ADDRESS:</span>
+                      <span className="text-slate-400 uppercase font-bold">ADDRESS:</span>
                       <span className="text-slate-300 font-semibold truncate max-w-[140px]">{active.registered_address}</span>
                     </div>
                   </div>
@@ -707,8 +707,8 @@ export const CacAdminCenter: React.FC = () => {
           </div>
 
           {/* Quick FAQ / Guidelines Box */}
-          <div className="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-5 text-xs text-left text-slate-400 space-y-3 font-sans">
-            <h4 className="font-bold text-slate-300 uppercase tracking-wider text-[10px] flex items-center gap-1.5 border-b border-slate-800 pb-2">
+          <div className="bg-slate-900/40 border border-slate-800/80 rounded-3xl p-5 text-xs text-left text-slate-300 space-y-3 font-sans">
+            <h4 className="font-bold text-slate-200 uppercase tracking-wider text-[10px] flex items-center gap-1.5 border-b border-slate-800 pb-2">
               <HelpCircle size={12} className="text-indigo-400" />
               <span>Integration Rules</span>
             </h4>

@@ -6,7 +6,7 @@ import {
   Plus, Send, ClipboardList, TrendingUp, Sparkles, Check, CheckCircle2,
   Bookmark, User, FileText, AlertCircle, RefreshCw, Menu, X, LogOut,
   Settings, Lock, Mail, ChevronRight, Briefcase, Sun, Moon, Laptop,
-  Key, EyeOff, Search, Filter, Building2, Layers, Cpu
+  Key, EyeOff, Search, Filter, Building2, Layers, Cpu, Globe
 } from 'lucide-react';
 import { Logo } from './Logo';
 import { 
@@ -90,7 +90,7 @@ const DEMO_ADMIN: UserSession = {
   role: 'admin'
 };
 
-export const TrainingAcademySection: React.FC = () => {
+export const TrainingAcademySection: React.FC<{ onBackToPortal?: () => void }> = ({ onBackToPortal }) => {
   // Theme dark mode state (synchronized with document root)
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
 
@@ -138,6 +138,7 @@ export const TrainingAcademySection: React.FC = () => {
 
   // Base Data States
   const [courses, setCourses] = useState<Course[]>(COURSES);
+
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [tutors, setTutors] = useState<Tutor[]>([
     {
@@ -641,6 +642,17 @@ export const TrainingAcademySection: React.FC = () => {
 
           <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden relative z-10 p-8 space-y-6">
             
+            {onBackToPortal && (
+              <button
+                type="button"
+                onClick={onBackToPortal}
+                className="absolute top-6 left-6 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
+                title="Back to Main Site"
+              >
+                <Globe size={15} className="text-orange-500" />
+              </button>
+            )}
+
             {/* Theme Toggle Button */}
             <button
               type="button"
@@ -650,7 +662,7 @@ export const TrainingAcademySection: React.FC = () => {
               {isDarkMode ? <Sun size={15} className="text-orange-400" /> : <Moon size={15} className="text-indigo-500" />}
             </button>
 
-            <div className="flex flex-col items-center text-center space-y-3">
+            <div className="flex flex-col items-center text-center space-y-3 pt-6">
               <Logo size="md" variant={isDarkMode ? 'light' : 'dark'} className="mx-auto" />
               <div className="space-y-1">
                 <span className="px-3 py-1 bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-orange-500/20">
@@ -665,44 +677,10 @@ export const TrainingAcademySection: React.FC = () => {
               </div>
             </div>
 
-            {/* Quick Reviewer Demo Login Node */}
-            <div className="p-4 bg-orange-500/5 dark:bg-orange-950/20 border border-orange-500/20 rounded-2xl space-y-2 text-xs">
-              <div className="flex items-center justify-between">
-                <span className="font-extrabold text-slate-900 dark:text-white">Reviewer Demo Nodes</span>
-                <span className="text-[10px] text-orange-500 font-mono font-bold">1-Click Instant Login</span>
-              </div>
-              <div className="grid grid-cols-3 gap-2 pt-1">
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin(DEMO_STUDENT)}
-                  className="py-1.5 px-2 bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-[9px] uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1"
-                >
-                  <GraduationCap size={10} />
-                  <span>Student</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin(DEMO_TUTOR)}
-                  className="py-1.5 px-2 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-[9px] uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1"
-                >
-                  <Users size={10} />
-                  <span>Tutor</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin(DEMO_ADMIN)}
-                  className="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-[9px] uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1 border border-slate-700"
-                >
-                  <ShieldAlert size={10} />
-                  <span>Admin</span>
-                </button>
-              </div>
-            </div>
-
             {/* Access Role Selector */}
             <div className="space-y-1.5">
               <label className="font-extrabold uppercase text-[9px] tracking-wider text-slate-500 block text-left">Select Portal Role</label>
-              <div className="grid grid-cols-3 gap-1.5 bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <div className="grid grid-cols-2 gap-1.5 bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <button
                   type="button"
                   onClick={() => setSelectedRole('student')}
@@ -722,16 +700,6 @@ export const TrainingAcademySection: React.FC = () => {
                 >
                   <Users size={12} />
                   <span>Tutor</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('admin')}
-                  className={`py-2 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 ${
-                    selectedRole === 'admin' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'
-                  }`}
-                >
-                  <ShieldAlert size={12} />
-                  <span>Admin</span>
                 </button>
               </div>
             </div>
@@ -898,6 +866,17 @@ export const TrainingAcademySection: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              {onBackToPortal && (
+                <button
+                  type="button"
+                  onClick={onBackToPortal}
+                  className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-slate-700 dark:text-slate-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700"
+                >
+                  <Globe size={14} className="text-orange-500" />
+                  <span className="hidden sm:inline">Back to Main Site</span>
+                </button>
+              )}
+
               {/* User Badge */}
               <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700">
                 <User size={13} className="text-orange-500" />
