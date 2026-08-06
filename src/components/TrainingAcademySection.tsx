@@ -4,27 +4,29 @@ import {
   BookOpen, Play, Award, Download, CheckCircle, GraduationCap, 
   ArrowRight, Users, Eye, HelpCircle, Trophy, UserCheck, ShieldAlert,
   Plus, Send, ClipboardList, TrendingUp, Sparkles, Check, CheckCircle2,
-  Bookmark, User, FileText, AlertCircle, RefreshCw
+  Bookmark, User, FileText, AlertCircle, RefreshCw, Menu, X, LogOut,
+  Settings, Lock, Mail, ChevronRight, Briefcase, Sun, Moon, Laptop,
+  Key, EyeOff, Search, Filter, Building2, Layers, Cpu
 } from 'lucide-react';
+import { Logo } from './Logo';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid
 } from 'recharts';
 import { COURSES, Course, Lesson } from '../lib/data';
 
-// Types for Academy Integration
-interface Enrollment {
+export interface Enrollment {
   id: string;
   user_id: string;
   course_id: string;
   progress: number;
   status: string;
-  completed_lessons: string; // JSON array of string IDs
+  completed_lessons: string;
   assigned_tutor_id?: string;
   created_at: string;
 }
 
-interface Tutor {
+export interface Tutor {
   id: string;
   user_id: string;
   full_name: string;
@@ -35,7 +37,7 @@ interface Tutor {
   created_at: string;
 }
 
-interface Submission {
+export interface Submission {
   id: string;
   enrollment_id: string;
   course_id: string;
@@ -50,18 +52,7 @@ interface Submission {
   graded_at?: string;
 }
 
-interface QuizSubmission {
-  id: string;
-  user_id: string;
-  course_id: string;
-  lesson_id: string;
-  score: number;
-  total_questions: number;
-  passed: boolean;
-  completed_at: string;
-}
-
-interface Certificate {
+export interface Certificate {
   id: string;
   user_id: string;
   course_id: string;
@@ -71,78 +62,141 @@ interface Certificate {
   issued_at: string;
 }
 
+export interface UserSession {
+  id: string;
+  name: string;
+  email: string;
+  role: 'student' | 'tutor' | 'admin';
+}
+
+const DEMO_STUDENT: UserSession = {
+  id: 'usr_demo_student',
+  name: 'David Alao',
+  email: 'david@dstech.agency',
+  role: 'student'
+};
+
+const DEMO_TUTOR: UserSession = {
+  id: 'usr_demo_tutor',
+  name: 'Prof. Grace Ibrahim',
+  email: 'grace@dstech.agency',
+  role: 'tutor'
+};
+
+const DEMO_ADMIN: UserSession = {
+  id: 'usr_demo_admin',
+  name: 'System Administrator',
+  email: 'admin@dstech.agency',
+  role: 'admin'
+};
+
 export const TrainingAcademySection: React.FC = () => {
-  // Navigation & Role Tabs
-  const [activeTab, setActiveTab] = useState<'student' | 'tutor' | 'admin'>('student');
-  
+  // Theme dark mode state (synchronized with document root)
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+
+  useEffect(() => {
+    const isRootDark = document.documentElement.classList.contains('dark');
+    setIsDarkMode(isRootDark);
+  }, []);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
+
+  // Toast Notification System
+  const [toasts, setToasts] = useState<Array<{ id: string; msg: string; type: 'success' | 'info' | 'error' }>>([]);
+
+  const triggerToast = (msg: string, type: 'success' | 'info' | 'error' = 'success') => {
+    const id = Math.random().toString(36).substring(2, 9);
+    setToasts(prev => [...prev, { id, msg, type }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 4500);
+  };
+
+  // Auth States
+  const [authState, setAuthState] = useState<'signin' | 'register'>('signin');
+  const [selectedRole, setSelectedRole] = useState<'student' | 'tutor' | 'admin'>('student');
+  const [isLogged, setIsLogged] = useState<boolean>(false);
+
+  // Form Inputs
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authFullName, setAuthFullName] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Active User Session
+  const [currentUser, setCurrentUser] = useState<UserSession | null>(null);
+
+  // Dashboard Drawer & Tabs
+  const [activeDashboardTab, setActiveDashboardTab] = useState<'catalog' | 'my-courses' | 'submissions' | 'certificates' | 'tutor-creator' | 'admin-mgmt'>('catalog');
+  const [isHamburgerOpen, setIsHamburgerOpen] = useState<boolean>(false);
+
   // Base Data States
   const [courses, setCourses] = useState<Course[]>(COURSES);
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
-  const [tutors, setTutors] = useState<Tutor[]>([]);
+  const [tutors, setTutors] = useState<Tutor[]>([
+    {
+      id: 'tut_1',
+      user_id: 'usr_demo_tutor',
+      full_name: 'Prof. Grace Ibrahim',
+      email: 'grace@dstech.agency',
+      bio: 'Senior Software Architect & Certified AI Curriculum Mentor',
+      expertise: 'Full-Stack Web & AI Engineering',
+      status: 'approved',
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 'tut_2',
+      user_id: 'usr_tutor_2',
+      full_name: 'Musa Abubakar',
+      email: 'musa@dstech.agency',
+      bio: 'Digital Marketing Strategist & Meta Ads Performance Consultant',
+      expertise: 'Performance Marketing & SEO',
+      status: 'pending',
+      created_at: new Date().toISOString()
+    }
+  ]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
-  
-  // Current Active User Context (Default to David Alao for seamless demo)
-  const [currentUser, setCurrentUser] = useState({
-    id: 'usr_david',
-    name: 'David Alao',
-    email: 'david@dstech.agency',
-    role: 'student' // 'student' or 'tutor' or 'admin'
-  });
 
-  // Loading & Action States
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  // Catalog Filters
+  const [catalogCategory, setCatalogCategory] = useState<string>('all');
+  const [catalogSearch, setCatalogSearch] = useState<string>('');
 
-  // Classroom Mode States
+  // Classroom Active Learning States
   const [enrolledCourse, setEnrolledCourse] = useState<Course | null>(null);
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([]);
-  
-  // Coursework Submission Forms
+
+  // Submission & Assessment Quiz
   const [submissionText, setSubmissionText] = useState('');
   const [submissionFileKey, setSubmissionFileKey] = useState('');
-
-  // Quiz State
   const [quizStarted, setQuizStarted] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
   const [quizFinished, setQuizFinished] = useState(false);
   const [quizScore, setQuizScore] = useState(0);
-  const [quizPassed, setQuizPassed] = useState(false);
 
-  // Tutor Workspace States
-  const [tutorApplication, setTutorApplication] = useState({
-    full_name: currentUser.name,
-    email: currentUser.email,
-    bio: 'Senior Marketing Technologist with 8+ years scaling regional ad accounts.',
-    expertise: 'Digital Marketing & Social Ads'
-  });
-  const [currentTutorProfile, setCurrentTutorProfile] = useState<Tutor | null>(null);
-  
-  // Course Creator State (Tutor)
-  const [showCourseCreator, setShowCourseCreator] = useState(false);
-  const [newCourse, setNewCourse] = useState({
-    title: '',
-    description: '',
-    duration: '4 Weeks',
-    level: 'Beginner' as 'Beginner' | 'Advanced' | 'All Levels',
-    price: '₦45,000',
-    category: 'marketing' as 'marketing' | 'web' | 'ai' | 'business' | 'compliance',
-    image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=80',
-    lessons: [
-      { id: 'les_1', title: 'Introduction & Foundations', duration: '15 mins', content: 'Core terminologies and industry trends.' },
-      { id: 'les_2', title: 'Practical Application Workflow', duration: '25 mins', content: 'Hands-on configuration and optimization metrics.' }
-    ]
-  });
+  // Tutor Course Creator State
+  const [newCourseTitle, setNewCourseTitle] = useState('');
+  const [newCourseDesc, setNewCourseDesc] = useState('');
+  const [newCoursePrice, setNewCoursePrice] = useState('₦45,000');
+  const [newCourseDuration, setNewCourseDuration] = useState('4 Weeks');
+  const [newCourseLevel, setNewCourseLevel] = useState<'Beginner' | 'Advanced' | 'All Levels'>('Beginner');
+  const [newCourseCategory, setNewCourseCategory] = useState<'marketing' | 'web' | 'ai' | 'business' | 'compliance'>('web');
+  const [newCourseImage, setNewCourseImage] = useState('https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=80');
 
-  // Grading State
+  // Grading Modal State
   const [gradingSubmission, setGradingSubmission] = useState<Submission | null>(null);
   const [gradeValue, setGradeValue] = useState('A');
   const [gradeFeedback, setGradeFeedback] = useState('');
 
-  // Assessment Quiz Questions bank
+  // Assessment Questions
   const quizQuestions = [
     {
       q: "Which ad targeting strategy delivers higher conversion ratios for regional real estate in Nigeria?",
@@ -173,134 +227,178 @@ export const TrainingAcademySection: React.FC = () => {
     }
   ];
 
-  // Fetch Database Sync Helper
-  const fetchAcademyData = async () => {
-    setIsLoading(true);
-    try {
-      // 1. Fetch Courses
-      const courseRes = await fetch('/api/courses');
-      if (courseRes.ok) {
-        const courseData = await courseRes.json();
-        if (courseData && courseData.length > 0) {
-          setCourses(courseData);
-        } else {
-          // Initialize empty backend
-          await fetch('/api/courses/initialize', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(COURSES)
-          });
-          setCourses(COURSES);
-        }
-      }
+  // Restore Session
+  useEffect(() => {
+    const saved = localStorage.getItem('dstech_academy_standalone_session');
+    if (saved) {
+      try {
+        const sessionObj: UserSession = JSON.parse(saved);
+        setCurrentUser(sessionObj);
+        setIsLogged(true);
+        setSelectedRole(sessionObj.role);
 
-      // 2. Fetch Enrollments
-      const enrollRes = await fetch(`/api/academy/enrollments?userId=${currentUser.id}`);
-      if (enrollRes.ok) {
-        const enrollData = await enrollRes.json();
-        setEnrollments(enrollData);
-      }
+        // Load cached enrollments & submissions if available
+        const savedEnroll = localStorage.getItem(`academy_enroll_${sessionObj.id}`);
+        const savedSub = localStorage.getItem(`academy_sub_${sessionObj.id}`);
+        const savedCert = localStorage.getItem(`academy_cert_${sessionObj.id}`);
 
-      // 3. Fetch Tutors
-      const tutorRes = await fetch('/api/academy/tutors');
-      if (tutorRes.ok) {
-        const tutorData = await tutorRes.json();
-        setTutors(tutorData);
-        // Find if current user is registered as a tutor
-        const matched = tutorData.find((t: Tutor) => t.user_id === currentUser.id);
-        if (matched) {
-          setCurrentTutorProfile(matched);
-        }
+        if (savedEnroll) setEnrollments(JSON.parse(savedEnroll));
+        if (savedSub) setSubmissions(JSON.parse(savedSub));
+        if (savedCert) setCertificates(JSON.parse(savedCert));
+      } catch (e) {
+        console.error("Session restore error:", e);
       }
+    }
+  }, []);
 
-      // 4. Fetch Submissions
-      const subRes = await fetch(`/api/academy/submissions`);
-      if (subRes.ok) {
-        const subData = await subRes.json();
-        setSubmissions(subData);
-      }
+  const persistUserData = (userId: string, enrollList: Enrollment[], subList: Submission[], certList: Certificate[]) => {
+    localStorage.setItem(`academy_enroll_${userId}`, JSON.stringify(enrollList));
+    localStorage.setItem(`academy_sub_${userId}`, JSON.stringify(subList));
+    localStorage.setItem(`academy_cert_${userId}`, JSON.stringify(certList));
+  };
 
-      // 5. Fetch Certificates
-      const certRes = await fetch(`/api/academy/certificates?userId=${currentUser.id}`);
-      if (certRes.ok) {
-        const certData = await certRes.json();
-        setCertificates(certData);
-      }
-    } catch (e) {
-      console.error("Database connection failed. Serving elegant mock fallback dataset.", e);
-    } finally {
-      setIsLoading(false);
+  // Handle Login
+  const handleSignIn = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authEmail || !authPassword) {
+      triggerToast("Please enter your registered email and password.", "error");
+      return;
+    }
+
+    const registeredRaw = localStorage.getItem('dstech_academy_registered_users');
+    const registeredUsers: UserSession[] = registeredRaw ? JSON.parse(registeredRaw) : [];
+
+    let matched: UserSession | null = null;
+    if (authEmail.toLowerCase() === DEMO_STUDENT.email.toLowerCase()) matched = DEMO_STUDENT;
+    else if (authEmail.toLowerCase() === DEMO_TUTOR.email.toLowerCase()) matched = DEMO_TUTOR;
+    else if (authEmail.toLowerCase() === DEMO_ADMIN.email.toLowerCase()) matched = DEMO_ADMIN;
+    else {
+      matched = registeredUsers.find(u => u.email.toLowerCase() === authEmail.toLowerCase()) || null;
+    }
+
+    if (matched) {
+      setCurrentUser(matched);
+      setIsLogged(true);
+      setSelectedRole(matched.role);
+      localStorage.setItem('dstech_academy_standalone_session', JSON.stringify(matched));
+      triggerToast(`Welcome back, ${matched.name}! ${matched.role.toUpperCase()} session active.`, "success");
+    } else {
+      triggerToast("Invalid credentials or unregistered academic user.", "error");
     }
   };
 
-  useEffect(() => {
-    fetchAcademyData();
-  }, [currentUser.id]);
+  // Handle Registration
+  const handleRegister = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!authEmail || !authPassword || !authFullName) {
+      triggerToast("Please fill in all registration fields.", "error");
+      return;
+    }
 
-  // STUDENT - Enroll Course Handler
-  const handleEnroll = async (course: Course) => {
-    setErrorMessage(null);
-    setSuccessMessage(null);
-    try {
-      const isAlreadyEnrolled = enrollments.some(e => e.course_id === course.id);
-      let targetEnrollment: Enrollment;
+    const userId = "usr_" + Math.random().toString(36).substring(2, 9);
+    const newUser: UserSession = {
+      id: userId,
+      name: authFullName,
+      email: authEmail,
+      role: selectedRole
+    };
 
-      if (!isAlreadyEnrolled) {
-        // Create new enrollment row in Cloudflare D1
-        const newEnrollObj = {
-          id: 'enroll_' + Math.random().toString(36).substring(2, 11),
-          user_id: currentUser.id,
-          course_id: course.id,
-          progress: 0,
-          status: 'enrolled',
-          completed_lessons: JSON.stringify([]),
-          assigned_tutor_id: tutors.find(t => t.status === 'approved')?.id || 'tutor_default',
-          created_at: new Date().toISOString()
-        };
+    const registeredRaw = localStorage.getItem('dstech_academy_registered_users');
+    const registeredUsers: UserSession[] = registeredRaw ? JSON.parse(registeredRaw) : [];
 
-        const res = await fetch('/api/academy/enrollments', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newEnrollObj)
-        });
+    if (registeredUsers.some(u => u.email.toLowerCase() === authEmail.toLowerCase())) {
+      triggerToast("An account with this email is already registered.", "error");
+      return;
+    }
 
-        if (res.ok) {
-          const savedEnroll = await res.json();
-          setEnrollments(prev => [...prev, savedEnroll]);
-          targetEnrollment = savedEnroll;
-          setSuccessMessage(`Successfully enrolled in "${course.title}"!`);
-        } else {
-          // Local fallback
-          setEnrollments(prev => [...prev, newEnrollObj]);
-          targetEnrollment = newEnrollObj;
-        }
-      } else {
-        targetEnrollment = enrollments.find(e => e.course_id === course.id)!;
-      }
+    registeredUsers.push(newUser);
+    localStorage.setItem('dstech_academy_registered_users', JSON.stringify(registeredUsers));
 
-      // Load Classroom Mode
+    setCurrentUser(newUser);
+    setIsLogged(true);
+    localStorage.setItem('dstech_academy_standalone_session', JSON.stringify(newUser));
+
+    triggerToast(`Congratulations ${authFullName}! Your ${selectedRole.toUpperCase()} account has been created.`, "success");
+  };
+
+  // Instant Demo Login
+  const handleDemoLogin = (demoUser: UserSession) => {
+    setCurrentUser(demoUser);
+    setIsLogged(true);
+    setSelectedRole(demoUser.role);
+    localStorage.setItem('dstech_academy_standalone_session', JSON.stringify(demoUser));
+    
+    // Seed sample enrollment for student demo if empty
+    if (demoUser.role === 'student' && enrollments.length === 0) {
+      const sampleEnroll: Enrollment = {
+        id: 'enroll_demo_1',
+        user_id: demoUser.id,
+        course_id: COURSES[0].id,
+        progress: 40,
+        status: 'enrolled',
+        completed_lessons: JSON.stringify([COURSES[0].lessons[0]?.id || 'les_1']),
+        assigned_tutor_id: 'tut_1',
+        created_at: new Date().toISOString()
+      };
+      setEnrollments([sampleEnroll]);
+      persistUserData(demoUser.id, [sampleEnroll], submissions, certificates);
+    }
+
+    triggerToast(`Logged in as Demo ${demoUser.role.toUpperCase()}: ${demoUser.name}`, "success");
+  };
+
+  const handleSignOut = () => {
+    localStorage.removeItem('dstech_academy_standalone_session');
+    setCurrentUser(null);
+    setIsLogged(false);
+    triggerToast("Academic session terminated securely.", "info");
+  };
+
+  // Student Enroll Handler
+  const handleEnroll = (course: Course) => {
+    if (!currentUser) return;
+    const exists = enrollments.some(e => e.course_id === course.id && e.user_id === currentUser.id);
+    if (exists) {
+      const existing = enrollments.find(e => e.course_id === course.id && e.user_id === currentUser.id)!;
       setEnrolledCourse(course);
       setActiveLesson(course.lessons[0]);
       try {
-        setCompletedLessonIds(JSON.parse(targetEnrollment.completed_lessons || '[]'));
+        setCompletedLessonIds(JSON.parse(existing.completed_lessons || '[]'));
       } catch {
         setCompletedLessonIds([]);
       }
-
-      // Reset dynamic modules
-      setQuizStarted(false);
-      setQuizFinished(false);
-      setSelectedAnswers([]);
-      setCurrentQuestion(0);
-    } catch (err) {
-      setErrorMessage("Enrollment could not be synchronized.");
+      setActiveDashboardTab('my-courses');
+      triggerToast(`Continuing track for ${course.title}`, "info");
+      return;
     }
+
+    const newEnroll: Enrollment = {
+      id: 'enroll_' + Math.random().toString(36).substring(2, 9),
+      user_id: currentUser.id,
+      course_id: course.id,
+      progress: 0,
+      status: 'enrolled',
+      completed_lessons: JSON.stringify([]),
+      assigned_tutor_id: 'tut_1',
+      created_at: new Date().toISOString()
+    };
+
+    const updated = [newEnroll, ...enrollments];
+    setEnrollments(updated);
+    persistUserData(currentUser.id, updated, submissions, certificates);
+
+    setEnrolledCourse(course);
+    setActiveLesson(course.lessons[0]);
+    setCompletedLessonIds([]);
+    setActiveDashboardTab('my-courses');
+
+    triggerToast(`Enrolled successfully in ${course.title}!`, "success");
   };
 
-  // STUDENT - Complete Lesson & Update Progress Handler
-  const handleToggleLessonComplete = async (lessonId: string) => {
-    if (!enrolledCourse) return;
-    const currentEnroll = enrollments.find(e => e.course_id === enrolledCourse.id);
+  // Toggle Lesson Completion
+  const handleToggleLessonComplete = (lessonId: string) => {
+    if (!enrolledCourse || !currentUser) return;
+    const currentEnroll = enrollments.find(e => e.course_id === enrolledCourse.id && e.user_id === currentUser.id);
     if (!currentEnroll) return;
 
     let updatedCompleted: string[];
@@ -311,120 +409,61 @@ export const TrainingAcademySection: React.FC = () => {
     }
     setCompletedLessonIds(updatedCompleted);
 
-    // Calculate dynamic progress bar
     const progressPercent = Math.round((updatedCompleted.length / enrolledCourse.lessons.length) * 100);
-
-    const updatedEnrollObj = {
+    const updatedEnrollObj: Enrollment = {
       ...currentEnroll,
       progress: progressPercent,
-      completed_lessons: JSON.stringify(updatedCompleted),
-      updated_at: new Date().toISOString()
+      completed_lessons: JSON.stringify(updatedCompleted)
     };
 
-    // Update in database
-    setEnrollments(prev => prev.map(e => e.id === currentEnroll.id ? updatedEnrollObj : e));
-    try {
-      await fetch('/api/academy/enrollments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedEnrollObj)
-      });
-    } catch (e) {
-      console.warn("D1 update failed, saved to state.", e);
-    }
+    const updatedList = enrollments.map(e => e.id === currentEnroll.id ? updatedEnrollObj : e);
+    setEnrollments(updatedList);
+    persistUserData(currentUser.id, updatedList, submissions, certificates);
+    triggerToast(`Lesson progress updated (${progressPercent}% completed)`, "success");
   };
 
-  // STUDENT - Submit Assignment
-  const handleAddSubmission = async (e: React.FormEvent) => {
+  // Submit Coursework
+  const handleSubmitCoursework = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!enrolledCourse || !activeLesson) return;
-    const currentEnroll = enrollments.find(e => e.course_id === enrolledCourse.id);
-    if (!currentEnroll) return;
-
-    if (!submissionText.trim()) {
-      setErrorMessage("Please input your coursework answers or milestone text.");
+    if (!enrolledCourse || !activeLesson || !currentUser || !submissionText.trim()) {
+      triggerToast("Please enter your coursework answer.", "error");
       return;
     }
 
-    setErrorMessage(null);
-    setIsLoading(true);
-
+    const currentEnroll = enrollments.find(e => e.course_id === enrolledCourse.id && e.user_id === currentUser.id);
     const newSub: Submission = {
-      id: 'sub_' + Math.random().toString(36).substring(2, 11),
-      enrollment_id: currentEnroll.id,
+      id: 'sub_' + Math.random().toString(36).substring(2, 9),
+      enrollment_id: currentEnroll ? currentEnroll.id : 'enroll_general',
       course_id: enrolledCourse.id,
       lesson_id: activeLesson.id,
       user_id: currentUser.id,
       submission_text: submissionText,
-      submission_file_key: submissionFileKey || 'drive_shared_link',
+      submission_file_key: submissionFileKey || 'https://drive.google.com/file/d/sample',
       status: 'submitted',
       submitted_at: new Date().toISOString()
     };
 
-    setSubmissions(prev => [newSub, ...prev]);
+    const updated = [newSub, ...submissions];
+    setSubmissions(updated);
     setSubmissionText('');
     setSubmissionFileKey('');
+    persistUserData(currentUser.id, enrollments, updated, certificates);
 
-    try {
-      const res = await fetch('/api/academy/submissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newSub)
-      });
-      if (res.ok) {
-        setSuccessMessage("Your coursework has been submitted to your assigned tutor successfully!");
-      }
-    } catch (err) {
-      console.warn("Offline submission tracked in memory.");
-    } finally {
-      setIsLoading(false);
-    }
+    triggerToast("Coursework submitted to tutor for grading!", "success");
   };
 
-  // STUDENT - Interactive Quiz Answer Selection
-  const handleAnswerSelect = (optIndex: number) => {
-    const updated = [...selectedAnswers];
-    updated[currentQuestion] = optIndex;
-    setSelectedAnswers(updated);
-  };
-
-  // STUDENT - Next Question / Submit Quiz Handler
-  const handleNextQuizQuestion = async () => {
+  // Quiz Handling
+  const handleNextQuizQuestion = () => {
     if (currentQuestion < quizQuestions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
-      // Score calculation
-      const correctAnswersCount = selectedAnswers.filter((ans, idx) => ans === quizQuestions[idx].correct).length;
-      const pass = correctAnswersCount === quizQuestions.length; // 100% correct required for instant legal certification
-      
-      setQuizScore(correctAnswersCount);
-      setQuizPassed(pass);
+      const correctCount = selectedAnswers.filter((ans, idx) => ans === quizQuestions[idx].correct).length;
+      const pass = correctCount >= 2;
+      setQuizScore(correctCount);
       setQuizFinished(true);
 
-      // Store quiz attempt persistently in database
-      const quizObj = {
-        id: 'quiz_' + Math.random().toString(36).substring(2, 11),
-        user_id: currentUser.id,
-        course_id: enrolledCourse?.id || 'course_default',
-        lesson_id: activeLesson?.id || 'lesson_final',
-        score: correctAnswersCount,
-        total_questions: quizQuestions.length,
-        passed: pass ? 1 : 0
-      };
-
-      try {
-        await fetch('/api/academy/quizzes', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(quizObj)
-        });
-      } catch (e) {
-        console.warn("Quiz submission stored locally.");
-      }
-
-      if (pass && enrolledCourse) {
-        // Automatically mint certificate
-        const certHash = 'dstech_' + Math.random().toString(36).substring(2, 15);
+      if (pass && enrolledCourse && currentUser) {
+        const certHash = 'dstech_acad_' + Math.random().toString(36).substring(2, 12);
         const certObj: Certificate = {
           id: 'cert_' + Math.random().toString(36).substring(2, 8),
           user_id: currentUser.id,
@@ -435,362 +474,120 @@ export const TrainingAcademySection: React.FC = () => {
           issued_at: new Date().toISOString()
         };
 
-        setCertificates(prev => [certObj, ...prev]);
-
-        try {
-          await fetch('/api/academy/certificates', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(certObj)
-          });
-        } catch (e) {
-          console.warn("Certificate issued locally.");
-        }
+        const updatedCerts = [certObj, ...certificates];
+        setCertificates(updatedCerts);
+        persistUserData(currentUser.id, enrollments, submissions, updatedCerts);
+        triggerToast("Congratulations! Accreditation Diploma minted successfully.", "success");
       }
     }
   };
 
-  // TUTOR - Register as Tutor Form Submission
-  const handleTutorRegister = async (e: React.FormEvent) => {
+  // Create Course (Tutor / Admin)
+  const handleCreateCourse = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    const tutorObj: Tutor = {
-      id: 'tutor_' + Math.random().toString(36).substring(2, 11),
-      user_id: currentUser.id,
-      full_name: tutorApplication.full_name,
-      email: tutorApplication.email,
-      bio: tutorApplication.bio,
-      expertise: tutorApplication.expertise,
-      status: 'pending',
-      created_at: new Date().toISOString()
-    };
-
-    try {
-      const res = await fetch('/api/academy/tutors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tutorObj)
-      });
-      if (res.ok) {
-        const saved = await res.json();
-        setCurrentTutorProfile(saved);
-        setTutors(prev => [...prev, saved]);
-        setSuccessMessage("Your application to become a certified tutor has been registered!");
-      } else {
-        setCurrentTutorProfile(tutorObj);
-        setTutors(prev => [...prev, tutorObj]);
-      }
-    } catch (err) {
-      setCurrentTutorProfile(tutorObj);
-      setTutors(prev => [...prev, tutorObj]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // TUTOR - Fast-Track Auto-Approve Tutor (For seamless demo testing!)
-  const handleFastTrackTutorApproval = async () => {
-    if (!currentTutorProfile) return;
-    setIsLoading(true);
-
-    const approvedObj: Tutor = {
-      ...currentTutorProfile,
-      status: 'approved',
-      updated_at: new Date().toISOString()
-    } as any;
-
-    try {
-      const res = await fetch('/api/academy/tutors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(approvedObj)
-      });
-      if (res.ok) {
-        const saved = await res.json();
-        setCurrentTutorProfile(saved);
-        setTutors(prev => prev.map(t => t.id === saved.id ? saved : t));
-        setSuccessMessage("Developer Mode: Your workspace is now Approved!");
-      } else {
-        setCurrentTutorProfile(approvedObj);
-        setTutors(prev => prev.map(t => t.id === approvedObj.id ? approvedObj : t));
-      }
-    } catch (e) {
-      setCurrentTutorProfile(approvedObj);
-      setTutors(prev => prev.map(t => t.id === approvedObj.id ? approvedObj : t));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // TUTOR - Save New Course to Catalog
-  const handleCreateCourse = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCourse.title.trim() || !newCourse.description.trim()) {
-      setErrorMessage("Please input course title and detailed description.");
+    if (!newCourseTitle.trim()) {
+      triggerToast("Please enter a course title.", "error");
       return;
     }
 
-    setIsLoading(true);
-    setErrorMessage(null);
-
-    const generatedId = 'course_' + Math.random().toString(36).substring(2, 11);
-    const finalCourseObj: Course = {
+    const generatedId = 'course_' + Math.random().toString(36).substring(2, 8);
+    const newCourseObj: Course = {
       id: generatedId,
-      title: newCourse.title,
-      description: newCourse.description,
-      image: newCourse.image,
-      duration: newCourse.duration,
-      level: newCourse.level,
-      price: newCourse.price,
-      category: newCourse.category,
-      lessons: newCourse.lessons.map((l, i) => ({
-        id: `les_${i+1}_${generatedId}`,
-        title: l.title,
-        duration: l.duration,
-        content: l.content
-      }))
+      title: newCourseTitle,
+      description: newCourseDesc || "Vocational syllabus designed for corporate workforce accreditation.",
+      price: newCoursePrice,
+      duration: newCourseDuration,
+      level: newCourseLevel,
+      category: newCourseCategory,
+      image: newCourseImage,
+      lessons: [
+        { id: `les_1_${generatedId}`, title: 'Module 1: Core Fundamentals & Industry Framework', duration: '20 mins', content: 'In-depth overview of modern methodologies and best practices.' },
+        { id: `les_2_${generatedId}`, title: 'Module 2: Practical Implementation & Workflow Integration', duration: '35 mins', content: 'Step-by-step hands-on tutorial and configuration.' }
+      ]
     };
 
-    try {
-      const res = await fetch('/api/courses', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(finalCourseObj)
-      });
-      if (res.ok) {
-        const saved = await res.json();
-        setCourses(prev => [saved, ...prev]);
-        setSuccessMessage(`New course "${saved.title}" successfully designed and added to database!`);
-        setShowCourseCreator(false);
-        // Reset Creator Form
-        setNewCourse({
-          title: '',
-          description: '',
-          duration: '4 Weeks',
-          level: 'Beginner',
-          price: '₦45,000',
-          category: 'marketing',
-          image: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&auto=format&fit=crop&q=80',
-          lessons: [
-            { id: 'les_1', title: 'Introduction & Foundations', duration: '15 mins', content: 'Core terminologies and industry trends.' },
-            { id: 'les_2', title: 'Practical Application Workflow', duration: '25 mins', content: 'Hands-on configuration and optimization metrics.' }
-          ]
-        });
-      }
-    } catch (err) {
-      setCourses(prev => [finalCourseObj, ...prev]);
-      setShowCourseCreator(false);
-    } finally {
-      setIsLoading(false);
-    }
+    setCourses([newCourseObj, ...courses]);
+    setNewCourseTitle('');
+    setNewCourseDesc('');
+    triggerToast(`Course "${newCourseTitle}" published successfully!`, "success");
   };
 
-  // TUTOR - Update Grade & Feedback on Coursework Submission
-  const handleSaveGrade = async (e: React.FormEvent) => {
+  // Grade Submission (Tutor / Admin)
+  const handleSaveGrade = (e: React.FormEvent) => {
     e.preventDefault();
     if (!gradingSubmission) return;
 
-    setIsLoading(true);
-
-    const gradedObj: Submission = {
+    const updatedSub: Submission = {
       ...gradingSubmission,
       grade: gradeValue,
-      feedback: gradeFeedback || 'Excellent comprehension and milestone progress.',
+      feedback: gradeFeedback || "Excellent mastery of the coursework objectives.",
       status: 'graded',
       graded_at: new Date().toISOString()
     };
 
-    setSubmissions(prev => prev.map(s => s.id === gradingSubmission.id ? gradedObj : s));
+    setSubmissions(submissions.map(s => s.id === gradingSubmission.id ? updatedSub : s));
     setGradingSubmission(null);
     setGradeFeedback('');
-
-    try {
-      await fetch('/api/academy/submissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(gradedObj)
-      });
-      setSuccessMessage("Coursework graded successfully!");
-    } catch (err) {
-      console.warn("Offline grade cached.");
-    } finally {
-      setIsLoading(false);
-    }
+    triggerToast(`Coursework graded (${gradeValue}) successfully!`, "success");
   };
 
-  // ADMIN - Approve/Reject Tutor Applications
-  const handleToggleTutorStatus = async (tutorId: string, newStatus: 'approved' | 'rejected') => {
-    const matched = tutors.find(t => t.id === tutorId);
-    if (!matched) return;
-
-    setIsLoading(true);
-    const updatedTutor = {
-      ...matched,
-      status: newStatus,
-      updated_at: new Date().toISOString()
-    };
-
-    setTutors(prev => prev.map(t => t.id === tutorId ? updatedTutor : t));
-    if (currentTutorProfile?.id === tutorId) {
-      setCurrentTutorProfile(updatedTutor);
-    }
-
-    try {
-      await fetch('/api/academy/tutors', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedTutor)
-      });
-      setSuccessMessage(`Tutor application status updated to: ${newStatus.toUpperCase()}`);
-    } catch (err) {
-      console.warn("Offline status changed.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // PRINT CERTIFICATE HELPER
+  // Printable Certificate Helper
   const printCertificate = (cert: Certificate) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
     printWindow.document.write(`
       <html>
         <head>
-          <title>DS Tech Academy - Verified Certificate of Completion</title>
+          <title>DS Tech Academy - Official Certificate</title>
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Montserrat:wght@300;500;700&display=swap');
             body { 
               font-family: 'Montserrat', sans-serif; 
               text-align: center; 
-              padding: 60px; 
-              border: 15px solid #000E32; 
+              padding: 50px; 
+              border: 12px solid #000E32; 
               background: #fbfbfa; 
-              box-sizing: border-box;
               height: 90vh;
               display: flex;
               flex-direction: column;
-              justify-content: center;
-              position: relative;
-            }
-            .border-inner {
-              border: 2px solid #e2af43;
-              height: 100%;
-              padding: 40px;
-              display: flex;
-              flex-direction: column;
               justify-content: space-between;
+              box-sizing: border-box;
             }
-            h1 { 
-              font-family: 'Cinzel', serif; 
-              font-size: 42px; 
-              color: #000E32; 
-              text-transform: uppercase; 
-              margin: 0;
-              letter-spacing: 2px;
-            }
-            .subtitle { 
-              font-style: italic; 
-              font-size: 16px; 
-              color: #777; 
-              margin-top: 10px;
-              letter-spacing: 1px;
-            }
-            .cert-body {
-              font-size: 15px;
-              color: #333;
-              line-height: 1.8;
-              margin: 30px 0;
-              font-weight: 300;
-            }
-            .name { 
-              font-family: 'Cinzel', serif;
-              font-size: 34px; 
-              font-weight: 800; 
-              color: #d97706; 
-              border-bottom: 2px solid #e2af43; 
-              display: inline-block; 
-              padding: 5px 30px; 
-              margin: 15px 0; 
-            }
-            .footer-info { 
-              display: flex;
-              justify-content: space-between;
-              align-items: flex-end;
-              margin-top: 40px;
-              padding: 0 40px;
-            }
-            .sig-block {
-              text-align: center;
-              width: 150px;
-            }
-            .sig-line {
-              border-top: 1px solid #777;
-              margin-top: 15px;
-              padding-top: 5px;
-              font-size: 11px;
-              text-transform: uppercase;
-              font-weight: 700;
-              color: #000E32;
-            }
-            .stamp-box { 
-              border: 3px double #d97706; 
-              color: #d97706; 
-              font-size: 12px; 
-              font-weight: bold; 
-              display: inline-block; 
-              padding: 8px 12px; 
-              text-transform: uppercase; 
-              transform: rotate(-3deg); 
-              font-family: 'Cinzel', serif;
-            }
-            .verification-code {
-              font-family: monospace;
-              font-size: 10px;
-              color: #888;
-              text-align: center;
-              margin-top: 15px;
-            }
+            .border-inner { border: 2px solid #ea580c; padding: 40px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; }
+            h1 { font-family: 'Cinzel', serif; font-size: 36px; color: #000E32; text-transform: uppercase; margin: 0; }
+            .name { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 800; color: #ea580c; border-bottom: 2px solid #ea580c; display: inline-block; padding: 5px 25px; margin: 15px 0; }
+            .hash { font-family: monospace; font-size: 10px; color: #64748b; margin-top: 5px; }
+            .footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; padding: 0 30px; }
+            .sig { border-top: 1px solid #777; margin-top: 10px; padding-top: 5px; font-size: 11px; text-transform: uppercase; font-weight: 700; color: #000E32; }
           </style>
         </head>
         <body>
           <div class="border-inner">
             <div>
-              <h1>Certificate of Achievement</h1>
-              <div class="subtitle">DS TECH PROFESSIONAL VOCATIONAL ACADEMY</div>
+              <h1>Accreditation Diploma</h1>
+              <p style="font-style: italic; color: #666; font-size: 13px; margin-top: 5px;">DS TECH PROFESSIONAL VOCATIONAL ACADEMY</p>
             </div>
-            
-            <div class="cert-body">
-              This is to officially recognize and certify that
+            <div style="font-size: 14px; color: #333; line-height: 1.8;">
+              This is to officially certify that
               <br/>
               <div class="name">${cert.full_name}</div>
               <br/>
-              has successfully completed all lectures, submitted certified coursework,
+              has successfully completed all coursework and passed accreditation testing for
               <br/>
-              and passed the final verification testing panel for
-              <br/>
-              <strong style="color:#000E32; font-size: 18px; font-weight: 700; display: inline-block; margin-top: 8px;">${cert.course_title}</strong>
+              <strong style="color: #000E32; font-size: 16px;">${cert.course_title}</strong>
+              <div class="hash">Verification Hash: ${cert.hash}</div>
             </div>
-            
-            <div>
-              <div class="footer-info">
-                <div class="sig-block">
-                  <span style="font-family:'Cinzel'; font-size:12px; font-style:italic; color:#777;">Grace Ibrahim</span>
-                  <div class="sig-line">Academy Registrar</div>
-                </div>
-                
-                <div class="stamp-box">
-                  DS Tech Verified<br/>Cryptographic Seal
-                </div>
-                
-                <div class="sig-block">
-                  <span style="font-family:'Cinzel'; font-size:12px; font-style:italic; color:#777;">David Alao</span>
-                  <div class="sig-line">Principal Director</div>
-                </div>
+            <div class="footer">
+              <div>
+                <span style="font-family:'Cinzel'; font-size:12px;">Prof. Grace Ibrahim</span>
+                <div class="sig">Academy Registrar</div>
               </div>
-              <div class="verification-code">
-                Issued: ${new Date(cert.issued_at).toLocaleDateString()} • Verification Hash: ${cert.hash.toUpperCase()}
+              <div style="border: 2px solid #ea580c; color: #ea580c; padding: 6px 12px; font-size: 11px; font-weight: bold; transform: rotate(-3deg);">
+                DS Tech Verified Seal
+              </div>
+              <div>
+                <span style="font-family:'Cinzel'; font-size:12px;">David Alao</span>
+                <div class="sig">Principal Director</div>
               </div>
             </div>
           </div>
@@ -801,555 +598,568 @@ export const TrainingAcademySection: React.FC = () => {
     printWindow.print();
   };
 
-  // Recharts Helper Data Formatter for Tutor Academic Performance Analytics
-  const getSubmissionsOverviewData = () => {
-    // Group submissions by status
-    const submittedCount = submissions.filter(s => s.status === 'submitted').length;
-    const gradedCount = submissions.filter(s => s.status === 'graded').length;
-    return [
-      { name: 'Pending Review', value: submittedCount },
-      { name: 'Graded Coursework', value: gradedCount }
-    ];
-  };
-
-  const getCourseEnrollmentSummary = () => {
-    return courses.map(c => {
-      const enCount = enrollments.filter(e => e.course_id === c.id).length;
-      return {
-        name: c.title.substring(0, 15) + '...',
-        'Students Enrolled': enCount || Math.floor(Math.random() * 8) + 2 // Safe default
-      };
-    });
-  };
-
-  const COLORS = ['#ea580c', '#10b981', '#3b82f6', '#8b5cf6'];
+  // Filtered Catalog
+  const filteredCourses = courses.filter(c => {
+    const matchesCat = catalogCategory === 'all' || c.category === catalogCategory;
+    const matchesSearch = c.title.toLowerCase().includes(catalogSearch.toLowerCase()) || c.description.toLowerCase().includes(catalogSearch.toLowerCase());
+    return matchesCat && matchesSearch;
+  });
 
   return (
-    <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 space-y-10 animate-fade-in text-left text-slate-800 dark:text-slate-100">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} font-sans antialiased transition-colors duration-500 relative`}>
       
-      {/* Upper Status Notifications */}
-      {successMessage && (
-        <div className="p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 rounded-2xl flex items-center gap-3 text-xs font-semibold">
-          <CheckCircle2 size={16} className="shrink-0 text-emerald-500" />
-          <div className="flex-1">{successMessage}</div>
-          <button onClick={() => setSuccessMessage(null)} className="hover:opacity-75 uppercase text-[10px]">Dismiss</button>
-        </div>
-      )}
-      {errorMessage && (
-        <div className="p-4 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 rounded-2xl flex items-center gap-3 text-xs font-semibold">
-          <AlertCircle size={16} className="shrink-0 text-red-500" />
-          <div className="flex-1">{errorMessage}</div>
-          <button onClick={() => setErrorMessage(null)} className="hover:opacity-75 uppercase text-[10px]">Dismiss</button>
-        </div>
-      )}
-
-      {/* Main Page Title Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pb-6 border-b border-slate-200/50 dark:border-slate-800">
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <span className="text-orange-500 text-xs uppercase tracking-widest font-black">Vocational Hub</span>
-            <span className="h-1.5 w-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
-            <span className="text-slate-400 text-xs font-bold font-mono">D1 CLOUD DATA SECURED</span>
-          </div>
-          <h1 className="text-3xl md:text-5xl font-extrabold uppercase font-serif tracking-tight text-[#000E32] dark:text-white flex items-center gap-2">
-            DS Tech <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500 font-extrabold italic">Academy</span>
-          </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm leading-relaxed max-w-xl font-light">
-            Ecosystem for premium certified vocational programs. Enroll in coursework, complete assessment modules, submit assignments to verified trainers, and generate accredited completion credentials.
-          </p>
-        </div>
-
-        {/* High-Fidelity Dual-Portal Navigation Tab */}
-        <div className="bg-slate-100 dark:bg-slate-900/60 p-1 rounded-2xl border border-slate-200/50 dark:border-slate-800 flex shadow-sm shrink-0">
-          <button
-            onClick={() => { setActiveTab('student'); setEnrolledCourse(null); setQuizStarted(false); }}
-            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all flex items-center gap-1.5 ${
-              activeTab === 'student'
-                ? 'bg-[#000E32] dark:bg-orange-600 text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-300 hover:text-[#000E32]'
-            }`}
-          >
-            <GraduationCap size={14} />
-            Student Panel
-          </button>
-          <button
-            onClick={() => { setActiveTab('tutor'); setEnrolledCourse(null); setQuizStarted(false); }}
-            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all flex items-center gap-1.5 ${
-              activeTab === 'tutor'
-                ? 'bg-[#000E32] dark:bg-orange-600 text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-300 hover:text-[#000E32]'
-            }`}
-          >
-            <Users size={14} />
-            Tutor Workspace
-          </button>
-          <button
-            onClick={() => { setActiveTab('admin'); setEnrolledCourse(null); setQuizStarted(false); }}
-            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase transition-all flex items-center gap-1.5 ${
-              activeTab === 'admin'
-                ? 'bg-[#000E32] dark:bg-orange-600 text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-300 hover:text-[#000E32]'
-            }`}
-          >
-            <ShieldAlert size={14} />
-            Admin Panel
-          </button>
-        </div>
+      {/* Toast Notification Container */}
+      <div className="fixed top-5 right-5 z-50 space-y-2 pointer-events-none max-w-sm w-full">
+        <AnimatePresence>
+          {toasts.map(t => (
+            <motion.div
+              key={t.id}
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className={`p-4 rounded-2xl shadow-2xl flex items-start gap-3 border pointer-events-auto ${
+                t.type === 'success' 
+                  ? 'bg-white dark:bg-slate-900 border-emerald-500/30 text-emerald-600 dark:text-emerald-400' 
+                  : t.type === 'error'
+                    ? 'bg-white dark:bg-slate-900 border-red-500/30 text-red-500'
+                    : 'bg-white dark:bg-slate-900 border-indigo-500/30 text-indigo-600 dark:text-indigo-400'
+              }`}
+            >
+              {t.type === 'success' ? <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" /> : <AlertCircle size={16} className="shrink-0 mt-0.5" />}
+              <div className="text-xs font-semibold leading-tight">{t.msg}</div>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
-      <AnimatePresence mode="wait">
-        {activeTab === 'student' && (
-          <motion.div 
-            key="student-panel"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            className="space-y-8"
-          >
-            {enrolledCourse ? (
-              /* ================== CLASSROOM ACTIVE LEARNING ENVIRONMENT ================== */
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                
-                {/* Left Lessons list & progress tracker */}
-                <div className="lg:col-span-4 bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 p-5 rounded-3xl space-y-5 shadow-sm">
-                  <div>
-                    <button 
-                      onClick={() => setEnrolledCourse(null)}
-                      className="text-[10px] uppercase font-black tracking-wider text-slate-400 hover:text-orange-500 flex items-center gap-1 mb-2 transition-colors"
-                    >
-                      ← Back to Course Directory
-                    </button>
-                    <h3 className="font-extrabold text-[#000E32] dark:text-white text-sm uppercase font-serif line-clamp-2 leading-tight">
-                      {enrolledCourse.title}
-                    </h3>
-                  </div>
+      {!isLogged ? (
+        /* ================= ISOLATED ACADEMIC AUTH VIEW ================= */
+        <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+          {/* Ambient background lights */}
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/10 rounded-full blur-[100px] pointer-events-none animate-pulse" />
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[100px] pointer-events-none" />
 
-                  {/* Progressive Roadmap Tracker with clean stats */}
-                  <div className="space-y-2 pt-2 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-100 dark:border-slate-900">
-                    <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-wider text-slate-500">
-                      <span>Curriculum Progress</span>
-                      <span className="font-mono text-orange-500">
-                        {Math.round((completedLessonIds.length / enrolledCourse.lessons.length) * 100)}%
-                      </span>
-                    </div>
-                    
-                    {/* Progress Bar with elegant animation */}
-                    <div className="h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(completedLessonIds.length / enrolledCourse.lessons.length) * 100}%` }}
-                        className="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full"
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden relative z-10 p-8 space-y-6">
+            
+            {/* Theme Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setIsDarkMode(!isDarkMode)}
+              className="absolute top-6 right-6 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
+            >
+              {isDarkMode ? <Sun size={15} className="text-orange-400" /> : <Moon size={15} className="text-indigo-500" />}
+            </button>
+
+            <div className="flex flex-col items-center text-center space-y-3">
+              <Logo size="md" variant={isDarkMode ? 'light' : 'dark'} className="mx-auto" />
+              <div className="space-y-1">
+                <span className="px-3 py-1 bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[10px] font-black uppercase tracking-widest rounded-full border border-orange-500/20">
+                  DS Tech Academy Portal
+                </span>
+                <h1 className="text-xl font-bold font-serif uppercase tracking-tight text-slate-900 dark:text-white mt-2">
+                  Academic Learning Portal
+                </h1>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Access vocational tracks, submit coursework, earn diplomas, and mentor learners.
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Reviewer Demo Login Node */}
+            <div className="p-4 bg-orange-500/5 dark:bg-orange-950/20 border border-orange-500/20 rounded-2xl space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold text-slate-900 dark:text-white">Reviewer Demo Nodes</span>
+                <span className="text-[10px] text-orange-500 font-mono font-bold">1-Click Instant Login</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => handleDemoLogin(DEMO_STUDENT)}
+                  className="py-1.5 px-2 bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-[9px] uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1"
+                >
+                  <GraduationCap size={10} />
+                  <span>Student</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDemoLogin(DEMO_TUTOR)}
+                  className="py-1.5 px-2 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-[9px] uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1"
+                >
+                  <Users size={10} />
+                  <span>Tutor</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDemoLogin(DEMO_ADMIN)}
+                  className="py-1.5 px-2 bg-slate-800 hover:bg-slate-700 text-white font-extrabold text-[9px] uppercase tracking-wider rounded-xl transition-all shadow-sm flex items-center justify-center gap-1 border border-slate-700"
+                >
+                  <ShieldAlert size={10} />
+                  <span>Admin</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Access Role Selector */}
+            <div className="space-y-1.5">
+              <label className="font-extrabold uppercase text-[9px] tracking-wider text-slate-500 block text-left">Select Portal Role</label>
+              <div className="grid grid-cols-3 gap-1.5 bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('student')}
+                  className={`py-2 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                    selectedRole === 'student' ? 'bg-white dark:bg-slate-800 text-orange-600 dark:text-orange-400 shadow-sm' : 'text-slate-500'
+                  }`}
+                >
+                  <GraduationCap size={12} />
+                  <span>Student</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('tutor')}
+                  className={`py-2 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                    selectedRole === 'tutor' ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm' : 'text-slate-500'
+                  }`}
+                >
+                  <Users size={12} />
+                  <span>Tutor</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedRole('admin')}
+                  className={`py-2 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 ${
+                    selectedRole === 'admin' ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500'
+                  }`}
+                >
+                  <ShieldAlert size={12} />
+                  <span>Admin</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Auth Mode Tabs (Sign In / Register) */}
+            <div className="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setAuthState('signin')}
+                className={`flex-1 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
+                  authState === 'signin' ? 'bg-white dark:bg-slate-800 text-orange-600 dark:text-orange-400 shadow-sm' : 'text-slate-500'
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => setAuthState('register')}
+                className={`flex-1 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
+                  authState === 'register' ? 'bg-white dark:bg-slate-800 text-orange-600 dark:text-orange-400 shadow-sm' : 'text-slate-500'
+                }`}
+              >
+                Register
+              </button>
+            </div>
+
+            <AnimatePresence mode="wait">
+              {authState === 'signin' ? (
+                <motion.form
+                  key="signin"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  onSubmit={handleSignIn}
+                  className="space-y-4 text-left text-xs"
+                >
+                  <div className="space-y-1.5">
+                    <label className="font-extrabold uppercase text-[10px] tracking-wider text-slate-500">Academic Email</label>
+                    <div className="relative flex items-center">
+                      <Mail size={14} className="absolute left-3.5 text-slate-400" />
+                      <input
+                        type="email"
+                        required
+                        value={authEmail}
+                        onChange={e => setAuthEmail(e.target.value)}
+                        placeholder="david@dstech.agency"
+                        className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
                       />
                     </div>
-                    <div className="text-[10px] text-slate-400 font-medium">
-                      {completedLessonIds.length} of {enrolledCourse.lessons.length} lessons finalized
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="font-extrabold uppercase text-[10px] tracking-wider text-slate-500">Password</label>
+                    <div className="relative flex items-center">
+                      <Key size={14} className="absolute left-3.5 text-slate-400" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={authPassword}
+                        onChange={e => setAuthPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full pl-10 pr-10 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                      />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 text-slate-400">
+                        {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
+                      </button>
                     </div>
                   </div>
 
-                  <div className="h-px bg-slate-200 dark:bg-slate-800" />
+                  <button
+                    type="submit"
+                    className="w-full py-3 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-orange-600 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-md cursor-pointer mt-4"
+                  >
+                    Enter {selectedRole.toUpperCase()} Workspace
+                  </button>
+                </motion.form>
+              ) : (
+                <motion.form
+                  key="register"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  onSubmit={handleRegister}
+                  className="space-y-3.5 text-left text-xs"
+                >
+                  <div className="space-y-1">
+                    <label className="font-extrabold uppercase text-[9px] tracking-wider text-slate-500">Full Name</label>
+                    <div className="relative flex items-center">
+                      <User size={14} className="absolute left-3.5 text-slate-400" />
+                      <input
+                        type="text"
+                        required
+                        value={authFullName}
+                        onChange={e => setAuthFullName(e.target.value)}
+                        placeholder="e.g. David Alao"
+                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
 
-                  <div className="space-y-2.5">
-                    <span className="text-[10px] uppercase font-black text-slate-400 block tracking-wider">Lesson Roadmap</span>
-                    {enrolledCourse.lessons.map((les, i) => {
-                      const isDone = completedLessonIds.includes(les.id);
-                      return (
-                        <div
-                          key={les.id}
-                          className={`w-full text-left p-3 rounded-xl border transition-all text-xs flex items-center justify-between gap-3 ${
-                            activeLesson?.id === les.id
-                              ? 'bg-orange-50/40 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900 text-[#000E32] dark:text-orange-400 font-bold'
-                              : 'bg-white dark:bg-slate-950 border-slate-200/50 dark:border-slate-850 text-slate-700 dark:text-slate-300'
+                  <div className="space-y-1">
+                    <label className="font-extrabold uppercase text-[9px] tracking-wider text-slate-500">Academic Email</label>
+                    <div className="relative flex items-center">
+                      <Mail size={14} className="absolute left-3.5 text-slate-400" />
+                      <input
+                        type="email"
+                        required
+                        value={authEmail}
+                        onChange={e => setAuthEmail(e.target.value)}
+                        placeholder="david@dstech.agency"
+                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-extrabold uppercase text-[9px] tracking-wider text-slate-500">Password</label>
+                    <div className="relative flex items-center">
+                      <Key size={14} className="absolute left-3.5 text-slate-400" />
+                      <input
+                        type="password"
+                        required
+                        value={authPassword}
+                        onChange={e => setAuthPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full py-3 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-orange-600 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-md cursor-pointer mt-2"
+                  >
+                    Register {selectedRole.toUpperCase()} Profile
+                  </button>
+                </motion.form>
+              )}
+            </AnimatePresence>
+
+          </div>
+        </div>
+      ) : (
+        /* ================= ISOLATED ACADEMIC DASHBOARD VIEW ================= */
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col">
+          
+          {/* HEADER */}
+          <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-3 sm:px-6 flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsHamburgerOpen(true)}
+                className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+              >
+                <Menu size={18} />
+              </button>
+              
+              <div className="flex items-center gap-2">
+                <Logo size="sm" variant={isDarkMode ? 'light' : 'dark'} showText={true} />
+                <span className="hidden sm:inline-block px-2.5 py-0.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 text-[9px] font-black uppercase tracking-wider rounded-full border border-orange-500/20">
+                  {currentUser?.role === 'student' ? 'Learner Portal' : currentUser?.role === 'tutor' ? 'Educator Workspace' : 'Academy Admin'}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* User Badge */}
+              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700">
+                <User size={13} className="text-orange-500" />
+                <span className="text-slate-900 dark:text-white">{currentUser?.name}</span>
+              </div>
+
+              {/* Theme Toggle */}
+              <button
+                type="button"
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:scale-105 transition-all cursor-pointer"
+              >
+                {isDarkMode ? <Sun size={15} className="text-orange-400" /> : <Moon size={15} className="text-indigo-500" />}
+              </button>
+
+              {/* Sign Out */}
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="p-2 sm:px-3 sm:py-1.5 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-900/40 rounded-xl text-xs font-bold transition-all hover:bg-red-100 cursor-pointer flex items-center gap-1"
+              >
+                <LogOut size={14} />
+                <span className="hidden sm:inline">Sign Out</span>
+              </button>
+            </div>
+          </header>
+
+          {/* HAMBURGER SLIDE-OUT DRAWER */}
+          <AnimatePresence>
+            {isHamburgerOpen && (
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.5 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsHamburgerOpen(false)}
+                  className="fixed inset-0 bg-black/60 z-50 backdrop-blur-xs"
+                />
+
+                <motion.div
+                  initial={{ x: '-100%' }}
+                  animate={{ x: 0 }}
+                  exit={{ x: '-100%' }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  className="fixed top-0 left-0 bottom-0 w-80 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 z-50 p-6 flex flex-col justify-between shadow-2xl"
+                >
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-800">
+                      <div>
+                        <span className="text-[10px] uppercase font-black text-orange-500">Navigation Hub</span>
+                        <h3 className="font-serif font-extrabold text-[#000E32] dark:text-white uppercase text-base">Academy Tools</h3>
+                      </div>
+                      <button
+                        onClick={() => setIsHamburgerOpen(false)}
+                        className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    {/* Drawer List Nav */}
+                    <div className="space-y-1.5">
+                      <button
+                        onClick={() => { setActiveDashboardTab('catalog'); setIsHamburgerOpen(false); }}
+                        className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center gap-3 transition-colors ${
+                          activeDashboardTab === 'catalog' ? 'bg-orange-500 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <BookOpen size={16} />
+                        <span>Courses Catalog</span>
+                      </button>
+
+                      <button
+                        onClick={() => { setActiveDashboardTab('my-courses'); setIsHamburgerOpen(false); }}
+                        className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center gap-3 transition-colors ${
+                          activeDashboardTab === 'my-courses' ? 'bg-orange-500 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <GraduationCap size={16} />
+                        <span>My Enrolled Tracks</span>
+                      </button>
+
+                      <button
+                        onClick={() => { setActiveDashboardTab('submissions'); setIsHamburgerOpen(false); }}
+                        className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center gap-3 transition-colors ${
+                          activeDashboardTab === 'submissions' ? 'bg-orange-500 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <ClipboardList size={16} />
+                        <span>Coursework Deliverables</span>
+                      </button>
+
+                      <button
+                        onClick={() => { setActiveDashboardTab('certificates'); setIsHamburgerOpen(false); }}
+                        className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center gap-3 transition-colors ${
+                          activeDashboardTab === 'certificates' ? 'bg-orange-500 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        }`}
+                      >
+                        <Trophy size={16} />
+                        <span>Verified Diplomas</span>
+                      </button>
+
+                      {(currentUser?.role === 'tutor' || currentUser?.role === 'admin') && (
+                        <button
+                          onClick={() => { setActiveDashboardTab('tutor-creator'); setIsHamburgerOpen(false); }}
+                          className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center gap-3 transition-colors ${
+                            activeDashboardTab === 'tutor-creator' ? 'bg-orange-500 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
                           }`}
                         >
-                          <button
-                            onClick={() => {
-                              setActiveLesson(les);
-                              setQuizStarted(false);
-                              setQuizFinished(false);
-                            }}
-                            className="flex items-start gap-3 flex-1 text-left"
-                          >
-                            <span className="font-mono text-slate-400">0{i+1}</span>
-                            <div className="space-y-0.5">
-                              <span className="block line-clamp-1 text-xs">{les.title}</span>
-                              <span className="text-[10px] text-slate-400 font-light block">{les.duration}</span>
-                            </div>
-                          </button>
+                          <Plus size={16} />
+                          <span>Course Creator Studio</span>
+                        </button>
+                      )}
 
-                          {/* Quick completion toggle */}
-                          <button
-                            onClick={() => handleToggleLessonComplete(les.id)}
-                            className={`p-1.5 rounded-lg border transition-all ${
-                              isDone 
-                                ? 'bg-emerald-500 border-emerald-500 text-white' 
-                                : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-400'
-                            }`}
-                            title={isDone ? "Mark as incomplete" : "Mark as completed"}
-                          >
-                            <Check size={11} strokeWidth={3} />
-                          </button>
-                        </div>
-                      );
-                    })}
+                      {(currentUser?.role === 'admin' || currentUser?.role === 'tutor') && (
+                        <button
+                          onClick={() => { setActiveDashboardTab('admin-mgmt'); setIsHamburgerOpen(false); }}
+                          className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center gap-3 transition-colors ${
+                            activeDashboardTab === 'admin-mgmt' ? 'bg-orange-500 text-white' : 'hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
+                          }`}
+                        >
+                          <ShieldAlert size={16} />
+                          <span>Student & Tutor Mgmt</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Trigger Quiz Assessment block */}
-                  <div className="pt-2">
+                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
                     <button
-                      onClick={() => {
-                        setQuizStarted(true);
-                        setQuizFinished(false);
-                        setCurrentQuestion(0);
-                        setSelectedAnswers([]);
-                      }}
-                      className="w-full py-2.5 bg-gradient-to-r from-[#000E32] to-[#1d2d54] dark:from-orange-600 dark:to-orange-500 text-white font-black text-[11px] uppercase tracking-wider rounded-xl text-center flex items-center justify-center gap-1.5 shadow-md hover:opacity-90 transition-opacity"
+                      onClick={handleSignOut}
+                      className="w-full py-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-950/40 text-red-600 text-xs font-extrabold uppercase rounded-xl flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      <Trophy size={13} className="text-amber-400" />
-                      <span>Take Accreditation Quiz</span>
+                      <LogOut size={14} />
+                      <span>Sign Out</span>
                     </button>
                   </div>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+
+          {/* MAIN CONTENT AREA */}
+          <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-8 space-y-8">
+            
+            {/* HERO STATS OVERVIEW */}
+            <div className="bg-gradient-to-br from-[#000E32] via-[#011442] to-slate-950 text-white rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden border border-indigo-950">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+              
+              <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 bg-orange-500/20 text-orange-400 border border-orange-500/30 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-widest">
+                    <Sparkles size={12} className="animate-pulse" />
+                    <span>Academic Cockpit Active</span>
+                  </div>
+                  <h1 className="text-2xl md:text-4xl font-extrabold uppercase font-serif tracking-tight">
+                    Welcome, {currentUser?.name}
+                  </h1>
+                  <p className="text-xs text-slate-300 max-w-xl font-light">
+                    Track your vocational course progress, complete coursework assignments, pass accreditation tests, and access verified cryptographic diplomas.
+                  </p>
                 </div>
 
-                {/* Right Interactive Viewport Area */}
-                <div className="lg:col-span-8 space-y-8">
-                  <div className="bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 p-6 md:p-8 rounded-3xl shadow-sm">
-                    {quizStarted ? (
-                      /* ACTIVE ASSESSMENT MODULE */
-                      <div className="space-y-6">
-                        <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-800">
-                          <span className="text-xs uppercase font-black text-orange-500 flex items-center gap-1.5">
-                            <Trophy size={14} className="animate-bounce" />
-                            Accreditation Assessment
-                          </span>
-                          <span className="text-xs font-mono font-bold text-slate-400">
-                            Question {currentQuestion + 1} of {quizQuestions.length}
-                          </span>
-                        </div>
-
-                        {quizFinished ? (
-                          <div className="text-center py-6 space-y-4">
-                            {quizScore === quizQuestions.length ? (
-                              <div className="space-y-4">
-                                <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/40 flex items-center justify-center text-emerald-500 mx-auto">
-                                  <CheckCircle size={36} />
-                                </div>
-                                <h3 className="font-extrabold text-slate-900 dark:text-white text-lg uppercase font-serif">Assessment Perfect Score! (100%)</h3>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed max-w-sm mx-auto">
-                                  Superb performance! You answered all vocational questions correctly. Your digital certificate has been permanently issued to the registry.
-                                </p>
-                                
-                                {certificates.length > 0 && (
-                                  <div className="pt-4 flex justify-center gap-3">
-                                    <button
-                                      onClick={() => printCertificate(certificates[0])}
-                                      className="px-5 py-2.5 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-xs font-extrabold uppercase rounded-xl tracking-wider flex items-center gap-1.5 shadow-md hover:shadow-lg transition-all"
-                                    >
-                                      <Award size={13} />
-                                      Print Official Certificate
-                                    </button>
-                                    <button
-                                      onClick={() => setQuizStarted(false)}
-                                      className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-extrabold uppercase rounded-xl"
-                                    >
-                                      Back to Classroom
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <div className="space-y-4">
-                                <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-950/40 flex items-center justify-center text-red-500 mx-auto">
-                                  <HelpCircle size={36} />
-                                </div>
-                                <h3 className="font-extrabold text-slate-900 dark:text-white text-lg uppercase font-serif">Accreditation Unfinished ({quizScore}/{quizQuestions.length})</h3>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed max-w-sm mx-auto">
-                                  You must score 100% (3/3) correct answers to unlock an accredited DS Tech Academy vocational diploma.
-                                </p>
-                                <div className="pt-4">
-                                  <button
-                                    onClick={() => {
-                                      setCurrentQuestion(0);
-                                      setSelectedAnswers([]);
-                                      setQuizFinished(false);
-                                    }}
-                                    className="px-5 py-2.5 bg-[#000E32] dark:bg-orange-600 text-white text-xs font-extrabold uppercase rounded-xl tracking-wider"
-                                  >
-                                    Retry Assessment
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="space-y-5">
-                            <h4 className="font-extrabold text-[#000E32] dark:text-white text-sm uppercase font-serif leading-snug">
-                              {quizQuestions[currentQuestion].q}
-                            </h4>
-                            <div className="space-y-2.5">
-                              {quizQuestions[currentQuestion].options.map((opt, oIdx) => (
-                                <button
-                                  key={oIdx}
-                                  onClick={() => handleAnswerSelect(oIdx)}
-                                  className={`w-full p-4 rounded-2xl border text-xs text-left transition-all font-semibold ${
-                                    selectedAnswers[currentQuestion] === oIdx
-                                      ? 'bg-orange-50/40 dark:bg-orange-950/30 border-orange-400 text-orange-600 dark:text-orange-400'
-                                      : 'bg-white dark:bg-slate-950 border-slate-200/50 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-850'
-                                  }`}
-                                >
-                                  <span className="inline-block mr-2 text-slate-400 font-mono font-bold">
-                                    {String.fromCharCode(65 + oIdx)}.
-                                  </span>
-                                  {opt}
-                                </button>
-                              ))}
-                            </div>
-
-                            <div className="pt-4 flex justify-end">
-                              <button
-                                onClick={handleNextQuizQuestion}
-                                disabled={selectedAnswers[currentQuestion] === undefined}
-                                className="px-5 py-2.5 bg-[#000E32] dark:bg-orange-600 text-white text-xs font-black uppercase rounded-xl disabled:opacity-40 hover:opacity-90"
-                              >
-                                {currentQuestion === quizQuestions.length - 1 ? 'Submit Assessment' : 'Next Question'}
-                              </button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ) : activeLesson ? (
-                      /* ACTIVE LECTURE MODULE VIEWPORT */
-                      <div className="space-y-6">
-                        <div className="flex justify-between items-center pb-4 border-b border-slate-100 dark:border-slate-800">
-                          <span className="text-xs uppercase font-black text-orange-500 tracking-wider">Active Lecture Module</span>
-                          <span className="text-[10px] bg-slate-100 dark:bg-slate-850 text-slate-500 px-2.5 py-1 rounded-full font-bold">AUDIO INTERACTIVE CONSOLE</span>
-                        </div>
-
-                        <div className="space-y-3 text-left">
-                          <h2 className="font-extrabold text-[#000E32] dark:text-white text-lg md:text-xl uppercase font-serif tracking-tight">
-                            {activeLesson.title}
-                          </h2>
-                          
-                          {/* Rich Lecture Visual Player */}
-                          <div className="h-48 bg-[#000E32]/95 rounded-2xl flex flex-col items-center justify-center p-6 text-center border border-white/5 relative overflow-hidden shadow-inner">
-                            <div className="absolute inset-0 bg-[linear-gradient(to_right,#021a52_1px,transparent_1px),linear-gradient(to_bottom,#021a52_1px,transparent_1px)] bg-[size:24px_24px] opacity-15" />
-                            <div className="w-12 h-12 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/30 mb-2 relative z-10 animate-pulse">
-                              <Play className="fill-current text-orange-500" size={18} />
-                            </div>
-                            <span className="text-white text-xs font-bold font-serif uppercase relative z-10">Academy Lecture Audio Node</span>
-                            <span className="text-slate-400 text-[10px] relative z-10 font-mono">DSTECH_STREAM_DELETION_{activeLesson.id.toUpperCase()}</span>
-                            
-                            {/* Wave bar simulator */}
-                            <div className="flex items-end gap-1 mt-4 relative z-10">
-                              <span className="w-1 h-3 bg-orange-500 rounded animate-pulse" />
-                              <span className="w-1 h-6 bg-orange-500 rounded animate-pulse" style={{ animationDelay: '0.2s' }} />
-                              <span className="w-1 h-8 bg-orange-500 rounded animate-pulse" style={{ animationDelay: '0.4s' }} />
-                              <span className="w-1 h-4 bg-orange-500 rounded animate-pulse" style={{ animationDelay: '0.1s' }} />
-                              <span className="w-1 h-2 bg-orange-500 rounded animate-pulse" />
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2 text-left">
-                          <span className="text-[10px] uppercase font-black text-slate-400 block tracking-wider">Lesson Materials & Core Directives</span>
-                          <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed font-light bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-100 dark:border-slate-800">
-                            {activeLesson.content || "Learn the technical framework, target segmentation metrics, and algorithmic bidding routines. Download hand-out worksheets below to track optimizations."}
-                          </p>
-                        </div>
-
-                        {/* Interactive Lecture Handout */}
-                        <div className="flex flex-wrap items-center justify-between gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                          <button 
-                            onClick={() => alert("Lecture Handout Worksheets have been downloaded successfully (mock-PDF).")}
-                            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 text-[11px] font-black uppercase rounded-xl flex items-center gap-1.5 transition-colors"
-                          >
-                            <Download size={13} />
-                            Download Materials
-                          </button>
-                          
-                          <button
-                            onClick={() => {
-                              setQuizStarted(true);
-                              setQuizFinished(false);
-                              setCurrentQuestion(0);
-                              setSelectedAnswers([]);
-                            }}
-                            className="px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white text-[11px] font-black uppercase rounded-xl tracking-wider flex items-center gap-1.5 shadow-md"
-                          >
-                            <Trophy size={13} />
-                            Accreditation Quiz
-                          </button>
-                        </div>
-                      </div>
-                    ) : null}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full md:w-auto">
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-2xl text-center space-y-1">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">Enrolled Tracks</span>
+                    <span className="text-xl font-black text-orange-400">{enrollments.length}</span>
                   </div>
-
-                  {/* ================== COURSEWORK SUBMISSION BOARD ================== */}
-                  {activeLesson && (
-                    <div className="bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 p-6 md:p-8 rounded-3xl space-y-6 shadow-sm">
-                      <div className="border-b border-slate-100 dark:border-slate-800 pb-3 text-left">
-                        <span className="text-xs uppercase font-black text-orange-500 tracking-wider block mb-1">Pillar 2: Deliverables</span>
-                        <h4 className="font-extrabold text-[#000E32] dark:text-white text-base uppercase font-serif">
-                          Milestone & Assignment Submission
-                        </h4>
-                      </div>
-
-                      <form onSubmit={handleAddSubmission} className="space-y-4">
-                        <div className="text-left space-y-1.5">
-                          <label className="text-[10px] uppercase font-black text-slate-400">Assignment Response Text</label>
-                          <textarea
-                            value={submissionText}
-                            onChange={(e) => setSubmissionText(e.target.value)}
-                            placeholder="Provide your complete code snippet, campaign URL parameters, or written response matching this milestone guidelines..."
-                            className="w-full h-32 px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-2xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-orange-500"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div className="text-left space-y-1.5">
-                            <label className="text-[10px] uppercase font-black text-slate-400">Google Drive / Figma Key Link (Optional)</label>
-                            <input
-                              type="text"
-                              value={submissionFileKey}
-                              onChange={(e) => setSubmissionFileKey(e.target.value)}
-                              placeholder="https://drive.google.com/shared/link..."
-                              className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-orange-500"
-                            />
-                          </div>
-
-                          <div className="text-left space-y-1.5 flex flex-col justify-end">
-                            <button
-                              type="submit"
-                              className="w-full py-2.5 bg-[#000E32] dark:bg-orange-600 text-white font-black text-[11px] uppercase tracking-wider rounded-xl hover:opacity-90 flex items-center justify-center gap-1.5"
-                            >
-                              <Send size={12} />
-                              Submit Coursework
-                            </button>
-                          </div>
-                        </div>
-                      </form>
-
-                      {/* Coursework Status & History Registry */}
-                      <div className="pt-4">
-                        <span className="text-[10px] uppercase font-black text-slate-400 block tracking-wider mb-3 text-left">Your Submission Log for this Course</span>
-                        <div className="space-y-3">
-                          {submissions.filter(s => s.course_id === enrolledCourse.id).length === 0 ? (
-                            <p className="text-xs text-slate-400 italic font-light text-left">No submissions recorded for this course curriculum yet.</p>
-                          ) : (
-                            submissions.filter(s => s.course_id === enrolledCourse.id).map((sub) => {
-                              const matchingLesson = enrolledCourse.lessons.find(l => l.id === sub.lesson_id);
-                              return (
-                                <div key={sub.id} className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200/50 dark:border-slate-850 rounded-2xl flex flex-col md:flex-row justify-between gap-4 text-left">
-                                  <div className="space-y-1.5 flex-1">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-xs font-bold uppercase text-[#000E32] dark:text-orange-400">
-                                        {matchingLesson?.title || 'Lecture Module'}
-                                      </span>
-                                      <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${
-                                        sub.status === 'graded' 
-                                          ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600' 
-                                          : 'bg-amber-100 dark:bg-amber-950/40 text-amber-600'
-                                      }`}>
-                                        {sub.status}
-                                      </span>
-                                    </div>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 italic font-light">
-                                      "{sub.submission_text}"
-                                    </p>
-                                    {sub.feedback && (
-                                      <div className="p-3 bg-indigo-50/40 dark:bg-indigo-950/25 border-l-2 border-indigo-500 text-[11px] text-indigo-700 dark:text-indigo-300">
-                                        <strong>Instructor Feedback:</strong> {sub.feedback}
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  <div className="flex flex-row md:flex-col justify-between items-end shrink-0 gap-2">
-                                    <span className="text-[10px] text-slate-400 font-mono">
-                                      {new Date(sub.submitted_at).toLocaleDateString()}
-                                    </span>
-                                    {sub.status === 'graded' && (
-                                      <div className="flex items-center gap-1 bg-emerald-500 text-white font-mono font-black text-xs px-2.5 py-1 rounded-lg">
-                                        <span>Grade:</span>
-                                        <span>{sub.grade}</span>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-2xl text-center space-y-1">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">Submissions</span>
+                    <span className="text-xl font-black text-emerald-400">{submissions.length}</span>
+                  </div>
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-2xl text-center space-y-1">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">Diplomas</span>
+                    <span className="text-xl font-black text-amber-400">{certificates.length}</span>
+                  </div>
+                  <div className="p-3 bg-white/5 border border-white/10 rounded-2xl text-center space-y-1">
+                    <span className="text-[9px] font-black uppercase text-slate-400 block">Role</span>
+                    <span className="text-xs font-black uppercase text-indigo-300">{currentUser?.role}</span>
+                  </div>
                 </div>
               </div>
-            ) : (
-              /* ================== COURSE CATALOG DIRECTORY ================== */
-              <div className="space-y-6 text-left">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider">Accredited Career Tracks</span>
-                  <div className="flex gap-2 text-xs">
-                    <span className="text-orange-500 font-bold">{courses.length} courses</span>
-                    <span className="text-slate-300">|</span>
-                    <span className="text-slate-400">Cloud Sync Active</span>
+            </div>
+
+            {/* TAB 1: COURSES CATALOG */}
+            {activeDashboardTab === 'catalog' && (
+              <div className="space-y-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 pb-4 border-b border-slate-200 dark:border-slate-800">
+                  <div>
+                    <span className="text-orange-500 text-[10px] uppercase font-black tracking-widest">Vocational Training Catalog</span>
+                    <h2 className="text-xl md:text-2xl font-extrabold uppercase font-serif text-slate-900 dark:text-white">Accredited Programs</h2>
+                  </div>
+
+                  {/* Filters & Search */}
+                  <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-60">
+                      <Search size={14} className="absolute left-3 top-3 text-slate-400" />
+                      <input
+                        type="text"
+                        placeholder="Search courses..."
+                        value={catalogSearch}
+                        onChange={e => setCatalogSearch(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                      />
+                    </div>
+
+                    <select
+                      value={catalogCategory}
+                      onChange={e => setCatalogCategory(e.target.value)}
+                      className="px-3 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white font-bold"
+                    >
+                      <option value="all">All Categories</option>
+                      <option value="web">Web & Software</option>
+                      <option value="marketing">Digital Marketing</option>
+                      <option value="ai">AI Integration</option>
+                      <option value="business">Business Strategy</option>
+                      <option value="compliance">CAC Compliance</option>
+                    </select>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {courses.map((course, idx) => {
-                    const isEnrolled = enrollments.some(e => e.course_id === course.id);
-                    const matchedEnroll = enrollments.find(e => e.course_id === course.id);
-
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {filteredCourses.map(course => {
+                    const isEnrolled = enrollments.some(e => e.course_id === course.id && e.user_id === currentUser?.id);
                     return (
-                      <motion.div 
-                        key={course.id} 
-                        initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                        whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: idx * 0.08, type: "spring", stiffness: 280, damping: 20 }}
-                        whileHover={{ 
-                          y: -6, 
-                          scale: 1.015,
-                          borderColor: 'rgba(249, 115, 22, 0.4)',
-                          boxShadow: "0 15px 25px -5px rgba(0, 0, 0, 0.05)"
-                        }}
-                        className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row group relative"
+                      <motion.div
+                        key={course.id}
+                        whileHover={{ y: -4 }}
+                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm flex flex-col justify-between"
                       >
-                        {/* Floating fit score for academy vibe */}
-                        <div className="absolute top-3 left-3 bg-[#000E32]/95 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase tracking-widest flex items-center gap-1 z-10 backdrop-blur-sm shadow-md">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                          <span>98.4% Match Score</span>
-                        </div>
-
-                        <div className="sm:w-2/5 h-44 sm:h-auto overflow-hidden relative shrink-0">
-                          <img src={course.image} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 ease-out" referrerPolicy="no-referrer" />
-                        </div>
-                        <div className="p-6 sm:w-3/5 flex flex-col justify-between space-y-4">
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between items-center text-[9px] font-bold text-slate-400">
-                              <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-850 text-orange-500 rounded font-black uppercase">
-                                {course.level}
-                              </span>
-                              <span>{course.duration}</span>
+                        <div>
+                          <div className="h-44 overflow-hidden relative">
+                            <img src={course.image} alt={course.title} className="w-full h-full object-cover" />
+                            <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-lg">
+                              {course.level}
                             </div>
-                            <h3 className="font-extrabold text-[#000E32] dark:text-white text-xs md:text-sm line-clamp-2 leading-tight font-serif uppercase group-hover:text-orange-500 transition-colors">
-                              {course.title}
-                            </h3>
-                            <p className="text-slate-500 dark:text-slate-400 text-xs font-light line-clamp-2">
-                              {course.description}
-                            </p>
+                            <div className="absolute top-3 right-3 bg-orange-500 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow-sm">
+                              {course.category}
+                            </div>
                           </div>
+                          <div className="p-5 space-y-3 text-left">
+                            <div className="flex justify-between items-center text-[11px] font-mono font-bold text-orange-500">
+                              <span>{course.duration}</span>
+                              <span>{course.price}</span>
+                            </div>
+                            <h3 className="font-serif font-bold text-slate-900 dark:text-white uppercase text-base line-clamp-1">{course.title}</h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 font-light leading-relaxed">{course.description}</p>
+                          </div>
+                        </div>
 
-                          <div className="flex justify-between items-center pt-2.5 border-t border-slate-100 dark:border-slate-800">
-                            <span className="text-xs font-mono font-black text-orange-500">{course.price}</span>
-                            <button
-                              onClick={() => handleEnroll(course)}
-                              className="px-4 py-1.5 bg-[#000E32] dark:bg-orange-600 hover:opacity-90 text-white text-[10px] font-black uppercase rounded-xl tracking-wider flex items-center gap-1 transition-all"
-                            >
-                              <span>{isEnrolled ? `Resume Class (${matchedEnroll?.progress || 0}%)` : 'Enroll Now'}</span>
-                              <ArrowRight size={11} />
-                            </button>
-                          </div>
+                        <div className="p-5 pt-0">
+                          <button
+                            onClick={() => handleEnroll(course)}
+                            className={`w-full py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                              isEnrolled
+                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md'
+                                : 'bg-[#000E32] hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500 text-white shadow-md'
+                            }`}
+                          >
+                            <span>{isEnrolled ? 'Continue Track' : 'Enroll & Start Learning'}</span>
+                            <ArrowRight size={14} />
+                          </button>
                         </div>
                       </motion.div>
                     );
@@ -1357,576 +1167,499 @@ export const TrainingAcademySection: React.FC = () => {
                 </div>
               </div>
             )}
-          </motion.div>
-        )}
 
-        {activeTab === 'tutor' && (
-          <motion.div 
-            key="tutor-panel"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            className="space-y-8"
-          >
-            {!currentTutorProfile ? (
-              /* ================== REGISTER / APPLY AS TUTOR FORM ================== */
-              <div className="max-w-2xl mx-auto bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 p-8 rounded-3xl space-y-6 shadow-sm text-left">
-                <div className="space-y-2 border-b border-slate-100 dark:border-slate-800 pb-4">
-                  <span className="text-xs uppercase font-black text-orange-500 tracking-wider">Become a Trainer</span>
-                  <h2 className="text-2xl font-extrabold uppercase font-serif tracking-tight text-[#000E32] dark:text-white">
-                    Apply as DS Tech Academy Tutor
-                  </h2>
-                  <p className="text-slate-500 dark:text-slate-400 text-xs font-light leading-relaxed">
-                    Join our database of verified academic tutors. Approved tutors have workspaces to design custom curricula, structure milestone homework tasks, score submissions, and access student compliance performance stats.
-                  </p>
-                </div>
-
-                <form onSubmit={handleTutorRegister} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] uppercase font-black text-slate-400">Full Name</label>
-                      <input
-                        type="text"
-                        value={tutorApplication.full_name}
-                        onChange={(e) => setTutorApplication(prev => ({ ...prev, full_name: e.target.value }))}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-slate-100"
-                        required
-                      />
+            {/* TAB 2: MY ENROLLED TRACKS */}
+            {activeDashboardTab === 'my-courses' && (
+              <div className="space-y-6 text-left">
+                {enrollments.length === 0 ? (
+                  <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-4">
+                    <GraduationCap size={40} className="mx-auto text-slate-400" />
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-bold uppercase font-serif">No Enrolled Tracks Yet</h3>
+                      <p className="text-xs text-slate-500">Browse the Courses Catalog to enroll in your first vocational program.</p>
+                    </div>
+                    <button
+                      onClick={() => setActiveDashboardTab('catalog')}
+                      className="px-5 py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                    >
+                      Browse Catalog
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    {/* Course Selection List */}
+                    <div className="lg:col-span-4 space-y-3">
+                      <span className="text-[10px] uppercase font-black text-orange-500 tracking-wider block">Your Enrolled Tracks</span>
+                      {enrollments.map(enr => {
+                        const crs = courses.find(c => c.id === enr.course_id);
+                        if (!crs) return null;
+                        const isSelected = enrolledCourse?.id === crs.id;
+                        return (
+                          <div
+                            key={enr.id}
+                            onClick={() => {
+                              setEnrolledCourse(crs);
+                              setActiveLesson(crs.lessons[0]);
+                              try {
+                                setCompletedLessonIds(JSON.parse(enr.completed_lessons || '[]'));
+                              } catch { setCompletedLessonIds([]); }
+                            }}
+                            className={`p-4 rounded-2xl border transition-all cursor-pointer space-y-2 ${
+                              isSelected
+                                ? 'bg-orange-500/10 border-orange-500/40 text-slate-900 dark:text-white'
+                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-orange-500/20'
+                            }`}
+                          >
+                            <div className="flex justify-between items-center text-xs font-bold">
+                              <span className="font-serif uppercase truncate">{crs.title}</span>
+                              <span className="text-orange-500 font-mono text-[10px]">{enr.progress}%</span>
+                            </div>
+                            <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                              <div className="h-full bg-orange-500 rounded-full transition-all" style={{ width: `${enr.progress}%` }} />
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
 
-                    <div className="space-y-1.5">
-                      <label className="text-[10px] uppercase font-black text-slate-400">Contact Email Address</label>
-                      <input
-                        type="email"
-                        value={tutorApplication.email}
-                        onChange={(e) => setTutorApplication(prev => ({ ...prev, email: e.target.value }))}
-                        className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-slate-100"
-                        required
-                      />
+                    {/* Active Learning Classroom */}
+                    <div className="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-6">
+                      {enrolledCourse && activeLesson ? (
+                        <>
+                          <div className="pb-4 border-b border-slate-100 dark:border-slate-800 space-y-2">
+                            <span className="text-[10px] uppercase font-black text-orange-500 tracking-wider">Active Lesson</span>
+                            <h2 className="text-xl font-bold font-serif uppercase">{activeLesson.title}</h2>
+                            <p className="text-xs text-slate-500 font-light">{enrolledCourse.title} • {activeLesson.duration}</p>
+                          </div>
+
+                          <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl text-xs space-y-3 leading-relaxed">
+                            <h4 className="font-bold text-orange-500 uppercase">Lesson Syllabus Content</h4>
+                            <p className="text-slate-700 dark:text-slate-300">
+                              {activeLesson.content || 'Welcome to this lesson module. Review the syllabus guidelines below, complete your coursework assignments, and test your comprehension via the accreditation assessment quiz.'}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-2">
+                            <button
+                              onClick={() => handleToggleLessonComplete(activeLesson.id)}
+                              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+                                completedLessonIds.includes(activeLesson.id)
+                                  ? 'bg-emerald-600 text-white'
+                                  : 'bg-slate-100 dark:bg-slate-800 hover:bg-orange-500 hover:text-white text-slate-700 dark:text-slate-200'
+                              }`}
+                            >
+                              <CheckCircle size={14} />
+                              <span>{completedLessonIds.includes(activeLesson.id) ? 'Marked Completed' : 'Mark Lesson Complete'}</span>
+                            </button>
+
+                            <span className="text-xs text-slate-400 font-mono font-bold">
+                              {completedLessonIds.length} / {enrolledCourse.lessons.length} Completed
+                            </span>
+                          </div>
+
+                          {/* Coursework Assignment Form */}
+                          <div className="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                            <h3 className="text-xs font-bold uppercase font-serif">Submit Coursework Deliverable</h3>
+                            <form onSubmit={handleSubmitCoursework} className="space-y-3">
+                              <textarea
+                                required
+                                rows={3}
+                                value={submissionText}
+                                onChange={e => setSubmissionText(e.target.value)}
+                                placeholder="Type your coursework answer or project execution notes here..."
+                                className="w-full p-3 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                              />
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="url"
+                                  value={submissionFileKey}
+                                  onChange={e => setSubmissionFileKey(e.target.value)}
+                                  placeholder="Document / Google Drive link (optional)"
+                                  className="flex-1 p-2.5 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                                />
+                                <button
+                                  type="submit"
+                                  className="px-4 py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase rounded-xl transition-all cursor-pointer"
+                                >
+                                  Submit
+                                </button>
+                              </div>
+                            </form>
+                          </div>
+
+                          {/* Accreditation Quiz Modal / Section */}
+                          <div className="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                            <div className="flex justify-between items-center">
+                              <h3 className="text-xs font-bold uppercase font-serif">Accreditation Assessment Quiz</h3>
+                              {!quizStarted && !quizFinished && (
+                                <button
+                                  onClick={() => { setQuizStarted(true); setCurrentQuestion(0); setSelectedAnswers([]); }}
+                                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black uppercase rounded-lg transition-all cursor-pointer"
+                                >
+                                  Start Quiz Test
+                                </button>
+                              )}
+                            </div>
+
+                            {quizStarted && !quizFinished && (
+                              <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-4">
+                                <div className="text-xs font-extrabold text-orange-500 uppercase">
+                                  Question {currentQuestion + 1} of {quizQuestions.length}
+                                </div>
+                                <p className="text-xs font-medium text-slate-900 dark:text-white">
+                                  {quizQuestions[currentQuestion].q}
+                                </p>
+                                <div className="space-y-2">
+                                  {quizQuestions[currentQuestion].options.map((opt, i) => (
+                                    <button
+                                      key={i}
+                                      type="button"
+                                      onClick={() => {
+                                        const updated = [...selectedAnswers];
+                                        updated[currentQuestion] = i;
+                                        setSelectedAnswers(updated);
+                                      }}
+                                      className={`w-full text-left p-3 rounded-xl text-xs transition-all border cursor-pointer ${
+                                        selectedAnswers[currentQuestion] === i
+                                          ? 'bg-orange-500/20 border-orange-500 text-orange-600 dark:text-orange-400 font-bold'
+                                          : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300'
+                                      }`}
+                                    >
+                                      {opt}
+                                    </button>
+                                  ))}
+                                </div>
+                                <button
+                                  onClick={handleNextQuizQuestion}
+                                  disabled={selectedAnswers[currentQuestion] === undefined}
+                                  className="w-full py-2.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-black uppercase rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                                >
+                                  {currentQuestion < quizQuestions.length - 1 ? 'Next Question' : 'Finish & Mint Diploma'}
+                                </button>
+                              </div>
+                            )}
+
+                            {quizFinished && (
+                              <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl text-center space-y-2">
+                                <Trophy size={28} className="mx-auto text-amber-500 animate-bounce" />
+                                <h4 className="text-sm font-bold text-emerald-600 dark:text-emerald-400 uppercase">Quiz Completed!</h4>
+                                <p className="text-xs text-slate-600 dark:text-slate-300">
+                                  Score: {quizScore} / {quizQuestions.length} correct answers. Accreditation Diploma minted!
+                                </p>
+                                <button
+                                  onClick={() => setActiveDashboardTab('certificates')}
+                                  className="px-4 py-2 bg-emerald-600 text-white font-black text-xs uppercase rounded-xl transition-all cursor-pointer"
+                                >
+                                  View Diplomas
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="p-8 text-center text-slate-400 text-xs font-medium">Select an enrolled course from the left panel to begin.</div>
+                      )}
                     </div>
                   </div>
+                )}
+              </div>
+            )}
 
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-black text-slate-400">Core Industry Expertise</label>
+            {/* TAB 3: COURSEWORK DELIVERABLES */}
+            {activeDashboardTab === 'submissions' && (
+              <div className="space-y-6 text-left">
+                <div className="pb-4 border-b border-slate-200 dark:border-slate-800">
+                  <span className="text-orange-500 text-[10px] uppercase font-black tracking-widest">Student Deliverables</span>
+                  <h2 className="text-xl md:text-2xl font-extrabold uppercase font-serif text-slate-900 dark:text-white">Coursework Submissions</h2>
+                </div>
+
+                {submissions.length === 0 ? (
+                  <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
+                    <ClipboardList size={36} className="mx-auto text-slate-400" />
+                    <h3 className="text-base font-bold uppercase font-serif">No Submissions Found</h3>
+                    <p className="text-xs text-slate-500">Submit coursework deliverables inside active lessons in your Enrolled Tracks.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {submissions.map(sub => {
+                      const crs = courses.find(c => c.id === sub.course_id);
+                      return (
+                        <div key={sub.id} className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl space-y-3">
+                          <div className="flex justify-between items-center text-xs font-bold">
+                            <span className="font-serif uppercase">{crs?.title || "Vocational Course"}</span>
+                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                              sub.status === 'graded' ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-orange-500/20 text-orange-600 dark:text-orange-400'
+                            }`}>
+                              {sub.status === 'graded' ? `Grade: ${sub.grade}` : 'Submitted'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-600 dark:text-slate-300 font-light">{sub.submission_text}</p>
+                          {sub.feedback && (
+                            <div className="p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-emerald-600 dark:text-emerald-400">
+                              <strong>Tutor Feedback:</strong> {sub.feedback}
+                            </div>
+                          )}
+
+                          {/* Tutor / Admin Grade Action */}
+                          {(currentUser?.role === 'tutor' || currentUser?.role === 'admin') && sub.status !== 'graded' && (
+                            <button
+                              onClick={() => setGradingSubmission(sub)}
+                              className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-black uppercase rounded-lg transition-all cursor-pointer"
+                            >
+                              Assign Grade & Feedback
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 4: VERIFIED DIPLOMAS */}
+            {activeDashboardTab === 'certificates' && (
+              <div className="space-y-6 text-left">
+                <div className="pb-4 border-b border-slate-200 dark:border-slate-800">
+                  <span className="text-orange-500 text-[10px] uppercase font-black tracking-widest">Verified Accreditation</span>
+                  <h2 className="text-xl md:text-2xl font-extrabold uppercase font-serif text-slate-900 dark:text-white">Accreditation Diplomas</h2>
+                </div>
+
+                {certificates.length === 0 ? (
+                  <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
+                    <Trophy size={36} className="mx-auto text-amber-500" />
+                    <h3 className="text-base font-bold uppercase font-serif">No Diplomas Earned Yet</h3>
+                    <p className="text-xs text-slate-500">Pass the accreditation assessment quiz in any track to earn your official diploma.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {certificates.map(cert => (
+                      <div key={cert.id} className="p-6 bg-gradient-to-br from-amber-500/10 via-white dark:via-slate-900 to-orange-500/10 border border-amber-500/30 rounded-3xl space-y-4 shadow-sm">
+                        <div className="flex justify-between items-start">
+                          <Trophy size={28} className="text-amber-500" />
+                          <span className="text-[10px] font-mono text-slate-400 font-bold">{cert.hash}</span>
+                        </div>
+                        <div className="space-y-1">
+                          <h3 className="font-serif font-extrabold text-base uppercase">{cert.course_title}</h3>
+                          <p className="text-xs text-slate-500">Issued to: <strong className="text-slate-900 dark:text-white">{cert.full_name}</strong></p>
+                        </div>
+                        <button
+                          onClick={() => printCertificate(cert)}
+                          className="w-full py-2.5 bg-amber-600 hover:bg-amber-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                        >
+                          <Download size={14} />
+                          <span>Print / Download Official Diploma</span>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 5: COURSE CREATOR STUDIO (Tutor / Admin) */}
+            {activeDashboardTab === 'tutor-creator' && (currentUser?.role === 'tutor' || currentUser?.role === 'admin') && (
+              <div className="space-y-6 text-left">
+                <div className="pb-4 border-b border-slate-200 dark:border-slate-800">
+                  <span className="text-orange-500 text-[10px] uppercase font-black tracking-widest">Educator Studio</span>
+                  <h2 className="text-xl md:text-2xl font-extrabold uppercase font-serif text-slate-900 dark:text-white">Publish New Course</h2>
+                </div>
+
+                <form onSubmit={handleCreateCourse} className="p-6 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-4 text-xs">
+                  <div className="space-y-1">
+                    <label className="font-extrabold uppercase text-[10px] text-slate-500">Course Title</label>
                     <input
                       type="text"
-                      value={tutorApplication.expertise}
-                      onChange={(e) => setTutorApplication(prev => ({ ...prev, expertise: e.target.value }))}
-                      placeholder="e.g. React Web Architecture, Facebook Conversions API"
-                      className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-slate-100"
                       required
+                      value={newCourseTitle}
+                      onChange={e => setNewCourseTitle(e.target.value)}
+                      placeholder="e.g. Next.js 15 & AI Microservices Masterclass"
+                      className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-black text-slate-400">Professional Professional bio & Qualifications</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="font-extrabold uppercase text-[10px] text-slate-500">Category</label>
+                      <select
+                        value={newCourseCategory}
+                        onChange={e => setNewCourseCategory(e.target.value as any)}
+                        className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                      >
+                        <option value="web">Web & Software</option>
+                        <option value="marketing">Digital Marketing</option>
+                        <option value="ai">AI Integration</option>
+                        <option value="business">Business Strategy</option>
+                        <option value="compliance">CAC Compliance</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="font-extrabold uppercase text-[10px] text-slate-500">Level</label>
+                      <select
+                        value={newCourseLevel}
+                        onChange={e => setNewCourseLevel(e.target.value as any)}
+                        className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                      >
+                        <option value="Beginner">Beginner</option>
+                        <option value="Advanced">Advanced</option>
+                        <option value="All Levels">All Levels</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <label className="font-extrabold uppercase text-[10px] text-slate-500">Duration</label>
+                      <input
+                        type="text"
+                        value={newCourseDuration}
+                        onChange={e => setNewCourseDuration(e.target.value)}
+                        className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="font-extrabold uppercase text-[10px] text-slate-500">Price</label>
+                      <input
+                        type="text"
+                        value={newCoursePrice}
+                        onChange={e => setNewCoursePrice(e.target.value)}
+                        className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-extrabold uppercase text-[10px] text-slate-500">Cover Image URL</label>
+                    <input
+                      type="url"
+                      value={newCourseImage}
+                      onChange={e => setNewCourseImage(e.target.value)}
+                      className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-extrabold uppercase text-[10px] text-slate-500">Description</label>
                     <textarea
-                      value={tutorApplication.bio}
-                      onChange={(e) => setTutorApplication(prev => ({ ...prev, bio: e.target.value }))}
-                      className="w-full h-28 px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-2xl text-xs text-slate-800 dark:text-slate-100"
-                      required
+                      rows={3}
+                      value={newCourseDesc}
+                      onChange={e => setNewCourseDesc(e.target.value)}
+                      placeholder="Enter full course curriculum objectives..."
+                      className="w-full p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full py-2.5 bg-[#000E32] dark:bg-orange-600 text-white font-black text-[11px] uppercase tracking-wider rounded-xl hover:opacity-90"
+                    className="w-full py-3 bg-orange-600 hover:bg-orange-500 text-white font-black uppercase text-xs rounded-xl transition-all cursor-pointer shadow-md"
                   >
-                    Submit Tutor Application
+                    Publish Course Curriculum
                   </button>
                 </form>
               </div>
-            ) : currentTutorProfile.status === 'pending' ? (
-              /* ================== PENDING TUTOR SCREEN WITH DEV TOGGLE FAST-TRACK ================== */
-              <div className="max-w-md mx-auto bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 p-8 rounded-3xl space-y-6 shadow-sm text-center">
-                <div className="w-12 h-12 bg-amber-500/15 rounded-full flex items-center justify-center text-amber-500 mx-auto">
-                  <AlertCircle size={24} />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-base uppercase font-serif">Tutor Profile Under Review</h3>
-                  <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed font-light">
-                    Your application for expertise in <strong>"{currentTutorProfile.expertise}"</strong> is currently in our review pipeline. 
-                  </p>
+            )}
+
+            {/* TAB 6: STUDENT & TUTOR MANAGEMENT (Admin / Tutor) */}
+            {activeDashboardTab === 'admin-mgmt' && (currentUser?.role === 'admin' || currentUser?.role === 'tutor') && (
+              <div className="space-y-6 text-left">
+                <div className="pb-4 border-b border-slate-200 dark:border-slate-800">
+                  <span className="text-orange-500 text-[10px] uppercase font-black tracking-widest">Academic Administration</span>
+                  <h2 className="text-xl md:text-2xl font-extrabold uppercase font-serif text-slate-900 dark:text-white">Platform Governance</h2>
                 </div>
 
-                <div className="bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-150 dark:border-slate-850 space-y-3">
-                  <span className="text-[9px] uppercase font-black text-amber-500 block">Fast-Track Workspace Integration</span>
-                  <p className="text-[11px] text-slate-400 leading-normal">
-                    Are you a reviewer? Click below to instantly bypass the admin review loop and approve this tutor profile.
-                  </p>
-                  <button
-                    onClick={handleFastTrackTutorApproval}
-                    className="px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-[10px] font-black uppercase rounded-lg shadow-sm hover:opacity-90 transition-opacity"
-                  >
-                    Auto-Approve Tutor Workspace
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* ================== APPROVED TUTOR EXPERT WORKSPACE ================== */
-              <div className="space-y-8">
-                {/* Welcome Ribbon */}
-                <div className="p-6 bg-gradient-to-r from-[#000E32] to-[#122248] dark:from-slate-900 dark:to-slate-850 border border-white/5 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 text-white">
-                  <div className="space-y-1 text-left">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-emerald-400 text-[10px] font-black uppercase bg-emerald-500/10 px-2.5 py-0.5 rounded-full">Approved Trainer</span>
-                      <span className="text-slate-400 text-xs">Cloud ID: {currentTutorProfile.id}</span>
+                {/* Recharts Analytics Bar */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-3">
+                    <h4 className="text-xs font-bold uppercase font-serif text-slate-900 dark:text-white">Enrollment Metrics</h4>
+                    <div className="h-44">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={[
+                          { name: 'Web', count: 42 },
+                          { name: 'Marketing', count: 68 },
+                          { name: 'AI', count: 35 },
+                          { name: 'Business', count: 28 },
+                          { name: 'CAC', count: 19 }
+                        ]}>
+                          <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                          <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
+                          <YAxis stroke="#94a3b8" fontSize={10} />
+                          <Tooltip />
+                          <Bar dataKey="count" fill="#ea580c" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
                     </div>
-                    <h3 className="text-lg font-serif font-black uppercase">Welcome Back, Trainer {currentTutorProfile.full_name}</h3>
-                    <p className="text-xs text-slate-300 font-light">Track performance benchmarks, build dynamic curriculums, and review submitted deliverables.</p>
                   </div>
 
-                  <button
-                    onClick={() => setShowCourseCreator(prev => !prev)}
-                    className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white text-xs font-black uppercase rounded-xl flex items-center gap-1.5 shadow-md"
-                  >
-                    <Plus size={14} />
-                    <span>{showCourseCreator ? 'Close Planner' : 'Design New Course'}</span>
-                  </button>
-                </div>
-
-                <AnimatePresence>
-                  {showCourseCreator && (
-                    <motion.form 
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      onSubmit={handleCreateCourse}
-                      className="bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 p-6 md:p-8 rounded-3xl space-y-6 shadow-sm overflow-hidden text-left"
-                    >
-                      <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-                        <span className="text-xs uppercase font-black text-orange-500">Design Studio</span>
-                        <h4 className="text-base font-extrabold uppercase font-serif tracking-tight text-[#000E32] dark:text-white">Create New Vocational Course</h4>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] uppercase font-black text-slate-400">Course Title</label>
-                          <input
-                            type="text"
-                            value={newCourse.title}
-                            onChange={(e) => setNewCourse(prev => ({ ...prev, title: e.target.value }))}
-                            placeholder="e.g. CAC Business Setup Mastery"
-                            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-slate-100"
-                            required
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] uppercase font-black text-slate-400">Cover Image URL</label>
-                          <input
-                            type="text"
-                            value={newCourse.image}
-                            onChange={(e) => setNewCourse(prev => ({ ...prev, image: e.target.value }))}
-                            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-slate-100"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] uppercase font-black text-slate-400">Course Level</label>
-                          <select
-                            value={newCourse.level}
-                            onChange={(e: any) => setNewCourse(prev => ({ ...prev, level: e.target.value }))}
-                            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-slate-100"
-                          >
-                            <option value="Beginner">Beginner</option>
-                            <option value="Advanced">Advanced</option>
-                            <option value="All Levels">All Levels</option>
-                          </select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] uppercase font-black text-slate-400">Course Category</label>
-                          <select
-                            value={newCourse.category}
-                            onChange={(e: any) => setNewCourse(prev => ({ ...prev, category: e.target.value }))}
-                            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-slate-100"
-                          >
-                            <option value="marketing">Digital Marketing</option>
-                            <option value="web">Web & Software</option>
-                            <option value="ai">AI Integrations</option>
-                            <option value="business">Business Development</option>
-                            <option value="compliance">CAC Compliance</option>
-                          </select>
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] uppercase font-black text-slate-400">Tuition Price (₦)</label>
-                          <input
-                            type="text"
-                            value={newCourse.price}
-                            onChange={(e) => setNewCourse(prev => ({ ...prev, price: e.target.value }))}
-                            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-slate-100"
-                            required
-                          />
-                        </div>
-
-                        <div className="space-y-1.5">
-                          <label className="text-[10px] uppercase font-black text-slate-400">Duration Period</label>
-                          <input
-                            type="text"
-                            value={newCourse.duration}
-                            onChange={(e) => setNewCourse(prev => ({ ...prev, duration: e.target.value }))}
-                            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-slate-100"
-                            required
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-[10px] uppercase font-black text-slate-400">Detailed Description & Agenda</label>
-                        <textarea
-                          value={newCourse.description}
-                          onChange={(e) => setNewCourse(prev => ({ ...prev, description: e.target.value }))}
-                          placeholder="What will students learn in this accredited program?"
-                          className="w-full h-24 px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-slate-100"
-                          required
-                        />
-                      </div>
-
-                      <div className="pt-2">
-                        <button
-                          type="submit"
-                          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase rounded-xl tracking-wider"
-                        >
-                          Save & Publish Course
-                        </button>
-                      </div>
-                    </motion.form>
-                  )}
-                </AnimatePresence>
-
-                {/* Dashboard Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 rounded-2xl text-left space-y-1">
-                    <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Assigned Active Students</span>
-                    <span className="text-2xl font-serif font-black text-[#000E32] dark:text-white">
-                      {enrollments.length + 3} Students
-                    </span>
-                  </div>
-                  <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 rounded-2xl text-left space-y-1">
-                    <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Pending Submissions</span>
-                    <span className="text-2xl font-serif font-black text-amber-500">
-                      {submissions.filter(s => s.status === 'submitted').length} Coursework
-                    </span>
-                  </div>
-                  <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 rounded-2xl text-left space-y-1">
-                    <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Completed Reviews</span>
-                    <span className="text-2xl font-serif font-black text-emerald-500">
-                      {submissions.filter(s => s.status === 'graded').length} Reviewed
-                    </span>
-                  </div>
-                  <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 rounded-2xl text-left space-y-1">
-                    <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Accredited Diplomas Minted</span>
-                    <span className="text-2xl font-serif font-black text-indigo-500 dark:text-indigo-400">
-                      {certificates.length + 2} Diplomas
-                    </span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                  {/* Left Column: Student Coursework Submission Review Board */}
-                  <div className="lg:col-span-8 bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 p-6 rounded-3xl space-y-6 text-left shadow-sm">
-                    <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-                      <h4 className="font-extrabold text-[#000E32] dark:text-white text-xs sm:text-sm uppercase font-serif tracking-tight">
-                        Active Submissions Review Pipeline
-                      </h4>
-                    </div>
-
-                    {/* Active Grading Modal Form */}
-                    {gradingSubmission && (
-                      <form onSubmit={handleSaveGrade} className="p-5 bg-slate-50 dark:bg-slate-950 border border-orange-200 dark:border-orange-900/55 rounded-2xl space-y-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[10px] uppercase font-black text-orange-500">Active Review Panel</span>
-                          <button onClick={() => setGradingSubmission(null)} className="text-slate-400 text-xs">Cancel</button>
-                        </div>
-                        <p className="text-xs text-slate-500 font-light">
-                          Grading student <strong>"{gradingSubmission.user_id}"</strong> for lesson homework response.
-                        </p>
-                        
-                        <div className="grid grid-cols-3 gap-4">
-                          <div className="space-y-1">
-                            <label className="text-[10px] uppercase font-black text-slate-400 block">Grade Mark</label>
-                            <select
-                              value={gradeValue}
-                              onChange={(e) => setGradeValue(e.target.value)}
-                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-mono font-bold"
-                            >
-                              <option value="A+">A+</option>
-                              <option value="A">A</option>
-                              <option value="B">B</option>
-                              <option value="C">C</option>
-                              <option value="Passed">Passed</option>
-                            </select>
+                  <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-3">
+                    <h4 className="text-xs font-bold uppercase font-serif text-slate-900 dark:text-white">Registered Tutors Directory</h4>
+                    <div className="space-y-3 text-xs">
+                      {tutors.map(tut => (
+                        <div key={tut.id} className="p-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl flex justify-between items-center">
+                          <div>
+                            <span className="font-bold text-slate-900 dark:text-white block">{tut.full_name}</span>
+                            <span className="text-[10px] text-slate-400">{tut.expertise}</span>
                           </div>
-                          <div className="col-span-2 space-y-1">
-                            <label className="text-[10px] uppercase font-black text-slate-400 block">Feedback Remarks</label>
-                            <input
-                              type="text"
-                              value={gradeFeedback}
-                              onChange={(e) => setGradeFeedback(e.target.value)}
-                              placeholder="Great attention to detail in your compliance checklists..."
-                              className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs"
-                              required
-                            />
-                          </div>
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                            tut.status === 'approved' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-amber-500/20 text-amber-500'
+                          }`}>
+                            {tut.status}
+                          </span>
                         </div>
-
-                        <button
-                          type="submit"
-                          className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white text-[10px] font-black uppercase rounded-xl"
-                        >
-                          Submit Grade
-                        </button>
-                      </form>
-                    )}
-
-                    <div className="space-y-4">
-                      {submissions.length === 0 ? (
-                        <p className="text-xs text-slate-400 italic font-light py-4 text-center">No coursework deliverables waiting in queue.</p>
-                      ) : (
-                        submissions.map((sub) => {
-                          const courseObj = courses.find(c => c.id === sub.course_id);
-                          const isGraded = sub.status === 'graded';
-
-                          return (
-                            <div key={sub.id} className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-850 rounded-2xl flex flex-col md:flex-row justify-between gap-4">
-                              <div className="space-y-1.5 flex-1">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs font-black uppercase text-[#000E32] dark:text-orange-400">
-                                    {courseObj?.title || 'Vocational Curriculum'}
-                                  </span>
-                                  <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${
-                                    isGraded ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
-                                  }`}>
-                                    {sub.status}
-                                  </span>
-                                </div>
-                                
-                                <p className="text-xs text-slate-500 font-mono block">Student ID: {sub.user_id}</p>
-                                <p className="text-xs text-slate-600 dark:text-slate-300 font-light leading-relaxed bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-150 dark:border-slate-800">
-                                  "{sub.submission_text}"
-                                </p>
-                              </div>
-
-                              <div className="shrink-0 flex flex-col justify-between items-end gap-2">
-                                <span className="text-[9px] text-slate-400 font-mono">
-                                  {new Date(sub.submitted_at).toLocaleDateString()}
-                                </span>
-                                
-                                {!isGraded ? (
-                                  <button
-                                    onClick={() => {
-                                      setGradingSubmission(sub);
-                                      setGradeValue('A');
-                                    }}
-                                    className="px-3 py-1.5 bg-[#000E32] dark:bg-orange-600 text-white text-[10px] font-black uppercase rounded-lg shadow-sm"
-                                  >
-                                    Review Deliverable
-                                  </button>
-                                ) : (
-                                  <div className="flex items-center gap-1.5 text-xs text-emerald-500 font-bold bg-emerald-500/10 px-2.5 py-1 rounded-lg">
-                                    <span>Grade:</span>
-                                    <span>{sub.grade}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Right Column: High Impact Recharts Analytics Panels */}
-                  <div className="lg:col-span-4 space-y-6">
-                    <div className="bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm text-left">
-                      <span className="text-[10px] uppercase font-black text-slate-400 block">Classroom Deliverables Ratio</span>
-                      <div className="h-44">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={getSubmissionsOverviewData()}
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={45}
-                              outerRadius={65}
-                              paddingAngle={5}
-                              dataKey="value"
-                            >
-                              {getSubmissionsOverviewData().map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                              ))}
-                            </Pie>
-                            <Tooltip />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
-                      <div className="flex justify-around text-[10px] font-extrabold uppercase tracking-wide">
-                        <span className="text-orange-500">● Pending Reviews</span>
-                        <span className="text-emerald-500">● Graded</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 p-5 rounded-3xl space-y-4 shadow-sm text-left">
-                      <span className="text-[10px] uppercase font-black text-slate-400 block">Enrollment Spread by Course</span>
-                      <div className="h-44">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={getCourseEnrollmentSummary()}>
-                            <XAxis dataKey="name" tick={{ fontSize: 8 }} />
-                            <YAxis tick={{ fontSize: 9 }} />
-                            <Tooltip />
-                            <Bar dataKey="Students Enrolled" fill="#ea580c" radius={[4, 4, 0, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
+                      ))}
                     </div>
                   </div>
                 </div>
               </div>
             )}
-          </motion.div>
-        )}
 
-        {activeTab === 'admin' && (
-          <motion.div 
-            key="admin-panel"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            className="space-y-8 text-left"
-          >
-            {/* Quick Summary row */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 rounded-2xl text-left space-y-1">
-                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Total Catalog Courses</span>
-                <span className="text-2xl font-serif font-black text-[#000E32] dark:text-white">{courses.length}</span>
-              </div>
-              <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 rounded-2xl text-left space-y-1">
-                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Trainer Registry</span>
-                <span className="text-2xl font-serif font-black text-indigo-500 dark:text-indigo-400">
-                  {tutors.length} Applied
-                </span>
-              </div>
-              <div className="p-5 bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 rounded-2xl text-left space-y-1">
-                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Active Enrolled Tracks</span>
-                <span className="text-2xl font-serif font-black text-emerald-500">
-                  {enrollments.length + 4} Active
-                </span>
-              </div>
+          </main>
+        </div>
+      )}
+
+      {/* Grading Modal */}
+      {gradingSubmission && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 text-xs text-left">
+            <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="font-bold font-serif uppercase text-slate-900 dark:text-white">Grade Coursework Submission</h3>
+              <button onClick={() => setGradingSubmission(null)} className="text-slate-400 hover:text-slate-600"><X size={16} /></button>
             </div>
-
-            {/* Tutor Registrations Approvals panel */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 p-6 rounded-3xl space-y-4">
-              <h3 className="font-extrabold text-[#000E32] dark:text-white text-xs sm:text-sm uppercase font-serif tracking-tight border-b border-slate-150 dark:border-slate-850 pb-3">
-                Trainer Admissions & Approvals Hub
-              </h3>
-
-              <div className="space-y-4">
-                {tutors.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic font-light py-4 text-center">No trainer applications stored in Cloudflare D1.</p>
-                ) : (
-                  tutors.map((tut) => (
-                    <div key={tut.id} className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-150 dark:border-slate-850 rounded-2xl flex flex-col md:flex-row justify-between gap-4">
-                      <div className="space-y-1.5 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-[#000E32] dark:text-white">{tut.full_name}</span>
-                          <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider ${
-                            tut.status === 'approved' 
-                              ? 'bg-emerald-100 text-emerald-600' 
-                              : tut.status === 'rejected' 
-                                ? 'bg-red-100 text-red-600' 
-                                : 'bg-amber-100 text-amber-600'
-                          }`}>
-                            {tut.status}
-                          </span>
-                        </div>
-                        <p className="text-xs font-semibold text-orange-500 font-mono">Expertise: {tut.expertise} • Email: {tut.email}</p>
-                        <p className="text-xs text-slate-500 font-light italic">
-                          "{tut.bio}"
-                        </p>
-                      </div>
-
-                      <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
-                        {tut.status !== 'approved' && (
-                          <button
-                            onClick={() => handleToggleTutorStatus(tut.id, 'approved')}
-                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase rounded-lg transition-colors"
-                          >
-                            Approve
-                          </button>
-                        )}
-                        {tut.status !== 'rejected' && (
-                          <button
-                            onClick={() => handleToggleTutorStatus(tut.id, 'rejected')}
-                            className="px-3 py-1.5 bg-red-600 hover:bg-red-500 text-white text-[10px] font-black uppercase rounded-lg transition-colors"
-                          >
-                            Reject
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
+            <form onSubmit={handleSaveGrade} className="space-y-3">
+              <div className="space-y-1">
+                <label className="font-extrabold uppercase text-[9px] text-slate-500">Grade Letter</label>
+                <select
+                  value={gradeValue}
+                  onChange={e => setGradeValue(e.target.value)}
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                >
+                  <option value="A+">A+ (Distinction)</option>
+                  <option value="A">A (Excellent)</option>
+                  <option value="B">B (Credit)</option>
+                  <option value="C">C (Pass)</option>
+                </select>
               </div>
-            </div>
-
-            {/* Certificates Registry */}
-            <div className="bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800 p-6 rounded-3xl space-y-4">
-              <h3 className="font-extrabold text-[#000E32] dark:text-white text-xs sm:text-sm uppercase font-serif tracking-tight border-b border-slate-150 dark:border-slate-850 pb-3">
-                Acreeditation & Diploma Minting Registry
-              </h3>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-400 font-bold">
-                      <th className="py-2.5">Accredited Student</th>
-                      <th className="py-2.5">Certified Curriculum</th>
-                      <th className="py-2.5">Minted Date</th>
-                      <th className="py-2.5">Verification Hash</th>
-                      <th className="py-2.5 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-semibold text-slate-700 dark:text-slate-300">
-                    {certificates.length === 0 ? (
-                      <tr>
-                        <td colSpan={5} className="py-4 text-center text-slate-400 italic font-light">No certificates issued yet. Complete an accreditation quiz to mint one instantly!</td>
-                      </tr>
-                    ) : (
-                      certificates.map((cert) => (
-                        <tr key={cert.id} className="hover:bg-slate-50 dark:hover:bg-slate-900/30">
-                          <td className="py-3 flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-orange-100 dark:bg-orange-950/40 text-orange-600 flex items-center justify-center text-[10px] font-black">
-                              {cert.full_name[0]}
-                            </div>
-                            {cert.full_name}
-                          </td>
-                          <td className="py-3 max-w-xs truncate">{cert.course_title}</td>
-                          <td className="py-3 font-mono text-slate-400">{new Date(cert.issued_at).toLocaleDateString()}</td>
-                          <td className="py-3 font-mono uppercase text-slate-400 truncate max-w-[120px]">{cert.hash}</td>
-                          <td className="py-3 text-right">
-                            <button
-                              onClick={() => printCertificate(cert)}
-                              className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200 rounded-lg text-[10px] font-black uppercase tracking-wider inline-flex items-center gap-1"
-                            >
-                              <Eye size={10} />
-                              Print Cert
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
+              <div className="space-y-1">
+                <label className="font-extrabold uppercase text-[9px] text-slate-500">Tutor Feedback Remarks</label>
+                <textarea
+                  rows={3}
+                  value={gradeFeedback}
+                  onChange={e => setGradeFeedback(e.target.value)}
+                  placeholder="Enter mentor remarks and guidance for the student..."
+                  className="w-full p-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
+                />
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <button
+                type="submit"
+                className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase text-xs rounded-xl transition-all cursor-pointer"
+              >
+                Save Grade & Feedback
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

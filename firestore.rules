@@ -1,0 +1,64 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isStaff() {
+      return isSignedIn() && 
+        get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.isStaff == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+        get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Staff Profiles
+    match /staff/{staffId} {
+      function isValidStaff(data) {
+        return data.keys().hasAll(['uid', 'email', 'fullName', 'role', 'status']) &&
+               data.uid == request.auth.uid &&
+               data.email is string &&
+               data.fullName is string &&
+               data.role in ['staff', 'admin', 'hr'] &&
+               data.status in ['pending', 'active', 'suspended'];
+      }
+
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidStaff(request.resource.data);
+      allow update: if isSignedIn() && (
+        request.auth.uid == staffId || isAdmin()
+      ) && (
+        // Self update of specific fields
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phone', 'biography', 'skills', 'specialization', 'qualifications', 'certifications'])) ||
+        // Admin update
+        isAdmin()
+      );
+    }
+
+    // Announcements
+    match /announcements/{announcementId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.role == 'hr');
+    }
+
+    // Staff Documents
+    match /staff_docs/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isAdmin() || (isSignedIn() && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.role == 'hr');
+    }
+  }
+}

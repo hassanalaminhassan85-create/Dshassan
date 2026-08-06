@@ -14,6 +14,7 @@ import {
   apiUploadRecognitionFile,
   RecognitionCertificate 
 } from '../lib/api';
+import { AnimatedHomeSectionImagePreview } from './AnimatedHomeSectionImagePreview';
 
 // Supported Categories
 const CATEGORIES = [
@@ -558,6 +559,27 @@ export const RecognitionAdminDashboard: React.FC = () => {
                         )}
                       </div>
                     ) : null}
+                  </div>
+
+                  {/* ANIMATED MOTION PREVIEW FOR HOME SECTION */}
+                  <div className="mt-3">
+                    <AnimatedHomeSectionImagePreview 
+                      imageSrc={
+                        selectedFile 
+                          ? URL.createObjectURL(selectedFile) 
+                          : (editingCert.r2_object_key 
+                              ? `/api/recognition/file?key=${encodeURIComponent(editingCert.r2_object_key)}` 
+                              : null)
+                      }
+                      title={editingCert.title || "Recognition Certificate Title"}
+                      category={editingCert.category || "Government Recognition"}
+                      status="Official Certificate"
+                      progress={100}
+                      shortDescription={editingCert.description || "Official recognition summary"}
+                      technologies={`Issuer: ${editingCert.issuing_organization || 'Federal Agency'}`}
+                      fileName={selectedFile?.name || editingCert.file_name}
+                      fileSize={selectedFile?.size}
+                    />
                   </div>
 
                   <div>

@@ -2,6 +2,7 @@
 // Connects UI to secure backend Cloudflare Functions / Express server
 
 import { Department, StaffMember, StaffActivityLog } from '../types';
+import { generateDynamicSvgUrl, generateAvatarSvgUrl } from './mediaUtils';
 
 export interface ScanHistoryRecord {
   id: string;
@@ -142,9 +143,13 @@ export function apiSubscribeToRealtimeSync(onEvent: (data: any) => void): () => 
 
 // --- Dynamic Services Sync ---
 export async function apiGetServices(): Promise<any[]> {
-  const res = await fetch('/api/services');
-  if (!res.ok) throw new Error('Failed to retrieve services from Cloudflare D1.');
-  return res.json();
+  try {
+    const res = await fetch('/api/services');
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (e) {
+    return [];
+  }
 }
 
 export async function apiSaveService(service: any): Promise<any> {
@@ -187,9 +192,13 @@ export async function apiInitializeServices(items: any[]): Promise<any> {
 
 // --- Dynamic Portfolio Sync ---
 export async function apiGetPortfolio(): Promise<any[]> {
-  const res = await fetch('/api/portfolio');
-  if (!res.ok) throw new Error('Failed to retrieve portfolio from Cloudflare D1.');
-  return res.json();
+  try {
+    const res = await fetch('/api/portfolio');
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (e) {
+    return [];
+  }
 }
 
 export async function apiSavePortfolio(project: any): Promise<any> {
@@ -232,9 +241,13 @@ export async function apiInitializePortfolio(items: any[]): Promise<any> {
 
 // --- Dynamic Blogs Sync ---
 export async function apiGetBlogs(): Promise<any[]> {
-  const res = await fetch('/api/blogs');
-  if (!res.ok) throw new Error('Failed to retrieve blogs from Cloudflare D1.');
-  return res.json();
+  try {
+    const res = await fetch('/api/blogs');
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (e) {
+    return [];
+  }
 }
 
 export async function apiSaveBlog(blog: any): Promise<any> {
@@ -277,9 +290,13 @@ export async function apiInitializeBlogs(items: any[]): Promise<any> {
 
 // --- Dynamic Courses Sync ---
 export async function apiGetCourses(): Promise<any[]> {
-  const res = await fetch('/api/courses');
-  if (!res.ok) throw new Error('Failed to retrieve courses from Cloudflare D1.');
-  return res.json();
+  try {
+    const res = await fetch('/api/courses');
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (e) {
+    return [];
+  }
 }
 
 export async function apiSaveCourse(course: any): Promise<any> {
@@ -567,9 +584,14 @@ export interface CacMetadata {
 
 export async function apiGetCacMetadata(admin: boolean = false): Promise<CacMetadata[]> {
   const url = admin ? '/api/cac/metadata?admin=true' : '/api/cac/metadata';
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to retrieve CAC metadata.');
-  return res.json();
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('Failed to retrieve CAC metadata.');
+    return res.json();
+  } catch (e) {
+    console.warn("Using secure fallback for CAC metadata", e);
+    return []; // Return empty array to trigger fallback logic in UI
+  }
 }
 
 export async function apiSaveCacMetadata(metadata: Partial<CacMetadata>): Promise<CacMetadata> {
@@ -806,10 +828,30 @@ export async function apiUploadOngoingProjectFile(file: File): Promise<{
   }
 }
 
+export async function apiUploadGeneralFile(file: File): Promise<{
+  success: boolean;
+  r2_object_key: string;
+  file_name: string;
+  url: string;
+}> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch('/api/general/upload', {
+    method: 'POST',
+    body: formData
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Failed to upload image file.');
+  }
+  return res.json();
+}
+
 // Universal image URL resolver helper
 export function resolveImageUrl(urlOrKey: string | null | undefined, fallbackUrl?: string): string {
-  if (!urlOrKey || !urlOrKey.trim()) {
-    return fallbackUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80';
+  if (!urlOrKey || !urlOrKey.trim() || urlOrKey.includes('unsplash.com')) {
+    if (fallbackUrl && !fallbackUrl.includes('unsplash.com')) return fallbackUrl;
+    return generateDynamicSvgUrl('DS Tech Enterprise', 'software', 'card');
   }
   const trimmed = urlOrKey.trim();
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {
@@ -823,8 +865,9 @@ export function resolveImageUrl(urlOrKey: string | null | undefined, fallbackUrl
 
 // Staff image resolver helper
 export function resolveStaffImageUrl(urlOrKey: string | null | undefined, fallbackUrl?: string): string {
-  if (!urlOrKey || !urlOrKey.trim()) {
-    return fallbackUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80';
+  if (!urlOrKey || !urlOrKey.trim() || urlOrKey.includes('unsplash.com')) {
+    if (fallbackUrl && !fallbackUrl.includes('unsplash.com')) return fallbackUrl;
+    return generateAvatarSvgUrl('Staff Member', 'Enterprise Specialist');
   }
   const trimmed = urlOrKey.trim();
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('data:')) {

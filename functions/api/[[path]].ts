@@ -6,6 +6,37 @@ import {
   verifyAuthenticationResponse 
 } from '@simplewebauthn/server';
 
+function generateBackendSvgResponse(title: string, subtitle = 'DS Tech Digital Workspace'): Response {
+  const safeTitle = (title || 'DS Tech Asset').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const safeSubtitle = (subtitle || 'Digital Platform').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600">
+    <defs>
+      <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#000E32"/>
+        <stop offset="100%" stop-color="#1E293B"/>
+      </linearGradient>
+      <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#EA580C"/>
+        <stop offset="100%" stop-color="#4F46E5"/>
+      </linearGradient>
+    </defs>
+    <rect width="100%" height="100%" fill="url(#bg)"/>
+    <circle cx="400" cy="300" r="220" fill="none" stroke="url(#accent)" stroke-width="2" opacity="0.3"/>
+    <rect x="50" y="50" width="700" height="500" rx="24" fill="none" stroke="#FFFFFF" stroke-opacity="0.1" stroke-width="1"/>
+    <text x="400" y="270" font-family="system-ui, -apple-system, sans-serif" font-weight="900" font-size="28" fill="#FFFFFF" text-anchor="middle">${safeTitle}</text>
+    <text x="400" y="320" font-family="system-ui, -apple-system, sans-serif" font-weight="600" font-size="16" fill="#94A3B8" text-anchor="middle">${safeSubtitle}</text>
+    <rect x="350" y="360" width="100" height="4" rx="2" fill="url(#accent)"/>
+  </svg>`;
+  return new Response(svg, {
+    status: 200,
+    headers: {
+      'Content-Type': 'image/svg+xml',
+      'Cache-Control': 'public, max-age=86400',
+      'Access-Control-Allow-Origin': '*'
+    }
+  });
+}
+
 // Temporary memory store for stateless fallback
 let inMemoryNotifications: any[] = [
   {
@@ -255,50 +286,191 @@ async function hashPassword(password: string): Promise<string> {
   return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
-// Local filesystem fallback helper for sandbox environments where BUCKET is not defined
-async function handleLocalFileFallback(key: string, fileBuffer?: ArrayBuffer, fileType?: string): Promise<{ success: boolean; data?: Uint8Array; mimeType?: string }> {
+// Persistent file storage helper across Cloudflare R2, D1 SQLite Database, Memory Cache & Local Filesystem
+const inMemoryFiles = new Map<string, { data: Uint8Array; mimeType: string }>();
+
+async function saveUploadedFile(env: any, key: string, fileBuffer: ArrayBuffer, mimeType: string): Promise<boolean> {
   try {
-    if (typeof globalThis.process !== 'undefined') {
-      const fs = await import('fs');
-      const path = await import('path');
-      
-      const uploadsDir = path.join(process.cwd(), 'uploads');
-      
-      if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-      }
-      
-      const safeFileName = key.replace(/[^a-zA-Z0-9.-]/g, "_");
-      const filePath = path.join(uploadsDir, safeFileName);
-      
-      if (fileBuffer) {
-        fs.writeFileSync(filePath, Buffer.from(fileBuffer));
-        
-        const metaPath = filePath + '.meta';
-        fs.writeFileSync(metaPath, JSON.stringify({ mimeType: fileType || 'application/octet-stream' }));
-        
-        return { success: true };
-      } else {
-        if (fs.existsSync(filePath)) {
-          const fileData = fs.readFileSync(filePath);
-          
-          let mimeType = 'application/octet-stream';
-          const metaPath = filePath + '.meta';
-          if (fs.existsSync(metaPath)) {
-            try {
-              const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
-              mimeType = meta.mimeType || mimeType;
-            } catch (e) {}
-          }
-          
-          return { success: true, data: new Uint8Array(fileData), mimeType };
-        }
+    const uint8 = new Uint8Array(fileBuffer);
+    const safeFileName = key.replace(/[^a-zA-Z0-9.-]/g, "_");
+
+    // 1. In-Memory Cache for rapid zero-latency responses
+    inMemoryFiles.set(key, { data: uint8, mimeType });
+    if (safeFileName !== key) {
+      inMemoryFiles.set(safeFileName, { data: uint8, mimeType });
+    }
+
+    // 2. Cloudflare R2 Bucket (if bound)
+    if (env && env.BUCKET) {
+      try {
+        await env.BUCKET.put(key, fileBuffer, {
+          httpMetadata: { contentType: mimeType }
+        });
+      } catch (r2Err) {
+        console.warn("R2 Put warning:", r2Err);
       }
     }
-  } catch (e) {
-    console.warn("Local file fallback error:", e);
+
+    // 3. Cloudflare D1 Database table `uploaded_files` (stores Base64 in D1 - persistent across server restarts!)
+    if (env && env.DB) {
+      try {
+        let binary = '';
+        const bytes = uint8;
+        const len = bytes.byteLength;
+        for (let i = 0; i < len; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        const base64Data = btoa(binary);
+        const now = new Date().toISOString();
+
+        await env.DB.prepare(`
+          INSERT OR REPLACE INTO uploaded_files (key, mime_type, base64_data, created_at)
+          VALUES (?, ?, ?, ?)
+        `).bind(key, mimeType, base64Data, now).run();
+
+        if (safeFileName !== key) {
+          await env.DB.prepare(`
+            INSERT OR REPLACE INTO uploaded_files (key, mime_type, base64_data, created_at)
+            VALUES (?, ?, ?, ?)
+          `).bind(safeFileName, mimeType, base64Data, now).run();
+        }
+      } catch (d1Err) {
+        console.warn("D1 File Save warning:", d1Err);
+      }
+    }
+
+    // 4. Local Disk File Fallback
+    if (typeof globalThis.process !== 'undefined') {
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const uploadsDir = path.join(process.cwd(), 'uploads');
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+        const filePath = path.join(uploadsDir, safeFileName);
+        fs.writeFileSync(filePath, Buffer.from(fileBuffer));
+        fs.writeFileSync(filePath + '.meta', JSON.stringify({ mimeType }));
+      } catch (fsErr) {
+        console.warn("Disk Save warning:", fsErr);
+      }
+    }
+
+    return true;
+  } catch (err) {
+    console.error("saveUploadedFile error:", err);
+    return false;
   }
+}
+
+async function getUploadedFile(env: any, key: string): Promise<{ success: boolean; data?: Uint8Array; mimeType?: string }> {
+  if (!key || !key.trim()) return { success: false };
+  const trimmedKey = key.trim();
+
+  // 0. Handle raw base64 data URLs directly
+  if (trimmedKey.startsWith('data:')) {
+    try {
+      const match = trimmedKey.match(/^data:([^;]+);base64,(.+)$/);
+      if (match) {
+        const mimeType = match[1];
+        const binaryStr = atob(match[2]);
+        const len = binaryStr.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+        return { success: true, data: bytes, mimeType };
+      }
+    } catch (dataUrlErr) {
+      console.warn("Error decoding data URL key:", dataUrlErr);
+    }
+  }
+
+  const safeFileName = trimmedKey.replace(/[^a-zA-Z0-9.-]/g, "_");
+
+  // 1. Check In-Memory Cache
+  if (inMemoryFiles.has(trimmedKey)) {
+    const cached = inMemoryFiles.get(trimmedKey)!;
+    return { success: true, data: cached.data, mimeType: cached.mimeType };
+  }
+  if (inMemoryFiles.has(safeFileName)) {
+    const cached = inMemoryFiles.get(safeFileName)!;
+    return { success: true, data: cached.data, mimeType: cached.mimeType };
+  }
+
+  // 2. Check Cloudflare R2 Bucket
+  if (env && env.BUCKET) {
+    try {
+      const object = await env.BUCKET.get(trimmedKey);
+      if (object) {
+        const arrBuffer = await object.arrayBuffer();
+        const data = new Uint8Array(arrBuffer);
+        const mimeType = object.httpMetadata?.contentType || 'image/png';
+        inMemoryFiles.set(trimmedKey, { data, mimeType });
+        return { success: true, data, mimeType };
+      }
+    } catch (r2Err) {
+      console.warn("R2 Get error:", r2Err);
+    }
+  }
+
+  // 3. Check Cloudflare D1 Database table `uploaded_files`
+  if (env && env.DB) {
+    try {
+      const res = await env.DB.prepare("SELECT mime_type, base64_data FROM uploaded_files WHERE key = ? OR key = ?")
+        .bind(trimmedKey, safeFileName).all();
+      if (res.results && res.results.length > 0) {
+        const row: any = res.results[0];
+        const binaryStr = atob(row.base64_data);
+        const len = binaryStr.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryStr.charCodeAt(i);
+        }
+        inMemoryFiles.set(trimmedKey, { data: bytes, mimeType: row.mime_type });
+        return { success: true, data: bytes, mimeType: row.mime_type };
+      }
+    } catch (d1Err) {
+      console.warn("D1 File Read warning:", d1Err);
+    }
+  }
+
+  // 4. Check Local Disk `./uploads/`
+  if (typeof globalThis.process !== 'undefined') {
+    try {
+      const fs = await import('fs');
+      const path = await import('path');
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      const filePath = path.join(uploadsDir, safeFileName);
+      if (fs.existsSync(filePath)) {
+        const fileData = fs.readFileSync(filePath);
+        let mimeType = 'image/png';
+        const metaPath = filePath + '.meta';
+        if (fs.existsSync(metaPath)) {
+          try {
+            const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+            mimeType = meta.mimeType || mimeType;
+          } catch (e) {}
+        }
+        const bytes = new Uint8Array(fileData);
+        inMemoryFiles.set(trimmedKey, { data: bytes, mimeType });
+        return { success: true, data: bytes, mimeType };
+      }
+    } catch (fsErr) {
+      console.warn("Disk File Read warning:", fsErr);
+    }
+  }
+
   return { success: false };
+}
+
+// Legacy wrapper function for local file fallback
+async function handleLocalFileFallback(key: string, fileBuffer?: ArrayBuffer, fileType?: string): Promise<{ success: boolean; data?: Uint8Array; mimeType?: string }> {
+  if (fileBuffer) {
+    const ok = await saveUploadedFile(null, key, fileBuffer, fileType || 'image/png');
+    return { success: ok };
+  }
+  return await getUploadedFile(null, key);
 }
 
 // Session based middleware security check
@@ -380,6 +552,13 @@ async function ensureDatabaseTables(db: any) {
     `CREATE TABLE IF NOT EXISTS courses (
       id TEXT PRIMARY KEY,
       data_json TEXT NOT NULL
+    );`,
+
+    `CREATE TABLE IF NOT EXISTS uploaded_files (
+      key TEXT PRIMARY KEY,
+      mime_type TEXT NOT NULL,
+      base64_data TEXT NOT NULL,
+      created_at TEXT NOT NULL
     );`,
 
     `CREATE TABLE IF NOT EXISTS otp_codes (
@@ -2304,7 +2483,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
           applicant_id: body.applicantId,
           applicant_name: body.applicantName,
           scanned_at: new Date().toISOString(),
-          secure_r2_url: body.qrImageBase64 || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=192&h=192&fit=crop&auto=format',
+          secure_r2_url: body.qrImageBase64 || '',
           safety_status: body.safetyStatus || 'safe'
         };
         await env.DB.prepare(
@@ -2592,76 +2771,110 @@ export async function onRequest(context: { request: Request; env: any; params: a
     for (const table of dynamicTables) {
       if (path === `/api/${table}`) {
         if (method === 'GET') {
-          const results = await env.DB.prepare(`SELECT * FROM ${table}`).all();
-          const items = (results.results || []).map((r: any) => ({ id: r.id, ...JSON.parse(r.data_json) }));
-          return new Response(JSON.stringify(items), { headers });
+          try {
+            if (!env.DB) return new Response(JSON.stringify([]), { headers });
+            const results = await env.DB.prepare(`SELECT * FROM ${table}`).all();
+            const items = (results.results || []).map((r: any) => ({ id: r.id, ...JSON.parse(r.data_json) }));
+            return new Response(JSON.stringify(items), { headers });
+          } catch (dbErr) {
+            console.warn(`D1 query failed for GET /api/${table}:`, dbErr);
+            return new Response(JSON.stringify([]), { headers });
+          }
         }
         if (method === 'POST') {
-          const body = await request.json();
-          const id = body.id || (table.substring(0, 3) + '_' + Math.random().toString(36).substring(2, 11));
-          const record = { id, ...body };
-          await env.DB.prepare(`INSERT OR REPLACE INTO ${table} (id, data_json) VALUES (?, ?)`).bind(id, JSON.stringify(record)).run();
+          try {
+            const body = await request.json();
+            const id = body.id || (table.substring(0, 3) + '_' + Math.random().toString(36).substring(2, 11));
+            const record = { id, ...body };
+            if (env.DB) {
+              await env.DB.prepare(`INSERT OR REPLACE INTO ${table} (id, data_json) VALUES (?, ?)`).bind(id, JSON.stringify(record)).run();
+            }
 
-          // Broadcast table item creation
-          broadcastSyncEvent({
-            type: `${table.toUpperCase()}_CREATED`,
-            table,
-            action: 'create',
-            data: record,
-            message: `Created new ${table} item`
-          });
+            // Broadcast table item creation
+            broadcastSyncEvent({
+              type: `${table.toUpperCase()}_CREATED`,
+              table,
+              action: 'create',
+              data: record,
+              message: `Created new ${table} item`
+            });
 
-          return new Response(JSON.stringify(record), { headers });
+            return new Response(JSON.stringify(record), { headers });
+          } catch (dbErr) {
+            console.warn(`D1 query failed for POST /api/${table}:`, dbErr);
+            return new Response(JSON.stringify({ success: false, error: 'Failed to write to table' }), { status: 500, headers });
+          }
         }
       }
       if (path.startsWith(`/api/${table}/`)) {
         const id = path.split('/').pop();
         if (path.endsWith('/initialize') && method === 'POST') {
-          const items = await request.json();
-          for (const item of items) {
-            await env.DB.prepare(`INSERT OR REPLACE INTO ${table} (id, data_json) VALUES (?, ?)`).bind(item.id || item.title?.toLowerCase().replace(/\s+/g, '-') || Math.random().toString(), JSON.stringify(item)).run();
+          try {
+            const items = await request.json();
+            if (env.DB) {
+              for (const item of items) {
+                await env.DB.prepare(`INSERT OR REPLACE INTO ${table} (id, data_json) VALUES (?, ?)`).bind(item.id || item.title?.toLowerCase().replace(/\s+/g, '-') || Math.random().toString(), JSON.stringify(item)).run();
+              }
+            }
+
+            // Broadcast table initialization
+            broadcastSyncEvent({
+              type: `${table.toUpperCase()}_INITIALIZED`,
+              table,
+              action: 'initialize',
+              data: items,
+              message: `Initialized ${table} items`
+            });
+
+            return new Response(JSON.stringify({ success: true, count: items.length }), { headers });
+          } catch (dbErr) {
+            console.warn(`D1 query failed for POST /api/${table}/initialize:`, dbErr);
+            return new Response(JSON.stringify({ success: false, error: 'Failed to initialize table' }), { status: 500, headers });
           }
-
-          // Broadcast table initialization
-          broadcastSyncEvent({
-            type: `${table.toUpperCase()}_INITIALIZED`,
-            table,
-            action: 'initialize',
-            data: items,
-            message: `Initialized ${table} items`
-          });
-
-          return new Response(JSON.stringify({ success: true, count: items.length }), { headers });
         }
         if (method === 'PUT') {
-          const body = await request.json();
-          const record = { id, ...body };
-          await env.DB.prepare(`INSERT OR REPLACE INTO ${table} (id, data_json) VALUES (?, ?)`).bind(id, JSON.stringify(record)).run();
+          try {
+            const body = await request.json();
+            const record = { id, ...body };
+            if (env.DB) {
+              await env.DB.prepare(`INSERT OR REPLACE INTO ${table} (id, data_json) VALUES (?, ?)`).bind(id, JSON.stringify(record)).run();
+            }
 
-          // Broadcast table item update
-          broadcastSyncEvent({
-            type: `${table.toUpperCase()}_UPDATED`,
-            table,
-            action: 'update',
-            data: record,
-            message: `Updated ${table} item`
-          });
+            // Broadcast table item update
+            broadcastSyncEvent({
+              type: `${table.toUpperCase()}_UPDATED`,
+              table,
+              action: 'update',
+              data: record,
+              message: `Updated ${table} item`
+            });
 
-          return new Response(JSON.stringify(record), { headers });
+            return new Response(JSON.stringify(record), { headers });
+          } catch (dbErr) {
+            console.warn(`D1 query failed for PUT /api/${table}/${id}:`, dbErr);
+            return new Response(JSON.stringify({ success: false, error: 'Failed to update item' }), { status: 500, headers });
+          }
         }
         if (method === 'DELETE') {
-          await env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`).bind(id).run();
+          try {
+            if (env.DB) {
+              await env.DB.prepare(`DELETE FROM ${table} WHERE id = ?`).bind(id).run();
+            }
 
-          // Broadcast table item deletion
-          broadcastSyncEvent({
-            type: `${table.toUpperCase()}_DELETED`,
-            table,
-            action: 'delete',
-            id,
-            message: `Deleted ${table} item`
-          });
+            // Broadcast table item deletion
+            broadcastSyncEvent({
+              type: `${table.toUpperCase()}_DELETED`,
+              table,
+              action: 'delete',
+              id,
+              message: `Deleted ${table} item`
+            });
 
-          return new Response(JSON.stringify({ success: true }), { headers });
+            return new Response(JSON.stringify({ success: true }), { headers });
+          } catch (dbErr) {
+            console.warn(`D1 query failed for DELETE /api/${table}/${id}:`, dbErr);
+            return new Response(JSON.stringify({ success: false, error: 'Failed to delete item' }), { status: 500, headers });
+          }
         }
       }
     }
@@ -2809,40 +3022,29 @@ export async function onRequest(context: { request: Request; env: any; params: a
           return new Response(JSON.stringify({ error: "No file uploaded" }), { status: 400, headers });
         }
         
-        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/svg+xml'];
         if (!allowedTypes.includes(file.type)) {
-          return new Response(JSON.stringify({ error: "Invalid file type. Only PDF, JPG, and PNG are allowed." }), { status: 400, headers });
+          return new Response(JSON.stringify({ error: "Invalid file type. Only PDF, JPG, PNG, WEBP and SVG are allowed." }), { status: 400, headers });
         }
         
-        const maxBytes = 10 * 1024 * 1024; // 10MB
+        const maxBytes = 15 * 1024 * 1024; // 15MB
         if (file.size > maxBytes) {
-          return new Response(JSON.stringify({ error: "File size exceeds 10MB limit." }), { status: 400, headers });
+          return new Response(JSON.stringify({ error: "File size exceeds 15MB limit." }), { status: 400, headers });
         }
         
         const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
         const objectKey = `cac_certs/${Date.now()}_${sanitizedName}`;
-        
         const fileBuffer = await file.arrayBuffer();
-        if (env.BUCKET) {
-          try {
-            await env.BUCKET.put(objectKey, fileBuffer, {
-              httpMetadata: { contentType: file.type }
-            });
-          } catch (r2Error: any) {
-            console.error("R2 BUCKET put error, falling back to local file simulation:", r2Error);
-            await handleLocalFileFallback(objectKey, fileBuffer, file.type);
-          }
-        } else {
-          console.warn("R2 BUCKET binding not found. Simulating file upload.");
-          await handleLocalFileFallback(objectKey, fileBuffer, file.type);
-        }
+        
+        await saveUploadedFile(env, objectKey, fileBuffer, file.type);
         
         return new Response(JSON.stringify({
           success: true,
           r2_object_key: objectKey,
           file_name: file.name,
           file_size: file.size,
-          mime_type: file.type
+          mime_type: file.type,
+          url: `/api/ongoing-projects/file?key=${encodeURIComponent(objectKey)}`
         }), { headers });
         
       } catch (e: any) {
@@ -2857,32 +3059,17 @@ export async function onRequest(context: { request: Request; env: any; params: a
       }
       
       try {
-        if (env.BUCKET) {
-          try {
-            const object = await env.BUCKET.get(key);
-            if (object) {
-              const fileHeaders = new Headers();
-              object.writeHttpMetadata(fileHeaders);
-              fileHeaders.set('Access-Control-Allow-Origin', '*');
-              fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
-              return new Response(object.body, { headers: fileHeaders });
-            }
-          } catch (r2Error: any) {
-            console.error("R2 BUCKET get error for CAC file, falling back to local file simulation:", r2Error);
-          }
-        }
-        
-        const localFile = await handleLocalFileFallback(key);
-        if (localFile.success && localFile.data) {
+        const fileRes = await getUploadedFile(env, key);
+        if (fileRes.success && fileRes.data) {
           const fileHeaders = new Headers();
-          fileHeaders.set('Content-Type', localFile.mimeType || 'application/octet-stream');
+          fileHeaders.set('Content-Type', fileRes.mimeType || 'image/png');
           fileHeaders.set('Access-Control-Allow-Origin', '*');
+          fileHeaders.set('Cache-Control', 'public, max-age=31536000, immutable');
           fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
-          return new Response(localFile.data, { headers: fileHeaders });
+          return new Response(fileRes.data, { headers: fileHeaders });
         }
         
-        // Return placeholder certificate graphic on fallback/mock
-        return Response.redirect('https://images.unsplash.com/photo-1589330694653-ded6df53f7ec?w=1200&auto=format&fit=crop&q=80', 302);
+        return generateBackendSvgResponse('Certificate Asset Not Found', key);
       } catch (e: any) {
         return new Response(e.message, { status: 500 });
       }
@@ -3047,9 +3234,9 @@ export async function onRequest(context: { request: Request; env: any; params: a
           return new Response(JSON.stringify({ error: "No file uploaded" }), { status: 400, headers });
         }
         
-        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/svg+xml'];
         if (!allowedTypes.includes(file.type)) {
-          return new Response(JSON.stringify({ error: "Invalid file type. Only PDF, JPG, and PNG are allowed." }), { status: 400, headers });
+          return new Response(JSON.stringify({ error: "Invalid file type. Only PDF, JPG, PNG, WEBP and SVG are allowed." }), { status: 400, headers });
         }
         
         const maxBytes = 15 * 1024 * 1024; // 15MB
@@ -3059,28 +3246,17 @@ export async function onRequest(context: { request: Request; env: any; params: a
         
         const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
         const objectKey = `recognition/${Date.now()}_${sanitizedName}`;
-        
         const fileBuffer = await file.arrayBuffer();
-        if (env.BUCKET) {
-          try {
-            await env.BUCKET.put(objectKey, fileBuffer, {
-              httpMetadata: { contentType: file.type }
-            });
-          } catch (r2Error: any) {
-            console.error("R2 BUCKET put error, falling back to local file simulation:", r2Error);
-            await handleLocalFileFallback(objectKey, fileBuffer, file.type);
-          }
-        } else {
-          console.warn("R2 BUCKET binding not found. Simulating file upload.");
-          await handleLocalFileFallback(objectKey, fileBuffer, file.type);
-        }
+        
+        await saveUploadedFile(env, objectKey, fileBuffer, file.type);
         
         return new Response(JSON.stringify({
           success: true,
           r2_object_key: objectKey,
           file_name: file.name,
           file_size: file.size,
-          mime_type: file.type
+          mime_type: file.type,
+          url: `/api/ongoing-projects/file?key=${encodeURIComponent(objectKey)}`
         }), { headers });
         
       } catch (e: any) {
@@ -3095,32 +3271,17 @@ export async function onRequest(context: { request: Request; env: any; params: a
       }
       
       try {
-        if (env.BUCKET) {
-          try {
-            const object = await env.BUCKET.get(key);
-            if (object) {
-              const fileHeaders = new Headers();
-              object.writeHttpMetadata(fileHeaders);
-              fileHeaders.set('Access-Control-Allow-Origin', '*');
-              fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
-              return new Response(object.body, { headers: fileHeaders });
-            }
-          } catch (r2Error: any) {
-            console.error("R2 BUCKET get error for recognition file, falling back to local file simulation:", r2Error);
-          }
-        }
-        
-        const localFile = await handleLocalFileFallback(key);
-        if (localFile.success && localFile.data) {
+        const fileRes = await getUploadedFile(env, key);
+        if (fileRes.success && fileRes.data) {
           const fileHeaders = new Headers();
-          fileHeaders.set('Content-Type', localFile.mimeType || 'application/octet-stream');
+          fileHeaders.set('Content-Type', fileRes.mimeType || 'image/png');
           fileHeaders.set('Access-Control-Allow-Origin', '*');
+          fileHeaders.set('Cache-Control', 'public, max-age=31536000, immutable');
           fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
-          return new Response(localFile.data, { headers: fileHeaders });
+          return new Response(fileRes.data, { headers: fileHeaders });
         }
         
-        // Return beautiful placeholder matching category
-        return Response.redirect('https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=1200&auto=format&fit=crop&q=80', 302);
+        return generateBackendSvgResponse('Project Asset Not Found', key);
       } catch (e: any) {
         return new Response(e.message, { status: 500 });
       }
@@ -3546,54 +3707,36 @@ export async function onRequest(context: { request: Request; env: any; params: a
     }
 
     if (path === '/api/ongoing-projects/upload' && method === 'POST') {
-      console.log("Upload request received at:", path);
       try {
-        console.log("Request content type:", request.headers.get("content-type"));
         const formData = await request.formData();
-        console.log("FormData received");
         const file = formData.get('file') as File;
-        console.log("File from formData:", file ? file.name : "null");
         if (!file) {
-          console.error("No file in formData");
           return new Response(JSON.stringify({ error: "No file uploaded" }), { status: 400, headers });
         }
         
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml'];
         if (!allowedTypes.includes(file.type)) {
           return new Response(JSON.stringify({ error: "Invalid file type. Only standard web images are allowed." }), { status: 400, headers });
         }
         
-        const maxBytes = 10 * 1024 * 1024; // 10MB
+        const maxBytes = 15 * 1024 * 1024; // 15MB
         if (file.size > maxBytes) {
-          return new Response(JSON.stringify({ error: "File size exceeds 10MB limit." }), { status: 400, headers });
+          return new Response(JSON.stringify({ error: "File size exceeds 15MB limit." }), { status: 400, headers });
         }
         
         const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
         const objectKey = `ongoing_projects/${Date.now()}_${sanitizedName}`;
-        
         const fileBuffer = await file.arrayBuffer();
-        console.log("File buffer size:", fileBuffer.byteLength);
-        if (env.BUCKET) {
-          console.log("Using BUCKET to upload");
-          try {
-            await env.BUCKET.put(objectKey, fileBuffer, {
-              httpMetadata: { contentType: file.type }
-            });
-          } catch (r2Error: any) {
-            console.error("R2 BUCKET put error, falling back to local file simulation:", r2Error);
-            await handleLocalFileFallback(objectKey, fileBuffer, file.type);
-          }
-        } else {
-          console.warn("R2 BUCKET binding not found. Simulating file upload.");
-          await handleLocalFileFallback(objectKey, fileBuffer, file.type);
-        }
+        
+        await saveUploadedFile(env, objectKey, fileBuffer, file.type);
         
         return new Response(JSON.stringify({
           success: true,
           r2_object_key: objectKey,
           file_name: file.name,
           file_size: file.size,
-          mime_type: file.type
+          mime_type: file.type,
+          url: `/api/ongoing-projects/file?key=${encodeURIComponent(objectKey)}`
         }), { headers });
         
       } catch (e: any) {
@@ -3601,46 +3744,66 @@ export async function onRequest(context: { request: Request; env: any; params: a
       }
     }
 
-    if (path === '/api/ongoing-projects/file' && method === 'GET') {
+    if ((path === '/api/general/upload' || path === '/api/upload') && method === 'POST') {
+      try {
+        const formData = await request.formData();
+        const file = formData.get('file') as File;
+        if (!file) {
+          return new Response(JSON.stringify({ error: "No file uploaded" }), { status: 400, headers });
+        }
+        
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml', 'application/pdf'];
+        if (!allowedTypes.includes(file.type)) {
+          return new Response(JSON.stringify({ error: "Invalid file type. Only standard images and PDFs are allowed." }), { status: 400, headers });
+        }
+        
+        const maxBytes = 15 * 1024 * 1024; // 15MB
+        if (file.size > maxBytes) {
+          return new Response(JSON.stringify({ error: "File size exceeds 15MB limit." }), { status: 400, headers });
+        }
+        
+        const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, "_");
+        const objectKey = `uploads/${Date.now()}_${sanitizedName}`;
+        const fileBuffer = await file.arrayBuffer();
+        
+        await saveUploadedFile(env, objectKey, fileBuffer, file.type);
+        
+        return new Response(JSON.stringify({
+          success: true,
+          r2_object_key: objectKey,
+          file_name: file.name,
+          file_size: file.size,
+          mime_type: file.type,
+          url: `/api/ongoing-projects/file?key=${encodeURIComponent(objectKey)}`
+        }), { headers });
+        
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if ((path === '/api/ongoing-projects/file' || path === '/api/file' || path === '/api/general/file') && method === 'GET') {
       const key = url.searchParams.get('key');
       if (!key) {
         return new Response(JSON.stringify({ error: "Missing key parameter" }), { status: 400, headers });
       }
       
       try {
-        if (env.BUCKET) {
-          try {
-            const object = await env.BUCKET.get(key);
-            if (object) {
-              const fileHeaders = new Headers();
-              object.writeHttpMetadata(fileHeaders);
-              fileHeaders.set('Access-Control-Allow-Origin', '*');
-              fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
-              return new Response(object.body, { headers: fileHeaders });
-            }
-          } catch (r2Error: any) {
-            console.error("R2 BUCKET get error for ongoing project file, falling back to local file simulation:", r2Error);
-          }
-        }
-        
-        const localFile = await handleLocalFileFallback(key);
-        if (localFile.success && localFile.data) {
+        const fileRes = await getUploadedFile(env, key);
+        if (fileRes.success && fileRes.data) {
           const fileHeaders = new Headers();
-          fileHeaders.set('Content-Type', localFile.mimeType || 'application/octet-stream');
+          fileHeaders.set('Content-Type', fileRes.mimeType || 'image/png');
           fileHeaders.set('Access-Control-Allow-Origin', '*');
+          fileHeaders.set('Cache-Control', 'public, max-age=31536000, immutable');
           fileHeaders.set('Content-Disposition', `inline; filename="${key.split('/').pop()}"`);
-          return new Response(localFile.data, { headers: fileHeaders });
+          return new Response(fileRes.data, { headers: fileHeaders });
         }
         
-        let fallbackUrl = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80';
-        if (key.includes('crypto')) {
-          fallbackUrl = 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&auto=format&fit=crop&q=80';
-        } else if (key.includes('client') || key.includes('crm')) {
-          fallbackUrl = 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&auto=format&fit=crop&q=80';
-        } else if (key.includes('national') || key.includes('identity')) {
-          fallbackUrl = 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&auto=format&fit=crop&q=80';
-        }
-        return Response.redirect(fallbackUrl, 302);
+        let title = 'DS Tech Digital Asset';
+        if (key.includes('crypto')) title = 'Crypto & Blockchain Hub';
+        else if (key.includes('client') || key.includes('crm')) title = 'CRM & Client Management';
+        else if (key.includes('national') || key.includes('identity')) title = 'National Security & Identity';
+        return generateBackendSvgResponse(title, key);
       } catch (e: any) {
         return new Response(e.message, { status: 500 });
       }
@@ -4695,7 +4858,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
           return new Response(localFile.data, { headers: fileHeaders });
         }
         
-        return new Response(null, { status: 302, headers: { 'Location': 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80' } });
+        return generateBackendSvgResponse('Staff Profile Asset', key);
       } catch (e: any) {
         return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
       }

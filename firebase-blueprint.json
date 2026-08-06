@@ -1,0 +1,74 @@
+{
+  "entities": {
+    "StaffMember": {
+      "title": "Staff Member",
+      "description": "A staff member's profile and authentication data.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "The Firebase Auth UID." },
+        "email": { "type": "string" },
+        "fullName": { "type": "string" },
+        "phone": { "type": "string" },
+        "jobTitle": { "type": "string" },
+        "role": { "type": "string", "enum": ["staff", "admin", "hr"] },
+        "departmentId": { "type": "string" },
+        "gender": { "type": "string" },
+        "dob": { "type": "string" },
+        "nationality": { "type": "string" },
+        "specialization": { "type": "string" },
+        "biography": { "type": "string" },
+        "skills": { "type": "string" },
+        "qualifications": { "type": "string" },
+        "certifications": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "active", "suspended"] },
+        "isStaff": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "fullName", "role", "status"]
+    },
+    "Announcement": {
+      "title": "Announcement",
+      "description": "Corporate announcements for staff.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "priority": { "type": "string", "enum": ["Low", "Medium", "High"] },
+        "targetAudience": { "type": "string" },
+        "createdBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "content", "priority", "createdAt"]
+    },
+    "StaffDoc": {
+      "title": "Staff Document",
+      "description": "Internal documents and policies.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "fileName": { "type": "string" },
+        "fileSize": { "type": "number" },
+        "mimeType": { "type": "string" },
+        "targetRole": { "type": "string" },
+        "uploadedBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "fileName", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/staff/{staffId}": {
+      "schema": "StaffMember",
+      "description": "Staff profiles collection."
+    },
+    "/announcements/{announcementId}": {
+      "schema": "Announcement",
+      "description": "Corporate announcements."
+    },
+    "/staff_docs/{docId}": {
+      "schema": "StaffDoc",
+      "description": "Internal documents."
+    }
+  }
+}

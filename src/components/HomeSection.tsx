@@ -9,6 +9,7 @@ import { LanguageCode } from '../lib/translations';
 import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
 import { CacTrustSection } from './CacTrustSection';
 import { OngoingProjectsSection } from './OngoingProjectsSection';
+import { apiGetServices, resolveImageUrl } from '../lib/api';
 
 interface HomeSectionProps {
   onNavigate: (path: string) => void;
@@ -28,26 +29,20 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
   const [bookingService, setBookingService] = useState('Digital Marketing');
   const [bookingSubmitted, setBookingSubmitted] = useState(false);
 
-  const [services, setServices] = useState(() => {
-    try {
-      const saved = localStorage.getItem('admin_services');
-      return saved ? JSON.parse(saved) : SERVICES;
-    } catch (e) {
-      return SERVICES;
-    }
-  });
+  const [services, setServices] = useState(SERVICES);
 
   useEffect(() => {
-    const handleStorage = () => {
+    async function loadServices() {
       try {
-        const saved = localStorage.getItem('admin_services');
-        if (saved) {
-          setServices(JSON.parse(saved));
+        const fetchedServices = await apiGetServices();
+        if (fetchedServices && fetchedServices.length > 0) {
+          setServices(fetchedServices);
         }
-      } catch (e) {}
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+      } catch (e) {
+        console.error("Failed to fetch services, using static data:", e);
+      }
+    }
+    loadServices();
   }, []);
 
   const t = HOME_TRANSLATIONS[language] || HOME_TRANSLATIONS.en;
@@ -393,7 +388,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
             >
               <div className="relative h-48 overflow-hidden">
                 <img 
-                  src={svc.image || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=60"} 
+                  src={resolveImageUrl(svc.image)} 
                   alt={svc.name} 
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

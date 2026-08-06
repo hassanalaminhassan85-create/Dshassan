@@ -5,6 +5,8 @@ import {
   Sparkles, Calendar, Award, Phone, Mail, Clock
 } from 'lucide-react';
 import { ServiceItem } from '../lib/data';
+import { resolveImageUrl } from '../lib/api';
+import { generateDynamicSvgUrl } from '../lib/mediaUtils';
 import { LanguageCode } from '../lib/translations';
 import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
 
@@ -109,7 +111,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, l
         {/* Service Image */}
         <div className="md:col-span-5 relative rounded-2xl overflow-hidden h-64 md:h-80 shadow-md">
           <img 
-            src={service.image || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80"} 
+            src={resolveImageUrl(service.image) || generateDynamicSvgUrl(service.name, service.category, "service")} 
             alt={service.name} 
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover"

@@ -1,6 +1,8 @@
 // Extended Ecosystem Datasets for DS Tech & Digital Marketing Agency
 // Maps the full 26 services catalog, portfolio projects, blog posts, courses, and client portal states.
 
+import { generateDynamicSvgUrl, generateAvatarSvgUrl } from './mediaUtils';
+
 export interface ServiceItem {
   id: string;
   name: string;
@@ -89,7 +91,7 @@ export interface SupportTicket {
 // ---------------------------------------------------------
 // 1. THE 26 SERVICE CATALOG DATASET
 // ---------------------------------------------------------
-export const SERVICES: ServiceItem[] = [
+const RAW_SERVICES: ServiceItem[] = [
   {
     id: "svc_01",
     name: "Sponsored Ads Campaign Management Price List",
@@ -326,6 +328,11 @@ export const SERVICES: ServiceItem[] = [
   }
 ];
 
+export const SERVICES: ServiceItem[] = RAW_SERVICES.map(svc => ({
+  ...svc,
+  image: generateDynamicSvgUrl(svc.name, svc.category, 'service')
+}));
+
 // ---------------------------------------------------------
 // 2. PORTFOLIO DATASET (CASE STUDIES & SHOWCASE)
 // ---------------------------------------------------------
@@ -337,7 +344,7 @@ export const PORTFOLIO: PortfolioProject[] = [
     client: "Abuja Smart Real Estate Ltd",
     date: "March 2025",
     description: "Deployed a full-funnel high-ROAS marketing campaign on Facebook and Instagram. Crafted custom real estate video pitches and automated lead-forms connected to our custom CRM WhatsApp chatbot.",
-    image: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&auto=format&fit=crop&q=60",
+    image: generateDynamicSvgUrl("National Ad Strategy", "marketing", "portfolio"),
     stats: "+320% Qualified Leads, ₦85M Sales generated",
     tags: ["Sponsored Ads", "Leads Funnels", "WhatsApp CRM"]
   },
@@ -348,7 +355,7 @@ export const PORTFOLIO: PortfolioProject[] = [
     client: "Garki Modern Logistics Hub",
     date: "January 2025",
     description: "Engineered a custom secure real-time inventory and delivery tracking React dashboard, integrating GPS route coordinates, automated receipts, and SMS dispatch nodes.",
-    image: "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=60",
+    image: generateDynamicSvgUrl("Secure Enterprise Logistics", "software", "portfolio"),
     stats: "Sub-second database latency, 15k parcels tracked",
     tags: ["React.js", "Node.js", "GPS Mapping", "Tailwind CSS"]
   },
@@ -359,7 +366,7 @@ export const PORTFOLIO: PortfolioProject[] = [
     client: "West Africa Energy Hub",
     date: "May 2025",
     description: "Fast-tracked corporate incorporation, SCUML compliance certification, and Federal Inland Revenue Service (FIRS) tax clearance, completing registration in 5 days.",
-    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop&q=60",
+    image: generateDynamicSvgUrl("CAC & Regulatory Clearance", "compliance", "portfolio"),
     stats: "100% legal clearance in 5 business days",
     tags: ["CAC Filing", "SCUML Cert", "FIRS Tax Compliance"]
   },
@@ -370,7 +377,7 @@ export const PORTFOLIO: PortfolioProject[] = [
     client: "Niger Telecoms & Retail",
     date: "April 2025",
     description: "Designed a secure Gemini-powered chatbot, serving 10,000+ daily customers. Routes queries, solves basic order trackers, and books technical consultation calls autonomously.",
-    image: "https://images.unsplash.com/photo-1531746790731-6c087fecd50a?w=800&auto=format&fit=crop&q=60",
+    image: generateDynamicSvgUrl("Advanced AI Care Chatbot", "ai", "portfolio"),
     stats: "82% tickets resolved instantly without agents",
     tags: ["Gemini AI SDK", "WhatsApp Automation", "CRM Sync"]
   },
@@ -381,7 +388,7 @@ export const PORTFOLIO: PortfolioProject[] = [
     client: "Lekki Diamond Suites",
     date: "February 2025",
     description: "Re-designed total brand assets: high-end gold-foil logos, corporate letterheads, high-resolution visual presentations, and modern employee ID designs.",
-    image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=800&auto=format&fit=crop&q=60",
+    image: generateDynamicSvgUrl("Luxury Brand Identity", "branding", "portfolio"),
     stats: "Winner of West-Africa Creative Logo Design",
     tags: ["Brand Identity", "Vector Logos", "Print Assets"]
   },
@@ -392,7 +399,7 @@ export const PORTFOLIO: PortfolioProject[] = [
     client: "Executive Villa, Maitama, Abuja",
     date: "June 2025",
     description: "Complete layout of high-performance smart switches, off-grid solar node backups, HD optical IP cameras, and biometric automated entrance gates.",
-    image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=800&auto=format&fit=crop&q=60",
+    image: generateDynamicSvgUrl("Smart Tech & IP Surveillance", "ict", "portfolio"),
     stats: "24/7 solar backup, 0% blindspot security coverage",
     tags: ["Smart Tech", "CCTV Security", "Solar Backup"]
   }
@@ -412,7 +419,7 @@ export const BLOG_POSTS: BlogPost[] = [
     content: "When deploying ads in Nigeria, standard broad targeting is a recipe for budget exhaustion. Instead, segmenting targets into specific high-income hubs like Maitama/Asokoro in Abuja or Ikoyi/Lekki in Lagos yields 4x higher quality leads. Furthermore, utilizing WhatsApp click-to-chat CTA paths drastically increases conversions since over 85% of local buyers prefer direct messaging over complex e-commerce checkouts...",
     readTime: "5 min read",
     tags: ["Sponsored Ads", "ROAS Optimization", "SMB Growth"],
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=60"
+    image: generateDynamicSvgUrl("Maximizing Ad Spend", "marketing", "blog")
   },
   {
     id: "blog_02",
@@ -424,7 +431,7 @@ export const BLOG_POSTS: BlogPost[] = [
     content: "Registering a company in Nigeria used to take months of heavy bureaucracy. In 2026, the CAC portal enables faster registration, but single errors can delay approvals for weeks. Ensuring that your board members' identification records are fully aligned and processing SCUML and TIN simultaneously is the gold standard for immediate banking permissions...",
     readTime: "7 min read",
     tags: ["CAC Filing", "Tax Clearances", "Regulatory Compliance"],
-    image: "https://images.unsplash.com/photo-1450133064473-71024230f91b?w=600&auto=format&fit=crop&q=60"
+    image: generateDynamicSvgUrl("Demystifying CAC Filings", "compliance", "blog")
   },
   {
     id: "blog_03",
@@ -436,7 +443,7 @@ export const BLOG_POSTS: BlogPost[] = [
     content: "Customers expect instant responses. In West Africa, where mobile data usage is dominated by WhatsApp, businesses that deploy smart generative AI chatbots can reduce customer support response times from hours to milliseconds. By training models on specific business documents, AI handles 80%+ of repetitive queries safely and escalates priority cases to human desks...",
     readTime: "4 min read",
     tags: ["Generative AI", "WhatsApp CRM", "Automation"],
-    image: "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=600&auto=format&fit=crop&q=60"
+    image: generateDynamicSvgUrl("AI Chatbots Future", "ai", "blog")
   },
   {
     id: "blog_04",
@@ -448,7 +455,7 @@ export const BLOG_POSTS: BlogPost[] = [
     content: "Modern user interfaces require fluid, fast, and aesthetically distinctive components. Tailwind's compilation model combined with React's native concurrent features allows us to render interactive portals instantly. We dive deep into glassmorphism variables, motion presets, and the security rules necessary for dual electronic signatures...",
     readTime: "8 min read",
     tags: ["React 19", "Tailwind CSS v4", "Web Engineering"],
-    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&auto=format&fit=crop&q=60"
+    image: generateDynamicSvgUrl("Building Scalable Web Products", "web", "blog")
   }
 ];
 
@@ -460,7 +467,7 @@ export const COURSES: Course[] = [
     id: "crs_01",
     title: "Digital Marketing & Social Ads Mastery",
     description: "Master Facebook, Google, and TikTok sponsored ad systems, budget bidding algorithms, custom pixel tracking, and copywriting to generate premium high-intent leads.",
-    image: "https://images.unsplash.com/photo-1533750349088-cd871a92f311?w=600&auto=format&fit=crop&q=60",
+    image: generateDynamicSvgUrl("Digital Marketing Mastery", "marketing", "course"),
     duration: "6 weeks (12 Lessons)",
     level: "All Levels",
     price: "₦75,000",
@@ -476,7 +483,7 @@ export const COURSES: Course[] = [
     id: "crs_02",
     title: "React & TypeScript Frontend Web Engineering",
     description: "Learn to build professional, blazing-fast, and highly micro-animated full-stack React applications with Tailwind CSS, esbuild pipelines, and secure API bindings.",
-    image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600&auto=format&fit=crop&q=60",
+    image: generateDynamicSvgUrl("React & TypeScript Web Engineering", "web", "course"),
     duration: "10 weeks (20 Lessons)",
     level: "Advanced",
     price: "₦150,000",
@@ -492,7 +499,7 @@ export const COURSES: Course[] = [
     id: "crs_03",
     title: "CAC Registration & Regulatory Legal Compliance",
     description: "Become a professional registration consultant. Step-by-step masterclass on limited liability filings, SCUML clearances, and FIRS TIN registrations.",
-    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&auto=format&fit=crop&q=60",
+    image: generateDynamicSvgUrl("CAC Registration & Compliance", "compliance", "course"),
     duration: "4 weeks (8 Lessons)",
     level: "Beginner",
     price: "₦45,000",
@@ -507,7 +514,7 @@ export const COURSES: Course[] = [
     id: "crs_04",
     title: "AI-Powered Business Process Automation",
     description: "Learn to deploy custom Gemini-powered chatbots, automated report analyzers, and smart email systems using server-side Node.js integrations.",
-    image: "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=600&auto=format&fit=crop&q=60",
+    image: generateDynamicSvgUrl("AI-Powered Automation", "ai", "course"),
     duration: "5 weeks (10 Lessons)",
     level: "All Levels",
     price: "₦90,000",
@@ -541,9 +548,9 @@ export const CLIENT_TICKETS: SupportTicket[] = [
 ];
 
 export const TESTIMONIALS = [
-  { id: "tst_1", clientName: "Dr. Aliyu Maitama", company: "Abuja Smart Real Estate", role: "CEO & Managing Director", rating: 5, text: "The sponsored lead campaign designed by DS Tech transformed our business. We sold three multi-million naira duplexes in Abuja within 20 days. Unbelievable conversion rates!", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=60" },
-  { id: "tst_2", clientName: "Amara Nwosu", company: "Mimi & Co Organics", role: "Founder", rating: 5, text: "Registering my brand with CAC was so stressful until I met DS Tech. They processed our business name incorporation, got our FIRS TIN, and delivered everything within 5 days! Exceptional customer service.", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60" },
-  { id: "tst_3", clientName: "Musa Ibrahim", company: "Garki Logistics Hub", role: "Operations Lead", rating: 5, text: "Our tracking and database system runs smoothly thanks to their custom React software development. The mobile-friendly layout and real-time dashboard boosted our dispatch speeds by 50%.", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=60" }
+  { id: "tst_1", clientName: "Dr. Aliyu Maitama", company: "Abuja Smart Real Estate", role: "CEO & Managing Director", rating: 5, text: "The sponsored lead campaign designed by DS Tech transformed our business. We sold three multi-million naira duplexes in Abuja within 20 days. Unbelievable conversion rates!", avatar: generateAvatarSvgUrl("Dr. Aliyu Maitama", "CEO") },
+  { id: "tst_2", clientName: "Amara Nwosu", company: "Mimi & Co Organics", role: "Founder", rating: 5, text: "Registering my brand with CAC was so stressful until I met DS Tech. They processed our business name incorporation, got our FIRS TIN, and delivered everything within 5 days! Exceptional customer service.", avatar: generateAvatarSvgUrl("Amara Nwosu", "Founder") },
+  { id: "tst_3", clientName: "Musa Ibrahim", company: "Garki Logistics Hub", role: "Operations Lead", rating: 5, text: "Our tracking and database system runs smoothly thanks to their custom React software development. The mobile-friendly layout and real-time dashboard boosted our dispatch speeds by 50%.", avatar: generateAvatarSvgUrl("Musa Ibrahim", "Operations Lead") }
 ];
 
 export const PARTNERS = [

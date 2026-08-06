@@ -7,7 +7,7 @@ import {
   Edit3, ArrowLeft, Heart, BarChart3, Users, Landmark, UserMinus, ShieldAlert, LogOut,
   QrCode, MessageSquare, Send, FileText, Printer, Layers, FolderOpen, BookOpen,
   Video, Plus, PlusCircle, Check, MoreVertical, Settings, Sliders, Database, ArrowUp, Camera,
-  Sun, Moon, Globe, ChevronDown, Copy, X, Code, Bell, ShieldCheck, Award
+  Sun, Moon, Globe, ChevronDown, Copy, X, Code, Bell, ShieldCheck, Award, FolderKanban
 } from 'lucide-react';
 import { JobApplication } from '../types';
 import { useNotifications } from './NotificationProvider';
@@ -24,7 +24,14 @@ import {
   apiUpdatePortfolio,
   apiDeletePortfolio,
   apiGetPortfolio,
-  apiInitializePortfolio
+  apiInitializePortfolio,
+  apiGetServices,
+  apiUpdateService,
+  apiSaveService,
+  apiGetBlogs,
+  apiSaveBlog,
+  apiGetCourses,
+  apiSaveCourse
 } from '../lib/api';
 import { ApplicationQRScanner } from './ApplicationQRScanner';
 import { CareersFormPDFView } from './CareersFormPDFView';
@@ -36,6 +43,8 @@ import { RecognitionAdminDashboard } from './RecognitionAdminDashboard';
 import { OngoingProjectsAdminDashboard } from './OngoingProjectsAdminDashboard';
 import { AdminAssetDiagnostics } from './AdminAssetDiagnostics';
 import { AdminStaffManagement } from './AdminStaffManagement';
+import { AnimatedHomeSectionImagePreview } from './AnimatedHomeSectionImagePreview';
+import { generateDynamicSvgUrl } from '../lib/mediaUtils';
 
 import { 
   SERVICES, 
@@ -45,6 +54,204 @@ import {
   CLIENT_INVOICES, 
   CLIENT_TICKETS 
 } from '../lib/data';
+
+const AdminClientProjectsManager: React.FC = () => {
+  const [clientProjects, setClientProjects] = useState<any[]>([]);
+  const [staffList, setStaffList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const raw = localStorage.getItem('ds_all_client_projects');
+      if (raw) {
+        setClientProjects(JSON.parse(raw));
+      }
+      const staffRes = await fetch('/api/staff');
+      if (staffRes.ok) {
+        const sData = await staffRes.json();
+        setStaffList(sData);
+      }
+    } catch (e) {}
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleAssignStaff = (projId: string, staffMember: any) => {
+    const updated = clientProjects.map(p => {
+      if (p.id === projId) {
+        return {
+          ...p,
+          assignedStaff: {
+            id: staffMember.id,
+            fullName: staffMember.fullName || staffMember.full_name,
+            jobTitle: staffMember.jobTitle || staffMember.job_title,
+            email: staffMember.email,
+            phone: staffMember.phone
+          },
+          status: 'progress'
+        };
+      }
+      return p;
+    });
+    setClientProjects(updated);
+    localStorage.setItem('ds_all_client_projects', JSON.stringify(updated));
+    const proj = updated.find(p => p.id === projId);
+    if (proj && proj.clientId) {
+      const clientProjsRaw = localStorage.getItem(`client_projs_${proj.clientId}`);
+      if (clientProjsRaw) {
+        try {
+          const cProjs = JSON.parse(clientProjsRaw);
+          const updatedCProjs = cProjs.map((cp: any) => cp.id === projId ? proj : cp);
+          localStorage.setItem(`client_projs_${proj.clientId}`, JSON.stringify(updatedCProjs));
+        } catch (e) {}
+      }
+    }
+    window.dispatchEvent(new Event('storage'));
+    setSuccess(`Successfully assigned ${staffMember.fullName || staffMember.full_name} to project "${proj?.name}"!`);
+    setTimeout(() => setSuccess(null), 3000);
+  };
+
+  const handleUpdateStatus = (projId: string, nextStatus: string, nextProgress: number) => {
+    const updated = clientProjects.map(p => {
+      if (p.id === projId) {
+        return { ...p, status: nextStatus, progress: nextProgress };
+      }
+      return p;
+    });
+    setClientProjects(updated);
+    localStorage.setItem('ds_all_client_projects', JSON.stringify(updated));
+    const proj = updated.find(p => p.id === projId);
+    if (proj && proj.clientId) {
+      const clientProjsRaw = localStorage.getItem(`client_projs_${proj.clientId}`);
+      if (clientProjsRaw) {
+        try {
+          const cProjs = JSON.parse(clientProjsRaw);
+          const updatedCProjs = cProjs.map((cp: any) => cp.id === projId ? proj : cp);
+          localStorage.setItem(`client_projs_${proj.clientId}`, JSON.stringify(updatedCProjs));
+        } catch (e) {}
+      }
+    }
+    window.dispatchEvent(new Event('storage'));
+    setSuccess(`Updated project status & progress successfully!`);
+    setTimeout(() => setSuccess(null), 3000);
+  };
+
+  return (
+    <div className="space-y-6 text-left p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <span className="text-xs font-mono font-black uppercase text-orange-500 tracking-wider">Enterprise CRM & Execution</span>
+          <h2 className="text-2xl font-bold font-serif uppercase tracking-tight text-slate-900 dark:text-white">Client Projects & Staff Assignment</h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Review projects submitted by enterprise clients across all portals and assign lead staff engineers.</p>
+        </div>
+        <button
+          onClick={loadData}
+          className="px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs uppercase rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all flex items-center gap-2 cursor-pointer"
+        >
+          <RefreshCw size={14} />
+          <span>Refresh Ledger</span>
+        </button>
+      </div>
+
+      {success && (
+        <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 rounded-2xl text-xs font-bold flex items-center gap-2">
+          <CheckCircle2 size={16} />
+          <span>{success}</span>
+        </div>
+      )}
+
+      {clientProjects.length === 0 ? (
+        <div className="p-12 text-center bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl space-y-3">
+          <FolderOpen size={40} className="mx-auto text-slate-300 dark:text-slate-700" />
+          <h3 className="text-sm font-bold text-slate-900 dark:text-white">No Client Projects Submitted Yet</h3>
+          <p className="text-xs text-slate-400 max-w-sm mx-auto">Projects submitted by clients via the Client Portal project builder will appear here instantly for administrative review and staff assignment.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {clientProjects.map((proj: any) => (
+            <div key={proj.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-5 shadow-sm">
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono font-black uppercase text-indigo-500 bg-indigo-500/10 px-2.5 py-1 rounded-full">
+                      {proj.serviceCategory}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                      Client: {proj.clientName}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mt-1">{proj.name}</h3>
+                  <p className="text-xs text-slate-400">{proj.description}</p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-mono font-bold text-orange-600 dark:text-orange-400">{proj.budget}</span>
+                  <select
+                    value={proj.status}
+                    onChange={(e) => handleUpdateStatus(proj.id, e.target.value, proj.progress)}
+                    className="px-3 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold uppercase"
+                  >
+                    <option value="planning">Planning</option>
+                    <option value="progress">In Progress</option>
+                    <option value="review">Review</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs font-bold text-slate-500">
+                    <span>Progress Percentage</span>
+                    <span>{proj.progress}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={proj.progress}
+                    onChange={(e) => handleUpdateStatus(proj.id, proj.status, Number(e.target.value))}
+                    className="w-full accent-orange-500 cursor-pointer"
+                  />
+                </div>
+
+                <div className="p-4 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-between gap-4">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Assigned Staff Engineer</span>
+                    <span className="text-xs font-extrabold text-slate-900 dark:text-white">
+                      {proj.assignedStaff ? `${proj.assignedStaff.fullName} (${proj.assignedStaff.jobTitle})` : 'Unassigned (Select staff below)'}
+                    </span>
+                  </div>
+                  <select
+                    onChange={(e) => {
+                      const staffId = e.target.value;
+                      const st = staffList.find((s: any) => s.id === staffId);
+                      if (st) handleAssignStaff(proj.id, st);
+                    }}
+                    defaultValue=""
+                    className="px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-orange-600 dark:text-orange-400 cursor-pointer"
+                  >
+                    <option value="" disabled>Assign Staff Member...</option>
+                    {staffList.map((st: any) => (
+                      <option key={st.id} value={st.id}>
+                        {st.fullName || st.full_name} - {st.jobTitle || st.job_title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface AdminDashboardProps {
   onBackToPortal: () => void;
@@ -134,7 +341,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   }, [candidateAnalyses]);
 
   // Super Admin Control Center State
-  const [adminModule, setAdminModule] = useState<'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'emails' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff'>('recruitment');
+  const [adminModule, setAdminModule] = useState<'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'emails' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'client-projects'>('recruitment');
   
   // Custom navigation header states
   const [isThreeDotsOpen, setIsThreeDotsOpen] = useState<boolean>(false);
@@ -185,67 +392,39 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   }, [showSQLSchemaModal]);
   
-  // Interactive lists states initialized from our central database (with localStorage backup)
-  const [adminServices, setAdminServices] = useState<any[]>(() => {
-    try {
-      const saved = localStorage.getItem('admin_services');
-      return saved ? JSON.parse(saved) : SERVICES;
-    } catch (e) {
-      console.error('Failed to parse admin_services from localStorage:', e);
-      return SERVICES;
-    }
-  });
+  // --- Dynamic Services Sync ---
+  const [adminServices, setAdminServices] = useState<any[]>(SERVICES);
   
-  const [adminProjects, setAdminProjects] = useState<any[]>(() => {
+  useEffect(() => {
+    apiGetServices().then(data => {
+      if (data && data.length > 0) setAdminServices(data);
+    }).catch(err => console.error("Failed to load services from API", err));
+  }, []);
+
+  const handleUpdateService = async (service: any) => {
     try {
-      const saved = localStorage.getItem('admin_portfolio_projects');
-      return saved ? JSON.parse(saved) : PORTFOLIO;
-    } catch (e) {
-      console.error('Failed to parse admin_portfolio_projects from localStorage:', e);
-      return PORTFOLIO;
+      await apiUpdateService(service.id, service);
+      setAdminServices(prev => prev.map(s => s.id === service.id ? service : s));
+      setShowAdminNotification("Service updated successfully!");
+    } catch (err) {
+      console.error("Failed to update service", err);
+      setShowAdminNotification("Failed to update service.");
     }
-  });
+    setTimeout(() => setShowAdminNotification(null), 3000);
+  };
   
-  const [adminBlogs, setAdminBlogs] = useState<any[]>(() => {
-    try {
-      const saved = localStorage.getItem('admin_blogs');
-      return saved ? JSON.parse(saved) : BLOG_POSTS;
-    } catch (e) {
-      console.error('Failed to parse admin_blogs from localStorage:', e);
-      return BLOG_POSTS;
-    }
-  });
-
-  const [adminCourses, setAdminCourses] = useState<any[]>(() => {
-    try {
-      const saved = localStorage.getItem('admin_courses');
-      return saved ? JSON.parse(saved) : COURSES;
-    } catch (e) {
-      console.error('Failed to parse admin_courses from localStorage:', e);
-      return COURSES;
-    }
-  });
-
-  // Sync to localStorage hooks with custom dispatch to notify any same-window active listeners
+  const [adminProjects, setAdminProjects] = useState<any[]>(PORTFOLIO);
+  const [adminBlogs, setAdminBlogs] = useState<any[]>(BLOG_POSTS);
+  const [adminCourses, setAdminCourses] = useState<any[]>(COURSES);
+  
   useEffect(() => {
-    localStorage.setItem('admin_services', JSON.stringify(adminServices));
-    window.dispatchEvent(new Event('storage'));
-  }, [adminServices]);
-
-  useEffect(() => {
-    localStorage.setItem('admin_portfolio_projects', JSON.stringify(adminProjects));
-    window.dispatchEvent(new Event('storage'));
-  }, [adminProjects]);
-
-  useEffect(() => {
-    localStorage.setItem('admin_blogs', JSON.stringify(adminBlogs));
-    window.dispatchEvent(new Event('storage'));
-  }, [adminBlogs]);
-
-  useEffect(() => {
-    localStorage.setItem('admin_courses', JSON.stringify(adminCourses));
-    window.dispatchEvent(new Event('storage'));
-  }, [adminCourses]);
+    Promise.all([
+      apiGetServices().then(data => data && data.length > 0 ? setAdminServices(data) : null),
+      apiGetPortfolio().then(data => data && data.length > 0 ? setAdminProjects(data) : null),
+      apiGetBlogs().then(data => data && data.length > 0 ? setAdminBlogs(data) : null),
+      apiGetCourses().then(data => data && data.length > 0 ? setAdminCourses(data) : null)
+    ]).catch(err => console.error("Failed to load catalog data from API", err));
+  }, []);
 
   const [adminInvoices, setAdminInvoices] = useState(() => CLIENT_INVOICES);
 
@@ -2113,6 +2292,7 @@ export default {
       group: 'Enterprise CRM',
       items: [
         { id: 'clients', label: 'Clients CRM', icon: Landmark, count: CLIENT_INVOICES.length + CLIENT_TICKETS.length },
+        { id: 'client-projects', label: 'Client Projects & Staff', icon: FolderKanban },
       ]
     },
     {
@@ -3895,7 +4075,7 @@ export default {
                   </div>
 
                   <form 
-                    onSubmit={(e) => {
+                    onSubmit={async (e) => {
                       e.preventDefault();
                       if(!svcName || !svcDesc) {
                         alert("Please fill in the service name and description brief.");
@@ -3913,12 +4093,25 @@ export default {
                       };
 
                       if (editingSvc) {
-                        setAdminServices(adminServices.map((s: any) => s.id === editingSvc.id ? finalSvc : s));
-                        alert("✅ Service updated successfully in your local catalog database!");
+                        try {
+                          await apiUpdateService(editingSvc.id, finalSvc);
+                          setAdminServices(adminServices.map((s: any) => s.id === editingSvc.id ? finalSvc : s));
+                          setShowAdminNotification("✅ Service updated successfully!");
+                        } catch (err) {
+                          console.error("Failed to update service:", err);
+                          setShowAdminNotification("❌ Failed to update service.");
+                        }
                       } else {
-                        setAdminServices([finalSvc, ...adminServices]);
-                        alert("✅ Brand new service node published successfully!");
+                        try {
+                          await apiSaveService(finalSvc);
+                          setAdminServices([finalSvc, ...adminServices]);
+                          setShowAdminNotification("✅ Service published successfully!");
+                        } catch (err) {
+                          console.error("Failed to publish service:", err);
+                          setShowAdminNotification("❌ Failed to publish service.");
+                        }
                       }
+                      setTimeout(() => setShowAdminNotification(null), 3000);
 
                       // Clear input states
                       setEditingSvc(null);
@@ -4573,23 +4766,18 @@ export default {
                     <button type="button" onClick={() => setProjImage('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-white dark:bg-slate-800 rounded text-[9px] text-slate-500 whitespace-nowrap">AI Cyber</button>
                   </div>
 
-                  {/* LIVE PREVIEW BOX */}
-                  {projImage.trim() && (
-                    <div className="mt-2.5 relative h-24 w-full rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
-                      <img 
-                        src={projImage} 
-                        alt="Live Project Form Preview" 
-                        className="w-full h-full object-cover" 
-                        referrerPolicy="no-referrer"
-                        onError={(e) => {
-                          e.currentTarget.style.display = 'none';
-                        }}
-                      />
-                      <div className="absolute top-1 left-1 bg-[#000E32] text-[8px] font-mono font-bold text-white px-1.5 py-0.5 rounded shadow">
-                        REAL-TIME PROJECT COVER PREVIEW
-                      </div>
-                    </div>
-                  )}
+                  {/* ANIMATED MOTION PREVIEW FOR HOME SECTION */}
+                  <div className="mt-3">
+                    <AnimatedHomeSectionImagePreview 
+                      imageSrc={projImage.trim() || null}
+                      title={projTitle || "Case Study Project Title"}
+                      category={projCat || "Software Development"}
+                      status="Live Deployed"
+                      progress={100}
+                      shortDescription={projDesc || "Enterprise client implementation summary..."}
+                      technologies={projTags || "React, Cloudflare, D1 SQLite"}
+                    />
+                  </div>
                 </div>
 
                 {/* 6. Video URL */}
@@ -5065,13 +5253,13 @@ export default {
                   value={blogImage} 
                   onChange={e=>setBlogImage(e.target.value)} 
                   className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono text-[11px]" 
-                  placeholder="https://images.unsplash.com/photo-..." 
+                  placeholder="Dynamic SVG generated or custom URL..." 
                 />
                 <div className="flex gap-1.5 mt-1.5 overflow-x-auto pb-1">
-                  <button type="button" onClick={() => setBlogImage('https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Compliance/Writing</button>
-                  <button type="button" onClick={() => setBlogImage('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Marketing Tech</button>
-                  <button type="button" onClick={() => setBlogImage('https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">AI Cyber</button>
-                  <button type="button" onClick={() => setBlogImage('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Business Growth</button>
+                  <button type="button" onClick={() => setBlogImage(generateDynamicSvgUrl('Compliance & Legal Guidance', 'compliance', 'blog'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Compliance/Writing</button>
+                  <button type="button" onClick={() => setBlogImage(generateDynamicSvgUrl('Marketing Technology Growth', 'marketing', 'blog'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Marketing Tech</button>
+                  <button type="button" onClick={() => setBlogImage(generateDynamicSvgUrl('AI & Cyber Infrastructure', 'ai', 'blog'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">AI Cyber</button>
+                  <button type="button" onClick={() => setBlogImage(generateDynamicSvgUrl('Business Growth Strategy', 'business', 'blog'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Business Growth</button>
                 </div>
 
                 {/* LIVE BLOG PREVIEW */}
@@ -5120,12 +5308,12 @@ export default {
                     <td className="py-4 px-5">
                       <div className="h-10 w-16 bg-slate-100 rounded-lg overflow-hidden border border-slate-150 flex items-center justify-center">
                         <img 
-                          src={post.image || 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=100&auto=format&fit=crop&q=60'} 
+                          src={post.image || generateDynamicSvgUrl(post.title || 'Blog Post', post.category || 'marketing', 'blog')} 
                           alt="Thumbnail" 
                           className="h-full w-full object-cover"
                           referrerPolicy="no-referrer"
                           onError={(e) => {
-                            e.currentTarget.src = 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=100&auto=format&fit=crop&q=60';
+                            e.currentTarget.src = generateDynamicSvgUrl(post.title || 'Blog Post', post.category || 'marketing', 'blog');
                           }}
                         />
                       </div>
@@ -5187,7 +5375,7 @@ export default {
                   level: crsLevel,
                   price: crsPrice,
                   category: crsCategory,
-                  image: crsImage || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80",
+                  image: crsImage || generateDynamicSvgUrl(crsTitle || "Vocational Course", crsCategory || "training", "course"),
                   lessons: [
                     { id: "les_" + Math.random().toString(36).substring(2, 5), title: "Module 1 Foundations", duration: "1 hr", isFree: true, content: "Core structural overview." }
                   ]
@@ -5199,7 +5387,7 @@ export default {
                 setCrsDuration('6 Weeks');
                 setCrsLevel('Intermediate');
                 setCrsPrice('₦120,000');
-                setCrsImage('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80');
+                setCrsImage(generateDynamicSvgUrl("Vocational Course Academy", "training", "course"));
               }}
               className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-4 text-xs"
             >
@@ -5242,13 +5430,13 @@ export default {
                   value={crsImage} 
                   onChange={e=>setCrsImage(e.target.value)} 
                   className="w-full p-2.5 bg-white border border-slate-200 rounded-xl font-mono text-[11px]" 
-                  placeholder="https://images.unsplash.com/photo-..." 
+                  placeholder="Dynamic SVG generated or custom URL..." 
                 />
                 <div className="flex gap-1.5 mt-1.5 overflow-x-auto pb-1">
-                  <button type="button" onClick={() => setCrsImage('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Education Tech</button>
-                  <button type="button" onClick={() => setCrsImage('https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Coding Workspace</button>
-                  <button type="button" onClick={() => setCrsImage('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Design / Analytics</button>
-                  <button type="button" onClick={() => setCrsImage('https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80')} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">AI Neural</button>
+                  <button type="button" onClick={() => setCrsImage(generateDynamicSvgUrl('Education Tech & Software', 'web', 'course'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Education Tech</button>
+                  <button type="button" onClick={() => setCrsImage(generateDynamicSvgUrl('Coding & Web Development', 'web', 'course'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Coding Workspace</button>
+                  <button type="button" onClick={() => setCrsImage(generateDynamicSvgUrl('Design & Analytics Academy', 'marketing', 'course'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">Design / Analytics</button>
+                  <button type="button" onClick={() => setCrsImage(generateDynamicSvgUrl('AI & Neural Automation Mastery', 'ai', 'course'))} className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 rounded text-[9px] text-slate-500 whitespace-nowrap">AI Neural</button>
                 </div>
 
                 {/* LIVE COURSE COVER PREVIEW */}
@@ -5290,12 +5478,12 @@ export default {
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-16 rounded-lg overflow-hidden border border-slate-200 flex-shrink-0 bg-slate-100 flex items-center justify-center">
                         <img 
-                          src={c.image || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=60"} 
+                          src={c.image || generateDynamicSvgUrl(c.title || "Vocational Course", c.category || "training", "course")} 
                           alt={c.title} 
                           className="h-full w-full object-cover" 
                           referrerPolicy="no-referrer"
                           onError={(e) => {
-                            e.currentTarget.src = "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=60";
+                            e.currentTarget.src = generateDynamicSvgUrl(c.title || "Vocational Course", c.category || "training", "course");
                           }}
                         />
                       </div>
@@ -5702,6 +5890,10 @@ export default {
 
       {adminModule === 'staff' && (
         <AdminStaffManagement />
+      )}
+
+      {adminModule === 'client-projects' && (
+        <AdminClientProjectsManager />
       )}
 
       {adminModule === 'diagnostics' && (

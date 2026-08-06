@@ -14,6 +14,7 @@ import {
   apiUploadCacFile,
   CacMetadata 
 } from '../lib/api';
+import { AnimatedHomeSectionImagePreview } from './AnimatedHomeSectionImagePreview';
 
 // Reusable Document Viewer
 import { CacTrustSection } from './CacTrustSection';
@@ -471,6 +472,27 @@ export const CacAdminCenter: React.FC = () => {
                       className="w-16 px-2 py-1 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded text-center font-mono font-bold"
                     />
                   </div>
+                </div>
+
+                {/* ANIMATED MOTION PREVIEW FOR HOME SECTION */}
+                <div className="pt-2">
+                  <AnimatedHomeSectionImagePreview 
+                    imageSrc={
+                      selectedFile 
+                        ? URL.createObjectURL(selectedFile) 
+                        : (editingCert.r2_object_key 
+                            ? `/api/cac/file?key=${encodeURIComponent(editingCert.r2_object_key)}` 
+                            : null)
+                    }
+                    title={editingCert.company_name || "DS Tech Enterprise Node"}
+                    category="CAC Accreditation"
+                    status="Verified License"
+                    progress={100}
+                    shortDescription={editingCert.description || "Official CAC Incorporation Record"}
+                    technologies={`RC: ${editingCert.registration_number || 'RC-7849103'}`}
+                    fileName={selectedFile?.name || editingCert.file_name}
+                    fileSize={selectedFile?.size}
+                  />
                 </div>
 
                 {/* Form Buttons */}

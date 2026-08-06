@@ -13,6 +13,7 @@ import {
   EmailAuthProvider,
   onAuthStateChanged
 } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const metaEnv = (import.meta as any).env || {};
 
@@ -31,6 +32,9 @@ export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getA
 
 // Initialize Firebase Auth
 export const auth = getAuth(app);
+
+// Initialize Firestore
+export const db = getFirestore(app);
 
 // Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();

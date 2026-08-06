@@ -159,6 +159,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Über Uns", value: "about" },
     { label: "Dienste", value: "services" },
     { label: "Portfolio", value: "portfolio" },
+    { label: "Unser Team", value: "team" },
     { label: "Blog", value: "blog" },
     { label: "Akademie", value: "training" },
     { label: "Kunden", value: "clients" },
@@ -170,6 +171,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "О нас", value: "about" },
     { label: "Услуги", value: "services" },
     { label: "Портфолио", value: "portfolio" },
+    { label: "Наша команда", value: "team" },
     { label: "Блог", value: "blog" },
     { label: "Академия", value: "training" },
     { label: "Клиенты", value: "clients" },
@@ -181,6 +183,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Sobre Nós", value: "about" },
     { label: "Serviços", value: "services" },
     { label: "Portfólio", value: "portfolio" },
+    { label: "Nossa Equipe", value: "team" },
     { label: "Blog", value: "blog" },
     { label: "Academia", value: "training" },
     { label: "Clientes", value: "clients" },
@@ -192,6 +195,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "关于我们", value: "about" },
     { label: "核心业务", value: "services" },
     { label: "成功案例", value: "portfolio" },
+    { label: "我们的团队", value: "team" },
     { label: "博客资讯", value: "blog" },
     { label: "培训学院", value: "training" },
     { label: "客户门户", value: "clients" },
@@ -212,7 +216,7 @@ export default function App() {
   const [selectedRoleTitle, setSelectedRoleTitle] = useState<string>('');
 
   // Active website ecosystem page routing state
-  const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'blog' | 'training' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard'>('home');
+  const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard'>('home');
 
   // Interactive 2027 App Shell full-screen state
   const [isUserLoggedIn, setIsUserLoggedIn] = useState<boolean>(false);
@@ -348,6 +352,8 @@ export default function App() {
           setActivePage('services');
         } else if (path === '/portfolio') {
           setActivePage('portfolio');
+        } else if (path === '/team') {
+          setActivePage('team');
         } else if (path === '/blog') {
           setActivePage('blog');
         } else if (path === '/training') {
@@ -447,7 +453,7 @@ export default function App() {
       className="min-h-screen bg-white dark:bg-slate-950 flex flex-col font-sans selection:bg-orange-500 selection:text-white transition-colors duration-300"
     >
       {/* Upper Navigation Header Bar */}
-      {!isAdminView && !isUserLoggedIn && activePage !== 'account' && (
+      {!isAdminView && !isUserLoggedIn && !['account', 'clients', 'training', 'staff-portal'].includes(activePage) && (
         <header className="no-print bg-white dark:bg-slate-900/85 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-50 shadow-sm px-4 py-3 sm:px-6 sm:py-3.5 flex flex-col lg:flex-row gap-3 lg:gap-4 justify-between items-center transition-colors duration-300 animate-fade-in">
           
           {/* Logo Container and Mobile Controls (Language + Theme + Menu Toggle) */}
@@ -1159,13 +1165,28 @@ export default function App() {
               </motion.div>
              ) : activePage === 'team' ? (
               <motion.div
-                key="team-section"
+                key="meet-our-team-section"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="w-full"
               >
                 <MeetOurTeamSection language={language} />
+              </motion.div>
+             ) : activePage === 'staff-portal' ? (
+              <motion.div
+                key="staff-portal-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full"
+              >
+                <StaffPortal 
+                  onBackToPortal={() => {
+                    setActivePage('home');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }} 
+                />
               </motion.div>
              ) : activePage === 'blog' ? (
               <motion.div
@@ -1575,7 +1596,7 @@ export default function App() {
       </main>
 
       {/* Document bottom footer info */}
-      {!isUserLoggedIn && !isAdminView && activePage !== 'account' && (
+      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'staff-portal'].includes(activePage) && (
         <footer className="no-print bg-slate-900 text-slate-400 border-t border-slate-800 mt-auto pt-16 pb-12 px-6 md:px-12 relative overflow-hidden font-sans">
         {/* Decorative ambient background light */}
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none" />

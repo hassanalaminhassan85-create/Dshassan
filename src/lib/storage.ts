@@ -1,4 +1,5 @@
 import { JobApplication } from '../types';
+import { generateAvatarSvgUrl } from './mediaUtils';
 
 const STORAGE_KEY = 'dstech_applications';
 
@@ -17,7 +18,7 @@ export const DEMO_APPLICATION: JobApplication = {
     residentialAddress: 'Suite B12, Garki Mall, Area 11 Abuja',
     emailAddress: 'david.alao.chibuzor@example.com',
     phoneNumbers: '+2348032485921',
-    passportPhoto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=60',
+    passportPhoto: generateAvatarSvgUrl('David Alao Chibuzor', 'Applicant'),
   },
   guarantorInfo: {
     fullName: 'Dr. Yusuf Ibrahim Garki',

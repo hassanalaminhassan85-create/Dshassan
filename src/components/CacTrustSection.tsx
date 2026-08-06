@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import * as React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ShieldCheck, FileText, ExternalLink, Calendar, Building, MapPin, 
@@ -16,22 +16,22 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
   language = 'en',
   theme = 'dark'
 }) => {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [certificates, setCertificates] = useState<CacMetadata[]>([]);
-  const [activeIndex, setActiveIndex] = useState<number>(0);
-  const [isViewerOpen, setIsViewerOpen] = useState<boolean>(false);
+  const [loading, setLoading] = React.useState<boolean>(true);
+  const [error, setError] = React.useState<string | null>(null);
+  const [certificates, setCertificates] = React.useState<CacMetadata[]>([]);
+  const [activeIndex, setActiveIndex] = React.useState<number>(0);
+  const [isViewerOpen, setIsViewerOpen] = React.useState<boolean>(false);
   
   // Document Viewer interactive states
-  const [zoom, setZoom] = useState<number>(1);
-  const [rotation, setRotation] = useState<number>(0);
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
-  const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  const [zoom, setZoom] = React.useState<number>(1);
+  const [rotation, setRotation] = React.useState<number>(0);
+  const [isFullscreen, setIsFullscreen] = React.useState<boolean>(false);
+  const [copySuccess, setCopySuccess] = React.useState<boolean>(false);
   
-  const viewerRef = useRef<HTMLDivElement>(null);
-  const printFrameRef = useRef<HTMLIFrameElement>(null);
+  const viewerRef = React.useRef<HTMLDivElement>(null);
+  const printFrameRef = React.useRef<HTMLIFrameElement>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     fetchCacData();
   }, []);
 
@@ -94,7 +94,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     const handleFullscreenChange = () => {
       setIsFullscreen(!!document.fullscreenElement);
     };
@@ -103,7 +103,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
   }, []);
 
   // Keyboard navigation inside viewer
-  useEffect(() => {
+  React.useEffect(() => {
     if (!isViewerOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsViewerOpen(false);

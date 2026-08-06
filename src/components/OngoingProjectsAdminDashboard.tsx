@@ -14,6 +14,7 @@ import {
   apiUploadOngoingProjectFile,
   OngoingProject 
 } from '../lib/api';
+import { AnimatedHomeSectionImagePreview } from './AnimatedHomeSectionImagePreview';
 
 const CATEGORIES = [
   'Cyber Security',
@@ -759,6 +760,30 @@ export const OngoingProjectsAdminDashboard: React.FC = () => {
                     )}
                   </div>
                 </div>
+              </div>
+
+              {/* Animated Motion Image Preview for Home Section */}
+              <div className="pt-2">
+                <AnimatedHomeSectionImagePreview 
+                  imageSrc={
+                    selectedFile 
+                      ? URL.createObjectURL(selectedFile) 
+                      : (editingProject.cover_image_key 
+                          ? (editingProject.cover_image_key.startsWith('http://') || editingProject.cover_image_key.startsWith('https://') 
+                              ? editingProject.cover_image_key 
+                              : `/api/ongoing-projects/file?key=${encodeURIComponent(editingProject.cover_image_key)}`) 
+                          : null)
+                  }
+                  title={editingProject.title || "Project Title"}
+                  category={editingProject.category || "Cyber Security"}
+                  status={editingProject.status || "Planning"}
+                  progress={editingProject.progress_percentage || 50}
+                  shortDescription={editingProject.short_description || "Short description summary"}
+                  technologies={editingProject.technologies || "React, Cloudflare"}
+                  isFeatured={editingProject.is_featured === 1}
+                  fileName={selectedFile?.name}
+                  fileSize={selectedFile?.size}
+                />
               </div>
             </div>
           </div>

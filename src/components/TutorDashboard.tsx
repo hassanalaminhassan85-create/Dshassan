@@ -504,26 +504,25 @@ export const TutorDashboard: React.FC = () => {
   );
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 py-8 space-y-8 text-slate-800 dark:text-slate-100 animate-fade-in" id="tutor-dashboard-root">
+    <div className="w-full min-h-screen bg-[#000E32] text-slate-100 px-4 py-8 space-y-8 animate-fade-in" id="tutor-dashboard-root">
       
       {/* 1. Header Hero Panel */}
-      <div className="p-6 bg-gradient-to-r from-[#000E32] to-[#14234b] dark:from-slate-900 dark:to-slate-850 border border-slate-200/10 dark:border-slate-800/60 rounded-3xl text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-orange-600/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="p-8 bg-gradient-to-br from-[#000E32] to-[#14234b] border border-white/5 rounded-3xl text-white shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-6 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-orange-600/10 rounded-full blur-3xl pointer-events-none"></div>
         
-        <div className="space-y-2 text-left relative z-10 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-emerald-400 text-[10px] font-black uppercase bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 rounded-full flex items-center gap-1">
-              <Sparkle size={10} className="animate-pulse" />
+        <div className="space-y-3 text-left relative z-10 flex-1">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-orange-500 text-[10px] font-black uppercase tracking-[0.2em] bg-orange-500/10 px-3 py-1 rounded-full flex items-center gap-1.5">
+              <Sparkle size={10} />
               <span>Accredited Faculty Head</span>
             </span>
-            <span className="text-slate-300 text-xs font-mono bg-white/5 border border-white/10 px-2.5 py-0.5 rounded-md">Cloud ID: tut_david_01</span>
+            <span className="text-slate-400 text-[10px] font-mono bg-white/5 px-2.5 py-1 rounded-md">Cloud ID: {currentUser.id}</span>
           </div>
-          <h1 className="text-2xl md:text-3xl font-serif font-black uppercase tracking-tight">
+          <h1 className="text-4xl md:text-5xl font-serif font-black uppercase tracking-tight text-white">
             Trainer Workspace <span className="text-orange-500 font-extrabold font-sans">#001</span>
           </h1>
-          <p className="text-xs text-slate-300 font-light leading-relaxed max-w-2xl">
-            Design professional curricula, grade milestone homework submissions, send student compliance updates, and review classroom performance analytics from a single unified workspace.
+          <p className="text-sm text-slate-300 font-light leading-relaxed max-w-2xl">
+            Design professional curricula, grade milestone homework submissions, send student compliance updates, and review classroom performance analytics.
           </p>
         </div>
 
@@ -802,60 +801,58 @@ export const TutorDashboard: React.FC = () => {
       {/* 3. Metric KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
         <motion.div 
-          whileHover={{ y: -3 }}
-          className="p-5 bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800/80 rounded-2xl shadow-sm text-left flex justify-between items-center"
+          whileHover={{ y: -8, scale: 1.02 }}
+          className="p-6 bg-[#0B1A40] border border-white/5 rounded-3xl shadow-xl text-left flex justify-between items-center group"
         >
           <div className="space-y-1">
-            <span className="text-slate-400 text-[9px] font-bold uppercase tracking-widest block">Active Courses</span>
-            <span className="text-2xl font-serif font-black text-[#000E32] dark:text-white">{courses.length} Published</span>
-            <span className="text-[10px] text-emerald-500 font-bold block">100% cloud synced</span>
+            <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest block">Active Courses</span>
+            <span className="text-3xl font-serif font-black text-white">{courses.length}</span>
+            <span className="text-[10px] text-emerald-400 font-bold block uppercase tracking-wide">100% cloud synced</span>
           </div>
-          <div className="p-3 bg-orange-500/10 text-orange-500 rounded-xl">
-            <BookOpen size={20} />
+          <div className="p-4 bg-orange-600/20 text-orange-400 rounded-2xl group-hover:bg-orange-600 group-hover:text-white transition-all">
+            <BookOpen size={24} />
           </div>
         </motion.div>
 
         <motion.div 
-          whileHover={{ y: -3 }}
-          className="p-5 bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800/80 rounded-2xl shadow-sm text-left flex justify-between items-center"
+          whileHover={{ y: -8, scale: 1.02 }}
+          className="p-6 bg-[#0B1A40] border border-white/5 rounded-3xl shadow-xl text-left flex justify-between items-center group"
         >
           <div className="space-y-1">
-            <span className="text-slate-400 text-[9px] font-bold uppercase tracking-widest block">Enrolled Students</span>
-            <span className="text-2xl font-serif font-black text-[#000E32] dark:text-white">{activeStudentsCount} Active</span>
-            <span className="text-[10px] text-indigo-500 font-bold block">Across {courses.length} pipelines</span>
+            <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest block">Enrolled Students</span>
+            <span className="text-3xl font-serif font-black text-white">{activeStudentsCount}</span>
+            <span className="text-[10px] text-indigo-400 font-bold block uppercase tracking-wide">Across pipelines</span>
           </div>
-          <div className="p-3 bg-indigo-500/10 text-indigo-500 rounded-xl">
-            <Users size={20} />
+          <div className="p-4 bg-indigo-600/20 text-indigo-400 rounded-2xl group-hover:bg-indigo-600 group-hover:text-white transition-all">
+            <Users size={24} />
           </div>
         </motion.div>
 
         <motion.div 
-          whileHover={{ y: -3 }}
-          className="p-5 bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800/80 rounded-2xl shadow-sm text-left flex justify-between items-center animate-pulse-subtle"
+          whileHover={{ y: -8, scale: 1.02 }}
+          className="p-6 bg-[#0B1A40] border border-white/5 rounded-3xl shadow-xl text-left flex justify-between items-center group"
         >
           <div className="space-y-1">
-            <span className="text-slate-400 text-[9px] font-bold uppercase tracking-widest block">Pending Reviews</span>
-            <span className={`text-2xl font-serif font-black ${pendingSubmissions.length > 0 ? 'text-amber-500' : 'text-slate-500'}`}>
-              {pendingSubmissions.length} Tasks
-            </span>
-            <span className="text-[10px] text-amber-500 font-bold block">Awaiting evaluation</span>
+            <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest block">Pending Reviews</span>
+            <span className="text-3xl font-serif font-black text-amber-400">{pendingSubmissions.length}</span>
+            <span className="text-[10px] text-amber-500 font-bold block uppercase tracking-wide">Awaiting evaluation</span>
           </div>
-          <div className={`p-3 rounded-xl ${pendingSubmissions.length > 0 ? 'bg-amber-500/10 text-amber-500' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-            <ClipboardList size={20} />
+          <div className="p-4 bg-amber-600/20 text-amber-400 rounded-2xl group-hover:bg-amber-600 group-hover:text-white transition-all">
+            <ClipboardList size={24} />
           </div>
         </motion.div>
 
         <motion.div 
-          whileHover={{ y: -3 }}
-          className="p-5 bg-white dark:bg-slate-900 border border-slate-200/40 dark:border-slate-800/80 rounded-2xl shadow-sm text-left flex justify-between items-center"
+          whileHover={{ y: -8, scale: 1.02 }}
+          className="p-6 bg-[#0B1A40] border border-white/5 rounded-3xl shadow-xl text-left flex justify-between items-center group"
         >
           <div className="space-y-1">
-            <span className="text-slate-400 text-[9px] font-bold uppercase tracking-widest block">Accredited Diplomas</span>
-            <span className="text-2xl font-serif font-black text-emerald-500">{certificates.length} Cryptographic</span>
-            <span className="text-[10px] text-emerald-500 font-bold block">Minted on secure ledger</span>
+            <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest block">Accredited Diplomas</span>
+            <span className="text-3xl font-serif font-black text-emerald-400">{certificates.length}</span>
+            <span className="text-[10px] text-emerald-500 font-bold block uppercase tracking-wide">Secured on ledger</span>
           </div>
-          <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-xl">
-            <Award size={20} />
+          <div className="p-4 bg-emerald-600/20 text-emerald-400 rounded-2xl group-hover:bg-emerald-600 group-hover:text-white transition-all">
+            <Award size={24} />
           </div>
         </motion.div>
       </div>
