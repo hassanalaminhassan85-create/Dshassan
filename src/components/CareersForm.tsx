@@ -1136,7 +1136,8 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                         </div>
                       </div>
                     </div>
-                  )})}
+                  );
+                  })()}
 
                   {/* SECTION 6: Specialization / Area of Interest */}
                   {activeTab === 6 && (

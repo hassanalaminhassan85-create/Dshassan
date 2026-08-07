@@ -129,12 +129,12 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
             <div className="flex items-center gap-1.5 bg-slate-900/40 px-2 py-1 rounded-lg border border-slate-800 shrink-0">
               <Instagram size={12} className="text-[#E4405F]" />
               <span className="text-white font-extrabold">Instagram:</span>
-              <span className="text-slate-300 font-semibold select-all">dstechanddigitalg</span>
+              <span className="text-slate-300 font-semibold select-all">dstechltd3</span>
             </div>
             <div className="flex items-center gap-1.5 bg-slate-900/40 px-2 py-1 rounded-lg border border-slate-800 shrink-0">
               <TiktokIcon size={12} className="text-[#00f2fe]" />
               <span className="text-white font-extrabold">TikTok:</span>
-              <span className="text-slate-300 font-semibold select-all">dstechanddigitalg</span>
+              <span className="text-slate-300 font-semibold select-all">dstechanddigitalltd</span>
             </div>
             <div className="flex items-center gap-1.5 bg-slate-900/40 px-2 py-1 rounded-lg border border-slate-800 shrink-0">
               <Twitter size={12} className="text-[#1DA1F2] fill-[#1DA1F2]/10" />
@@ -144,7 +144,7 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
             <div className="flex items-center gap-1.5 bg-slate-900/40 px-2 py-1 rounded-lg border border-slate-800 shrink-0">
               <Youtube size={12} className="text-[#FF0000] fill-[#FF0000]/10" />
               <span className="text-white font-extrabold">YouTube:</span>
-              <span className="text-slate-300 font-semibold select-all">@dstechanddigitalmarketingltd</span>
+              <span className="text-slate-300 font-semibold select-all">@DSTECHANDDIGITALMARKETINGLTD</span>
             </div>
             <div className="flex items-center gap-1.5 bg-slate-900/40 px-2 py-1 rounded-lg border border-slate-800 shrink-0">
               <Linkedin size={12} className="text-[#0A66C2] fill-[#0A66C2]/10" />

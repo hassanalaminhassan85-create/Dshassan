@@ -6,10 +6,10 @@ import {
 } from 'lucide-react';
 import { JobApplication } from '../types';
 import { Logo } from './Logo';
-import { apiGetApplications, apiUpdateApplication, apiDeleteApplication } from '../lib/storage';
+import { apiGetApplications, apiUpdateApplication, apiDeleteApplication, apiSubscribeToApplications } from '../lib/storage';
 
 interface RecruiterDashboardProps {
-  currentUser: { fullName: string; email: string; id: string; role?: string } | null;
+  currentUser: { fullName: string; email: string; id: string; role?: string; applicationId?: string } | null;
   onLogout: () => void;
   isDarkMode: boolean;
   setIsDarkMode: (val: boolean) => void;
@@ -32,22 +32,24 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
   const [selectedApp, setSelectedApp] = useState<JobApplication | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  const fetchApplications = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await apiGetApplications();
-      setApplications(data);
-    } catch (err: any) {
-      setError(err.message || "Failed to load application registry.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchApplications();
+    setLoading(true);
+    const unsubscribe = apiSubscribeToApplications((data) => {
+      setApplications(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
+
+  // Auto-select the user's own application if they have one
+  useEffect(() => {
+    if (currentUser?.applicationId && applications.length > 0 && !selectedApp) {
+      const myApp = applications.find(app => app.id === currentUser.applicationId);
+      if (myApp) {
+        setSelectedApp(myApp);
+      }
+    }
+  }, [currentUser, applications, selectedApp]);
 
   const handleUpdateStatus = async (id: string, newStatus: 'pending' | 'approved' | 'rejected') => {
     setUpdatingId(id);
@@ -83,6 +85,11 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
 
   // Filter calculations
   const filteredApps = applications.filter(app => {
+    // SECURITY: If the user is an applicant tracking their progress, only show their own record
+    if (currentUser?.applicationId && currentUser?.role !== 'Admin') {
+      return app.id === currentUser.applicationId;
+    }
+
     const fullName = app.personalInfo?.fullName || '';
     const email = app.personalInfo?.emailAddress || '';
     const role = app.positionSkills?.majorRole || '';
@@ -152,13 +159,17 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
           <div>
             <h1 className="text-xl md:text-2xl font-black tracking-tight flex items-center gap-2">
               <Shield className="text-indigo-400" size={22} />
-              <span>Recruiter Command Dashboard</span>
+              <span>{currentUser?.applicationId && currentUser?.role !== 'Admin' ? 'Application Tracking Portal' : 'Recruiter Command Dashboard'}</span>
             </h1>
-            <p className="text-xs text-slate-400">Manage incoming applicants, screen credentials, and update decision boards.</p>
+            <p className="text-xs text-slate-400">
+              {currentUser?.applicationId && currentUser?.role !== 'Admin' 
+                ? 'Review your application status, screen feedback, and update your candidate profile.'
+                : 'Manage incoming applicants, screen credentials, and update decision boards.'}
+            </p>
           </div>
           
           <button
-            onClick={fetchApplications}
+            onClick={() => {}}
             className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-xl uppercase tracking-wider transition-all cursor-pointer self-start md:self-auto"
           >
             <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
@@ -167,63 +178,67 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
         </div>
 
         {/* Analytics Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { label: "Total Submissions", count: stats.total, color: "text-indigo-400 border-indigo-500/20 bg-indigo-500/5" },
-            { label: "Pending Assessment", count: stats.pending, color: "text-amber-400 border-amber-500/20 bg-amber-500/5" },
-            { label: "Approved Talents", count: stats.approved, color: "text-emerald-400 border-emerald-500/20 bg-emerald-500/5" },
-            { label: "Rejected Enclaves", count: stats.rejected, color: "text-rose-400 border-rose-500/20 bg-rose-500/5" }
-          ].map((stat, idx) => (
-            <div key={idx} className={`p-4 rounded-2xl border text-left ${stat.color} transition-all hover:scale-[1.02]`}>
-              <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">{stat.label}</p>
-              <p className="text-2xl font-black mt-1 font-mono">{stat.count}</p>
-            </div>
-          ))}
-        </div>
+        {!(currentUser?.applicationId && currentUser?.role !== 'Admin') && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { label: "Total Submissions", count: stats.total, color: "text-indigo-400 border-indigo-500/20 bg-indigo-500/5" },
+              { label: "Pending Assessment", count: stats.pending, color: "text-amber-400 border-amber-500/20 bg-amber-500/5" },
+              { label: "Approved Talents", count: stats.approved, color: "text-emerald-400 border-emerald-500/20 bg-emerald-500/5" },
+              { label: "Rejected Enclaves", count: stats.rejected, color: "text-rose-400 border-rose-500/20 bg-rose-500/5" }
+            ].map((stat, idx) => (
+              <div key={idx} className={`p-4 rounded-2xl border text-left ${stat.color} transition-all hover:scale-[1.02]`}>
+                <p className="text-[10px] font-bold uppercase tracking-wider opacity-80">{stat.label}</p>
+                <p className="text-2xl font-black mt-1 font-mono">{stat.count}</p>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* Filters and Search Bar */}
-        <div className={`p-4 rounded-3xl border flex flex-col md:flex-row items-center gap-3.5 ${isDarkMode ? 'bg-slate-900/40 border-slate-900' : 'bg-white border-slate-200'}`}>
-          <div className="relative w-full md:flex-1">
-            <Search className="absolute left-3.5 top-3 text-slate-400" size={15} />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Search by candidate name, email, or core role..."
-              className="w-full bg-white dark:bg-black/40 border border-transparent dark:border-white/5 rounded-xl py-2 pl-11 pr-4 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 text-indigo-500 dark:text-indigo-200"
-            />
-          </div>
-          
-          <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-            <div className="flex items-center gap-2 bg-white dark:bg-black/30 border border-transparent dark:border-white/5 rounded-xl px-2 py-1">
-              <Filter size={12} className="text-slate-400" />
-              <select
-                value={statusFilter}
-                onChange={e => setStatusFilter(e.target.value as any)}
-                className="bg-transparent border-none text-[10px] font-bold uppercase tracking-wider focus:outline-none cursor-pointer"
-              >
-                <option value="all" className="dark:bg-slate-950 text-slate-800 dark:text-slate-200">All Statuses</option>
-                <option value="pending" className="dark:bg-slate-950 text-slate-800 dark:text-slate-200">Pending</option>
-                <option value="approved" className="dark:bg-slate-950 text-slate-800 dark:text-slate-200">Approved</option>
-                <option value="rejected" className="dark:bg-slate-950 text-slate-800 dark:text-slate-200">Rejected</option>
-              </select>
+        {!(currentUser?.applicationId && currentUser?.role !== 'Admin') && (
+          <div className={`p-4 rounded-3xl border flex flex-col md:flex-row items-center gap-3.5 ${isDarkMode ? 'bg-slate-900/40 border-slate-900' : 'bg-white border-slate-200'}`}>
+            <div className="relative w-full md:flex-1">
+              <Search className="absolute left-3.5 top-3 text-slate-400" size={15} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search by candidate name, email, or core role..."
+                className="w-full bg-white dark:bg-black/40 border border-transparent dark:border-white/5 rounded-xl py-2 pl-11 pr-4 text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 text-indigo-500 dark:text-indigo-200"
+              />
             </div>
+            
+            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+              <div className="flex items-center gap-2 bg-white dark:bg-black/30 border border-transparent dark:border-white/5 rounded-xl px-2 py-1">
+                <Filter size={12} className="text-slate-400" />
+                <select
+                  value={statusFilter}
+                  onChange={e => setStatusFilter(e.target.value as any)}
+                  className="bg-transparent border-none text-[10px] font-bold uppercase tracking-wider focus:outline-none cursor-pointer"
+                >
+                  <option value="all" className="dark:bg-slate-950 text-slate-800 dark:text-slate-200">All Statuses</option>
+                  <option value="pending" className="dark:bg-slate-950 text-slate-800 dark:text-slate-200">Pending</option>
+                  <option value="approved" className="dark:bg-slate-950 text-slate-800 dark:text-slate-200">Approved</option>
+                  <option value="rejected" className="dark:bg-slate-950 text-slate-800 dark:text-slate-200">Rejected</option>
+                </select>
+              </div>
 
-            <div className="flex items-center gap-2 bg-white dark:bg-black/30 border border-transparent dark:border-white/5 rounded-xl px-2 py-1">
-              <Briefcase size={12} className="text-slate-400" />
-              <select
-                value={roleFilter}
-                onChange={e => setRoleFilter(e.target.value)}
-                className="bg-transparent border-none text-[10px] font-bold uppercase tracking-wider focus:outline-none cursor-pointer"
-              >
-                <option value="all" className="dark:bg-slate-950 text-slate-800 dark:text-slate-200">All Roles</option>
-                {uniqueRoles.map((role, i) => (
-                  <option key={i} value={role} className="dark:bg-slate-950 text-slate-800 dark:text-slate-200">{role}</option>
-                ))}
-              </select>
+              <div className="flex items-center gap-2 bg-white dark:bg-black/30 border border-transparent dark:border-white/5 rounded-xl px-2 py-1">
+                <Briefcase size={12} className="text-slate-400" />
+                <select
+                  value={roleFilter}
+                  onChange={e => setRoleFilter(e.target.value)}
+                  className="bg-transparent border-none text-[10px] font-bold uppercase tracking-wider focus:outline-none cursor-pointer"
+                >
+                  <option value="all" className="dark:bg-slate-950 text-slate-800 dark:text-slate-200">All Roles</option>
+                  {uniqueRoles.map((role, i) => (
+                    <option key={i} value={role} className="dark:bg-slate-950 text-slate-800 dark:text-slate-200">{role}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Two-Column Workspace Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -338,7 +353,7 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
                         <span>Core Capabilities & Bio</span>
                       </h4>
                       <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                        {selectedApp.summary || "Applicant provided profile information, verified and secured on Cloudflare D1 nodes."}
+                        {selectedApp.personalStatement || "Applicant provided profile information, verified and secured on Cloudflare D1 nodes."}
                       </p>
                     </div>
                   </div>
@@ -401,7 +416,7 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
               <span className="text-xs font-black uppercase tracking-wider">Recruiter Cockpit Terminal</span>
             </div>
             <span className="hidden sm:inline text-slate-700">|</span>
-            <span className="text-[10px] font-mono">Node ID: <span className="font-bold text-indigo-400 select-all">DST-REC-{currentUser?.uid?.substring(0, 8).toUpperCase() || 'RE9A1F'}</span></span>
+            <span className="text-[10px] font-mono">Node ID: <span className="font-bold text-indigo-400 select-all">DST-REC-{currentUser?.id?.substring(0, 8).toUpperCase() || 'RE9A1F'}</span></span>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[11px] font-medium">

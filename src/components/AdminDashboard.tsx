@@ -13,7 +13,7 @@ import { JobApplication } from '../types';
 import { useNotifications } from './NotificationProvider';
 import { NotificationCenter } from './NotificationCenter';
 import { Logo } from './Logo';
-import { apiGetApplications, apiUpdateApplication, apiDeleteApplication } from '../lib/storage';
+import { apiGetApplications, apiUpdateApplication, apiDeleteApplication, apiSubscribeToApplications } from '../lib/storage';
 import { 
   apiGetScanHistory, 
   apiSubscribeToRealtimeSync, 
@@ -31,9 +31,14 @@ import {
   apiGetBlogs,
   apiSaveBlog,
   apiGetCourses,
-  apiSaveCourse
+  apiSaveCourse,
+  apiSubscribeToServices,
+  apiSubscribeToPortfolio,
+  apiSubscribeToBlogs,
+  apiSubscribeToCourses
 } from '../lib/api';
 import { ApplicationQRScanner } from './ApplicationQRScanner';
+import { ApplicationView } from './ApplicationView';
 import { CareersFormPDFView } from './CareersFormPDFView';
 import { AboutSection } from './AboutSection';
 import { AdminAuthGate } from './AdminAuthGate';
@@ -296,7 +301,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   const [isNotifCenterOpen, setIsNotifCenterOpen] = useState<boolean>(false);
   const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [previewAppId, setPreviewAppId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const [scanHistory, setScanHistory] = useState<ScanHistoryRecord[]>([]);
+  const [selectedApp, setSelectedApp] = useState<JobApplication | null>(null);
+  const [adminDetailTab, setAdminDetailTab] = useState<'info' | 'assessment' | 'negotiation' | 'passport' | 'diagnostics' | 'actions'>('info');
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [offerRoleInput, setOfferRoleInput] = useState<string>('');
+  const [salaryInput, setSalaryInput] = useState<string>('');
+  const [adminNotesText, setAdminNotesText] = useState<string>('');
+  
+  const handleViewApplicant = (id: string) => setPreviewAppId(id);
   const [error, setError] = useState<string | null>(null);
   
 
@@ -358,26 +373,35 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   
   // --- Dynamic Services Sync ---
   const [adminServices, setAdminServices] = useState<any[]>(SERVICES);
-  
-  useEffect(() => {
-    apiGetServices().then(data => {
-      if (data && data.length > 0) setAdminServices(data);
-    }).catch(err => console.error("Failed to load services from API", err));
-  }, []);
-
-
-  
   const [adminProjects, setAdminProjects] = useState<any[]>([]);
   const [adminBlogs, setAdminBlogs] = useState<any[]>([]);
   const [adminCourses, setAdminCourses] = useState<any[]>([]);
-  
+
   useEffect(() => {
-    Promise.all([
-      apiGetServices().then(data => data && data.length > 0 ? setAdminServices(data) : null),
-      apiGetPortfolio().then(data => data && data.length > 0 ? setAdminProjects(data) : null),
-      apiGetBlogs().then(data => data && data.length > 0 ? setAdminBlogs(data) : null),
-      apiGetCourses().then(data => data && data.length > 0 ? setAdminCourses(data) : null)
-    ]).catch(err => console.error("Failed to load catalog data from API", err));
+    const unsubServices = apiSubscribeToServices(data => {
+      if (data && data.length > 0) setAdminServices(data);
+    });
+    const unsubPortfolio = apiSubscribeToPortfolio(data => {
+      if (data && data.length > 0) setAdminProjects(data);
+    });
+    const unsubBlogs = apiSubscribeToBlogs(data => {
+      if (data && data.length > 0) setAdminBlogs(data);
+    });
+    const unsubCourses = apiSubscribeToCourses(data => {
+      if (data && data.length > 0) setAdminCourses(data);
+    });
+
+    const unsubApps = apiSubscribeToApplications(data => {
+      setApplications(data);
+    });
+
+    return () => {
+      unsubServices();
+      unsubPortfolio();
+      unsubBlogs();
+      unsubCourses();
+      unsubApps();
+    };
   }, []);
 
   const [adminInvoices, setAdminInvoices] = useState<any[]>([]);
@@ -2076,6 +2100,25 @@ export default {
     }
   ];
 
+  if (previewAppId) {
+    const appToPreview = applications.find(a => a.id === previewAppId);
+    if (appToPreview) {
+      return (
+        <div className="w-full min-h-screen bg-white dark:bg-slate-950">
+          <ApplicationView 
+            application={appToPreview} 
+            onClosePreview={() => setPreviewAppId(null)} 
+            isAdminPreview={true} 
+            onUpdateApplication={async (id, fields) => {
+              await apiUpdateApplication(id, fields);
+              setApplications(applications.map(app => app.id === id ? { ...app, ...fields } as JobApplication : app));
+            }}
+          />
+        </div>
+      );
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 flex">
       
@@ -2504,7 +2547,7 @@ export default {
               applications={applications} 
               loading={loading} 
               onRefresh={fetchApplications} 
-              onViewApplicant={onViewApplicant} 
+              onViewApplicant={handleViewApplicant} 
             />
           )}
 
@@ -2856,7 +2899,7 @@ export default {
                         <td className="px-5 py-3.5 text-right">
                           <button
                             type="button"
-                            onClick={() => onViewApplicant(row.applicant_id)}
+                            onClick={() => handleViewApplicant(row.applicant_id)}
                             className="px-2.5 py-1 bg-[#000E32] hover:bg-[#000E32]/90 text-white font-extrabold text-[9px] uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
                           >
                             View File
@@ -2911,7 +2954,7 @@ export default {
       <ApplicationQRScanner
         isOpen={isScannerOpen}
         onClose={() => setIsScannerOpen(false)}
-        onNavigateToApplication={onViewApplicant}
+        onNavigateToApplication={handleViewApplicant}
       />
 
       {/* Interactive copyable high-motion Cloudflare D1 SQL Schema Modal */}

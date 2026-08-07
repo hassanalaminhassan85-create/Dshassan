@@ -21,8 +21,16 @@ import { CareersSection } from './components/CareersSection';
 import { RecognitionSection } from './components/RecognitionSection';
 import { TutorDashboard } from './components/TutorDashboard';
 import { JobApplication } from './types';
-import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, ArrowLeft, ArrowRight, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint, Briefcase, FileCheck } from 'lucide-react';
+import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, ArrowLeft, ArrowRight, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint, Briefcase, FileCheck, UserCheck } from 'lucide-react';
 import { Logo } from './components/Logo';
+import { 
+  FacebookIcon, 
+  InstagramIcon, 
+  XIcon, 
+  LinkedInIcon, 
+  YouTubeIcon, 
+  TikTokIcon 
+} from './components/SocialIcons';
 import { apiGetApplication, apiSaveApplication, apiUpdateApplication } from './lib/storage';
 import { apiGetCacMetadata } from './lib/api';
 import { CAREER_ROLES, CATEGORIES, CareerRole } from './lib/roles';
@@ -31,22 +39,22 @@ import { RolesCatalog } from './components/RolesCatalog';
 
 const journeyStepsMap: Record<LanguageCode, { label: string; desc: string }[]> = {
   en: [
-    { label: "Profile Registration", desc: "Submit contact details, educational achievements, work experiences, and reference details." },
+    { label: "Application Submission", desc: "Submit contact details, educational achievements, work experiences, and reference details." },
     { label: "Electronic Verification", desc: "Designate guarantor credentials and approve declarations with secure signatures." },
     { label: "Instant Offer Issuance", desc: "Preview and sign your generated Appointment Letter immediately for campaign onboarding." }
   ],
   fr: [
-    { label: "Enregistrement du Profil", desc: "Soumettez vos coordonnées, vos diplômes, vos expériences professionnelles et vos références." },
+    { label: "Soumission de Candidature", desc: "Soumettez vos coordonnées, vos diplômes, vos expériences professionnelles et vos références." },
     { label: "Vérification Électronique", desc: "Désignez des garants et approuvez les déclarations avec des signatures sécurisées." },
     { label: "Émission d'Offre Instantanée", desc: "Visualisez et signez immédiatement votre lettre de nomination pour commencer." }
   ],
   ha: [
-    { label: "Rijistar Bayanan Kanka", desc: "Aika bayanan tuntuɓi, matakin karatu, ayyukan baya, da bayanan shaidu." },
+    { label: "Aika Takardar Neman Aiki", desc: "Aika bayanan tuntuɓi, matakin karatu, ayyukan baya, da bayanan shaidu." },
     { label: "Tabbatarwa ta Lantarki", desc: "Sanya bayanan lamuni da amincewa da bayanin kansa tare da sa hannu na lantarki." },
     { label: "Fitar da Wasiƙar Nadin Aiki", desc: "Duba kuma sanya hannu a kan wasiƙar naɗin aiki nan take don fara aiki." }
   ],
   yo: [
-    { label: "Iforukọsilẹ Profaili", desc: "Fi awọn alaye olubasọrọ rẹ, awọn aṣeyọri ẹkọ, awọn iriri iṣẹ, ati awọn alaye itọkasi silẹ." },
+    { label: "Ifisilẹ Ohun elo", desc: "Fi awọn alaye olubasọrọ rẹ, awọn aṣeyọri ẹkọ, awọn iriri iṣẹ, ati awọn alaye itọkasi silẹ." },
     { label: "Ijẹrisi Itanna", desc: "Pinnu awọn alaye onigbọwọ rẹ ki o fọwọsi awọn ikede pẹlu awọn ibuwọlu to ni aabo." },
     { label: "Ipinfunni Lẹsẹkẹsẹ", desc: "Wo ati forukọsilẹ lẹsẹkẹsẹ lẹta ipinnu rẹ lati bẹrẹ iṣẹ rẹ." }
   ],
@@ -325,7 +333,13 @@ export default function App() {
   // Dynamic Routing Handler
   useEffect(() => {
     const handleRoute = async () => {
-      const path = currentPath;
+      const rawPath = currentPath || window.location.pathname || '/';
+      let path = '/';
+      try {
+        path = decodeURIComponent(rawPath).trim();
+      } catch (e) {
+        path = rawPath;
+      }
 
       if (path === '/admin') {
         setIsAdminView(true);
@@ -367,15 +381,15 @@ export default function App() {
           setActivePage('services');
         } else if (path === '/portfolio') {
           setActivePage('portfolio');
-        } else if (path === '/team') {
+        } else if (path === '/team' || path === '/our-team' || path === '/our team') {
           setActivePage('team');
         } else if (path === '/blog') {
           setActivePage('blog');
-        } else if (path === '/training') {
+        } else if (path === '/training' || path === '/academy') {
           setActivePage('training');
         } else if (path === '/tutor-dashboard' || path === '/tutor') {
           setActivePage('tutor-dashboard');
-        } else if (path === '/clients') {
+        } else if (path === '/clients' || path === '/client') {
           setActivePage('clients');
         } else if (path === '/careers') {
           setActivePage('careers');
@@ -424,8 +438,18 @@ export default function App() {
       setApplication(savedApp);
       setCurrentAppId(savedApp.id);
       
-      // Update browser URL silently without reloading to activate `/application/:id` path
-      safeNavigate(`/application/${savedApp.id}`);
+      // Synchronize "My Application" dashboard by creating the recruiter account automatically
+      localStorage.setItem('currentUser', JSON.stringify({
+        id: `usr-${savedApp.id}`,
+        email: formData.personalInfo.emailAddress,
+        fullName: formData.personalInfo.fullName,
+        role: 'Recruiter',
+        applicationId: savedApp.id
+      }));
+
+      // Directly open the recruiter dashboard (activePage = 'account') instead of the application preview
+      setIsApplying(false);
+      safeNavigate('/account');
     } catch (err: any) {
       setErrorMsg(err.message || 'Submission error.');
     } finally {
@@ -1048,9 +1072,9 @@ export default function App() {
                     window.dispatchEvent(new Event('popstate'));
                   }}
                   language={language}
-                  setLanguage={setLanguage}
+                  setLanguage={(l) => setLanguage(l as LanguageCode)}
                   theme={theme}
-                  setTheme={setTheme}
+                  setTheme={(th) => setTheme(th as 'light' | 'dark')}
                 />
               </motion.div>
             ) : application ? (
@@ -1260,21 +1284,6 @@ export default function App() {
                   }} 
                 />
               </motion.div>
-             ) : activePage === 'staff-portal' ? (
-              <motion.div
-                key="staff-portal-section"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="w-full"
-              >
-                <StaffPortal 
-                  onBackToPortal={() => {
-                    setActivePage('home');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }} 
-                />
-              </motion.div>
              ) : activePage === 'careers' ? (
               <div className={`min-h-screen ${theme === 'dark' ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} font-sans antialiased transition-colors duration-500 relative flex flex-col w-full`}>
                 <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 px-4 py-3.5 sm:px-8 flex items-center justify-between w-full">
@@ -1364,6 +1373,16 @@ export default function App() {
                         >
                           <ClipboardEdit size={14} className="group-hover:rotate-6 transition-transform text-orange-200" />
                           <span>Apply For Accreditation</span>
+                        </motion.button>
+                        
+                        <motion.button
+                          whileHover={{ scale: 1.03, y: -2 }}
+                          whileTap={{ scale: 0.97 }}
+                          onClick={() => setActivePage('account')}
+                          className="group px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all duration-300 backdrop-blur-sm border border-white/10 flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <UserCheck size={14} className="text-orange-400 group-hover:scale-110 transition-transform" />
+                          <span>My Application</span>
                         </motion.button>
                       </div>
 
@@ -1566,10 +1585,16 @@ export default function App() {
 
                   {/* Open Tracks / Department Listings */}
                   <div className="pt-4 border-t border-slate-200/60 dark:border-slate-800/60">
-                    <RolesCatalog
-                      language={language}
-                      onSelectRole={(title) => {
+                    <CareersSection
+                      onApplyForJob={(title) => {
                         setSelectedRoleTitle(title);
+                        setIsApplying(true);
+                      }}
+                      onOpenMyApplication={() => {
+                        setActivePage('account');
+                      }}
+                      onPreviewApplication={(vacancy) => {
+                        setSelectedRoleTitle(vacancy.title);
                         setIsApplying(true);
                       }}
                     />
@@ -1709,25 +1734,26 @@ export default function App() {
               {/* Interactive Social Media Platforms Row */}
               <div className="flex flex-wrap gap-2.5 pt-2">
                 {[
-                  { icon: Facebook, href: 'https://facebook.com/dstech', label: 'Facebook', hoverClass: 'hover:bg-blue-600 hover:text-white hover:shadow-blue-600/30' },
-                  { icon: Instagram, href: 'https://instagram.com/dstech', label: 'Instagram', hoverClass: 'hover:bg-gradient-to-tr hover:from-yellow-500 hover:to-purple-600 hover:text-white hover:shadow-purple-500/30' },
-                  { icon: Twitter, href: 'https://twitter.com/dstech', label: 'Twitter/X', hoverClass: 'hover:bg-slate-950 hover:text-white hover:shadow-white/10 border-slate-700' },
-                  { icon: Linkedin, href: 'https://linkedin.com/company/dstech', label: 'LinkedIn', hoverClass: 'hover:bg-blue-700 hover:text-white hover:shadow-blue-700/30' },
-                  { icon: Youtube, href: 'https://youtube.com/dstech', label: 'YouTube', hoverClass: 'hover:bg-red-600 hover:text-white hover:shadow-red-600/30' },
+                  { icon: FacebookIcon, href: 'https://www.facebook.com/share/1DUwq656cM/', label: 'Facebook', hoverClass: 'hover:bg-blue-600 hover:text-white hover:shadow-blue-600/30' },
+                  { icon: InstagramIcon, href: 'https://www.instagram.com/dstechltd3?igsh=Y2xmb3BhODk4eGF3&utm_source=qr', label: 'Instagram', hoverClass: 'hover:bg-gradient-to-tr hover:from-yellow-500 hover:to-purple-600 hover:text-white hover:shadow-purple-500/30' },
+                  { icon: TikTokIcon, href: 'https://www.tiktok.com/@dstechanddigitalltd?_r=1&_t=ZS-98f9P59z155', label: 'TikTok', hoverClass: 'hover:bg-black hover:text-white hover:shadow-white/20' },
+                  { icon: XIcon, href: 'https://x.com/DigitalDs18246', label: 'Twitter/X', hoverClass: 'hover:bg-slate-950 hover:text-white hover:shadow-white/10 border-slate-700' },
+                  { icon: LinkedInIcon, href: '#', label: 'LinkedIn', hoverClass: 'hover:bg-blue-700 hover:text-white hover:shadow-blue-700/30' },
+                  { icon: YouTubeIcon, href: 'https://www.youtube.com/@DSTECHANDDIGITALMARKETINGLTD', label: 'YouTube', hoverClass: 'hover:bg-red-600 hover:text-white hover:shadow-red-600/30' },
                 ].map((social, index) => {
                   const SocialIcon = social.icon;
                   return (
                     <motion.a
                       key={index}
                       href={social.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      target={social.href === '#' ? undefined : "_blank"}
+                      rel={social.href === '#' ? undefined : "noopener noreferrer"}
                       title={social.label}
-                      whileHover={{ scale: 1.12, y: -2 }}
+                      whileHover={{ scale: 1.15, y: -4 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`w-9 h-9 rounded-xl bg-slate-800/80 border border-slate-700/50 text-slate-300 flex items-center justify-center transition-all duration-300 shadow-md ${social.hoverClass}`}
+                      className={`w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/50 text-slate-300 flex items-center justify-center transition-all duration-300 shadow-lg ${social.hoverClass}`}
                     >
-                      <SocialIcon size={16} />
+                      <SocialIcon size={20} />
                     </motion.a>
                   );
                 })}

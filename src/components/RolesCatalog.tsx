@@ -2,14 +2,17 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CAREER_ROLES, CATEGORIES, CareerRole } from '../lib/roles';
 import { TRANSLATIONS } from '../lib/translations';
-import { Search, Filter, Cpu, Globe, Palette, Building2, HelpCircle, Briefcase, DollarSign, Wrench } from 'lucide-react';
+import { Search, Filter, Cpu, Globe, Palette, Building2, HelpCircle, Briefcase, DollarSign, Wrench, UserCheck, FileCheck } from 'lucide-react';
 
 interface RolesCatalogProps {
   language: string;
   onSelectRole: (roleTitle: string) => void;
+  onOpenMyApplication?: () => void;
+  onPreviewApplication?: (roleTitle: string) => void;
+  isAdmin?: boolean;
 }
 
-export function RolesCatalog({ language, onSelectRole }: RolesCatalogProps) {
+export function RolesCatalog({ language, onSelectRole, onOpenMyApplication, onPreviewApplication, isAdmin }: RolesCatalogProps) {
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const t = TRANSLATIONS[language as any] || TRANSLATIONS.en;
@@ -177,19 +180,45 @@ export function RolesCatalog({ language, onSelectRole }: RolesCatalogProps) {
                 </div>
 
                 {/* Footer section of Card */}
-                <div className="border-t border-slate-100 dark:border-slate-800/80 pt-3 mt-4 flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <span className="text-[8px] uppercase font-bold text-slate-500 dark:text-slate-300 block leading-none">{t.estimateAllowance}</span>
-                    <span className="text-xs font-mono font-bold text-orange-500 dark:text-orange-400 block mt-0.5">{role.estimatedSalary} <span className="text-[8px] text-slate-400 font-sans font-normal">/mo</span></span>
-                  </div>
+                <div className="border-t border-slate-100 dark:border-slate-800/80 pt-3 mt-4 flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <span className="text-[8px] uppercase font-bold text-slate-500 dark:text-slate-300 block leading-none">{t.estimateAllowance}</span>
+                      <span className="text-xs font-mono font-bold text-orange-500 dark:text-orange-400 block mt-0.5">{role.estimatedSalary} <span className="text-[8px] text-slate-400 font-sans font-normal">/mo</span></span>
+                    </div>
 
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => onSelectRole(role.title)}
-                    className="px-2.5 py-1 bg-[#000E32] hover:bg-orange-500 dark:bg-slate-800 dark:hover:bg-orange-600 text-white dark:text-slate-200 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
-                  >
-                    {t.applyNow}
-                  </motion.button>
+                    <motion.button
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => onSelectRole(role.title)}
+                      className="px-2.5 py-1 bg-[#000E32] hover:bg-orange-500 dark:bg-slate-800 dark:hover:bg-orange-600 text-white dark:text-slate-200 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-colors cursor-pointer"
+                    >
+                      {t.applyNow}
+                    </motion.button>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    {onOpenMyApplication && (
+                      <button
+                        onClick={onOpenMyApplication}
+                        className="flex-1 py-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-[9px] uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer border border-slate-200 dark:border-slate-700"
+                        title="Open My Application Dashboard"
+                      >
+                        <UserCheck size={10} className="text-orange-500" />
+                        <span>My Application</span>
+                      </button>
+                    )}
+
+                    {onPreviewApplication && isAdmin && (
+                      <button
+                        onClick={() => onPreviewApplication(role.title)}
+                        className="flex-1 py-1 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 font-bold text-[9px] uppercase tracking-wider rounded-lg transition-all flex items-center justify-center gap-1 cursor-pointer border border-indigo-200 dark:border-indigo-800"
+                        title="Application Preview"
+                      >
+                        <FileCheck size={10} />
+                        <span>Preview</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </motion.div>
             );

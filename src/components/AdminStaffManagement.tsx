@@ -6,7 +6,7 @@ import {
   Calendar, Phone, Mail, ChevronRight, RefreshCw, AlertCircle, 
   Trash2, Edit3, Settings, ClipboardList, Upload, Plus
 } from 'lucide-react';
-import { apiSaveStaff, apiUploadStaffFile, resolveStaffImageUrl } from '../lib/api';
+import { apiSaveStaff, apiUploadStaffFile, resolveStaffImageUrl, apiSubscribeToStaff, apiSubscribeToDepartments } from '../lib/api';
 
 interface StaffMember {
   id: string;
@@ -89,43 +89,38 @@ export const AdminStaffManagement: React.FC = () => {
   const [editStatus, setEditStatus] = useState('');
 
   useEffect(() => {
-    fetchInitialData();
+    setLoading(true);
+    const unsubStaff = apiSubscribeToStaff((data) => {
+      setStaffList(data as StaffMember[]);
+      setLoading(false);
+    });
+    const unsubDepts = apiSubscribeToDepartments((data) => {
+      setDepartments(data as Department[]);
+    });
+    
+    // Audit logs remain static or could be moved to Firestore later if requested
+    fetchAuditLogs();
+
+    return () => {
+      unsubStaff();
+      unsubDepts();
+    };
   }, []);
 
-  const fetchInitialData = async () => {
-    setLoading(true);
-    setError(null);
+  const fetchAuditLogs = async () => {
     try {
-      // Fetch Staff Members
-      const staffRes = await fetch('/api/staff');
-      if (staffRes.ok) {
-        const staffData = await staffRes.json();
-        setStaffList(staffData);
-      } else {
-        throw new Error("Failed to retrieve staff directory.");
-      }
-
-      // Fetch Departments
-      const deptRes = await fetch('/api/departments');
-      if (deptRes.ok) {
-        const deptData = await deptRes.json();
-        setDepartments(deptData);
-        if (deptData.length > 0 && !newDeptId) {
-          setNewDeptId(deptData[0].id);
-        }
-      }
-
-      // Fetch Audit Logs
       const logsRes = await fetch('/api/staff/logs');
       if (logsRes.ok) {
         const logsData = await logsRes.json();
         setAuditLogs(logsData);
       }
-    } catch (err: any) {
-      setError(err.message || "Ecosystem handshake refused.");
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error("Failed to fetch logs", err);
     }
+  };
+
+  const fetchInitialData = async () => {
+    // Keep this for manual refresh if needed, but primary is subscriptions
   };
 
   const handleCreateStaff = async (e: React.FormEvent) => {
@@ -213,7 +208,7 @@ export const AdminStaffManagement: React.FC = () => {
       setSuccess(`Account status updated to ${newStatus} successfully!`);
       fetchInitialData();
       if (selectedMember && selectedMember.id === staffId) {
-        setSelectedMember({ ...selectedMember, status: newStatus });
+        setSelectedMember({ ...selectedMember, status: newStatus as StaffMember['status'] });
       }
     } catch (err: any) {
       setError(err.message || "Failed to update member status.");
@@ -301,7 +296,7 @@ export const AdminStaffManagement: React.FC = () => {
     return matchesSearch && matchesDept && matchesStatus;
   });
 
-  const pendingApprovals = staffList.filter(m => m.status === 'Pending Approval' || m.status === 'Pending');
+  const pendingApprovals = staffList.filter(m => m.status === ('Pending Approval' as any) || m.status === ('Pending' as any));
 
   return (
     <div className="space-y-8 p-6 bg-white dark:bg-[#0a0c10] text-slate-900 dark:text-[#f1f3f7] min-h-screen">

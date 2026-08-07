@@ -5,7 +5,15 @@ import {
   Upload, ArrowUp, ArrowDown, CheckCircle2, UserCheck, Shield
 } from 'lucide-react';
 import { Logo } from './Logo';
-import { apiGetPageContent, apiSavePageContent, apiGetCacMetadata, apiUploadGeneralFile, resolveImageUrl } from '../lib/api';
+import { 
+  apiGetPageContent, 
+  apiSavePageContent, 
+  apiGetCacMetadata, 
+  apiUploadGeneralFile, 
+  resolveImageUrl,
+  apiSubscribeToPageContent,
+  apiSubscribeToCacMetadata
+} from '../lib/api';
 
 interface AboutSectionProps {
   isAdmin?: boolean;
@@ -71,31 +79,34 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
 
   const [publishedCac, setPublishedCac] = useState<any>(null);
 
-  // Load Content from Firestore
+  // Load Content from Firestore with Real-time Sync
   useEffect(() => {
-    async function loadAboutContent() {
-      setIsLoading(true);
-      try {
-        const remote = await apiGetPageContent('about_company');
-        if (remote && remote.content) {
-          setContent(prev => ({
-            ...prev,
-            ...remote.content
-          }));
-        }
-
-        // Also fetch published CAC info
-        const cacData = await apiGetCacMetadata(false);
-        if (cacData && cacData.length > 0) {
-          setPublishedCac(cacData[0]);
-        }
-      } catch (e) {
-        console.error("Failed to load about content:", e);
-      } finally {
-        setIsLoading(false);
+    setIsLoading(true);
+    
+    const unsubContent = apiSubscribeToPageContent('about_company', (remote) => {
+      if (remote && remote.content) {
+        setContent(prev => ({
+          ...prev,
+          ...remote.content
+        }));
       }
-    }
-    loadAboutContent();
+      setIsLoading(false);
+    });
+
+    const unsubCac = apiSubscribeToCacMetadata((cacData) => {
+      if (cacData && cacData.length > 0) {
+        // Filter for published ones if not admin
+        const published = cacData.filter(c => c.is_published === 1);
+        if (published.length > 0) {
+          setPublishedCac(published[0]);
+        }
+      }
+    });
+
+    return () => {
+      unsubContent();
+      unsubCac();
+    };
   }, []);
 
   const handleSaveAll = async () => {

@@ -555,12 +555,12 @@ export const AppointmentLetter: React.FC<AppointmentLetterProps> = ({
             </span>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 text-center">
               {[
-                { name: 'Facebook', handle: 'dstechanddigitalltd', color: 'text-blue-600 bg-blue-50/50' },
-                { name: 'Instagram', handle: 'dstechanddigitalg', color: 'text-pink-600 bg-pink-50/50' },
-                { name: 'TikTok', handle: 'dstechanddigitalb', color: 'text-slate-900 bg-white' },
-                { name: 'X (Twitter)', handle: '@DigitalDs18286', color: 'text-slate-900 bg-white' },
-                { name: 'YouTube', handle: 'dstechanddigitalmarketingltd', color: 'text-red-600 bg-red-50/50' },
-                { name: 'LinkedIn', handle: 'dstechanddigitalltd', color: 'text-blue-700 bg-blue-50/50' },
+                { name: 'Facebook', handle: 'dstechanddigitaltd', color: 'text-blue-600 bg-blue-50/50' },
+                { name: 'Instagram', handle: 'dstechltd3', color: 'text-pink-600 bg-pink-50/50' },
+                { name: 'TikTok', handle: 'dstechanddigitalltd', color: 'text-slate-900 bg-white' },
+                { name: 'X (Twitter)', handle: '@DigitalDs18246', color: 'text-slate-900 bg-white' },
+                { name: 'YouTube', handle: '@DSTECHANDDIGITALMARKETINGLTD', color: 'text-red-600 bg-red-50/50' },
+                { name: 'LinkedIn', handle: 'dstechanddigitaltd', color: 'text-blue-700 bg-blue-50/50' },
               ].map((channel, i) => (
                 <div key={`social-${i}`} className={`p-2 rounded-xl border border-slate-100 flex flex-col items-center justify-center ${channel.color}`}>
                   <span className="text-[9px] font-bold text-slate-800">{channel.name}</span>

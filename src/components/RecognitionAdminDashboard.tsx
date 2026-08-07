@@ -12,7 +12,8 @@ import {
   apiDeleteRecognitionCertificate, 
   apiToggleRecognitionPublish, 
   apiUploadRecognitionFile,
-  RecognitionCertificate 
+  RecognitionCertificate,
+  apiSubscribeToRecognitionCertificates
 } from '../lib/api';
 import { AnimatedHomeSectionImagePreview } from './AnimatedHomeSectionImagePreview';
 
@@ -49,7 +50,12 @@ export const RecognitionAdminDashboard: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetchCertificates();
+    setLoading(true);
+    const unsubscribe = apiSubscribeToRecognitionCertificates((data) => {
+      setCertificates(data as RecognitionCertificate[]);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   const fetchCertificates = async () => {

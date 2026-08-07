@@ -5,7 +5,17 @@ import {
   RotateCw, ZoomIn, ZoomOut, Maximize2, Download, Printer, Share2, 
   X, Loader2, CheckCircle, Info, Lock, ChevronLeft, ChevronRight, Eye
 } from 'lucide-react';
-import { apiGetCacMetadata, CacMetadata } from '../lib/api';
+import { apiGetCacMetadata, CacMetadata, apiSubscribeToCacMetadata } from '../lib/api';
+
+export function formatCleanFileName(fileNameOrKey: string, companyName?: string): string {
+  if (!fileNameOrKey) return companyName ? `${companyName} Certificate` : 'Corporate Registration Certificate';
+  let name = fileNameOrKey.split('/').pop() || fileNameOrKey;
+  name = name.replace(/^cac_certs_\d+_/i, '').replace(/^staff_\d+_/i, '').replace(/^upload_\d+_/i, '');
+  if (/^file_[a-f0-9]+\./i.test(name) || /^[a-f0-9]{16,}\./i.test(name)) {
+    return companyName ? `${companyName} CAC Certificate` : 'Official Corporate Accreditation';
+  }
+  return name.replace(/[-_]/g, ' ');
+}
 
 interface CacTrustSectionProps {
   language?: string;
@@ -34,7 +44,12 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
   const printFrameRef = React.useRef<HTMLIFrameElement>(null);
 
   React.useEffect(() => {
-    fetchCacData();
+    setLoading(true);
+    const unsubscribe = apiSubscribeToCacMetadata((data) => {
+      setCertificates(data as CacMetadata[]);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   const fetchCacData = async () => {
@@ -569,7 +584,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
                       <Lock size={15} />
                     </div>
                     <span className="text-[10px] font-black uppercase tracking-wider text-orange-400 block">Cryptographic Log</span>
-                    <span className="text-[10px] font-mono text-slate-400 block line-clamp-1">{activeCac.file_name}</span>
+                    <span className="text-[10px] font-mono text-slate-400 block line-clamp-1">{formatCleanFileName(activeCac.file_name, activeCac.company_name)}</span>
                   </div>
                 </motion.div>
               </div>
@@ -733,7 +748,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
             {/* 3. BOTTOM UTILITY PANEL */}
             <div className="p-3 bg-slate-900/80 border-t border-slate-800/60 flex items-center justify-between text-slate-400 text-[10px] font-mono relative z-50">
               <div className="flex items-center gap-4">
-                <span>FILE NAME: <span className="text-slate-100">{activeCac.file_name}</span></span>
+                <span>FILE NAME: <span className="text-slate-100">{formatCleanFileName(activeCac.file_name, activeCac.company_name)}</span></span>
                 <span>SIZE: <span className="text-slate-100">{(activeCac.file_size / 1024).toFixed(1)} KB</span></span>
                 <span>TYPE: <span className="text-slate-100">{activeCac.mime_type}</span></span>
               </div>

@@ -12,7 +12,8 @@ import {
   apiToggleOngoingProjectPublish, 
   apiUpdateOngoingProjectProgress,
   apiUploadOngoingProjectFile,
-  OngoingProject 
+  OngoingProject,
+  apiSubscribeToOngoingProjects
 } from '../lib/api';
 import { AnimatedHomeSectionImagePreview } from './AnimatedHomeSectionImagePreview';
 
@@ -59,7 +60,12 @@ export const OngoingProjectsAdminDashboard: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetchProjects();
+    setLoading(true);
+    const unsubscribe = apiSubscribeToOngoingProjects((data) => {
+      setProjects(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   const fetchProjects = async () => {
@@ -708,7 +714,7 @@ export const OngoingProjectsAdminDashboard: React.FC = () => {
                 <div className="space-y-1">
                   <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
                     <span>Or Upload Cover Image File to Cloudflare R2</span>
-                    <Info className="h-3 w-3 text-slate-400" title="Upload directly to Cloudflare R2" />
+                    <Info className="h-3 w-3 text-slate-400" />
                   </label>
 
                   <div 

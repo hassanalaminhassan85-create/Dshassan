@@ -20,6 +20,8 @@ interface ApplicationViewProps {
   application: JobApplication;
   onUpdateApplication?: (id: string, updatedFields: Partial<JobApplication>) => void;
   isUpdating?: boolean;
+  onClosePreview?: () => void;
+  isAdminPreview?: boolean;
 }
 
 export type DashboardTab = 'overview' | 'offer_letter' | 'application_record' | 'ai_screening' | 'biometric_vault' | 'qr_portal';
@@ -28,6 +30,8 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
   application,
   onUpdateApplication,
   isUpdating = false,
+  onClosePreview,
+  isAdminPreview = false,
 }) => {
   const [appData, setAppData] = useState<JobApplication>(application);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -201,24 +205,28 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
             <button
               type="button"
               onClick={() => {
-                try {
-                  window.history.pushState(null, '', '/');
-                } catch (e) {
-                  console.warn('History pushState is disabled or restricted:', e);
+                if (onClosePreview) {
+                  onClosePreview();
+                } else {
+                  try {
+                    window.history.pushState(null, '', '/');
+                  } catch (e) {
+                    console.warn('History pushState is disabled or restricted:', e);
+                  }
+                  window.dispatchEvent(new Event('popstate'));
                 }
-                window.dispatchEvent(new Event('popstate'));
               }}
               className="py-2 px-3.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 shrink-0"
-              title="Return to Careers Portal"
+              title={isAdminPreview ? "Close Preview" : "Return to Careers Portal"}
             >
-              ← <span className="hidden sm:inline">Return to Careers Hub</span><span className="sm:hidden">Careers</span>
+              ← <span className="hidden sm:inline">{isAdminPreview ? "Close Preview" : "Return to Careers Hub"}</span><span className="sm:hidden">{isAdminPreview ? "Close" : "Careers"}</span>
             </button>
 
             <div className="h-5 w-px bg-slate-200 dark:bg-slate-800 hidden md:block" />
 
             <div className="hidden md:flex items-center gap-2">
               <span className="px-2.5 py-0.5 bg-orange-100 dark:bg-orange-950/80 text-orange-700 dark:text-orange-300 rounded-full text-[10px] font-black uppercase tracking-wider">
-                Recruiter Portal
+                {isAdminPreview ? "Admin Preview" : "Recruiter Portal"}
               </span>
               <span className="text-xs font-mono font-bold text-slate-500">
                 ID: {appData.id}

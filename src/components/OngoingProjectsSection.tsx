@@ -4,7 +4,7 @@ import {
   Calendar, Clock, CheckCircle, ChevronRight, ArrowRight, Layers,
   Terminal, ShieldCheck, Cpu, Code2, RefreshCw, X, Tag, ListFilter
 } from 'lucide-react';
-import { apiGetOngoingProjects, OngoingProject } from '../lib/api';
+import { apiGetOngoingProjects, OngoingProject, apiSubscribeToOngoingProjects } from '../lib/api';
 
 const CATEGORIES = [
   'All',
@@ -22,22 +22,15 @@ export const OngoingProjectsSection: React.FC<{ language?: string }> = ({ langua
   const [selectedProject, setSelectedProject] = useState<OngoingProject | null>(null);
 
   useEffect(() => {
-    async function load() {
-      try {
-        setLoading(true);
-        const data = await apiGetOngoingProjects(false); // false = public mode, only published
-        
-        // Debugging duplicate keys
-        const ids = data.map(p => p.id);
-        const uniqueIds = new Set(ids);
-        if (ids.length !== uniqueIds.size) {
-            console.error("DUPLICATE PROJECT IDS FOUND!", ids);
-        }
-
-        setProjects(data);
-      } catch (err) {
-        console.warn('Could not fetch public ongoing projects, loading fallbacks.', err);
-        // Robust fallback list if API is unreachable during initial boot
+    setLoading(true);
+    const unsubscribe = apiSubscribeToOngoingProjects((data) => {
+      // Filter for published projects in public mode
+      const published = data.filter(p => p.is_published === 1);
+      
+      if (published.length > 0) {
+        setProjects(published);
+      } else {
+        // Robust fallback list if Firestore is empty
         setProjects([
           {
             id: 'proj-1',
@@ -100,11 +93,11 @@ export const OngoingProjectsSection: React.FC<{ language?: string }> = ({ langua
             updated_at: ''
           }
         ]);
-      } finally {
-        setLoading(false);
       }
-    }
-    load();
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const filtered = projects.filter(p => {

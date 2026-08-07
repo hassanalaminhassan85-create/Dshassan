@@ -7,11 +7,15 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { 
-  apiGetBlogs, apiSaveBlog, apiUpdateBlog, apiDeleteBlog 
+  apiGetBlogs, apiSaveBlog, apiUpdateBlog, apiDeleteBlog, apiSubscribeToBlogs 
 } from '../lib/api';
 import { generateDynamicSvgUrl } from '../lib/mediaUtils';
 
-export const BlogCMS: React.FC = () => {
+interface BlogCMSProps {
+  onRefresh?: () => Promise<void>;
+}
+
+export const BlogCMS: React.FC<BlogCMSProps> = ({ onRefresh }) => {
   const [blogs, setBlogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterCat, setFilterCat] = useState('All');
@@ -36,7 +40,12 @@ export const BlogCMS: React.FC = () => {
   const categories = ['Marketing', 'Business Growth', 'AI', 'Technology', 'Legal'];
 
   useEffect(() => {
-    loadBlogs();
+    setLoading(true);
+    const unsubscribe = apiSubscribeToBlogs((data) => {
+      setBlogs(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   const loadBlogs = async () => {

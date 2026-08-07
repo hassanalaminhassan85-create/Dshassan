@@ -93,7 +93,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
       const matchesPriority = activePriority === 'all' || notif.priority === activePriority;
       
       // Read/Unread matching
-      const isRead = notif.read === 1 || notif.read === true;
+      const isRead = !!notif.read;
       const isUnreadNotif = !isRead;
       const matchesRead = 
         activeRead === 'all' || 
@@ -306,7 +306,7 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({ isOpen, 
               ) : (
                 displayedNotifications.map((notif) => {
                   const { icon: Icon, bg } = getIcon(notif.type);
-                  const isUnread = notif.read === 0 || notif.read === false;
+                  const isUnread = !notif.read;
 
                   return (
                     <motion.div

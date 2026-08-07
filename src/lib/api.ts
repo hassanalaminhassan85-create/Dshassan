@@ -156,201 +156,307 @@ export function apiSubscribeToRealtimeSync(onEvent: (data: any) => void): () => 
   };
 }
 
+// --- Firestore Real-time Subscription Helpers ---
+import { onSnapshot } from 'firebase/firestore';
+
+export function apiSubscribeToServices(callback: (services: any[]) => void): () => void {
+  const q = query(collection(db, 'services'));
+  return onSnapshot(q, (snapshot) => {
+    const services = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(services);
+  }, (err) => console.error("Services sub error:", err));
+}
+
+export function apiSubscribeToPortfolio(callback: (projects: any[]) => void): () => void {
+  const q = query(collection(db, 'portfolio'));
+  return onSnapshot(q, (snapshot) => {
+    const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(projects);
+  }, (err) => console.error("Portfolio sub error:", err));
+}
+
+export function apiSubscribeToBlogs(callback: (blogs: any[]) => void): () => void {
+  const q = query(collection(db, 'blogs'));
+  return onSnapshot(q, (snapshot) => {
+    const blogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(blogs);
+  }, (err) => console.error("Blogs sub error:", err));
+}
+
+export function apiSubscribeToCourses(callback: (courses: any[]) => void): () => void {
+  const q = query(collection(db, 'courses'));
+  return onSnapshot(q, (snapshot) => {
+    const courses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(courses);
+  }, (err) => console.error("Courses sub error:", err));
+}
+
+export function apiSubscribeToClientProjects(callback: (projects: any[]) => void): () => void {
+  const q = query(collection(db, 'client_projects'));
+  return onSnapshot(q, (snapshot) => {
+    const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(projects);
+  }, (err) => console.error("Client Projects sub error:", err));
+}
+
+export function apiSubscribeToOngoingProjects(callback: (projects: any[]) => void): () => void {
+  const q = query(collection(db, 'ongoing_projects'));
+  return onSnapshot(q, (snapshot) => {
+    const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(projects);
+  }, (err) => console.error("Ongoing Projects sub error:", err));
+}
+
+export function apiSubscribeToRecognitionCertificates(callback: (certs: any[]) => void): () => void {
+  const q = query(collection(db, 'recognition_certificates'));
+  return onSnapshot(q, (snapshot) => {
+    const certs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(certs);
+  }, (err) => console.error("Recognition sub error:", err));
+}
+
+export function apiSubscribeToCacMetadata(callback: (metadata: any[]) => void): () => void {
+  const q = query(collection(db, 'cac_metadata'));
+  return onSnapshot(q, (snapshot) => {
+    const metadata = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(metadata);
+  }, (err) => console.error("CAC Metadata sub error:", err));
+}
+
+export function apiSubscribeToStaff(callback: (staff: any[]) => void): () => void {
+  const q = query(collection(db, 'staff'));
+  return onSnapshot(q, (snapshot) => {
+    const staff = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(staff);
+  }, (err) => console.error("Staff sub error:", err));
+}
+
+export function apiSubscribeToDepartments(callback: (departments: any[]) => void): () => void {
+  const q = query(collection(db, 'departments'));
+  return onSnapshot(q, (snapshot) => {
+    const depts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    callback(depts);
+  }, (err) => console.error("Departments sub error:", err));
+}
+
+export function apiSubscribeToPageContent(sectionKey: string, callback: (content: any) => void): () => void {
+  const q = query(collection(db, 'page_content'), where('section_key', '==', sectionKey));
+  return onSnapshot(q, (snapshot) => {
+    if (!snapshot.empty) {
+      const docData = snapshot.docs[0].data();
+      callback({ id: snapshot.docs[0].id, ...docData });
+    } else {
+      callback(null);
+    }
+  }, (err) => console.error(`Page content sub error for ${sectionKey}:`, err));
+}
+
 // --- Dynamic Services Sync ---
 export async function apiGetServices(): Promise<any[]> {
   try {
-    const res = await fetch('/api/services');
-    if (!res.ok) return [];
-    return await res.json();
+    const q = query(collection(db, 'services'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (e) {
+    console.error("Firestore Services GET error:", e);
     return [];
   }
 }
 
 export async function apiSaveService(service: any): Promise<any> {
-  const res = await fetch('/api/services', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(service)
-  });
-  if (!res.ok) throw new Error('Failed to save service.');
-  return res.json();
+  try {
+    const id = service.id || doc(collection(db, 'services')).id;
+    const record = { ...service, id };
+    await setDoc(doc(db, 'services', id), record);
+    return record;
+  } catch (e) {
+    console.error("Firestore Services SAVE error:", e);
+    throw e;
+  }
 }
 
 export async function apiUpdateService(id: string, service: any): Promise<any> {
-  const res = await fetch(`/api/services/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(service)
-  });
-  if (!res.ok) throw new Error('Failed to update service.');
-  return res.json();
+  try {
+    await updateDoc(doc(db, 'services', id), service);
+    return { id, ...service };
+  } catch (e) {
+    console.error("Firestore Services UPDATE error:", e);
+    throw e;
+  }
 }
 
 export async function apiDeleteService(id: string): Promise<any> {
-  const res = await fetch(`/api/services/${id}`, {
-    method: 'DELETE'
-  });
-  if (!res.ok) throw new Error('Failed to delete service.');
-  return res.json();
+  try {
+    await deleteDoc(doc(db, 'services', id));
+    return { success: true };
+  } catch (e) {
+    console.error("Firestore Services DELETE error:", e);
+    throw e;
+  }
 }
 
 export async function apiInitializeServices(items: any[]): Promise<any> {
-  const res = await fetch('/api/services/initialize', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(items)
-  });
-  if (!res.ok) throw new Error('Failed to initialize services.');
-  return res.json();
+  // Batch initialization if empty
+  const current = await apiGetServices();
+  if (current.length === 0) {
+    for (const item of items) {
+      await apiSaveService(item);
+    }
+  }
+  return { success: true };
 }
 
 // --- Dynamic Portfolio Sync ---
 export async function apiGetPortfolio(): Promise<any[]> {
   try {
-    const res = await fetch('/api/portfolio');
-    if (!res.ok) return [];
-    return await res.json();
+    const q = query(collection(db, 'portfolio'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (e) {
+    console.error("Firestore Portfolio GET error:", e);
     return [];
   }
 }
 
 export async function apiSavePortfolio(project: any): Promise<any> {
-  const res = await fetch('/api/portfolio', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(project)
-  });
-  if (!res.ok) throw new Error('Failed to save project.');
-  return res.json();
+  try {
+    const id = project.id || doc(collection(db, 'portfolio')).id;
+    const record = { ...project, id };
+    await setDoc(doc(db, 'portfolio', id), record);
+    return record;
+  } catch (e) {
+    throw e;
+  }
 }
 
 export async function apiUpdatePortfolio(id: string, project: any): Promise<any> {
-  const res = await fetch(`/api/portfolio/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(project)
-  });
-  if (!res.ok) throw new Error('Failed to update project.');
-  return res.json();
+  try {
+    await updateDoc(doc(db, 'portfolio', id), project);
+    return { id, ...project };
+  } catch (e) {
+    throw e;
+  }
 }
 
 export async function apiDeletePortfolio(id: string): Promise<any> {
-  const res = await fetch(`/api/portfolio/${id}`, {
-    method: 'DELETE'
-  });
-  if (!res.ok) throw new Error('Failed to delete project.');
-  return res.json();
+  try {
+    await deleteDoc(doc(db, 'portfolio', id));
+    return { success: true };
+  } catch (e) {
+    throw e;
+  }
 }
 
 export async function apiInitializePortfolio(items: any[]): Promise<any> {
-  const res = await fetch('/api/portfolio/initialize', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(items)
-  });
-  if (!res.ok) throw new Error('Failed to initialize portfolio.');
-  return res.json();
+  const current = await apiGetPortfolio();
+  if (current.length === 0) {
+    for (const item of items) {
+      await apiSavePortfolio(item);
+    }
+  }
+  return { success: true };
 }
 
 // --- Dynamic Blogs Sync ---
 export async function apiGetBlogs(): Promise<any[]> {
   try {
-    const res = await fetch('/api/blogs');
-    if (!res.ok) return [];
-    return await res.json();
+    const q = query(collection(db, 'blogs'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (e) {
     return [];
   }
 }
 
 export async function apiSaveBlog(blog: any): Promise<any> {
-  const res = await fetch('/api/blogs', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(blog)
-  });
-  if (!res.ok) throw new Error('Failed to save blog.');
-  return res.json();
+  try {
+    const id = blog.id || doc(collection(db, 'blogs')).id;
+    const record = { ...blog, id };
+    await setDoc(doc(db, 'blogs', id), record);
+    return record;
+  } catch (e) {
+    throw e;
+  }
 }
 
 export async function apiUpdateBlog(id: string, blog: any): Promise<any> {
-  const res = await fetch(`/api/blogs/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(blog)
-  });
-  if (!res.ok) throw new Error('Failed to update blog.');
-  return res.json();
+  try {
+    await updateDoc(doc(db, 'blogs', id), blog);
+    return { id, ...blog };
+  } catch (e) {
+    throw e;
+  }
 }
 
 export async function apiDeleteBlog(id: string): Promise<any> {
-  const res = await fetch(`/api/blogs/${id}`, {
-    method: 'DELETE'
-  });
-  if (!res.ok) throw new Error('Failed to delete blog.');
-  return res.json();
+  try {
+    await deleteDoc(doc(db, 'blogs', id));
+    return { success: true };
+  } catch (e) {
+    throw e;
+  }
 }
 
 export async function apiInitializeBlogs(items: any[]): Promise<any> {
-  const res = await fetch('/api/blogs/initialize', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(items)
-  });
-  if (!res.ok) throw new Error('Failed to initialize blogs.');
-  return res.json();
+  const current = await apiGetBlogs();
+  if (current.length === 0) {
+    for (const item of items) {
+      await apiSaveBlog(item);
+    }
+  }
+  return { success: true };
 }
 
 // --- Dynamic Courses Sync ---
 export async function apiGetCourses(): Promise<any[]> {
   try {
-    const res = await fetch('/api/courses');
-    if (!res.ok) return [];
-    return await res.json();
+    const q = query(collection(db, 'courses'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
   } catch (e) {
     return [];
   }
 }
 
 export async function apiSaveCourse(course: any): Promise<any> {
-  const res = await fetch('/api/courses', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(course)
-  });
-  if (!res.ok) throw new Error('Failed to save course.');
-  return res.json();
+  try {
+    const id = course.id || doc(collection(db, 'courses')).id;
+    const record = { ...course, id };
+    await setDoc(doc(db, 'courses', id), record);
+    return record;
+  } catch (e) {
+    throw e;
+  }
 }
 
 export async function apiUpdateCourse(id: string, course: any): Promise<any> {
-  const res = await fetch(`/api/courses/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(course)
-  });
-  if (!res.ok) throw new Error('Failed to update course.');
-  return res.json();
+  try {
+    await updateDoc(doc(db, 'courses', id), course);
+    return { id, ...course };
+  } catch (e) {
+    throw e;
+  }
 }
 
 export async function apiDeleteCourse(id: string): Promise<any> {
-  const res = await fetch(`/api/courses/${id}`, {
-    method: 'DELETE'
-  });
-  if (!res.ok) throw new Error('Failed to delete course.');
-  return res.json();
+  try {
+    await deleteDoc(doc(db, 'courses', id));
+    return { success: true };
+  } catch (e) {
+    throw e;
+  }
 }
 
 export async function apiInitializeCourses(items: any[]): Promise<any> {
-  const res = await fetch('/api/courses/initialize', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(items)
-  });
-  if (!res.ok) throw new Error('Failed to initialize courses.');
-  return res.json();
+  const current = await apiGetCourses();
+  if (current.length === 0) {
+    for (const item of items) {
+      await apiSaveCourse(item);
+    }
+  }
+  return { success: true };
 }
+
 
 // --- Notification API Client Helpers ---
 
@@ -815,34 +921,45 @@ export async function apiGetRecognitionCertificates(admin: boolean = false, cate
 }
 
 export async function apiSaveRecognitionCertificate(cert: Partial<RecognitionCertificate>): Promise<RecognitionCertificate> {
-  const res = await fetch('/api/recognition/certificates', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(cert)
-  });
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || 'Failed to save recognition certificate.');
+  try {
+    const id = cert.id || doc(collection(db, 'recognition_certificates')).id;
+    const now = new Date().toISOString();
+    const record = {
+      ...cert,
+      id,
+      created_at: cert.created_at || now,
+      updated_at: now
+    };
+    await setDoc(doc(db, 'recognition_certificates', id), record);
+    return record as RecognitionCertificate;
+  } catch (e) {
+    console.error("Firestore Recognition SAVE error:", e);
+    throw e;
   }
-  return res.json();
 }
 
 export async function apiDeleteRecognitionCertificate(id: string): Promise<{ success: boolean }> {
-  const res = await fetch(`/api/recognition/certificates?id=${encodeURIComponent(id)}`, {
-    method: 'DELETE'
-  });
-  if (!res.ok) throw new Error('Failed to delete recognition certificate.');
-  return res.json();
+  try {
+    await deleteDoc(doc(db, 'recognition_certificates', id));
+    return { success: true };
+  } catch (e) {
+    console.error("Firestore Recognition DELETE error:", e);
+    throw e;
+  }
 }
 
 export async function apiToggleRecognitionPublish(id: string, isPublished: boolean): Promise<{ success: boolean; id: string; is_published: number }> {
-  const res = await fetch('/api/recognition/certificates/publish', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, is_published: isPublished })
-  });
-  if (!res.ok) throw new Error('Failed to toggle recognition certificate publish state.');
-  return res.json();
+  try {
+    const pubVal = isPublished ? 1 : 0;
+    await updateDoc(doc(db, 'recognition_certificates', id), {
+      is_published: pubVal,
+      updated_at: new Date().toISOString()
+    });
+    return { success: true, id, is_published: pubVal };
+  } catch (e) {
+    console.error("Firestore Recognition TOGGLE error:", e);
+    throw e;
+  }
 }
 
 export async function apiUploadRecognitionFile(file: File): Promise<{
@@ -896,44 +1013,58 @@ export async function apiGetOngoingProjects(admin: boolean = false): Promise<Ong
 }
 
 export async function apiSaveOngoingProject(project: Partial<OngoingProject>): Promise<OngoingProject> {
-  const res = await fetch('/api/ongoing-projects', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(project)
-  });
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || 'Failed to save ongoing project.');
+  try {
+    const id = project.id || doc(collection(db, 'ongoing_projects')).id;
+    const now = new Date().toISOString();
+    const record = {
+      ...project,
+      id,
+      created_at: project.created_at || now,
+      updated_at: now
+    };
+    await setDoc(doc(db, 'ongoing_projects', id), record);
+    return record as OngoingProject;
+  } catch (e) {
+    console.error("Firestore Ongoing Project SAVE error:", e);
+    throw e;
   }
-  return res.json();
 }
 
 export async function apiDeleteOngoingProject(id: string): Promise<{ success: boolean; id: string }> {
-  const res = await fetch(`/api/ongoing-projects?id=${encodeURIComponent(id)}`, {
-    method: 'DELETE'
-  });
-  if (!res.ok) throw new Error('Failed to delete ongoing project.');
-  return res.json();
+  try {
+    await deleteDoc(doc(db, 'ongoing_projects', id));
+    return { success: true, id };
+  } catch (e) {
+    console.error("Firestore Ongoing Project DELETE error:", e);
+    throw e;
+  }
 }
 
 export async function apiToggleOngoingProjectPublish(id: string, isPublished: boolean): Promise<{ success: boolean; id: string; is_published: number }> {
-  const res = await fetch('/api/ongoing-projects/publish', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, is_published: isPublished })
-  });
-  if (!res.ok) throw new Error('Failed to toggle ongoing project publish state.');
-  return res.json();
+  try {
+    const pubVal = isPublished ? 1 : 0;
+    await updateDoc(doc(db, 'ongoing_projects', id), {
+      is_published: pubVal,
+      updated_at: new Date().toISOString()
+    });
+    return { success: true, id, is_published: pubVal };
+  } catch (e) {
+    console.error("Firestore Ongoing Project TOGGLE error:", e);
+    throw e;
+  }
 }
 
 export async function apiUpdateOngoingProjectProgress(id: string, progress: number): Promise<{ success: boolean; id: string; progress_percentage: number }> {
-  const res = await fetch('/api/ongoing-projects/progress', {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id, progress_percentage: progress })
-  });
-  if (!res.ok) throw new Error('Failed to update ongoing project progress.');
-  return res.json();
+  try {
+    await updateDoc(doc(db, 'ongoing_projects', id), {
+      progress_percentage: progress,
+      updated_at: new Date().toISOString()
+    });
+    return { success: true, id, progress_percentage: progress };
+  } catch (e) {
+    console.error("Firestore Ongoing Project PROGRESS error:", e);
+    throw e;
+  }
 }
 
 export async function apiUploadOngoingProjectFile(file: File): Promise<{
@@ -1017,62 +1148,111 @@ export function resolveStaffImageUrl(urlOrKey: string | null | undefined, fallba
 
 // Enterprise Staff & Departments client-side helpers
 export async function apiGetDepartments(admin: boolean = false): Promise<Department[]> {
-  const url = `/api/departments${admin ? '?admin=true' : ''}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to fetch departments');
-  return res.json();
+  try {
+    const url = `/api/departments${admin ? '?admin=true' : ''}`;
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) return data;
+    }
+  } catch (e) {}
+
+  try {
+    const deptRef = collection(db, 'departments');
+    const querySnapshot = await getDocs(deptRef);
+    return querySnapshot.docs.map(docSnapshot => ({ id: docSnapshot.id, ...(docSnapshot.data() as any) } as Department));
+  } catch (e) {
+    return [];
+  }
 }
 
 export async function apiSaveDepartment(dept: Partial<Department>): Promise<{ success: boolean; department: Department }> {
-  const res = await fetch('/api/departments', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(dept)
-  });
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || 'Failed to save department');
+  try {
+    const id = dept.id || doc(collection(db, 'departments')).id;
+    const now = new Date().toISOString();
+    const newRecord = {
+      ...dept,
+      id,
+      updated_at: now,
+      created_at: dept.created_at || now
+    };
+    await setDoc(doc(db, 'departments', id), newRecord);
+    return { success: true, department: newRecord as Department };
+  } catch (e) {
+    console.error("Firestore Department SAVE error:", e);
+    throw e;
   }
-  return res.json();
 }
 
 export async function apiDeleteDepartment(id: string): Promise<{ success: boolean }> {
-  const res = await fetch(`/api/departments?id=${encodeURIComponent(id)}`, {
-    method: 'DELETE'
-  });
-  if (!res.ok) throw new Error('Failed to delete department');
-  return res.json();
+  try {
+    await deleteDoc(doc(db, 'departments', id));
+    return { success: true };
+  } catch (e) {
+    console.error("Firestore Department DELETE error:", e);
+    throw e;
+  }
 }
 
 export async function apiGetStaff(admin: boolean = false, departmentId?: string): Promise<StaffMember[]> {
-  let url = `/api/staff?${admin ? 'admin=true' : ''}`;
-  if (departmentId) {
-    url += `&department_id=${encodeURIComponent(departmentId)}`;
+  try {
+    let url = `/api/staff?${admin ? 'admin=true' : ''}`;
+    if (departmentId) {
+      url += `&department_id=${encodeURIComponent(departmentId)}`;
+    }
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) return data;
+    }
+  } catch (e) {}
+
+  try {
+    const staffRef = collection(db, 'staff');
+    const querySnapshot = await getDocs(staffRef);
+    let list = querySnapshot.docs.map(docSnapshot => ({ id: docSnapshot.id, ...(docSnapshot.data() as any) } as StaffMember));
+    if (!admin) {
+      list = list.filter(m => m.is_published !== 0 && m.status === 'Active');
+    }
+    if (departmentId) {
+      list = list.filter(m => m.department_id === departmentId);
+    }
+    return list;
+  } catch (e) {
+    return [];
   }
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to fetch staff members');
-  return res.json();
 }
 
 export async function apiSaveStaff(member: Partial<StaffMember>): Promise<{ success: boolean; staff: StaffMember }> {
-  const res = await fetch('/api/staff', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(member)
-  });
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.error || 'Failed to save staff member');
+  try {
+    const id = member.id || doc(collection(db, 'staff')).id;
+    const now = new Date().toISOString();
+    const newRecord: any = {
+      ...member,
+      id,
+      updated_at: now,
+      created_at: member.created_at || now,
+      is_published: member.is_published !== undefined ? member.is_published : 1,
+      status: member.status || 'Active'
+    };
+    // Remove undefined
+    Object.keys(newRecord).forEach(k => newRecord[k] === undefined && delete newRecord[k]);
+    await setDoc(doc(db, 'staff', id), newRecord);
+    return { success: true, staff: newRecord as StaffMember };
+  } catch (e) {
+    console.error("Firestore Staff SAVE error:", e);
+    throw e;
   }
-  return res.json();
 }
 
 export async function apiDeleteStaff(id: string): Promise<{ success: boolean }> {
-  const res = await fetch(`/api/staff?id=${encodeURIComponent(id)}`, {
-    method: 'DELETE'
-  });
-  if (!res.ok) throw new Error('Failed to delete staff member');
-  return res.json();
+  try {
+    await deleteDoc(doc(db, 'staff', id));
+    return { success: true };
+  } catch (e) {
+    console.error("Firestore Staff DELETE error:", e);
+    throw e;
+  }
 }
 
 export async function apiUploadStaffFile(file: File): Promise<{

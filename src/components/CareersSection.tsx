@@ -4,9 +4,15 @@ import { Search, MapPin, Clock, Briefcase, ChevronRight, UserCheck, HelpCircle, 
 
 interface CareersSectionProps {
   onApplyForJob: (roleTitle: string) => void;
+  onOpenMyApplication?: () => void;
+  onPreviewApplication?: (vacancy: any) => void;
 }
 
-export const CareersSection: React.FC<CareersSectionProps> = ({ onApplyForJob }) => {
+export const CareersSection: React.FC<CareersSectionProps> = ({ 
+  onApplyForJob, 
+  onOpenMyApplication, 
+  onPreviewApplication 
+}) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDept, setSelectedDept] = useState<string>('all');
 
@@ -162,9 +168,33 @@ export const CareersSection: React.FC<CareersSectionProps> = ({ onApplyForJob })
                   <span className="text-xs font-mono font-black text-slate-800 dark:text-orange-400 block">{vac.salary}</span>
                 </div>
                 
+                <div className="flex flex-col sm:flex-row gap-2">
+                  {onOpenMyApplication && (
+                    <button
+                      onClick={onOpenMyApplication}
+                      className="w-full sm:w-auto px-4 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-slate-200 dark:border-slate-700"
+                      title="Open My Application Dashboard"
+                    >
+                      <UserCheck size={12} className="text-orange-500" />
+                      <span>My Application</span>
+                    </button>
+                  )}
+
+                  {onPreviewApplication && (
+                    <button
+                      onClick={() => onPreviewApplication(vac)}
+                      className="w-full sm:w-auto px-4 py-2 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 text-indigo-600 dark:text-indigo-300 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer border border-indigo-200 dark:border-indigo-800"
+                      title="Application Preview"
+                    >
+                      <FileCheck size={12} />
+                      <span>Application Preview</span>
+                    </button>
+                  )}
+                </div>
+
                 <button
                   onClick={() => onApplyForJob(vac.title)}
-                  className="w-full md:w-auto px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/10 flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md shadow-orange-600/10 flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Briefcase size={12} />
                   <span>Apply For Position</span>

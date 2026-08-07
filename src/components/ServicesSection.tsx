@@ -10,7 +10,7 @@ import { LanguageCode } from '../lib/translations';
 import { ServiceDetailView } from './ServiceDetailView';
 import { ServiceCard } from './ServiceCard';
 import { CustomQuoteModal } from './CustomQuoteModal';
-import { apiGetServices, apiInitializeServices, resolveImageUrl } from '../lib/api';
+import { apiGetServices, apiInitializeServices, resolveImageUrl, apiSubscribeToServices } from '../lib/api';
 import { Logo } from './Logo';
 
 interface ServicesSectionProps {
@@ -58,50 +58,29 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
   });
 
   useEffect(() => {
-    const fetchD1Services = async () => {
-      try {
-        const data = await apiGetServices();
-        if (data && data.length > 0) {
-          setServices(data);
-          localStorage.setItem('admin_services', JSON.stringify(data));
-        } else {
+    const unsubscribe = apiSubscribeToServices((data) => {
+      if (data && data.length > 0) {
+        setServices(data);
+        localStorage.setItem('admin_services', JSON.stringify(data));
+      } else {
+        // Handle initialization if Firestore is truly empty
+        const initialize = async () => {
           const saved = localStorage.getItem('admin_services');
+          let initialData = SERVICES;
           if (saved) {
             try {
               const parsed = JSON.parse(saved);
-              if (parsed && parsed.length > 0) {
-                setServices(parsed);
-                await apiInitializeServices(parsed);
-                return;
-              }
+              if (parsed && parsed.length > 0) initialData = parsed;
             } catch (e) {}
           }
-          setServices(SERVICES);
-          await apiInitializeServices(SERVICES); 
-        }
-      } catch (err) {
-        console.warn('Database unreachable. Falling back to local data.');
-        const saved = localStorage.getItem('admin_services');
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (parsed && parsed.length > 0) setServices(parsed);
-          } catch (e) {}
-        }
+          setServices(initialData);
+          await apiInitializeServices(initialData);
+        };
+        initialize();
       }
-    };
-    fetchD1Services();
+    });
 
-    const handleStorage = () => {
-      try {
-        const saved = localStorage.getItem('admin_services');
-        if (saved) {
-          setServices(JSON.parse(saved));
-        }
-      } catch (e) {}
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    return () => unsubscribe();
   }, []);
 
   const getCategoryIcon = (catId: string) => {

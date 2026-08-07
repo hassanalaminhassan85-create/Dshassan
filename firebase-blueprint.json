@@ -80,9 +80,111 @@
         "updated_at": { "type": "string", "format": "date-time" }
       },
       "required": ["company_name", "registration_number", "registration_date"]
+    },
+    "ServiceItem": {
+      "title": "Service Item",
+      "description": "A service offered by the agency.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "price": { "type": "string" },
+        "description": { "type": "string" },
+        "image": { "type": "string" },
+        "url": { "type": "string" },
+        "category": { "type": "string" }
+      },
+      "required": ["name", "price", "category"]
+    },
+    "PortfolioProject": {
+      "title": "Portfolio Project",
+      "description": "A completed project showcase.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "client": { "type": "string" },
+        "date": { "type": "string" },
+        "description": { "type": "string" },
+        "image": { "type": "string" },
+        "stats": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["title", "category", "image"]
+    },
+    "BlogPost": {
+      "title": "Blog Post",
+      "description": "An article or blog entry.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "author": { "type": "string" },
+        "date": { "type": "string" },
+        "description": { "type": "string" },
+        "content": { "type": "string" },
+        "readTime": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "image": { "type": "string" }
+      },
+      "required": ["title", "category", "author", "content"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "A training course in the LMS.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "image": { "type": "string" },
+        "duration": { "type": "string" },
+        "level": { "type": "string" },
+        "price": { "type": "string" },
+        "category": { "type": "string" },
+        "lessons": { "type": "array", "items": { "type": "object" } }
+      },
+      "required": ["title", "description", "category", "price"]
+    },
+    "ClientProject": {
+      "title": "Client Project",
+      "description": "A project assigned to a specific client.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "status": { "type": "string" },
+        "progress": { "type": "number" },
+        "deadline": { "type": "string" },
+        "clientName": { "type": "string" },
+        "budget": { "type": "string" }
+      },
+      "required": ["name", "status", "clientName"]
     }
   },
   "firestore": {
+    "/services/{serviceId}": {
+      "schema": "ServiceItem",
+      "description": "Agency services catalog."
+    },
+    "/portfolio/{projectId}": {
+      "schema": "PortfolioProject",
+      "description": "Project portfolio showcase."
+    },
+    "/blogs/{blogId}": {
+      "schema": "BlogPost",
+      "description": "Blog articles."
+    },
+    "/courses/{courseId}": {
+      "schema": "Course",
+      "description": "LMS training courses."
+    },
+    "/client_projects/{projectId}": {
+      "schema": "ClientProject",
+      "description": "Individual client projects for the portal."
+    },
     "/cac_metadata/{cacId}": {
       "schema": "CacMetadata",
       "description": "CAC certificates metadata."

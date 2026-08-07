@@ -5,7 +5,7 @@ import {
   ExternalLink, Download, Share2, ZoomIn, ZoomOut, RotateCw, RotateCcw, 
   X, Maximize2, Minimize2, Printer, AlertTriangle, Calendar, Building, FileDigit, Loader2, ArrowRight, Sun, Moon, ArrowLeft
 } from 'lucide-react';
-import { apiGetRecognitionCertificates, RecognitionCertificate } from '../lib/api';
+import { apiGetRecognitionCertificates, RecognitionCertificate, apiSubscribeToRecognitionCertificates } from '../lib/api';
 import { Logo } from './Logo';
 
 // Supported Categories
@@ -79,22 +79,12 @@ export const RecognitionSection: React.FC<RecognitionSectionProps> = ({ onBackTo
   };
 
   useEffect(() => {
-    fetchCertificates();
-  }, []);
-
-  // Listen to custom broad sync event from SSE
-  useEffect(() => {
-    const handleSync = () => {
-      fetchCertificates();
-    };
-    window.addEventListener('RECOGNITION_CERTIFICATE_SAVED', handleSync);
-    window.addEventListener('RECOGNITION_CERTIFICATE_DELETED', handleSync);
-    window.addEventListener('RECOGNITION_PUBLISH_TOGGLED', handleSync);
-    return () => {
-      window.removeEventListener('RECOGNITION_CERTIFICATE_SAVED', handleSync);
-      window.removeEventListener('RECOGNITION_CERTIFICATE_DELETED', handleSync);
-      window.removeEventListener('RECOGNITION_PUBLISH_TOGGLED', handleSync);
-    };
+    setLoading(true);
+    const unsubscribe = apiSubscribeToRecognitionCertificates((data) => {
+      setCerts(data as RecognitionCertificate[]);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   // Filter and sort certificates

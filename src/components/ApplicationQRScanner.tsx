@@ -40,7 +40,7 @@ export const ApplicationQRScanner: React.FC<ApplicationQRScannerProps> = ({
   const [availableApplications, setAvailableApplications] = useState<JobApplication[]>([]);
   
   // Camera state
-  const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
+  const [cameras, setCameras] = useState<any[]>([]);
   const [selectedCameraId, setSelectedCameraId] = useState<string>('');
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState<boolean>(false);

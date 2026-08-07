@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { 
   apiGetServices, apiSaveService, apiUpdateService, apiDeleteService,
-  apiInitializeServices, apiUploadGeneralFile, resolveImageUrl 
+  apiInitializeServices, apiUploadGeneralFile, resolveImageUrl, apiSubscribeToServices 
 } from '../lib/api';
 import { SERVICES, ServiceItem } from '../lib/data';
 
@@ -51,7 +51,12 @@ export const ServicesCMS: React.FC<ServicesCMSProps> = ({ onRefresh }) => {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    loadServices();
+    setLoading(true);
+    const unsubscribe = apiSubscribeToServices((data) => {
+      setServices(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   const showToast = (msg: string) => {

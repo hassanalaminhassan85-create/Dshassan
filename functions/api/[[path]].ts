@@ -904,15 +904,26 @@ async function ensureDatabaseTables(db: any) {
     await db.prepare("ALTER TABLE staff_members ADD COLUMN password_hash TEXT").run();
   } catch (e) {}
 
-  // Insert default user seed if none exists
+  // Insert default user seeds if they don't exist
   try {
-    const check = await db.prepare("SELECT COUNT(*) as count FROM users").all();
-    const rows = Array.isArray(check) ? check : (check?.results || []);
-    if (rows && rows[0] && rows[0].count === 0) {
+    const demoEmail = 'candidate2026@dstech.com';
+    const checkDemo = await db.prepare("SELECT COUNT(*) as count FROM users WHERE email = ?").bind(demoEmail).all();
+    const demoRows = Array.isArray(checkDemo) ? checkDemo : (checkDemo?.results || []);
+    if (demoRows && demoRows[0] && demoRows[0].count === 0) {
       const demoPassHash = await hashPassword("vision2026");
       await db.prepare(
         "INSERT INTO users (id, email, full_name, role, status, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
-      ).bind('usr-demo', 'candidate2026@dstech.com', 'candidate2026', 'Applicant', 'active', demoPassHash, new Date().toISOString()).run();
+      ).bind('usr-demo', demoEmail, 'candidate2026', 'Applicant', 'active', demoPassHash, new Date().toISOString()).run();
+    }
+
+    const recruiterEmail = 'recruiter@dstech.com';
+    const checkRecruiter = await db.prepare("SELECT COUNT(*) as count FROM users WHERE email = ?").bind(recruiterEmail).all();
+    const recruiterRows = Array.isArray(checkRecruiter) ? checkRecruiter : (checkRecruiter?.results || []);
+    if (recruiterRows && recruiterRows[0] && recruiterRows[0].count === 0) {
+      const recruiterPassHash = await hashPassword("recruiter2026");
+      await db.prepare(
+        "INSERT INTO users (id, email, full_name, role, status, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
+      ).bind('usr-recruiter-demo', recruiterEmail, 'Demo Recruiter', 'Recruiter', 'active', recruiterPassHash, new Date().toISOString()).run();
     }
   } catch (err) {
     console.error("Bootstrapper seed error:", err);
@@ -2025,6 +2036,50 @@ export async function onRequest(context: { request: Request; env: any; params: a
     // 2.08 SECURE ADMIN/USER BACKEND LOGIN
     // ==========================================
 
+    if (path === '/api/auth/track-application' && method === 'POST') {
+      const { email } = await request.json();
+      if (!email) return new Response(JSON.stringify({ error: "Email required" }), { status: 400 });
+
+      // 1. Check users table first (Admins/Recruiters)
+      const userCheck = await env.DB.prepare("SELECT * FROM users WHERE email = ?").bind(email).first();
+      if (userCheck) {
+        return new Response(JSON.stringify({
+          success: true,
+          user: { id: userCheck.id, email: userCheck.email, fullName: userCheck.full_name, role: userCheck.role }
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+
+      // Check for application fallback
+      const appCheck = await env.DB.prepare("SELECT * FROM job_applications WHERE personal_info LIKE ?")
+        .bind(`%${email}%`).all();
+      
+      const apps = Array.isArray(appCheck) ? appCheck : (appCheck?.results || []);
+      
+      const foundApp = apps.find((a: any) => {
+        try {
+          const info = JSON.parse(a.personal_info);
+          return info.emailAddress === email;
+        } catch (e) { return false; }
+      });
+
+      if (!foundApp) {
+        return new Response(JSON.stringify({ error: "No application found with this email. Please apply first." }), { status: 404 });
+      }
+
+      const personalInfo = JSON.parse(foundApp.personal_info);
+      
+      return new Response(JSON.stringify({
+        success: true,
+        user: {
+          id: `usr-${foundApp.id}`,
+          email: personalInfo.emailAddress,
+          fullName: personalInfo.fullName,
+          role: 'Recruiter',
+          applicationId: foundApp.id
+        }
+      }), { headers: { 'Content-Type': 'application/json' } });
+    }
+
     if (path === '/api/auth/login' && method === 'POST') {
       const body = await request.json();
       const { email, password } = body;
@@ -2716,20 +2771,20 @@ export async function onRequest(context: { request: Request; env: any; params: a
         try {
           const body = await request.json();
           const id = body.id || ('cac_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now());
-          const company_name = body.company_name;
-          const registration_number = body.registration_number;
-          const business_type = body.business_type;
-          const registration_date = body.registration_date;
-          const company_status = body.company_status;
-          const registered_address = body.registered_address || '';
+          const company_name = body.company_name || body.companyName || '';
+          const registration_number = body.registration_number || body.registrationNumber || '';
+          const business_type = body.business_type || body.businessType || 'Private Company Limited by Shares';
+          const registration_date = body.registration_date || body.registrationDate || new Date().toISOString().split('T')[0];
+          const company_status = body.company_status || body.companyStatus || 'Active';
+          const registered_address = body.registered_address || body.registeredAddress || '';
           const description = body.description || '';
-          const verification_url = body.verification_url || '';
-          const r2_object_key = body.r2_object_key || '';
-          const file_name = body.file_name || '';
-          const file_size = body.file_size || 0;
-          const mime_type = body.mime_type || '';
-          const is_published = body.is_published !== undefined ? (body.is_published ? 1 : 0) : 0;
-          const display_order = body.display_order || 0;
+          const verification_url = body.verification_url || body.verificationUrl || 'https://search.cac.gov.ng/';
+          const r2_object_key = body.r2_object_key || body.r2ObjectKey || '';
+          const file_name = body.file_name || body.fileName || '';
+          const file_size = body.file_size || body.fileSize || 0;
+          const mime_type = body.mime_type || body.mimeType || 'image/png';
+          const is_published = body.is_published !== undefined ? (body.is_published ? 1 : 0) : (body.isPublished !== undefined ? (body.isPublished ? 1 : 0) : 1);
+          const display_order = body.display_order !== undefined ? Number(body.display_order) : (body.displayOrder !== undefined ? Number(body.displayOrder) : 0);
           const now = new Date().toISOString();
           
           if (env.DB) {
@@ -4485,35 +4540,35 @@ export async function onRequest(context: { request: Request; env: any; params: a
         try {
           const body = await request.json();
           const id = body.id || ('staff_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now());
-          const employee_id = body.employee_id || '';
-          const full_name = body.full_name || 'Untitled Staff';
-          const profile_photo_key = body.profile_photo_key || '';
+          const employee_id = body.employee_id || body.employeeId || '';
+          const full_name = body.full_name || body.fullName || 'Untitled Staff';
+          const profile_photo_key = body.profile_photo_key || body.profilePhotoKey || '';
           const gender = body.gender || '';
           const dob = body.dob || '';
           const nationality = body.nationality || '';
-          const job_title = body.job_title || '';
+          const job_title = body.job_title || body.jobTitle || '';
           const role = body.role || 'Staff Member';
-          const department_id = body.department_id || null;
+          const department_id = body.department_id || body.departmentId || null;
           const specialization = body.specialization || '';
-          const biography = body.biography || '';
+          const biography = body.biography || body.bio || '';
           const skills = body.skills || '';
           const qualifications = body.qualifications || '';
           const certifications = body.certifications || '';
-          const date_joined = body.date_joined || '';
-          const years_of_experience = body.years_of_experience !== undefined ? Number(body.years_of_experience) : 0;
+          const date_joined = body.date_joined || body.dateJoined || '';
+          const years_of_experience = body.years_of_experience !== undefined ? Number(body.years_of_experience) : (body.yearsOfExperience !== undefined ? Number(body.yearsOfExperience) : 0);
           const email = body.email || '';
           const phone = body.phone || '';
-          const social_links = body.social_links || '{}';
-          const reports_to = body.reports_to || null;
+          const social_links = body.social_links || body.socialLinks || '{}';
+          const reports_to = body.reports_to || body.reportsTo || null;
           const team = body.team || '';
-          const display_order = body.display_order !== undefined ? Number(body.display_order) : 0;
+          const display_order = body.display_order !== undefined ? Number(body.display_order) : (body.displayOrder !== undefined ? Number(body.displayOrder) : 0);
           const status = body.status || 'Active';
-          const is_published = body.is_published !== undefined ? (body.is_published ? 1 : 0) : 1;
-          const show_phone_publicly = body.show_phone_publicly !== undefined ? (body.show_phone_publicly ? 1 : 0) : 0;
-          const show_email_publicly = body.show_email_publicly !== undefined ? (body.show_email_publicly ? 1 : 0) : 0;
-          const show_bio_publicly = body.show_bio_publicly !== undefined ? (body.show_bio_publicly ? 1 : 0) : 1;
-          const show_qualifications_publicly = body.show_qualifications_publicly !== undefined ? (body.show_qualifications_publicly ? 1 : 0) : 1;
-          const show_social_publicly = body.show_social_publicly !== undefined ? (body.show_social_publicly ? 1 : 0) : 1;
+          const is_published = body.is_published !== undefined ? (body.is_published ? 1 : 0) : (body.isPublished !== undefined ? (body.isPublished ? 1 : 0) : 1);
+          const show_phone_publicly = body.show_phone_publicly !== undefined ? (body.show_phone_publicly ? 1 : 0) : (body.showPhonePublicly !== undefined ? (body.showPhonePublicly ? 1 : 0) : 0);
+          const show_email_publicly = body.show_email_publicly !== undefined ? (body.show_email_publicly ? 1 : 0) : (body.showEmailPublicly !== undefined ? (body.showEmailPublicly ? 1 : 0) : 0);
+          const show_bio_publicly = body.show_bio_publicly !== undefined ? (body.show_bio_publicly ? 1 : 0) : (body.showBioPublicly !== undefined ? (body.showBioPublicly ? 1 : 0) : 1);
+          const show_qualifications_publicly = body.show_qualifications_publicly !== undefined ? (body.show_qualifications_publicly ? 1 : 0) : (body.showQualificationsPublicly !== undefined ? (body.showQualificationsPublicly ? 1 : 0) : 1);
+          const show_social_publicly = body.show_social_publicly !== undefined ? (body.show_social_publicly ? 1 : 0) : (body.showSocialPublicly !== undefined ? (body.showSocialPublicly ? 1 : 0) : 1);
           const now = new Date().toISOString();
 
           if (env.DB) {

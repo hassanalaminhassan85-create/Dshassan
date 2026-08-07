@@ -6,7 +6,7 @@ import {
   MessageSquare, Share2, Bookmark
 } from 'lucide-react';
 import { BLOG_POSTS, BlogPost } from '../lib/data';
-import { apiGetBlogs, apiInitializeBlogs, resolveImageUrl } from '../lib/api';
+import { apiGetBlogs, apiInitializeBlogs, resolveImageUrl, apiSubscribeToBlogs } from '../lib/api';
 import { Logo } from './Logo';
 
 interface BlogSectionProps {
@@ -46,37 +46,17 @@ export const BlogSection: React.FC<BlogSectionProps> = ({ onBackToMain }) => {
   });
 
   useEffect(() => {
-    const fetchD1Blogs = async () => {
-      try {
-        const data = await apiGetBlogs();
-        if (data && data.length > 0) {
-          setBlogs(data);
-          localStorage.setItem('admin_blogs', JSON.stringify(data));
-        } else {
-          setBlogs([]);
-          localStorage.setItem('admin_blogs', JSON.stringify([]));
-        }
-      } catch (err) {
-        console.warn('D1 blogs database unreachable.', err);
+    const unsubscribe = apiSubscribeToBlogs((data) => {
+      if (data && data.length > 0) {
+        setBlogs(data);
+        localStorage.setItem('admin_blogs', JSON.stringify(data));
+      } else {
+        setBlogs([]);
+        localStorage.setItem('admin_blogs', JSON.stringify([]));
       }
-    };
+    });
 
-    fetchD1Blogs();
-
-    const handleStorage = () => {
-      try {
-        const saved = localStorage.getItem('admin_blogs');
-        if (saved) {
-          setBlogs(JSON.parse(saved));
-        } else {
-          setBlogs([]);
-        }
-      } catch (e) {
-        console.error('Failed to parse admin_blogs in storage event:', e);
-      }
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    return () => unsubscribe();
   }, []);
 
   const getAiSummary = (postId: string) => {

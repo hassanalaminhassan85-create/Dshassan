@@ -10,7 +10,7 @@ import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
 import { CacTrustSection } from './CacTrustSection';
 import { OngoingProjectsSection } from './OngoingProjectsSection';
 import { CustomQuoteModal } from './CustomQuoteModal';
-import { apiGetServices, resolveImageUrl } from '../lib/api';
+import { apiGetServices, resolveImageUrl, apiSubscribeToServices } from '../lib/api';
 
 interface HomeSectionProps {
   onNavigate: (path: string) => void;
@@ -43,33 +43,13 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
 
   useEffect(() => {
-    async function loadServices() {
-      try {
-        const fetchedServices = await apiGetServices();
-        if (fetchedServices && fetchedServices.length > 0) {
-          setServices(fetchedServices);
-          localStorage.setItem('admin_services', JSON.stringify(fetchedServices));
-        } else {
-          const saved = localStorage.getItem('admin_services');
-          if (saved) {
-            try {
-              const parsed = JSON.parse(saved);
-              if (parsed && parsed.length > 0) setServices(parsed);
-            } catch (err) {}
-          }
-        }
-      } catch (e) {
-        console.error("Failed to fetch services, checking local storage:", e);
-        const saved = localStorage.getItem('admin_services');
-        if (saved) {
-          try {
-            const parsed = JSON.parse(saved);
-            if (parsed && parsed.length > 0) setServices(parsed);
-          } catch (err) {}
-        }
+    const unsubscribe = apiSubscribeToServices((fetchedServices) => {
+      if (fetchedServices && fetchedServices.length > 0) {
+        setServices(fetchedServices);
+        localStorage.setItem('admin_services', JSON.stringify(fetchedServices));
       }
-    }
-    loadServices();
+    });
+    return () => unsubscribe();
   }, []);
 
   const t = HOME_TRANSLATIONS[language] || HOME_TRANSLATIONS.en;

@@ -12,7 +12,8 @@ import {
   apiDeleteCacMetadata, 
   apiToggleCacPublish, 
   apiUploadCacFile,
-  CacMetadata 
+  CacMetadata,
+  apiSubscribeToCacMetadata
 } from '../lib/api';
 import { AnimatedHomeSectionImagePreview } from './AnimatedHomeSectionImagePreview';
 
@@ -35,7 +36,12 @@ export const CacAdminCenter: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetchCacData();
+    setLoading(true);
+    const unsubscribe = apiSubscribeToCacMetadata((data) => {
+      setCertificates(data as CacMetadata[]);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   const fetchCacData = async () => {
@@ -140,7 +146,7 @@ export const CacAdminCenter: React.FC = () => {
       file_name: '',
       file_size: 0,
       mime_type: 'image/png',
-      is_published: 0,
+      is_published: 1,
       display_order: certificates.length + 1
     });
     setSelectedFile(null);

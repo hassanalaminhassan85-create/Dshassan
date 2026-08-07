@@ -357,7 +357,7 @@ export const RecruitmentCMS: React.FC<RecruitmentCMSProps> = ({
                             )}
                             <button
                               onClick={(e) => { e.stopPropagation(); onViewApplicant(app.id); }}
-                              title="View Full Profile"
+                              title="Application Preview"
                               className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-indigo-500 transition-all border border-transparent hover:border-slate-200"
                             >
                               <Eye size={16} />
@@ -475,7 +475,7 @@ export const RecruitmentCMS: React.FC<RecruitmentCMSProps> = ({
                             <Eye size={18} />
                           </div>
                           <div>
-                            <span className="text-xs font-bold text-slate-900 dark:text-white">View Full Profile</span>
+                            <span className="text-xs font-bold text-slate-900 dark:text-white">Application Preview</span>
                             <p className="text-[10px] text-slate-400 font-medium">Render letters & print agreements</p>
                           </div>
                         </div>

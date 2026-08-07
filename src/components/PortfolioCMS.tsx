@@ -8,11 +8,15 @@ import {
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { 
-  apiGetPortfolio, apiSavePortfolio, apiUpdatePortfolio, apiDeletePortfolio 
+  apiGetPortfolio, apiSavePortfolio, apiUpdatePortfolio, apiDeletePortfolio, apiSubscribeToPortfolio 
 } from '../lib/api';
 import { AnimatedHomeSectionImagePreview } from './AnimatedHomeSectionImagePreview';
 
-export const PortfolioCMS: React.FC = () => {
+interface PortfolioCMSProps {
+  onRefresh?: () => Promise<void>;
+}
+
+export const PortfolioCMS: React.FC<PortfolioCMSProps> = ({ onRefresh }) => {
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterCat, setFilterCat] = useState('All');
@@ -47,7 +51,12 @@ export const PortfolioCMS: React.FC = () => {
   const categories = ['Digital Marketing', 'Software Development', 'Compliance Services', 'AI Solutions'];
 
   useEffect(() => {
-    loadProjects();
+    setLoading(true);
+    const unsubscribe = apiSubscribeToPortfolio((data) => {
+      setProjects(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   const loadProjects = async () => {

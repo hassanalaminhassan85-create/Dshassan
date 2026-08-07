@@ -34,7 +34,7 @@ export const Logo: React.FC<LogoProps> = ({
       opacity: 1,
       y: 0,
       transition: {
-        type: "spring",
+        type: "spring" as any,
         stiffness: 200,
         damping: 14
       }
@@ -42,7 +42,7 @@ export const Logo: React.FC<LogoProps> = ({
     hover: {
       scale: 1.06,
       y: -3,
-      transition: { type: "spring", stiffness: 400, damping: 15 }
+      transition: { type: "spring" as any, stiffness: 400, damping: 15 }
     }
   };
 

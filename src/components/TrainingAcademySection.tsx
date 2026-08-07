@@ -13,7 +13,8 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid
 } from 'recharts';
-import { COURSES, Course, Lesson } from '../lib/data';
+import { apiSubscribeToCourses } from '../lib/api';
+import { Course, Lesson, COURSES } from '../lib/data';
 
 export interface Enrollment {
   id: string;
@@ -137,7 +138,19 @@ export const TrainingAcademySection: React.FC<{ onBackToPortal?: () => void }> =
   const [isHamburgerOpen, setIsHamburgerOpen] = useState<boolean>(false);
 
   // Base Data States
-  const [courses, setCourses] = useState<Course[]>(COURSES);
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  useEffect(() => {
+    const unsubscribe = apiSubscribeToCourses((data) => {
+      if (data.length > 0) {
+        setCourses(data as Course[]);
+      } else {
+        // Import original COURSES as fallback if firestore is empty
+        import('../lib/data').then(m => setCourses(m.COURSES));
+      }
+    });
+    return () => unsubscribe();
+  }, []);
 
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [tutors, setTutors] = useState<Tutor[]>([
@@ -330,14 +343,14 @@ export const TrainingAcademySection: React.FC<{ onBackToPortal?: () => void }> =
     localStorage.setItem('dstech_academy_standalone_session', JSON.stringify(demoUser));
     
     // Seed sample enrollment for student demo if empty
-    if (demoUser.role === 'student' && enrollments.length === 0) {
+    if (demoUser.role === 'student' && enrollments.length === 0 && courses.length > 0) {
       const sampleEnroll: Enrollment = {
         id: 'enroll_demo_1',
         user_id: demoUser.id,
-        course_id: COURSES[0].id,
+        course_id: courses[0].id,
         progress: 40,
         status: 'enrolled',
-        completed_lessons: JSON.stringify([COURSES[0].lessons[0]?.id || 'les_1']),
+        completed_lessons: JSON.stringify([courses[0].lessons[0]?.id || 'les_1']),
         assigned_tutor_id: 'tut_1',
         created_at: new Date().toISOString()
       };

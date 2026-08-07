@@ -60,11 +60,18 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
   }, [isDarkMode]);
   
   // Auth states: onboarding, login, loggedIn, forgot_password
-  const [authState, setAuthState] = useState<'welcome' | 'register' | 'login' | 'forgot_password' | 'dashboard'>('welcome');
+  const [authState, setAuthState] = useState<'login' | 'dashboard'>(() => {
+    try {
+      const saved = localStorage.getItem('currentUser');
+      return saved ? 'dashboard' : 'login';
+    } catch (e) {
+      return 'login';
+    }
+  });
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [fullName, setFullName] = useState<string>('');
-  const [selectedRole, setSelectedRole] = useState<'Applicant' | 'Recruiter' | 'Admin'>('Applicant');
+  const [selectedRole, setSelectedRole] = useState<'Applicant' | 'Recruiter' | 'Admin'>('Recruiter');
   const [targetRole, setTargetRole] = useState<string>('Full-Stack Engineer');
   const [initialSkills, setInitialSkills] = useState<string>('React, TypeScript, Node.js');
   
@@ -74,13 +81,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
   // Password visibility
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  // Secure 2-Phase Email OTP Signup States
-  const [isOtpPending, setIsOtpPending] = useState<boolean>(false);
-  const [otpInput, setOtpInput] = useState<string>('');
-  const [otpDebugMessage, setOtpDebugMessage] = useState<string | null>(null);
-
-  // Onboarding registration steps
-  const [registerStep, setRegisterStep] = useState<number>(1);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [authLoading, setAuthLoading] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -96,7 +96,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
     firebaseUid?: string;
     authProvider?: string;
     fcmToken?: string;
-  } | null>(null);
+    applicationId?: string;
+    providerData?: any[];
+  } | null>(() => {
+    try {
+      const saved = localStorage.getItem('currentUser');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    
+    return null;
+  });
 
   const [biometricLinked, setBiometricLinked] = useState<boolean>(false);
   const [isLinkingBiometric, setIsLinkingBiometric] = useState<boolean>(false);
@@ -132,7 +141,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }, [authState, registerStep]);
+  }, [authState]);
 
   // Sync user with D1 backend and handle account creation/linking
   const syncUserWithD1 = async (firebaseUser: any, userRole: string, isNewUser = false) => {
@@ -211,9 +220,11 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
         await syncUserWithD1(user, savedRole);
         setAuthLoading(false);
       } else {
-        // Clear local credentials
-        setCurrentUser(null);
-        localStorage.removeItem('currentUser');
+        // If we have a local mock user (e.g. from a form submission), don't clear it.
+        const hasMockUser = localStorage.getItem('currentUser');
+        if (!hasMockUser) {
+          setCurrentUser(null);
+        }
       }
     });
 
@@ -267,15 +278,12 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
   }, [isDarkMode]);
 
   // Demo user login preset for tester convenience
-  const handleLoadDemoUser = () => {
-    setEmail('candidate2026@dstech.com');
-    setPassword('vision2026');
-    setFullName('Ngozi Balogun');
-    setSelectedRole('Applicant');
-    setTargetRole('AI Integrations Engineer');
-    setInitialSkills('Python, React, PyTorch, Fast API');
-    setAuthState('register');
-    setRegisterStep(1);
+  const handleLoadRecruiterDemo = () => {
+    setEmail('recruiter@dstech.com');
+    setPassword('recruiter2026');
+    setFullName('Demo Recruiter');
+    setSelectedRole('Recruiter');
+    setAuthState('login');
     triggerHaptic(20);
   };
 
@@ -285,99 +293,6 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
     setBiometricPromptMode('register');
     setIsBiometricPromptOpen(true);
     triggerHaptic([30, 50, 30]);
-  };
-
-  // Submit standard Email/Password Registration through D1 Backend with Phase 1 Email OTP dispatch
-  const handleRegisterSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setAuthError(null);
-    setSuccessMsg(null);
-    triggerHaptic([10, 30, 10]);
-
-    try {
-      const res = await fetch('/api/auth/otp-generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email,
-          fullName,
-          password,
-          role: selectedRole
-        })
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to generate verification passcode.");
-      }
-
-      const data = await res.json();
-      if (data.success) {
-        setIsOtpPending(true);
-        if (data.otp) {
-          setOtpDebugMessage(data.otp);
-        } else {
-          setOtpDebugMessage(null);
-        }
-        setSuccessMsg("Phase 1 Complete: A secure 6-digit OTP has been sent to your email.");
-      }
-    } catch (err: any) {
-      console.error("Standard sign up failure:", err);
-      setAuthError(err.message || "Failed to create account. Email might be in use.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Phase 2 Email OTP Cryptographic Verification and Account Activation
-  const handleOtpVerifySubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setAuthError(null);
-    setSuccessMsg(null);
-    triggerHaptic([15, 30, 15]);
-
-    try {
-      const res = await fetch('/api/auth/otp-verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp: otpInput })
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.error || "Invalid OTP code. Cryptographic verification failed.");
-      }
-
-      const data = await res.json();
-      if (data.success) {
-        setSuccessMsg(data.message || "OTP Verified! Profile has been activated on the D1 ledger.");
-        
-        const activatedUser = {
-          id: data.user.userId,
-          email: data.user.email,
-          fullName: data.user.fullName,
-          role: data.user.role
-        };
-        setCurrentUser(activatedUser);
-        localStorage.setItem('currentUser', JSON.stringify(activatedUser));
-
-        // Enlist WebAuthn Biometric registration immediately following verification success
-        await handleFinalize(data.user.userId, data.user.email);
-
-        setIsOtpPending(false);
-        setOtpInput('');
-        setOtpDebugMessage(null);
-
-        // Fetch career roadmap
-        fetchAiRoadmap(data.user.fullName, targetRole, initialSkills);
-      }
-    } catch (err: any) {
-      setAuthError(err.message || "OTP validation failed.");
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   // Submit standard Email/Password Login through Secure D1 Backend and sync session
@@ -511,30 +426,43 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
     }
   };
 
-  // Trigger Forgot Password via Firebase Auth
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  const handleTrackApplication = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      setAuthError("Please enter your registered email address.");
+      setAuthError("Please enter the email address used in your application.");
       return;
     }
     setIsSubmitting(true);
     setAuthError(null);
     setSuccessMsg(null);
-    triggerHaptic(10);
+    triggerHaptic(15);
 
     try {
-      await sendPasswordResetEmail(auth, email);
-      setSuccessMsg("Password reset link dispatched! Please check your spam inbox.");
+      const res = await fetch('/api/auth/track-application', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+      
+      if (!res.ok) {
+        throw new Error(data.error || "Could not find your application.");
+      }
+      
+      const userObj = data.user;
+      
+      setCurrentUser(userObj);
+      localStorage.setItem('currentUser', JSON.stringify(userObj));
+      setSuccessMsg(`Application found! Welcome, ${userObj.fullName}. Accessing your dashboard...`);
+      
       setTimeout(() => {
-        setAuthState('login');
-      }, 3000);
+        setAuthState('dashboard');
+      }, 1000);
+      
     } catch (err: any) {
-      console.warn("Firebase sendPasswordResetEmail error, simulating sandbox reset:", err);
-      setSuccessMsg("Bypassed network limits. Password reset link successfully simulated for sandbox email.");
-      setTimeout(() => {
-        setAuthState('login');
-      }, 3000);
+      console.error("Tracking failed:", err);
+      setAuthError(err.message || "System error during application lookup.");
     } finally {
       setIsSubmitting(false);
     }
@@ -546,8 +474,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
       await signOut(auth);
       setCurrentUser(null);
       localStorage.removeItem('currentUser');
-      setAuthState('welcome');
-      setSuccessMsg("Session ended securely. Clearing digital keys...");
+      setAuthState('login');
+      setSuccessMsg("Session ended securely.");
     } catch (err: any) {
       console.error("Logout failed:", err);
     }
@@ -737,98 +665,22 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
           
           <div className="space-y-1">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black font-mono uppercase tracking-widest bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20">
-              <Sparkles size={11} className="animate-spin-slow" /> DS Tech Onboarding Node
+              <Sparkles size={11} className="animate-spin-slow" /> Recruiter Dashboard Access
             </div>
             <p className="text-xs text-slate-800 dark:text-slate-200 font-medium max-w-md mx-auto mt-2 leading-relaxed">
-              {authState === 'welcome' && "Begin your premium tech career recruitment and dynamic mapping onboarding."}
-              {authState === 'login' && "Sign in to access your customized growth roadmap and biometrics vault."}
-              {authState === 'register' && (isOtpPending ? "Verify your email security token" : "Create your candidate profile and establish career objectives.")}
-              {authState === 'forgot_password' && "Request a secure system reset token for account restoration."}
+              Enter your email address to access your dashboard and track application progress.
             </p>
           </div>
         </div>
 
-        {/* CONTROLS: TABS FOR SWITCHING LOGIN / REGISTER (ONLY shown during login or register state) */}
-        {(authState === 'login' || authState === 'register') && (
-          <div className="flex bg-white dark:bg-[#121c33] p-1 rounded-2xl border border-slate-200 dark:border-white/5 shadow-inner">
-            <button
-              type="button"
-              onClick={() => { setAuthState('login'); setAuthError(null); setSuccessMsg(null); triggerHaptic(10); }}
-              className={`flex-1 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
-                authState === 'login'
-                  ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-md'
-                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
-            >
-              Sign In
-            </button>
-            <button
-              type="button"
-              onClick={() => { setAuthState('register'); setAuthError(null); setSuccessMsg(null); triggerHaptic(10); }}
-              className={`flex-1 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
-                authState === 'register'
-                  ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-md'
-                  : 'text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
-            >
-              Create Account
-            </button>
-          </div>
-        )}
-
-        {/* FEEDBACK NOTIFICATION ALERTS */}
-        {authError && (
+      {/* Feedback alerts already handled above */}
+      {authError && (
           <div className="p-4 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-rose-600 dark:text-rose-400 text-xs font-semibold flex flex-col gap-2 shadow-sm text-left animate-shake">
             <div className="flex items-center gap-2.5">
               <AlertCircle size={15} className="shrink-0" />
-              <span className="font-black uppercase tracking-wider text-rose-700 dark:text-rose-300">Firebase Domain Error</span>
+              <span className="font-black uppercase tracking-wider text-rose-700 dark:text-rose-300">Authentication Error</span>
             </div>
-            {authError.includes('unauthorized-domain') ? (
-              <div className="mt-1 space-y-2.5 text-slate-700 dark:text-slate-300 font-normal leading-relaxed text-[11px] sm:text-xs">
-                <p className="font-semibold text-rose-600 dark:text-rose-400">
-                  Your custom domain <code className="bg-rose-500/10 px-1 py-0.5 rounded font-bold text-rose-500">alihsan.online</code> is not authorized in the currently active Firebase Project <code className="bg-rose-500/10 px-1 py-0.5 rounded font-bold text-rose-500 font-mono">{auth.app.options.projectId}</code> yet.
-                </p>
-                
-                <p className="border-l-2 border-amber-500 pl-2 text-[10px] text-amber-600 dark:text-amber-400 font-medium">
-                  <strong>Important:</strong> You whitelisted your domain on your own project <code className="font-bold">dstech-154d5</code>, but this app is currently loading the default project <code className="font-bold">{auth.app.options.projectId}</code>. You have two choices below to fix this:
-                </p>
-
-                <div className="space-y-3 bg-white dark:bg-slate-900/40 p-3 rounded-xl border border-slate-200 dark:border-white/10 mt-2">
-                  <p className="font-bold text-[11px] uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Option A: Authorize your current active project (Recommended)</p>
-                  <ol className="list-decimal list-inside space-y-1.5 pl-1 font-medium text-[10.5px]">
-                    <li>
-                      Open the <a href="https://console.firebase.google.com/" target="_blank" rel="noreferrer" className="text-indigo-600 dark:text-indigo-400 underline font-bold inline-flex items-center gap-0.5">Firebase Console <Sparkles size={10} className="inline" /></a>
-                    </li>
-                    <li>
-                      Select the project <strong className="text-indigo-600 dark:text-indigo-400">{auth.app.options.projectId}</strong> from your dashboard list.
-                    </li>
-                    <li>
-                      Go to <strong className="text-slate-900 dark:text-white">Authentication</strong> &rarr; <strong className="text-slate-900 dark:text-white">Settings</strong> &rarr; <strong className="text-slate-900 dark:text-white">Authorized domains</strong>
-                    </li>
-                    <li>
-                      Click <strong className="text-slate-900 dark:text-white">"Add domain"</strong> and type in: <code className="bg-slate-200 dark:bg-white/10 px-1.5 py-0.5 rounded font-mono font-bold text-slate-800 dark:text-slate-100">alihsan.online</code> and click <strong className="text-slate-900 dark:text-white">Save</strong>.
-                    </li>
-                  </ol>
-                </div>
-
-                <div className="space-y-2 bg-white dark:bg-slate-900/40 p-3 rounded-xl border border-slate-200 dark:border-white/10">
-                  <p className="font-bold text-[11px] uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-sans">Option B: Switch app to your custom "dstech-154d5" project</p>
-                  <p className="text-[10.5px] font-normal leading-normal">
-                    If you prefer to use your own Firebase project, you can easily connect it by adding your Firebase API Keys inside the <strong className="text-slate-900 dark:text-white">AI Studio Settings {"→"} Secrets Panel</strong> as the following environment variables:
-                  </p>
-                  <ul className="list-disc list-inside space-y-1 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-400 pl-1">
-                    <li>VITE_FIREBASE_API_KEY</li>
-                    <li>VITE_FIREBASE_AUTH_DOMAIN</li>
-                    <li>VITE_FIREBASE_PROJECT_ID</li>
-                    <li>VITE_FIREBASE_STORAGE_BUCKET</li>
-                    <li>VITE_FIREBASE_MESSAGING_SENDER_ID</li>
-                    <li>VITE_FIREBASE_APP_ID</li>
-                  </ul>
-                </div>
-              </div>
-            ) : (
-              <span>{authError}</span>
-            )}
+            <span>{authError}</span>
           </div>
         )}
 
@@ -841,62 +693,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
 
         <AnimatePresence mode="wait">
           
-          {/* STATE 1: WELCOME SCREEN */}
-          {authState === 'welcome' && (
-            <motion.div
-              key="welcome-screen"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              className="space-y-6 flex flex-col items-center text-center"
-            >
-              {/* Tester Convenience Section */}
-              <div className="w-full bg-white dark:bg-[#11192d] border border-slate-200/60 dark:border-white/5 rounded-2xl p-5 space-y-3.5 shadow-sm">
-                <h3 className="text-xs font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center justify-center gap-1.5 font-mono">
-                  <Zap size={13} className="animate-pulse" /> Sandbox Convenience Portal
-                </h3>
-                <p className="text-xs text-slate-800 dark:text-slate-200 leading-relaxed max-w-sm mx-auto font-medium">
-                  Instantly load high-fidelity candidate presets (Ngozi Balogun, AI Integrations Engineer) to preview portal features immediately.
-                </p>
-                <button
-                  type="button"
-                  onClick={handleLoadDemoUser}
-                  className="w-full py-2.5 bg-gradient-to-r from-orange-600 to-indigo-600 hover:shadow-lg hover:shadow-indigo-500/10 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  🚀 Auto-Load Presets & Proceed
-                </button>
-              </div>
-
-              {/* Navigation Action Buttons */}
-              <div className="w-full flex flex-col sm:flex-row gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={() => { setAuthState('register'); triggerHaptic(10); }}
-                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-md hover:shadow-indigo-500/15 transition-all flex items-center justify-center gap-2 cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
-                >
-                  <UserPlus size={14} /> Create Account
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setAuthState('login'); triggerHaptic(10); }}
-                  className="flex-1 py-3 bg-white hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-slate-200 font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Lock size={14} className="text-orange-500 dark:text-orange-400" /> Sign In
-                </button>
-              </div>
-
-              {/* Simple Back button */}
-              <button
-                type="button"
-                onClick={onBackToPortal || (() => { window.location.href = '/'; })}
-                className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5 mt-2 cursor-pointer"
-              >
-                <ArrowLeft size={11} /> Return to Home Portal
-              </button>
-            </motion.div>
-          )}
-
-          {/* STATE 2: LOGIN FORM */}
+          {/* STATE: TRACK APPLICATION FORM */}
           {authState === 'login' && (
             <motion.div
               key="login-screen"
@@ -905,9 +702,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
               exit={{ opacity: 0, y: -15 }}
               className="space-y-5"
             >
-              <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
+              <form onSubmit={handleTrackApplication} className="space-y-4 text-left">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Registered Email</label>
+                  <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Recruiter / Candidate Email</label>
                   <div className="relative">
                     <Mail className="absolute left-3.5 top-3.5 text-slate-500 dark:text-indigo-400" size={15} />
                     <input
@@ -915,349 +712,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                       required
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      placeholder="candidate@dstech.com"
-                      className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Password</label>
-                    <button 
-                      type="button" 
-                      onClick={() => { setAuthState('forgot_password'); triggerHaptic(10); }}
-                      className="text-xs font-black text-indigo-600 dark:text-indigo-400 hover:underline"
-                    >
-                      Forgot Password?
-                    </button>
-                  </div>
-                  <div className="relative">
-                    <Key className="absolute left-3.5 top-3.5 text-slate-500 dark:text-indigo-400" size={15} />
-                    <input
-                      type={showPassword ? "text" : "password"}
-                      required
-                      value={password}
-                      onChange={e => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-11 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-3.5 text-slate-500 hover:text-slate-800 dark:hover:text-white"
-                    >
-                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-md hover:scale-[1.01]"
-                >
-                  {isSubmitting ? <RefreshCw size={14} className="animate-spin" /> : "Sign In"}
-                </button>
-              </form>
-
-              {/* SSO Divider */}
-              <div className="relative flex py-1 items-center">
-                <div className="flex-grow border-t border-slate-300 dark:border-white/10" />
-                <span className="flex-shrink mx-4 text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest font-mono">Or Continue With</span>
-                <div className="flex-grow border-t border-slate-300 dark:border-white/10" />
-              </div>
-
-              {/* SSO Action Options */}
-              <div className="space-y-3">
-                {/* Unified, gorgeous, high-contrast Continue with Google button */}
-                <button
-                  type="button"
-                  onClick={handleGoogleSignIn}
-                  className="w-full py-3 bg-white dark:bg-[#080d1a] hover:bg-white dark:hover:bg-[#11192e] border border-slate-400 dark:border-slate-800 text-slate-900 dark:text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm hover:scale-[1.01]"
-                >
-                  <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.68 14.94 1 12 1 7.24 1 3.23 3.73 1.34 7.68l3.75 2.91C6.01 7.2 8.78 5.04 12 5.04z" />
-                    <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.47h6.44c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.39-4.88 3.39-8.5z" />
-                    <path fill="#FBBC05" d="M5.09 10.59c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29L1.34 7.68C.49 9.38 0 11.28 0 13.3s.49 3.92 1.34 5.62l3.75-2.91c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29z" />
-                    <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.66-2.84c-1.01.68-2.31 1.09-4.3 1.09-3.22 0-5.99-2.16-6.91-5.55l-3.75 2.91C3.23 20.27 7.24 23 12 23z" />
-                  </svg>
-                  <span className="text-slate-900 dark:text-white font-extrabold">Continue with Google</span>
-                </button>
-
-                {/* Biometrics login block */}
-                <button
-                  type="button"
-                  onClick={handleBiometricLogin}
-                  className="w-full py-3 bg-gradient-to-r from-orange-600 to-orange-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer hover:shadow-lg hover:shadow-orange-500/10 hover:scale-[1.01]"
-                >
-                  <Fingerprint size={16} /> Scan FaceID / Fingerprint
-                </button>
-              </div>
-
-              {/* Simple Back to Welcome link */}
-              <div className="pt-2 text-center">
-                <button
-                  type="button"
-                  onClick={() => { setAuthState('welcome'); triggerHaptic(10); }}
-                  className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors cursor-pointer"
-                >
-                  Back to Hub Home
-                </button>
-              </div>
-            </motion.div>
-          )}
-
-          {/* STATE 3: CREATE ACCOUNT (REGISTER) */}
-          {authState === 'register' && (
-            <motion.div
-              key="register-screen"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              className="space-y-5"
-            >
-              {isOtpPending ? (
-                /* PHASE 2: OTP CRYPTOGRAPHIC ACTIVATION */
-                <form onSubmit={handleOtpVerifySubmit} className="space-y-4 text-left">
-                  <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl space-y-3.5">
-                    <div className="space-y-1.5">
-                      <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block mb-1">
-                        Enter 6-Digit OTP Verification Code
-                      </label>
-                      <div className="relative">
-                        <Lock className="absolute left-3.5 top-3.5 text-slate-500 dark:text-indigo-400" size={15} />
-                        <input
-                          type="text"
-                          required
-                          maxLength={6}
-                          value={otpInput}
-                          onChange={e => setOtpInput(e.target.value.replace(/\D/g, ''))}
-                          placeholder="e.g. 123456"
-                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-mono font-black tracking-widest text-center focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                        />
-                      </div>
-                      <p className="text-xs text-slate-800 dark:text-slate-300 font-medium leading-relaxed">
-                        A dynamic security verification code has been generated and dispatched to your email address. Please insert it above.
-                      </p>
-                    </div>
-
-                    {otpDebugMessage && (
-                      <div className="p-3.5 bg-indigo-500/10 border border-indigo-500/20 rounded-xl space-y-2">
-                        <div className="flex items-center gap-1.5 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-wider font-mono">
-                          <Sparkles size={12} className="animate-pulse" /> Preview Auto-Fill Code
-                        </div>
-                        <p className="text-xs text-slate-700 dark:text-slate-300 leading-normal font-medium">
-                          For sandbox testing purposes, you may use this verification code immediately:
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => { setOtpInput(otpDebugMessage); triggerHaptic(10); }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-mono font-bold rounded-lg transition-all cursor-pointer"
-                        >
-                          Code: {otpDebugMessage} <span className="opacity-75 font-sans">(Click to autofill)</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => { setIsOtpPending(false); setAuthError(null); setSuccessMsg(null); triggerHaptic(10); }}
-                      className="flex-1 py-3 bg-white hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-300 dark:border-white/10 text-slate-900 dark:text-slate-200 font-black text-xs uppercase tracking-widest rounded-xl transition-all cursor-pointer text-center"
-                    >
-                      Back
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={isSubmitting || otpInput.length < 6}
-                      className="flex-[2] py-3 bg-gradient-to-r from-orange-600 to-indigo-600 text-white font-black text-xs uppercase tracking-widest rounded-xl hover:shadow-xl hover:shadow-indigo-500/15 transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
-                    >
-                      {isSubmitting ? (
-                        <RefreshCw size={14} className="animate-spin" />
-                      ) : (
-                        <>
-                          <ShieldCheck size={14} /> Verify & Activate Account
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                /* PHASE 1: DETAILS INTAKE FORM */
-                <form onSubmit={handleRegisterSubmit} className="space-y-4 text-left">
-                  {/* Two-column layout in desktop for details, neat and simple */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
-                    {/* Column 1: Core credentials */}
-                    <div className="space-y-3">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Full Legal Name</label>
-                        <div className="relative">
-                          <User className="absolute left-3.5 top-3.5 text-slate-500 dark:text-indigo-400" size={15} />
-                          <input
-                            type="text"
-                            required
-                            value={fullName}
-                            onChange={e => setFullName(e.target.value)}
-                            placeholder="Ngozi Balogun"
-                            className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Email Address</label>
-                        <div className="relative">
-                          <Mail className="absolute left-3.5 top-3.5 text-slate-500 dark:text-indigo-400" size={15} />
-                          <input
-                            type="email"
-                            required
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                            placeholder="candidate@dstech.com"
-                            className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                          />
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Password</label>
-                        <div className="relative">
-                          <Key className="absolute left-3.5 top-3.5 text-slate-500 dark:text-indigo-400" size={15} />
-                          <input
-                            type={showPassword ? "text" : "password"}
-                            required
-                            value={password}
-                            onChange={e => setPassword(e.target.value)}
-                            placeholder="••••••••"
-                            className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-11 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-3.5 top-3.5 text-slate-500 hover:text-slate-800 dark:hover:text-white"
-                          >
-                            {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Column 2: Profile mapping context */}
-                    <div className="space-y-3">
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Account Type</label>
-                        <select
-                          value={selectedRole}
-                          onChange={e => setSelectedRole(e.target.value as any)}
-                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
-                        >
-                          <option value="Applicant" className="text-slate-900 dark:text-slate-100 font-bold bg-white dark:bg-[#0c1220]">Applicant / Candidate</option>
-                          <option value="Recruiter" className="text-slate-900 dark:text-slate-100 font-bold bg-white dark:bg-[#0c1220]">Recruiter / Employer</option>
-                          <option value="Admin" className="text-slate-900 dark:text-slate-100 font-bold bg-white dark:bg-[#0c1220]">Administrator</option>
-                        </select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Target Role</label>
-                        <select
-                          value={targetRole}
-                          onChange={e => setTargetRole(e.target.value)}
-                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 px-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 cursor-pointer"
-                        >
-                          <option value="AI Integrations Engineer" className="text-slate-900 dark:text-slate-100 font-bold bg-white dark:bg-[#0c1220]">AI Integrations Engineer</option>
-                          <option value="Full-Stack Developer" className="text-slate-900 dark:text-slate-100 font-bold bg-white dark:bg-[#0c1220]">Full-Stack Developer</option>
-                          <option value="Cloud Architect" className="text-slate-900 dark:text-slate-100 font-bold bg-white dark:bg-[#0c1220]">Cloud Infrastructure Architect</option>
-                          <option value="WebAuthn Cryptographer" className="text-slate-900 dark:text-slate-100 font-bold bg-white dark:bg-[#0c1220]">Security & Biometrics Specialist</option>
-                        </select>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Your Core Skills</label>
-                        <textarea
-                          value={initialSkills}
-                          onChange={e => setInitialSkills(e.target.value)}
-                          placeholder="React, TypeScript, Node.js..."
-                          rows={2}
-                          className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2 px-3 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 resize-none placeholder:text-slate-500 dark:placeholder:text-slate-400"
-                        />
-                      </div>
-                    </div>
-
-                  </div>
-
-                  {/* Biometric Enablement callout */}
-                  <div className="p-3.5 bg-white dark:bg-[#11192d] border border-slate-300 dark:border-white/5 rounded-2xl flex items-start gap-3 shadow-sm">
-                    <div className="bg-indigo-500/10 p-2 rounded-xl border border-indigo-500/20 text-indigo-500 dark:text-indigo-400 shrink-0">
-                      <Fingerprint size={18} />
-                    </div>
-                    <div className="space-y-0.5 flex-1 text-left">
-                      <div className="flex items-center justify-between">
-                        <h4 className="font-bold text-slate-900 dark:text-white text-xs">WebAuthn Key Registry</h4>
-                        <span className="text-[9px] font-black font-mono bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded uppercase tracking-wider">Active</span>
-                      </div>
-                      <p className="text-[11px] text-slate-700 dark:text-slate-300 leading-normal font-medium">
-                        FIDO2 hardware biometric key registration is auto-enrolled to protect your professional ledger profiles.
-                      </p>
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-md hover:scale-[1.01]"
-                  >
-                    {isSubmitting ? <RefreshCw size={14} className="animate-spin" /> : "Create Account"}
-                  </button>
-
-                  {/* Google register option */}
-                  <div className="relative flex py-1 items-center">
-                    <div className="flex-grow border-t border-slate-300 dark:border-white/10" />
-                    <span className="flex-shrink mx-4 text-[10px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-widest font-mono">Or Register With</span>
-                    <div className="flex-grow border-t border-slate-300 dark:border-white/10" />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleGoogleSignIn}
-                    className="w-full py-3 bg-white dark:bg-[#080d1a] hover:bg-white dark:hover:bg-[#11192e] border border-slate-400 dark:border-slate-800 text-slate-900 dark:text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2.5 cursor-pointer shadow-sm hover:scale-[1.01]"
-                  >
-                    <svg className="h-4 w-4 shrink-0" viewBox="0 0 24 24">
-                      <path fill="#EA4335" d="M12 5.04c1.62 0 3.08.56 4.22 1.64l3.15-3.15C17.45 1.68 14.94 1 12 1 7.24 1 3.23 3.73 1.34 7.68l3.75 2.91C6.01 7.2 8.78 5.04 12 5.04z" />
-                      <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.47h6.44c-.28 1.47-1.11 2.71-2.36 3.55l3.66 2.84c2.14-1.97 3.39-4.88 3.39-8.5z" />
-                      <path fill="#FBBC05" d="M5.09 10.59c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29L1.34 7.68C.49 9.38 0 11.28 0 13.3s.49 3.92 1.34 5.62l3.75-2.91c-.24-.72-.38-1.49-.38-2.29s.14-1.57.38-2.29z" />
-                      <path fill="#34A853" d="M12 23c3.24 0 5.97-1.07 7.96-2.91l-3.66-2.84c-1.01.68-2.31 1.09-4.3 1.09-3.22 0-5.99-2.16-6.91-5.55l-3.75 2.91C3.23 20.27 7.24 23 12 23z" />
-                    </svg>
-                    <span className="text-slate-900 dark:text-white font-extrabold">Continue with Google</span>
-                  </button>
-                </form>
-              )}
-            </motion.div>
-          )}
-
-          {/* STATE 4: PASSWORD RESET */}
-          {authState === 'forgot_password' && (
-            <motion.div
-              key="forgot-password"
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -15 }}
-              className="space-y-5 text-left"
-            >
-              <form onSubmit={handleForgotPassword} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-black uppercase tracking-wide text-slate-900 dark:text-slate-200 block">Registered Email</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3.5 top-3.5 text-slate-500 dark:text-indigo-400" size={15} />
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={e => setEmail(e.target.value)}
-                      placeholder="candidate@dstech.com"
-                      className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-2.5 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
+                      placeholder="e.g. recruiter@dstech.com"
+                      className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-3 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                     />
                   </div>
                 </div>
@@ -1265,34 +721,40 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50 shadow-md hover:scale-[1.01]"
+                  className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-lg hover:shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer mt-2"
                 >
-                  {isSubmitting ? <RefreshCw size={14} className="animate-spin" /> : "Send Reset Link"}
+                  {isSubmitting ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" /> Authorizing...
+                    </>
+                  ) : (
+                    <>
+                      <Compass size={14} /> Access My Dashboard
+                    </>
+                  )}
                 </button>
               </form>
 
-              <div className="text-center pt-2">
-                <button
-                  type="button"
-                  onClick={() => { setAuthState('login'); triggerHaptic(10); }}
-                  className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
-                >
-                  Back to login
-                </button>
-              </div>
+              {/* Simple Back button */}
+              <button
+                type="button"
+                onClick={onBackToPortal || (() => { window.location.href = '/'; })}
+                className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors flex items-center gap-1.5 mx-auto mt-2 cursor-pointer"
+              >
+                <ArrowLeft size={11} /> Return to Home Portal
+              </button>
             </motion.div>
           )}
-
         </AnimatePresence>
       </div>
 
-    <PhoneBiometricPrompt
-      isOpen={isBiometricPromptOpen}
-      onClose={() => setIsBiometricPromptOpen(false)}
-      onSuccess={handleBiometricSuccess}
-      mode={biometricPromptMode}
-      email={email || "candidate2026@dstech.com"}
-    />
-  </div>
-);
+      <PhoneBiometricPrompt
+        isOpen={isBiometricPromptOpen}
+        onClose={() => setIsBiometricPromptOpen(false)}
+        onSuccess={handleBiometricSuccess}
+        mode={biometricPromptMode}
+        email={email || "candidate2026@dstech.com"}
+      />
+    </div>
+  );
 };

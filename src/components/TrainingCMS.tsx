@@ -7,11 +7,15 @@ import {
   List, ShieldCheck, Zap
 } from 'lucide-react';
 import { 
-  apiGetCourses, apiSaveCourse, apiUpdateCourse, apiDeleteCourse 
+  apiGetCourses, apiSaveCourse, apiUpdateCourse, apiDeleteCourse, apiSubscribeToCourses 
 } from '../lib/api';
 import { generateDynamicSvgUrl } from '../lib/mediaUtils';
 
-export const TrainingCMS: React.FC = () => {
+interface TrainingCMSProps {
+  onRefresh?: () => Promise<void>;
+}
+
+export const TrainingCMS: React.FC<TrainingCMSProps> = ({ onRefresh }) => {
   const [courses, setCourses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterCat, setFilterCat] = useState('all');
@@ -42,7 +46,12 @@ export const TrainingCMS: React.FC = () => {
   const levels = ['Beginner', 'Intermediate', 'Advanced', 'Professional'];
 
   useEffect(() => {
-    loadCourses();
+    setLoading(true);
+    const unsubscribe = apiSubscribeToCourses((data) => {
+      setCourses(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
   }, []);
 
   const loadCourses = async () => {

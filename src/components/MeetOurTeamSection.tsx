@@ -7,7 +7,7 @@ import {
   Briefcase, GraduationCap, ChevronDown, Sun, Moon, ArrowLeft
 } from 'lucide-react';
 import { Department, StaffMember } from '../types';
-import { apiGetDepartments, apiGetStaff, resolveStaffImageUrl } from '../lib/api';
+import { apiGetDepartments, apiGetStaff, resolveStaffImageUrl, apiSubscribeToStaff, apiSubscribeToDepartments } from '../lib/api';
 import { Logo } from './Logo';
 
 export const MeetOurTeamSection: React.FC<{ language?: string, onBackToPortal?: () => void }> = ({ language = 'en', onBackToPortal }) => {
@@ -39,25 +39,19 @@ export const MeetOurTeamSection: React.FC<{ language?: string, onBackToPortal?: 
   const [currentTab, setCurrentTab] = useState<'grid' | 'org'>('grid');
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        setLoading(true);
-        const [deptsData, staffData] = await Promise.all([
-          apiGetDepartments(false),
-          apiGetStaff(false)
-        ]);
-        
-        setDepartments(deptsData && deptsData.length > 0 ? deptsData : []);
-        setStaff(staffData && staffData.length > 0 ? staffData : []);
-      } catch (err) {
-        console.warn('Could not load live staff/departments.', err);
-        setDepartments([]);
-        setStaff([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadData();
+    setLoading(true);
+    const unsubStaff = apiSubscribeToStaff((data) => {
+      setStaff(data as StaffMember[]);
+      setLoading(false);
+    });
+    const unsubDepts = apiSubscribeToDepartments((data) => {
+      setDepartments(data as Department[]);
+    });
+    
+    return () => {
+      unsubStaff();
+      unsubDepts();
+    };
   }, []);
 
   const filteredStaff = staff.filter(m => {

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowRight, X, Activity, ArrowLeft, Sun, Moon
 } from 'lucide-react';
-import { apiGetPortfolio, resolveImageUrl } from '../lib/api';
+import { apiGetPortfolio, resolveImageUrl, apiSubscribeToPortfolio } from '../lib/api';
 import { Logo } from './Logo';
 
 export const PortfolioSection: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => {
@@ -35,35 +35,17 @@ export const PortfolioSection: React.FC<{ onBackToMain?: () => void }> = ({ onBa
   });
 
   useEffect(() => {
-    const fetchD1Portfolio = async () => {
-      try {
-        const data = await apiGetPortfolio();
-        if (data && data.length > 0) {
-          setProjects(data);
-          localStorage.setItem('admin_portfolio_projects', JSON.stringify(data));
-        } else {
-          setProjects([]);
-          localStorage.setItem('admin_portfolio_projects', JSON.stringify([]));
-        }
-      } catch (err) {
-        console.warn('Portfolio database unreachable.', err);
+    const unsubscribe = apiSubscribeToPortfolio((data) => {
+      if (data && data.length > 0) {
+        setProjects(data);
+        localStorage.setItem('admin_portfolio_projects', JSON.stringify(data));
+      } else {
+        setProjects([]);
+        localStorage.setItem('admin_portfolio_projects', JSON.stringify([]));
       }
-    };
+    });
 
-    fetchD1Portfolio();
-
-    const handleStorage = () => {
-      try {
-        const saved = localStorage.getItem('admin_portfolio_projects');
-        if (saved) {
-          setProjects(JSON.parse(saved));
-        } else {
-          setProjects([]);
-        }
-      } catch (e) {}
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
+    return () => unsubscribe();
   }, []);
 
   const categories = ['all', ...Array.from(new Set(projects.map(p => p.category)))];
