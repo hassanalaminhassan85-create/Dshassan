@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FileText, Briefcase, Calendar as CalendarIcon, Award, User, 
   LifeBuoy, Settings, BrainCircuit, CheckCircle2, Clock, 
   ChevronRight, MapPin, Activity, Search, Edit3, Trash2, 
-  Download, ExternalLink, Plus, MessageSquare, Zap, Shield, Sparkles, LayoutGrid
+  Download, ExternalLink, Plus, MessageSquare, Zap, Shield, Sparkles, LayoutGrid,
+  Lock, AlertTriangle, FileCheck, RefreshCw, XCircle, Eye
 } from 'lucide-react';
+import { JobApplication } from '../types';
+import { apiGetApplications } from '../lib/storage';
 
 interface TabProps {
   isDarkMode: boolean;
@@ -381,3 +384,197 @@ export const SettingsTab: React.FC<TabProps> = ({ isDarkMode, cardBgClass }) => 
     </div>
   </div>
 );
+
+interface ApplicationsTabProps extends TabProps {
+  currentUser?: { email?: string; fullName?: string };
+}
+
+export const ApplicationsTab: React.FC<ApplicationsTabProps> = ({ isDarkMode, cardBgClass, currentUser }) => {
+  const [apps, setApps] = useState<JobApplication[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const fetchApps = async () => {
+    setLoading(true);
+    try {
+      const data = await apiGetApplications();
+      if (currentUser?.email) {
+        const userEmail = currentUser.email.toLowerCase();
+        const filtered = data.filter(a => 
+          a.personalInfo?.emailAddress?.toLowerCase() === userEmail ||
+          a.applicantEmail?.toLowerCase() === userEmail ||
+          a.recruiterEmail?.toLowerCase() === userEmail
+        );
+        setApps(filtered.length > 0 ? filtered : data);
+      } else {
+        setApps(data);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchApps();
+  }, [currentUser]);
+
+  return (
+    <div className="space-y-6 text-left">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-xl md:text-2xl font-bold">My Career Applications</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Track your application progress and access unlocked Appointment Letters.</p>
+        </div>
+        <button 
+          onClick={fetchApps}
+          className="px-4 py-2 bg-slate-200 dark:bg-white/10 hover:bg-slate-300 dark:hover:bg-white/20 text-xs font-bold rounded-xl flex items-center gap-2 transition-colors"
+        >
+          <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+          Refresh Status
+        </button>
+      </div>
+
+      {loading ? (
+        <div className={`p-12 text-center rounded-3xl ${cardBgClass}`}>
+          <div className="w-8 h-8 border-4 border-orange-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+          <p className="text-xs text-slate-400">Syncing career application statuses from DS Tech database...</p>
+        </div>
+      ) : apps.length === 0 ? (
+        <div className={`p-10 text-center rounded-3xl ${cardBgClass} space-y-4`}>
+          <div className="w-12 h-12 bg-orange-500/10 text-orange-500 rounded-2xl flex items-center justify-center mx-auto">
+            <FileCheck size={24} />
+          </div>
+          <h3 className="font-bold text-base">No Applications Found</h3>
+          <p className="text-xs text-slate-400 max-w-md mx-auto">
+            You haven't submitted a career form yet. Fill out the 11-step career application form to start your onboarding.
+          </p>
+          <a
+            href="/careers"
+            onClick={(e) => {
+              e.preventDefault();
+              window.history.pushState(null, '', '/careers');
+              window.dispatchEvent(new Event('popstate'));
+            }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl transition-colors"
+          >
+            Apply for Career Position
+          </a>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {apps.map((app) => {
+            const isApproved = app.status === 'approved';
+            const isRejected = app.status === 'rejected';
+
+            return (
+              <div 
+                key={app.id} 
+                className={`p-6 rounded-3xl ${cardBgClass} border border-slate-200 dark:border-white/10 space-y-4 hover:border-orange-500/40 transition-all`}
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-white/5 pb-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">
+                        ID: {app.id}
+                      </span>
+                      <span className="text-xs text-slate-400">•</span>
+                      <span className="text-xs text-slate-500 font-medium">
+                        Submitted: {app.submittedAt ? new Date(app.submittedAt).toLocaleDateString() : (app.declarationDate || 'Recent')}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-black mt-1">
+                      {app.positionSkills?.majorRole || 'DS Tech Position'}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Applicant: {app.personalInfo?.fullName || 'Candidate'} ({app.personalInfo?.emailAddress})
+                    </p>
+                  </div>
+
+                  {/* Status Badge */}
+                  <div>
+                    {isApproved ? (
+                      <span className="px-3.5 py-1.5 bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+                        <CheckCircle2 size={14} />
+                        Approved — Offer Ready
+                      </span>
+                    ) : isRejected ? (
+                      <span className="px-3.5 py-1.5 bg-rose-500/10 text-rose-500 border border-rose-500/30 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+                        <XCircle size={14} />
+                        Application Rejected
+                      </span>
+                    ) : (
+                      <span className="px-3.5 py-1.5 bg-amber-500/10 text-amber-500 border border-amber-500/30 rounded-full text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
+                        <Clock size={14} className="animate-spin" style={{ animationDuration: '6s' }} />
+                        Pending Admin Approval
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Status Explanation Card */}
+                <div className={`p-4 rounded-2xl text-xs ${
+                  isApproved 
+                    ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/20' 
+                    : isRejected 
+                    ? 'bg-rose-500/10 text-rose-300 border border-rose-500/20' 
+                    : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
+                }`}>
+                  {isApproved ? (
+                    <div className="flex items-start gap-2.5">
+                      <Sparkles size={18} className="shrink-0 text-emerald-400 mt-0.5" />
+                      <div>
+                        <strong className="block text-emerald-400 font-bold">Appointment Letter Unlocked!</strong>
+                        Your application was officially approved by executive management. Click below to input your salary bank details and sign your appointment letter.
+                      </div>
+                    </div>
+                  ) : isRejected ? (
+                    <div className="flex items-start gap-2.5">
+                      <XCircle size={18} className="shrink-0 text-rose-400 mt-0.5" />
+                      <div>
+                        <strong className="block text-rose-400 font-bold">Application Under Further Review</strong>
+                        {app.adminNotes ? `Admin Notes: ${app.adminNotes}` : 'Your application was evaluated by executive management and not selected for appointment at this time.'}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2.5">
+                      <Lock size={18} className="shrink-0 text-amber-400 mt-0.5" />
+                      <div>
+                        <strong className="block text-amber-400 font-bold">Appointment Letter Locked — Awaiting Admin Sign-off</strong>
+                        Your 11-step application is under executive evaluation. As soon as an administrator sets your status to approved, your appointment letter will unlock automatically.
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bottom Action buttons */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                  <span className="text-[11px] font-mono text-slate-400">
+                    {app.appointmentAccepted ? '✍️ Appointment Signed & Accepted' : isApproved ? '🔔 Action Required: Sign Appointment Letter' : '🔒 Appointment Letter Gated'}
+                  </span>
+
+                  <a
+                    href={`/application/${app.id}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      window.history.pushState(null, '', `/application/${app.id}`);
+                      window.dispatchEvent(new Event('popstate'));
+                    }}
+                    className={`px-5 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 transition-all ${
+                      isApproved 
+                        ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20' 
+                        : 'bg-slate-900 hover:bg-slate-800 text-white border border-slate-700'
+                    }`}
+                  >
+                    <Eye size={15} />
+                    {isApproved ? 'Open & Sign Appointment Offer' : 'View Application Portal'}
+                  </a>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};

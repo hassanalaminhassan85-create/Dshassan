@@ -1120,6 +1120,11 @@ export async function onRequest(context: { request: Request; env: any; params: a
     'Access-Control-Allow-Headers': 'Content-Type, X-User-ID, Authorization',
   });
 
+  // Immediate handling for CORS preflight options
+  if (method === 'OPTIONS') {
+    return new Response(null, { status: 204, headers });
+  }
+
   if (path === '/api/debug/notifications') {
     let dbStatus = "no DB";
     let tables: any[] = [];

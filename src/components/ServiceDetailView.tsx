@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   ArrowLeft, MessageSquare, CheckCircle2, ShieldCheck, 
-  Sparkles, Calendar, Award, Phone, Mail, Clock
+  Sparkles, Calendar, Award, Phone, Mail, Clock, DollarSign, FileText
 } from 'lucide-react';
 import { ServiceItem } from '../lib/data';
 import { resolveImageUrl } from '../lib/api';
@@ -14,11 +14,19 @@ interface ServiceDetailViewProps {
   service: ServiceItem;
   language: LanguageCode;
   onBack: () => void;
+  getServiceImage?: (svc: ServiceItem) => string;
+  getCategoryIcon?: (category: string) => React.ReactNode;
 }
 
 export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, language, onBack }) => {
-  const [name, setName] = useState('');
+  const agencyPhone = '2349023489111';
+
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [budget, setBudget] = useState('₦300,000 - ₦1,000,000');
+  const [customBudget, setCustomBudget] = useState('');
+  const [timeline, setTimeline] = useState('Immediate (1-2 Weeks)');
   const [notes, setNotes] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
@@ -74,25 +82,59 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, l
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSendToWhatsApp = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email) return;
+    if (!fullName || !phone) {
+      alert('Please fill in your name and phone number.');
+      return;
+    }
+
+    const finalBudget = budget === 'Custom Amount' ? (customBudget ? `Custom (₦${customBudget})` : 'Custom Budget') : budget;
+
+    const message = `*DS TECH AGENCY - SERVICE INQUIRY & BRIEF*
+
+*Service Name:* ${service.name}
+*Price Range:* ${service.price}
+*Category:* ${service.category}
+
+*Client Name:* ${fullName}
+*Phone/WhatsApp:* ${phone}
+${email ? `*Email:* ${email}\n` : ''}*Target Budget:* ${finalBudget}
+*Timeline:* ${timeline}
+
+*Custom Description & Requirements:*
+${notes || 'Client requested consultation for this service.'}
+
+----------------------------------------
+*Sent via DS Tech Digital Platform*`;
+
+    const whatsappUrl = `https://wa.me/${agencyPhone}?text=${encodeURIComponent(message)}`;
+    
     setSubmitted(true);
     setTimeout(() => {
+      window.open(whatsappUrl, '_blank');
       setSubmitted(false);
-      setName('');
-      setEmail('');
-      setNotes('');
-    }, 4000);
+    }, 1000);
   };
 
   const highlights = getHighlights(service.category);
 
+  // Motion Font Word Variants for Title
+  const titleWords = (service.name || '').split(' ');
+  const titleContainerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.08 } }
+  };
+  const wordVariants = {
+    hidden: { opacity: 0, y: 18, filter: 'blur(4px)' },
+    visible: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { type: 'spring' as const, stiffness: 300, damping: 20 } }
+  };
+
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.95, y: 30 }}
+      initial={{ opacity: 0, scale: 0.96, y: 25 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, y: -30 }}
+      exit={{ opacity: 0, scale: 0.96, y: -25 }}
       transition={{ type: "spring", stiffness: 220, damping: 20 }}
       className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8 text-left text-slate-900 dark:text-slate-100"
     >
@@ -109,7 +151,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, l
       {/* Hero Section */}
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-md">
         {/* Service Image */}
-        <div className="md:col-span-5 relative rounded-2xl overflow-hidden h-64 md:h-80 shadow-md">
+        <div className="md:col-span-5 relative rounded-2xl overflow-hidden h-64 md:h-80 shadow-md bg-slate-950">
           <img 
             src={resolveImageUrl(service.image) || generateDynamicSvgUrl(service.name, service.category, "service")} 
             alt={service.name} 
@@ -127,9 +169,21 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, l
             <span className="text-[10px] font-mono font-black tracking-widest uppercase text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-1 rounded-full inline-block">
               {service.category}
             </span>
-            <h1 className="text-2xl md:text-3xl font-extrabold uppercase font-serif text-[#000E32] dark:text-white leading-tight">
-              {service.name}
-            </h1>
+
+            {/* Motion Font Staggered Title */}
+            <motion.h1 
+              variants={titleContainerVariants}
+              initial="hidden"
+              animate="visible"
+              className="text-2xl md:text-3xl font-extrabold uppercase font-serif text-[#000E32] dark:text-white leading-tight flex flex-wrap gap-2"
+            >
+              {titleWords.map((w, idx) => (
+                <motion.span key={idx} variants={wordVariants} className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-800 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
+                  {w}
+                </motion.span>
+              ))}
+            </motion.h1>
+
             <p className="text-slate-950 dark:text-slate-50 text-xs md:text-sm leading-relaxed font-bold">
               {service.description}
             </p>
@@ -151,116 +205,181 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, l
             </div>
           </div>
 
-          {/* Call-To-Action Options */}
+          {/* Direct WhatsApp Action */}
           <div className="flex flex-wrap gap-4 pt-2">
-            <a 
-              href={service.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-700 hover:to-orange-600 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2"
+            <button
+              onClick={() => {
+                const el = document.getElementById('brief-form');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="px-6 py-3 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2"
             >
               <MessageSquare size={15} />
-              <span>{language === 'zh' ? '在 WhatsApp 沟通订制' : 'Inquire on WhatsApp'}</span>
-            </a>
+              <span>{language === 'zh' ? '在 WhatsApp 沟通提交需求' : 'Submit Custom Brief on WhatsApp'}</span>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Booking Form Card */}
-      <div className="bg-gradient-to-br from-[#000E32] to-slate-950 text-white rounded-3xl p-6 md:p-8 border border-indigo-950 relative overflow-hidden shadow-lg">
+      {/* Booking / Custom Brief Form Card */}
+      <div id="brief-form" className="bg-gradient-to-br from-[#000E32] to-slate-950 text-white rounded-3xl p-6 md:p-8 border border-indigo-950 relative overflow-hidden shadow-xl">
         <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none" />
-        <div className="relative z-10 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+        <div className="relative z-10 space-y-6">
           
-          <div className="md:col-span-5 space-y-4">
-            <span className="text-orange-400 text-xs uppercase tracking-widest font-black flex items-center gap-1">
-              <Sparkles size={12} className="animate-pulse" />
+          <div className="space-y-2 border-b border-white/10 pb-4">
+            <span className="text-orange-400 text-xs uppercase tracking-widest font-black flex items-center gap-1.5 font-mono">
+              <Sparkles size={14} className="animate-pulse text-amber-400" />
               <span>{t.instantBookingSub}</span>
             </span>
-            <h2 className="text-2xl font-extrabold uppercase font-serif tracking-tight leading-tight">
-              {t.instantBookingTitle}
+            <h2 className="text-xl md:text-2xl font-extrabold uppercase font-serif tracking-tight leading-tight text-white">
+              Request Custom Brief & WhatsApp Consultation
             </h2>
-            <p className="text-slate-300 text-xs leading-relaxed font-light">
-              {language === 'zh' 
-                ? '立即提交您的项目大纲与联络信息，系统安全节点将即时指派专属合规经理与您建联。' 
-                : 'Submit your requirements instantly. Our legal-compliant consulting team will contact you back with targeted pricing structures.'}
+            <p className="text-slate-300 text-xs leading-relaxed font-medium max-w-2xl">
+              Fill in your project specifics, custom budget range, and requirements below. Your brief will be formatted instantly and routed directly to our senior project lead on WhatsApp.
             </p>
-
-            <div className="space-y-2 pt-2 text-xs text-slate-400 font-mono">
-              <div className="flex items-center gap-2">
-                <Clock size={12} className="text-orange-500" />
-                <span>Response in &lt; 15 minutes</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <ShieldCheck size={12} className="text-indigo-400" />
-                <span>100% Privacy Secure</span>
-              </div>
-            </div>
           </div>
 
-          <div className="md:col-span-7 bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+          <div>
             {submitted ? (
               <motion.div 
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="text-center py-8 space-y-3"
+                className="text-center py-12 space-y-3"
               >
-                <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
-                  <CheckCircle2 size={24} />
+                <div className="w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
+                  <CheckCircle2 size={28} />
                 </div>
-                <h3 className="font-extrabold text-white text-sm uppercase tracking-wide">{t.bookSuccess}</h3>
-                <p className="text-slate-300 text-[11px] font-light">
-                  {language === 'zh' 
-                    ? '我们的合规专员正在为您草拟专属合作方案。' 
-                    : 'Our account manager is preparing custom deliverables proposal.'}
+                <h3 className="font-extrabold text-white text-base uppercase tracking-wide">Opening WhatsApp...</h3>
+                <p className="text-slate-300 text-xs font-light max-w-md mx-auto">
+                  Your brief for <strong className="text-orange-400">{service.name}</strong> is pre-filled. You are being redirected to chat on WhatsApp.
                 </p>
               </motion.div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <form onSubmit={handleSendToWhatsApp} className="space-y-5">
+                
+                {/* 1. Personal Info */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase tracking-wider text-slate-300 font-bold">{t.fullNameLabel}</label>
+                    <label className="text-[10px] uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1">
+                      <Mail size={11} className="text-orange-400" />
+                      Full Name *
+                    </label>
                     <input 
                       type="text" 
                       required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
                       placeholder="e.g. Hassan Al-Amin"
-                      className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors font-medium"
                     />
                   </div>
+
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase tracking-wider text-slate-300 font-bold">{t.emailLabel}</label>
+                    <label className="text-[10px] uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1">
+                      <Phone size={11} className="text-emerald-400" />
+                      WhatsApp Phone Number *
+                    </label>
+                    <input 
+                      type="tel" 
+                      required
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="e.g. +234 812 345 6789"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors font-mono"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1">
+                      <Mail size={11} className="text-indigo-400" />
+                      Email Address (Optional)
+                    </label>
                     <input 
                       type="email" 
-                      required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="name@company.com"
-                      className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors font-medium"
                     />
                   </div>
                 </div>
 
+                {/* 2. Budget Selection */}
+                <div className="space-y-2">
+                  <label className="text-[10px] uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1">
+                    <DollarSign size={11} className="text-emerald-400" />
+                    Target Budget Range *
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      '₦100,000 - ₦300,000',
+                      '₦300,000 - ₦1,000,000',
+                      '₦1,000,000 - ₦5,000,000',
+                      'Custom Amount'
+                    ].map((opt) => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setBudget(opt)}
+                        className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all text-center ${
+                          budget === opt 
+                            ? 'bg-orange-600 text-white border-orange-500 shadow-md' 
+                            : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+
+                  {budget === 'Custom Amount' && (
+                    <div className="pt-2">
+                      <input 
+                        type="text"
+                        value={customBudget}
+                        onChange={(e) => setCustomBudget(e.target.value)}
+                        placeholder="Enter specific budget in ₦ (e.g., 850,000)"
+                        className="w-full bg-slate-900 border border-orange-500 rounded-xl px-3.5 py-2 text-xs font-mono text-white focus:outline-none"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. Custom Description */}
                 <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-300 font-bold">
-                    {language === 'zh' ? '项目附言/具体需求' : 'Requirements Notes'}
+                  <label className="text-[10px] uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1">
+                    <FileText size={11} className="text-orange-400" />
+                    Custom Description & Specific Project Requirements
                   </label>
                   <textarea 
-                    rows={2}
+                    rows={3}
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    placeholder={language === 'zh' ? '告诉我们您的项目需求、预算或时间节点...' : 'Briefly describe your timeline, scope or regulatory clearance milestones...'}
-                    className="w-full bg-slate-900/80 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors resize-none"
+                    placeholder="Tell us about key features, target timeline, branding preferences, or custom questions..."
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors leading-relaxed resize-none"
                   />
                 </div>
 
-                <button 
-                  type="submit"
-                  className="w-full py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <Calendar size={13} />
-                  <span>{t.bookBtn}</span>
-                </button>
+                {/* Action Submit Button */}
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 text-[10px] text-slate-400 font-mono">
+                    <span className="flex items-center gap-1">
+                      <Clock size={11} className="text-orange-400" /> Instant WhatsApp Connect
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <ShieldCheck size={11} className="text-indigo-400" /> Encrypted Direct Channel
+                    </span>
+                  </div>
+
+                  <button 
+                    type="submit"
+                    className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer shrink-0 border border-emerald-400/30"
+                  >
+                    <MessageSquare size={16} />
+                    <span>Send Custom Brief to WhatsApp ➔</span>
+                  </button>
+                </div>
+
               </form>
             )}
           </div>

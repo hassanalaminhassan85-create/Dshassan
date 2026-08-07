@@ -83,18 +83,21 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
 
   // Filter calculations
   const filteredApps = applications.filter(app => {
+    const fullName = app.personalInfo?.fullName || '';
+    const email = app.personalInfo?.emailAddress || '';
+    const role = app.positionSkills?.majorRole || '';
     const matchesSearch = 
-      app.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.targetRole?.toLowerCase().includes(searchQuery.toLowerCase());
+      fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      role.toLowerCase().includes(searchQuery.toLowerCase());
       
-    const matchesStatus = statusFilter === 'all' || app.status === statusFilter;
-    const matchesRole = roleFilter === 'all' || app.targetRole === roleFilter;
+    const matchesStatus = statusFilter === 'all' || (app.status || 'pending') === statusFilter;
+    const matchesRole = roleFilter === 'all' || role === roleFilter;
     
     return matchesSearch && matchesStatus && matchesRole;
   });
 
-  const uniqueRoles = Array.from(new Set(applications.map(app => app.targetRole).filter(Boolean)));
+  const uniqueRoles = Array.from(new Set(applications.map(app => app.positionSkills?.majorRole).filter(Boolean)));
 
   const stats = {
     total: applications.length,
@@ -260,11 +263,11 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-1">
-                          <h4 className="text-xs font-black text-indigo-500 dark:text-indigo-300">{app.fullName}</h4>
-                          <p className="text-[10px] text-slate-400 font-medium font-mono">{app.email}</p>
+                          <h4 className="text-xs font-black text-indigo-500 dark:text-indigo-300">{app.personalInfo?.fullName}</h4>
+                          <p className="text-[10px] text-slate-400 font-medium font-mono">{app.personalInfo?.emailAddress}</p>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="px-1.5 py-0.2 bg-slate-200 dark:bg-white/5 text-slate-600 dark:text-slate-300 rounded text-[8px] font-black uppercase tracking-wide">
-                              {app.targetRole || "Developer"}
+                              {app.positionSkills?.majorRole || "Developer"}
                             </span>
                           </div>
                         </div>
@@ -303,8 +306,8 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
                   {/* Title & Actions */}
                   <div className="border-b border-slate-200 dark:border-slate-850 pb-4 flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-sm font-black text-indigo-500 dark:text-indigo-400">{selectedApp.fullName}</h3>
-                      <p className="text-[10px] font-mono text-slate-400">{selectedApp.targetRole}</p>
+                      <h3 className="text-sm font-black text-indigo-500 dark:text-indigo-400">{selectedApp.personalInfo?.fullName}</h3>
+                      <p className="text-[10px] font-mono text-slate-400">{selectedApp.positionSkills?.majorRole}</p>
                     </div>
                     
                     <button
@@ -321,7 +324,7 @@ export const RecruiterDashboard: React.FC<RecruiterDashboardProps> = ({
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-0.5">
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Email Address</span>
-                        <p className="text-xs font-medium font-mono text-indigo-500 dark:text-indigo-300 break-all">{selectedApp.email}</p>
+                        <p className="text-xs font-medium font-mono text-indigo-500 dark:text-indigo-300 break-all">{selectedApp.personalInfo?.emailAddress}</p>
                       </div>
                       <div className="space-y-0.5">
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Created Date</span>

@@ -5,6 +5,7 @@ import { SignaturePad } from './SignaturePad';
 import { JobApplication, PersonalInformation, GuarantorInformation, EducationalBackground, RelevantExperience, PositionAndSkills, SpecializationInterest, PreferredWorkMode } from '../types';
 import { TRANSLATIONS } from '../lib/translations';
 import { CAREER_ROLES, CATEGORIES } from '../lib/roles';
+import { generateAvatarSvgUrl } from '../lib/mediaUtils';
 import {
   User, ShieldCheck, GraduationCap, Briefcase, Award, Palette,
   Cpu, Languages, MessageSquare, AlertCircle, Sparkles, Navigation, ArrowRight, ArrowLeft, Camera, Send,
@@ -118,6 +119,64 @@ export const CareersForm: React.FC<CareersFormProps> = ({
     new Date().toISOString().split('T')[0]
   );
 
+  const handleQuickAutofill = () => {
+    const role = positionSkills.majorRole || initialRole || 'Lead Full Stack Engineer';
+    setPersonalInfo({
+      fullName: 'Hassan Al-Amin',
+      maritalStatus: 'Single',
+      gender: 'Male',
+      dateOfBirth: '1996-08-15',
+      nationality: 'Nigerian',
+      stateOfOrigin: 'Kano',
+      lgaTownOfOrigin: 'Kano Municipal',
+      stateOfResidence: 'FCT Abuja',
+      residentialAddress: 'Plot 402, Central Business District, Abuja',
+      emailAddress: 'hassanalaminhassan85@gmail.com',
+      phoneNumbers: '+2348023456789',
+      passportPhoto: generateAvatarSvgUrl('Hassan Al-Amin', role),
+    });
+    setGuarantorInfo({
+      fullName: 'Alhaji Ibrahim Usman',
+      hometown: 'Kano',
+      currentAddress: 'Suite 104, Maitama District, Abuja',
+      phoneNumber: '+2348031234567',
+      relationship: 'Senior Technical Director',
+    });
+    setEducationalBg({
+      highestQualification: 'Master of Science in Software Engineering',
+      schoolInstitution: 'Ahmadu Bello University / Tech Institute',
+      fieldOfStudy: 'Computer Science & Artificial Intelligence',
+      isStudentOrGraduate: 'graduate',
+    });
+    setExperiences({
+      exp1: 'Senior Software Specialist - Scaled full-stack enterprise applications across West Africa (2023-2026)',
+      exp2: 'Lead UI/UX Systems Architect - Built responsive multi-tenant SaaS dashboards',
+      exp3: 'Cloud Solutions Consultant - Managed secure database nodes and automated workflows',
+    });
+    setPositionSkills({
+      majorRole: role,
+      skillRole1: 'React, TypeScript, Next.js, Node.js, Express, Tailwind CSS',
+      skillRole2: 'Firestore, Cloud SQL, System Architecture, UI/UX Prototyping',
+      skillRole3: 'REST APIs, Git, Docker, CI/CD Pipelines, Performance Optimization',
+    });
+    setSpecialization({
+      interests: ['Website Design', 'App Development', 'Services'],
+      otherDetails: 'Passionate about building highly responsive, scalable, and micro-interactive enterprise applications.',
+    });
+    setWorkMode({
+      monthlySalaryJob: 'hybrid',
+      contractFreelanceJob: 'remote',
+      availableForAnyOpportunity: true,
+    });
+    setLanguageProficiency('English (Native), Hausa (Fluent), Arabic (Intermediate)');
+    setPersonalStatement('I am dedicated to leveraging modern tech stacks to build robust, elegant, and secure digital platforms for DS Tech & Digital Marketing Agency.');
+    setSignatureType('draw');
+    setSignatureData("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='60' viewBox='0 0 180 60'><path d='M15,40 Q40,15 75,35 T135,25 T165,45' fill='none' stroke='%23000E32' stroke-width='3.5'/></svg>");
+    setDeclarationDate(new Date().toISOString().split('T')[0]);
+    setAgreeDeclaration(true);
+    setActiveTab(11);
+  };
+
   // Specialization categories options from the form
   const specializationOptions = [
     'Website Design',
@@ -210,6 +269,10 @@ export const CareersForm: React.FC<CareersFormProps> = ({
       applicantSignature: signatureData,
       applicantSignatureType: signatureType,
       declarationDate,
+      status: 'pending',
+      applicantEmail: personalInfo.emailAddress,
+      recruiterEmail: personalInfo.emailAddress,
+      submittedAt: new Date().toISOString(),
     };
 
     onSubmit(submissionData);
@@ -249,16 +312,14 @@ export const CareersForm: React.FC<CareersFormProps> = ({
               </span>
             </div>
 
-            {onLoadDemo && (
-              <button
-                type="button"
-                onClick={onLoadDemo}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 dark:bg-orange-950/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:text-orange-800 rounded-xl text-xs font-bold transition-all duration-300 border border-orange-100 dark:border-orange-900/20 shadow-sm hover:shadow-md hover:-translate-y-0.5 shrink-0"
-              >
-                <Sparkles size={13} className="animate-pulse" />
-                <span>Quick Autofill</span>
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleQuickAutofill}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 dark:bg-orange-950/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 text-orange-700 dark:text-orange-400 hover:text-orange-800 rounded-xl text-xs font-bold transition-all duration-300 border border-orange-100 dark:border-orange-900/20 shadow-sm hover:shadow-md hover:-translate-y-0.5 shrink-0 cursor-pointer"
+            >
+              <Sparkles size={13} className="animate-pulse" />
+              <span>Quick Autofill</span>
+            </button>
           </div>
         </div>
 
@@ -921,6 +982,30 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                               placeholder="e.g. Lead Website Designer, Social Media Manager, Mobile App Engineer"
                               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 dark:bg-slate-950 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm font-semibold"
                             />
+                            
+                            {/* Quick Preset Role Chips */}
+                            <div className="flex flex-wrap gap-1.5 mt-2">
+                              <span className="text-[10px] font-bold text-slate-400 self-center mr-1">Quick Select:</span>
+                              {[
+                                'Lead Frontend Engineer (React/Vite)',
+                                'Digital Marketing & SEO Lead',
+                                'UI/UX Product Designer',
+                                'Backend Systems Developer'
+                              ].map(preset => (
+                                <button
+                                  key={preset}
+                                  type="button"
+                                  onClick={() => setPositionSkills(prev => ({ ...prev, majorRole: preset }))}
+                                  className={`px-2 py-1 rounded-lg text-[10px] font-semibold transition-all border ${
+                                    positionSkills.majorRole === preset
+                                      ? 'bg-orange-500 text-white border-orange-600 shadow-sm'
+                                      : 'bg-slate-50 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800'
+                                  }`}
+                                >
+                                  {preset}
+                                </button>
+                              ))}
+                            </div>
                             
                             {/* Interactive Quick Selection Block */}
                             <div className="mt-3 p-4 bg-white dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 rounded-2xl space-y-3">

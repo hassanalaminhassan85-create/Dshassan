@@ -490,7 +490,7 @@ export const BlogSection: React.FC<BlogSectionProps> = ({ onBackToMain }) => {
                     <span className="text-orange-400 font-extrabold italic">Direct to Inbox</span>
                   </h2>
                   <p className="text-slate-300 text-xs leading-relaxed font-light max-w-md">
-                    Join 2,400+ Nigerian CEOs and developers receiving our bi-weekly breakdown of ad-bidding optimizations and corporate compliance alerts.
+                    Join 2,400+ Nigerian CEOs, enterprise founders, and innovators receiving our bi-weekly breakdown of ad-bidding optimizations and corporate compliance alerts.
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">

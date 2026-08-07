@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { Search, MapPin, Clock, Briefcase, ChevronRight, UserCheck, HelpCircle } from 'lucide-react';
+import { Search, MapPin, Clock, Briefcase, ChevronRight, UserCheck, HelpCircle, FileCheck } from 'lucide-react';
 
 interface CareersSectionProps {
   onApplyForJob: (roleTitle: string) => void;

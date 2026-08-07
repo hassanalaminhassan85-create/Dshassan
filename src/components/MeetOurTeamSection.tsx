@@ -215,7 +215,7 @@ export const MeetOurTeamSection: React.FC<{ language?: string, onBackToPortal?: 
             transition={{ delay: 0.2 }}
             className="text-slate-500 dark:text-slate-400 text-xs md:text-sm max-w-xl mx-auto leading-relaxed font-light"
           >
-            Discover the cybersecurity experts, system architects, and platform developers driving the enterprise security ecosystem at DS Tech.
+            Discover the cybersecurity experts, system architects, and platform engineers driving the enterprise security ecosystem at DS Tech.
           </motion.p>
         </div>
 

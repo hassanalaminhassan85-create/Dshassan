@@ -301,7 +301,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   
 
   // Super Admin Control Center State
-  const [adminModule, setAdminModule] = useState<'dashboard' | 'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'client-projects' | 'about'>('dashboard');
+  const [adminModule, setAdminModule] = useState<'dashboard' | 'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'client-projects' | 'about' | 'diagnostics'>('dashboard');
   
   // Custom navigation header states
   const [isThreeDotsOpen, setIsThreeDotsOpen] = useState<boolean>(false);
@@ -1043,8 +1043,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       scanHistory.forEach((rec: any) => {
         sqlLines.push(`INSERT INTO scan_history (id, user_id, applicant_id, applicant_name, scanned_at, secure_r2_url, safety_status) VALUES (${escapeStr(rec.id)}, ${escapeStr(rec.user_id || 'anonymous')}, ${escapeStr(rec.applicant_id)}, ${escapeStr(rec.applicant_name)}, ${escapeStr(rec.scanned_at)}, ${escapeStr(rec.secure_r2_url)}, ${escapeStr(rec.safety_status)});`);
       });
-    } else {
-      sqlLines.push("INSERT INTO scan_history (id, user_id, applicant_id, applicant_name, scanned_at, secure_r2_url, safety_status) VALUES ('scan_init_demo', 'anonymous', 'seed-hassan-demo', 'David Alao Chibuzor', '2026-07-01T13:06:13.109Z', 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=192&h=192&fit=crop&auto=format', 'safe');");
     }
 
     sqlLines.push("\n-- Seeds: biometric_logs");
@@ -2067,7 +2065,6 @@ export default {
       items: [
         { id: 'clients', label: 'Clients CRM', icon: Landmark, count: CLIENT_INVOICES.length + CLIENT_TICKETS.length },
         { id: 'client-projects', label: 'Client Projects & Staff', icon: FolderKanban },
-        { id: 'chat', label: 'WhatsApp Live Chat', icon: MessageSquare },
       ]
     },
     {
@@ -2083,22 +2080,24 @@ export default {
     <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 flex">
       
       {/* 1. DESKTOP PERMANENT SIDEBAR & MOBILE SLIDEOUT SIDEBAR */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#000E32] text-white flex flex-col justify-between border-r border-blue-900/40 shadow-2xl transition-transform duration-300 ease-in-out md:translate-x-0 ${
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-[#000a26] via-[#000E32] to-[#000518] text-white flex flex-col justify-between border-r border-blue-500/20 shadow-[10px_0_30px_rgba(0,0,0,0.6)] backdrop-blur-xl transition-transform duration-300 ease-in-out md:translate-x-0 ${
         isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         
         {/* Sidebar Header & Brand Logo */}
-        <div className="p-4 border-b border-blue-900/20 shrink-0">
+        <div className="p-4 border-b border-blue-900/30 bg-white/5 backdrop-blur-md shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <Logo size="xs" showText={false} variant="light" className="p-1.5 bg-orange-600 rounded-xl" />
+              <motion.div whileHover={{ scale: 1.1, rotate: 5 }} transition={{ type: "spring", stiffness: 300 }}>
+                <Logo size="xs" showText={false} variant="light" className="p-1.5 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl shadow-lg shadow-orange-600/30 ring-1 ring-orange-400/40" />
+              </motion.div>
               <div className="text-left">
-                <div className="flex items-center gap-1">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-orange-400">DS Tech Suite</span>
-                  <span className="px-1 py-0.2 bg-orange-600 text-white rounded text-[7px] font-mono font-bold">v2.5</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] font-black uppercase font-mono tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300">DS Tech Suite</span>
+                  <span className="px-1.5 py-0.5 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-md text-[7px] font-mono font-black shadow-xs">v2.5</span>
                 </div>
-                <h2 className="text-[9px] font-mono text-slate-300 flex items-center gap-0.5">
-                  <ShieldAlert size={9} className="text-orange-500 animate-pulse" />
+                <h2 className="text-[9px] font-mono font-bold text-slate-300/90 flex items-center gap-1 mt-0.5 tracking-wider">
+                  <ShieldAlert size={10} className="text-orange-500 animate-pulse" />
                   ADMIN CENTER
                 </h2>
               </div>
@@ -2107,7 +2106,7 @@ export default {
             {/* Close Mobile Sidebar */}
             <button 
               onClick={() => setIsMobileSidebarOpen(false)}
-              className="md:hidden p-1.5 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg cursor-pointer"
+              className="md:hidden p-1.5 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg cursor-pointer transition-colors"
             >
               <X size={16} />
             </button>
@@ -2115,74 +2114,105 @@ export default {
         </div>
 
         {/* Sidebar Scrollable Navigation */}
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-5 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 scrollbar-thin">
           {sidebarTabs.map((group, gIdx) => (
-            <div key={gIdx} className="space-y-1">
-              <span className="px-3 text-[8px] font-black text-slate-500 uppercase tracking-widest block text-left">
-                {group.group}
-              </span>
-              <div className="space-y-0.5">
+            <motion.div 
+              key={gIdx} 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: gIdx * 0.05, duration: 0.3 }}
+              className="space-y-1.5"
+            >
+              <div className="px-3 text-[8.5px] font-black text-slate-400/80 uppercase font-mono tracking-widest flex items-center justify-between border-b border-white/5 pb-1">
+                <span>{group.group}</span>
+                <span className="w-1 h-1 rounded-full bg-orange-500/60" />
+              </div>
+              <div className="space-y-1">
                 {group.items.map((tab) => {
                   const Icon = tab.icon;
                   const isActive = adminModule === tab.id;
                   return (
                     <motion.button
-                      whileHover={{ scale: 1.03, x: 6 }}
+                      whileHover={{ scale: 1.02, x: 5 }}
                       whileTap={{ scale: 0.97 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
                       key={tab.id}
                       onClick={() => {
                         setAdminModule(tab.id as any);
                         setIsMobileSidebarOpen(false);
                       }}
-                      className={`w-full px-3 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-colors flex items-center justify-between cursor-pointer relative ${
+                      className={`w-full px-3.5 py-2.5 rounded-xl text-[10.5px] font-bold font-mono uppercase tracking-wider transition-all duration-200 flex items-center justify-between cursor-pointer relative group ${
                         isActive 
-                          ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/30' 
+                          ? 'text-white shadow-xl' 
                           : 'text-slate-300 hover:text-white hover:bg-white/10'
                       }`}
                     >
                       {isActive && (
                         <motion.div
                           layoutId="activeAdminNavIndicator"
-                          className="absolute inset-0 bg-orange-600 rounded-xl -z-10 shadow-lg shadow-orange-600/40"
-                          transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                          className="absolute inset-0 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 rounded-xl -z-10 shadow-[0_4px_20px_rgba(234,88,12,0.45)] ring-1 ring-orange-300/40"
+                          transition={{ type: "spring", stiffness: 380, damping: 28 }}
                         />
                       )}
-                      <div className="flex items-center gap-2">
-                        <Icon size={13} />
-                        <span>{tab.label}</span>
+                      
+                      <div className="flex items-center gap-2.5 relative z-10">
+                        <motion.div 
+                          whileHover={{ rotate: 12, scale: 1.2 }}
+                          transition={{ type: "spring", stiffness: 300 }}
+                          className={isActive ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'text-slate-400 group-hover:text-orange-400 transition-colors'}
+                        >
+                          <Icon size={14} />
+                        </motion.div>
+                        <span className={isActive ? 'font-black tracking-wide' : 'font-semibold'}>{tab.label}</span>
                       </div>
-                      {tab.count !== undefined && (
-                        <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold ${
-                          isActive ? 'bg-white/20 text-white' : 'bg-white/10 text-slate-400'
-                        }`}>
-                          {tab.count}
-                        </span>
-                      )}
+
+                      <div className="flex items-center gap-1.5 relative z-10">
+                        {tab.count !== undefined && (
+                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold transition-all ${
+                            isActive 
+                              ? 'bg-white/25 text-white border border-white/30 shadow-inner' 
+                              : 'bg-white/10 text-slate-400 border border-white/5 group-hover:bg-white/15 group-hover:text-white'
+                          }`}>
+                            {tab.count}
+                          </span>
+                        )}
+                        {isActive && (
+                          <motion.span 
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_10px_#ffffff] animate-pulse shrink-0 ml-0.5" 
+                          />
+                        )}
+                      </div>
                     </motion.button>
                   );
                 })}
               </div>
-            </div>
+            </motion.div>
           ))}
-
         </div>
 
         {/* Sidebar Footer with Admin Profile Node */}
-        <div className="p-3 border-t border-blue-900/20 bg-[#000a24]/50 space-y-2.5 shrink-0">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-orange-600/20 border border-orange-500/30 flex items-center justify-center font-bold text-orange-400 text-xs shrink-0">
-              {adminUser?.fullName?.slice(0, 2) || 'AD'}
+        <div className="p-3 border-t border-blue-900/30 bg-[#000518]/80 backdrop-blur-md space-y-2.5 shrink-0">
+          <div className="flex items-center gap-2.5 p-1.5 rounded-xl bg-white/5 border border-white/5">
+            <div className="relative">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500/30 to-amber-500/30 border border-orange-500/40 flex items-center justify-center font-extrabold font-mono text-orange-400 text-xs shrink-0 shadow-inner">
+                {adminUser?.fullName?.slice(0, 2) || 'AD'}
+              </div>
+              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#000E32] rounded-full" />
             </div>
-            <div className="min-w-0 text-left">
-              <p className="text-[10px] font-black text-white truncate uppercase tracking-wide">
+            <div className="min-w-0 text-left flex-1">
+              <p className="text-[10px] font-black text-white truncate font-mono uppercase tracking-wide">
                 {adminUser?.fullName || 'Administrator'}
               </p>
-              <p className="text-[8.5px] text-slate-500 truncate">
+              <p className="text-[8.5px] font-mono text-slate-400 truncate">
                 {adminUser?.email || 'admin@dstech.com'}
               </p>
             </div>
           </div>
-          <button
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             onClick={() => {
               try {
                 localStorage.removeItem('isAdminLoggedIn');
@@ -2191,11 +2221,11 @@ export default {
               setIsAdminLoggedIn(false);
               setAdminUser(null);
             }}
-            className="w-full py-2 bg-red-950/40 hover:bg-red-900/40 border border-red-900/50 text-red-400 hover:text-red-350 rounded-xl text-[9px] font-extrabold uppercase tracking-widest transition-colors flex items-center justify-center gap-1 cursor-pointer"
+            className="w-full py-2 bg-red-950/40 hover:bg-gradient-to-r hover:from-red-600 hover:to-rose-600 border border-red-900/50 hover:border-red-400 text-red-400 hover:text-white rounded-xl text-[9px] font-mono font-black uppercase tracking-widest transition-all duration-300 shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <LogOut size={11} />
+            <LogOut size={12} />
             <span>Sign Out Workspace</span>
-          </button>
+          </motion.button>
         </div>
       </aside>
 
@@ -2666,13 +2696,13 @@ export default {
                   onClick={async () => {
                     // Inject a mock scan in real time to test SSE broadcast loop
                     try {
-                      const demoUid = 'seed-hassan-demo';
+                      const demoUid = applications[0]?.id || 'applicant_demo';
                       const res = await fetch('/api/scan-history', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                           applicantId: demoUid,
-                          applicantName: 'David Alao Chibuzor (Simulated Phone)',
+                          applicantName: (applications[0]?.personalInfo?.fullName || 'Simulated Candidate') + ' (Simulated Phone)',
                           safetyStatus: 'safe',
                           qrImageBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
                         })

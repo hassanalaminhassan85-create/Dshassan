@@ -12,6 +12,7 @@ interface ServiceCardProps {
   bentoSpan: string;
   getCategoryIcon: (category: string) => React.ReactNode;
   getServiceImage: (svc: ServiceItem) => string;
+  onCustomQuote?: (svc: ServiceItem) => void;
 }
 
 export const ServiceCard: React.FC<ServiceCardProps> = ({
@@ -22,6 +23,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
   bentoSpan,
   getCategoryIcon,
   getServiceImage,
+  onCustomQuote,
 }) => {
   const [imgError, setImgError] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -226,7 +228,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
       <div className="p-6 text-left flex-grow flex flex-col justify-between space-y-4">
         <div className="space-y-2.5">
           <span className="text-[10px] font-mono tracking-widest uppercase text-indigo-600 dark:text-indigo-400 font-extrabold block">
-            // {svc.category}
+            {svc.category}
           </span>
           <h3 className="font-extrabold text-slate-900 dark:text-white text-sm md:text-base line-clamp-2 leading-snug font-serif uppercase tracking-tight group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">
             {svc.name}
@@ -236,15 +238,27 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
           </p>
         </div>
 
-        {/* Learn Details & ID footer */}
+        {/* Learn Details & Custom Brief Action */}
         <div className="space-y-2 pt-3.5 border-t border-slate-100 dark:border-slate-800/80">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center gap-2">
             <span className="text-[10px] font-black text-orange-500 group-hover:text-orange-600 dark:group-hover:text-orange-400 group-hover:underline uppercase tracking-wider flex items-center gap-1.5">
               <span>{language === 'zh' ? '查看详情内容 ➔' : 'Learn Details ➔'}</span>
             </span>
-            <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
-              {svc.id}
-            </span>
+
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onCustomQuote) {
+                  onCustomQuote(svc);
+                } else {
+                  onSelect(svc.id);
+                }
+              }}
+              className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 px-2.5 py-1 rounded-xl border border-emerald-200 dark:border-emerald-800/60 transition-all flex items-center gap-1 shadow-sm shrink-0"
+            >
+              <span>Custom Quote ➔</span>
+            </button>
           </div>
         </div>
       </div>

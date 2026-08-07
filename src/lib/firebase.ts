@@ -13,7 +13,7 @@ import {
   EmailAuthProvider,
   onAuthStateChanged
 } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
+import { initializeFirestore } from "firebase/firestore";
 import firebaseConfigJson from '../../firebase-applet-config.json';
 
 const { firestoreDatabaseId, ...appConfig } = firebaseConfigJson;
@@ -24,8 +24,10 @@ export const app = getApps().length === 0 ? initializeApp(appConfig) : getApp();
 // Initialize Firebase Auth
 export const auth = getAuth(app);
 
-// Initialize Firestore
-export const db = getFirestore(app, firestoreDatabaseId);
+// Initialize Firestore with long polling fallback for iFrame / restricted networks
+export const db = firestoreDatabaseId 
+  ? initializeFirestore(app, { experimentalAutoDetectLongPolling: true }, firestoreDatabaseId)
+  : initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
 
 // Google Auth Provider
 export const googleProvider = new GoogleAuthProvider();

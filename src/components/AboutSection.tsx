@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Eye, Target, Edit, Trash2, Plus, Save, X, Image as ImageIcon, ArrowLeft, Sun, Moon, Loader2
+  Eye, Target, Edit, Trash2, Plus, Save, X, Image as ImageIcon, ArrowLeft, Sun, Moon, Loader2,
+  Upload, ArrowUp, ArrowDown, CheckCircle2, UserCheck, Shield
 } from 'lucide-react';
 import { Logo } from './Logo';
-import { apiGetPageContent, apiSavePageContent, apiGetCacMetadata } from '../lib/api';
+import { apiGetPageContent, apiSavePageContent, apiGetCacMetadata, apiUploadGeneralFile, resolveImageUrl } from '../lib/api';
 
 interface AboutSectionProps {
   isAdmin?: boolean;
@@ -111,6 +112,57 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
 
   const [editingLeader, setEditingLeader] = useState<any | null>(null);
   const [editingTeam, setEditingTeam] = useState<any | null>(null);
+  const [uploadingLeaderImg, setUploadingLeaderImg] = useState(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleLeaderImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editingLeader) return;
+
+    try {
+      setUploadingLeaderImg(true);
+      try {
+        const res = await apiUploadGeneralFile(file);
+        if (res && res.url) {
+          setEditingLeader((prev: any) => ({ ...prev, image: res.url }));
+          showToast("Leader photo uploaded!");
+          return;
+        }
+      } catch (err) {
+        console.warn("Server upload failed, converting to DataURL:", err);
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          setEditingLeader((prev: any) => ({ ...prev, image: reader.result as string }));
+          showToast("Leader photo attached!");
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error("Leader image upload failed:", err);
+      alert("Could not attach image.");
+    } finally {
+      setUploadingLeaderImg(false);
+    }
+  };
+
+  const moveLeader = (index: number, direction: 'up' | 'down') => {
+    const newLeadership = [...content.leadership];
+    const targetIdx = direction === 'up' ? index - 1 : index + 1;
+    if (targetIdx < 0 || targetIdx >= newLeadership.length) return;
+    const temp = newLeadership[index];
+    newLeadership[index] = newLeadership[targetIdx];
+    newLeadership[targetIdx] = temp;
+    setContent({ ...content, leadership: newLeadership });
+    showToast("Leader reordered!");
+  };
 
   const handleSaveLeader = () => {
     if (!editingLeader.name) return;
@@ -122,6 +174,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
     }
     setContent({ ...content, leadership: newLeadership });
     setEditingLeader(null);
+    showToast("Leader details updated!");
   };
 
   const handleSaveTeam = () => {
@@ -134,17 +187,20 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
     }
     setContent({ ...content, team: newTeam });
     setEditingTeam(null);
+    showToast("Team member updated!");
   };
 
   const deleteLeader = (id: string) => {
-    if (window.confirm('Delete this leader?')) {
+    if (window.confirm('Delete this leader profile?')) {
       setContent({ ...content, leadership: content.leadership.filter((l: any) => l.id !== id) });
+      showToast("Leader removed!");
     }
   };
 
   const deleteTeam = (id: string) => {
     if (window.confirm('Delete this team member?')) {
       setContent({ ...content, team: content.team.filter((t: any) => t.id !== id) });
+      showToast("Team member removed!");
     }
   };
 
@@ -422,46 +478,103 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
 
         {/* 4. LEADERSHIP TEAM */}
         <section className="space-y-10">
-          <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-extrabold uppercase font-serif tracking-tight text-slate-900 dark:text-white border-l-4 border-orange-500 pl-4">
-              Leadership Team
-            </h2>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-2xl font-extrabold uppercase font-serif tracking-tight text-slate-900 dark:text-white border-l-4 border-orange-500 pl-4">
+                Leadership Team
+              </h2>
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium pl-5 mt-1">
+                Executive directors and principal architects driving corporate strategy and technological innovation.
+              </p>
+            </div>
             {isAdmin && (
               <button 
                 onClick={() => setEditingLeader({ isNew: true, name: '', role: '', bio: '', image: '' })}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-orange-600 transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow-lg transition-all active:scale-95 shrink-0"
               >
-                <Plus size={12} /> Add Leader
+                <Plus size={14} /> Add Leader Profile
               </button>
             )}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {content.leadership.map((leader: any, i: number) => (
-              <div key={leader.id || i} className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200/40 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group relative">
-                <div className="h-64 overflow-hidden relative">
-                  <img 
-                    src={leader.image || 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=300&auto=format&fit=crop&q=60'} 
-                    alt={leader.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+              <motion.div 
+                key={leader.id || i}
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -6 }}
+                className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-md hover:shadow-2xl transition-all group relative flex flex-col justify-between"
+              >
+                <div>
+                  <div className="h-64 overflow-hidden relative bg-slate-950">
+                    <img 
+                      src={resolveImageUrl(leader.image || 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=300&auto=format&fit=crop&q=60')} 
+                      alt={leader.name} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent opacity-80" />
+                    
+                    <div className="absolute top-3 left-3 bg-slate-900/90 backdrop-blur px-3 py-1 rounded-xl border border-white/10 flex items-center gap-1.5 shadow-md">
+                      <UserCheck size={12} className="text-orange-400" />
+                      <span className="text-[10px] font-black text-white uppercase tracking-wider">Executive</span>
+                    </div>
+
+                    {isAdmin && (
+                      <div className="absolute top-3 right-3 flex items-center gap-1 bg-slate-900/90 backdrop-blur p-1.5 rounded-xl border border-white/10 shadow-lg">
+                        <button 
+                          onClick={() => moveLeader(i, 'up')} 
+                          disabled={i === 0}
+                          className="p-1.5 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg transition-colors disabled:opacity-30"
+                          title="Move Up"
+                        >
+                          <ArrowUp size={12} />
+                        </button>
+                        <button 
+                          onClick={() => moveLeader(i, 'down')} 
+                          disabled={i === content.leadership.length - 1}
+                          className="p-1.5 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg transition-colors disabled:opacity-30"
+                          title="Move Down"
+                        >
+                          <ArrowDown size={12} />
+                        </button>
+                        <button 
+                          onClick={() => setEditingLeader(leader)} 
+                          className="p-1.5 hover:bg-orange-500 text-slate-300 hover:text-white rounded-lg transition-colors"
+                          title="Edit Leader"
+                        >
+                          <Edit size={12} />
+                        </button>
+                        <button 
+                          onClick={() => deleteLeader(leader.id)} 
+                          className="p-1.5 hover:bg-rose-600 text-slate-300 hover:text-white rounded-lg transition-colors"
+                          title="Delete Leader"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-6 space-y-2.5 text-left">
+                    <h3 className="font-black text-slate-900 dark:text-white text-base uppercase font-serif tracking-tight">{leader.name}</h3>
+                    <span className="text-xs font-black text-orange-600 dark:text-orange-400 uppercase tracking-wider block font-mono">{leader.role}</span>
+                    <p className="text-slate-700 dark:text-slate-300 text-xs leading-relaxed font-medium">{leader.bio}</p>
+                  </div>
                 </div>
-                <div className="p-5 space-y-2">
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-sm uppercase font-serif">{leader.name}</h3>
-                  <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-wider block">{leader.role}</span>
-                  <p className="text-slate-500 dark:text-slate-300 text-xs leading-relaxed font-light">{leader.bio}</p>
-                </div>
+
                 {isAdmin && (
-                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setEditingLeader(leader)} className="p-1.5 bg-white/90 text-slate-800 rounded shadow hover:bg-white transition-colors">
-                      <Edit size={12} />
-                    </button>
-                    <button onClick={() => deleteLeader(leader.id)} className="p-1.5 bg-red-500/90 text-white rounded shadow hover:bg-red-500 transition-colors">
-                      <Trash2 size={12} />
+                  <div className="p-4 pt-0">
+                    <button
+                      onClick={() => setEditingLeader(leader)}
+                      className="w-full py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-slate-100 text-[10px] font-black uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5"
+                    >
+                      <Edit size={12} /> Edit Profile & Role
                     </button>
                   </div>
                 )}
-              </div>
+              </motion.div>
             ))}
           </div>
         </section>
@@ -475,7 +588,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
             {isAdmin && (
               <button 
                 onClick={() => setEditingTeam({ isNew: true, name: '', role: '' })}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-orange-600 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 text-white text-[10px] font-bold uppercase rounded-lg hover:bg-orange-500 transition-colors"
               >
                 <Plus size={12} /> Add Team Member
               </button>
@@ -484,15 +597,15 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {content.team.map((member: any, i: number) => (
-              <div key={member.id || i} className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-center relative group">
+              <div key={member.id || i} className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 text-center relative group shadow-sm">
                 <span className="font-extrabold text-slate-900 dark:text-white text-xs uppercase tracking-wide block font-serif">{member.name}</span>
-                <span className="text-[10px] text-slate-400 font-bold block mt-1">{member.role}</span>
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-bold block mt-1">{member.role}</span>
                 {isAdmin && (
-                  <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => setEditingTeam(member)} className="p-1 bg-slate-100 dark:bg-slate-800 text-slate-600 rounded">
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => setEditingTeam(member)} className="p-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded">
                       <Edit size={10} />
                     </button>
-                    <button onClick={() => deleteTeam(member.id)} className="p-1 bg-red-100 text-red-600 rounded">
+                    <button onClick={() => deleteTeam(member.id)} className="p-1 bg-rose-100 text-rose-600 rounded">
                       <Trash2 size={10} />
                     </button>
                   </div>
@@ -503,15 +616,15 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
         </section>
 
         {/* 6. CERTIFICATIONS */}
-        <section className="p-6 md:p-8 bg-indigo-950 text-white rounded-3xl border border-indigo-900 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden shadow-xl">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-orange-500/5 rounded-full filter blur-2xl pointer-events-none" />
+        <section className="p-6 md:p-8 bg-indigo-950 text-white rounded-3xl border border-indigo-900 flex flex-col md:flex-row justify-between items-center gap-6 relative overflow-hidden shadow-2xl">
+          <div className="absolute top-0 right-0 w-48 h-48 bg-orange-500/10 rounded-full filter blur-2xl pointer-events-none" />
           <div className="space-y-2 text-center md:text-left">
             <span className="text-orange-400 text-xs uppercase tracking-widest font-black">REGULATORY COMPLIANCE</span>
             <h2 className="text-2xl font-extrabold uppercase font-serif tracking-tight leading-tight">
               Accredited & <br />
               <span className="text-orange-400 font-extrabold italic">FIRS Authorized Entity</span>
             </h2>
-            <p className="text-slate-300 text-xs max-w-xl leading-relaxed font-light">
+            <p className="text-slate-200 text-xs max-w-xl leading-relaxed font-medium">
               DS Tech operates as an incorporated agency with full legal clearances. We maintain compliance reporting logs with CAC, FIRS (TIN processing node), and the Special Control Unit Against Money Laundering (SCUML).
             </p>
           </div>
@@ -527,94 +640,183 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
           </div>
         </section>
 
+        {/* Toast Notification */}
+        <AnimatePresence>
+          {toastMessage && (
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-2 border border-emerald-400 text-xs font-black uppercase tracking-wider"
+            >
+              <CheckCircle2 size={16} />
+              <span>{toastMessage}</span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Admin Modals */}
         <AnimatePresence>
           {editingLeader && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
               <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800"
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                className="bg-white dark:bg-slate-900 rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-800 space-y-6 text-left"
               >
-                <h3 className="text-lg font-bold mb-4 font-serif">{editingLeader.isNew ? 'Add Leader' : 'Edit Leader'}</h3>
-                <div className="space-y-4 text-sm">
+                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Name</label>
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase font-serif">
+                      {editingLeader.isNew ? 'Add Leadership Profile' : 'Edit Leader Details'}
+                    </h3>
+                    <p className="text-[10px] text-orange-500 font-bold uppercase tracking-widest">
+                      Executive Profile Editor
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setEditingLeader(null)}
+                    className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 rounded-xl"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                      Full Name *
+                    </label>
                     <input 
                       type="text" 
-                      value={editingLeader.name}
+                      value={editingLeader.name || ''}
                       onChange={(e) => setEditingLeader({ ...editingLeader, name: e.target.value })}
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-800 dark:text-white"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500"
+                      placeholder="e.g. Hassan Al-Amin"
                     />
                   </div>
+
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Role</label>
+                    <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                      Executive Role / Designation *
+                    </label>
                     <input 
                       type="text" 
-                      value={editingLeader.role}
+                      value={editingLeader.role || ''}
                       onChange={(e) => setEditingLeader({ ...editingLeader, role: e.target.value })}
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-800 dark:text-white"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 font-mono"
+                      placeholder="e.g. Founder & Chief Architect"
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Image URL</label>
-                    <input 
-                      type="text" 
-                      value={editingLeader.image}
-                      onChange={(e) => setEditingLeader({ ...editingLeader, image: e.target.value })}
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-800 dark:text-white"
-                    />
+
+                  {/* Photo Upload Component */}
+                  <div className="space-y-2 bg-slate-50 dark:bg-slate-950 p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                      <span>Leader Headshot Photo</span>
+                      <span className="text-[9px] text-orange-500 font-bold">Upload file or enter URL</span>
+                    </label>
+                    
+                    <div className="flex flex-col sm:flex-row gap-3 items-center">
+                      <label className="w-full sm:w-auto px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white text-xs font-black uppercase tracking-wider rounded-xl cursor-pointer flex items-center justify-center gap-2 shadow-sm transition-all shrink-0">
+                        {uploadingLeaderImg ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                        <span>{uploadingLeaderImg ? 'Uploading...' : 'Choose Photo File'}</span>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleLeaderImageUpload}
+                          className="hidden" 
+                        />
+                      </label>
+
+                      <input 
+                        type="text" 
+                        value={editingLeader.image || ''}
+                        onChange={(e) => setEditingLeader({ ...editingLeader, image: e.target.value })}
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-[11px] font-mono text-slate-900 dark:text-white focus:outline-none focus:border-orange-500"
+                        placeholder="https://..."
+                      />
+                    </div>
+
+                    {editingLeader.image && (
+                      <div className="relative mt-2 h-24 w-24 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-900">
+                        <img 
+                          src={resolveImageUrl(editingLeader.image)} 
+                          alt="Preview" 
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                    )}
                   </div>
+
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Bio</label>
+                    <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
+                      Executive Bio / Summary *
+                    </label>
                     <textarea 
-                      value={editingLeader.bio}
+                      rows={3}
+                      value={editingLeader.bio || ''}
                       onChange={(e) => setEditingLeader({ ...editingLeader, bio: e.target.value })}
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-800 dark:text-white min-h-[80px]"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-3 text-xs font-medium text-slate-900 dark:text-white leading-relaxed focus:outline-none focus:border-orange-500 resize-none"
+                      placeholder="Write executive bio and professional background..."
                     />
                   </div>
                 </div>
-                <div className="flex justify-end gap-3 mt-6">
-                  <button onClick={() => setEditingLeader(null)} className="px-4 py-2 text-xs font-bold text-slate-500">Cancel</button>
-                  <button onClick={handleSaveLeader} className="px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl">Save</button>
+
+                <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <button 
+                    type="button"
+                    onClick={() => setEditingLeader(null)} 
+                    className="px-4 py-2 text-xs font-black uppercase text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={handleSaveLeader} 
+                    className="px-6 py-2.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-black uppercase tracking-widest rounded-xl shadow-lg active:scale-95 transition-all"
+                  >
+                    Save Leader
+                  </button>
                 </div>
               </motion.div>
             </div>
           )}
 
           {editingTeam && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800"
+                className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 text-left"
               >
-                <h3 className="text-lg font-bold mb-4 font-serif">{editingTeam.isNew ? 'Add Member' : 'Edit Member'}</h3>
-                <div className="space-y-4 text-sm">
+                <h3 className="text-base font-black text-slate-900 dark:text-white uppercase font-serif">
+                  {editingTeam.isNew ? 'Add Team Member' : 'Edit Team Member'}
+                </h3>
+                <div className="space-y-3">
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Name</label>
+                    <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">Member Name</label>
                     <input 
                       type="text" 
                       value={editingTeam.name}
                       onChange={(e) => setEditingTeam({ ...editingTeam, name: e.target.value })}
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-800 dark:text-white"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-500 mb-1">Role</label>
+                    <label className="block text-[10px] font-black uppercase text-slate-700 dark:text-slate-300 mb-1">Role / Specialization</label>
                     <input 
                       type="text" 
                       value={editingTeam.role}
                       onChange={(e) => setEditingTeam({ ...editingTeam, role: e.target.value })}
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-slate-800 dark:text-white"
+                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white font-mono"
                     />
                   </div>
                 </div>
-                <div className="flex justify-end gap-3 mt-6">
+                <div className="flex justify-end gap-3 pt-3">
                   <button onClick={() => setEditingTeam(null)} className="px-4 py-2 text-xs font-bold text-slate-500">Cancel</button>
-                  <button onClick={handleSaveTeam} className="px-4 py-2 bg-orange-500 text-white text-xs font-bold rounded-xl">Save</button>
+                  <button onClick={handleSaveTeam} className="px-5 py-2 bg-orange-600 text-white text-xs font-black uppercase tracking-wider rounded-xl">Save</button>
                 </div>
               </motion.div>
             </div>

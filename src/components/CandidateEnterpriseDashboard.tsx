@@ -11,7 +11,7 @@ import {
   BarChart, Bar, Cell
 } from 'recharts';
 import { Logo } from './Logo';
-import { ProposalsTab, ContractsTab, PortfolioTab, CertificatesTab, CalendarTab, SupportTab, SettingsTab, AiTab } from './CandidateEnterpriseTabs';
+import { ProposalsTab, ContractsTab, PortfolioTab, CertificatesTab, CalendarTab, SupportTab, SettingsTab, AiTab, ApplicationsTab } from './CandidateEnterpriseTabs';
 
 interface FreelancerDashboardProps {
   currentUser: { fullName: string; email: string; id: string; role?: string; profilePhoto?: string } | null;
@@ -27,7 +27,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
   isDarkMode,
   setIsDarkMode
 }) => {
-  const [activeTab, setActiveTab] = useState<'home' | 'jobs' | 'proposals' | 'contracts' | 'messages' | 'earnings' | 'portfolio' | 'certificates' | 'calendar' | 'support' | 'settings' | 'ai'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'jobs' | 'applications' | 'proposals' | 'contracts' | 'messages' | 'earnings' | 'portfolio' | 'certificates' | 'calendar' | 'support' | 'settings' | 'ai'>('applications');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -79,6 +79,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
     {
       title: 'Work',
       items: [
+        { id: 'applications', label: 'My Applications', icon: FileCheck, badge: 'Portal' },
         { id: 'jobs', label: 'Browse Jobs', icon: Search },
         { id: 'proposals', label: 'My Proposals', icon: FileText },
         { id: 'contracts', label: 'Contracts', icon: Briefcase },
@@ -563,6 +564,7 @@ export const CandidateEnterpriseDashboard: React.FC<FreelancerDashboardProps> = 
                 </div>
               )}
 
+              {activeTab === 'applications' && <ApplicationsTab isDarkMode={isDarkMode} cardBgClass={cardBgClass} currentUser={currentUser} />}
               {activeTab === 'proposals' && <ProposalsTab isDarkMode={isDarkMode} cardBgClass={cardBgClass} />}
               {activeTab === 'contracts' && <ContractsTab isDarkMode={isDarkMode} cardBgClass={cardBgClass} />}
               {activeTab === 'portfolio' && <PortfolioTab isDarkMode={isDarkMode} cardBgClass={cardBgClass} />}

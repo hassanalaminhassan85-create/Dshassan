@@ -9,6 +9,7 @@ import { SERVICES, ServiceItem } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
 import { ServiceDetailView } from './ServiceDetailView';
 import { ServiceCard } from './ServiceCard';
+import { CustomQuoteModal } from './CustomQuoteModal';
 import { apiGetServices, apiInitializeServices, resolveImageUrl } from '../lib/api';
 import { Logo } from './Logo';
 
@@ -29,6 +30,8 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [visibleCount, setVisibleCount] = useState(8);
+  const [quoteModalService, setQuoteModalService] = useState<ServiceItem | null>(null);
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
 
   // Sync theme with document root
   useEffect(() => {
@@ -62,11 +65,29 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
           setServices(data);
           localStorage.setItem('admin_services', JSON.stringify(data));
         } else {
+          const saved = localStorage.getItem('admin_services');
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              if (parsed && parsed.length > 0) {
+                setServices(parsed);
+                await apiInitializeServices(parsed);
+                return;
+              }
+            } catch (e) {}
+          }
           setServices(SERVICES);
           await apiInitializeServices(SERVICES); 
         }
       } catch (err) {
-        console.warn('Database unreachable. Falling back to static data.');
+        console.warn('Database unreachable. Falling back to local data.');
+        const saved = localStorage.getItem('admin_services');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (parsed && parsed.length > 0) setServices(parsed);
+          } catch (e) {}
+        }
       }
     };
     fetchD1Services();
@@ -350,12 +371,25 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
                     bentoSpan={bentoSpan}
                     getCategoryIcon={getCategoryIcon}
                     getServiceImage={getServiceImage}
+                    onCustomQuote={(s) => {
+                      setQuoteModalService(s);
+                      setIsQuoteModalOpen(true);
+                    }}
                   />
                 );
               })}
             </AnimatePresence>
           </div>
         )}
+
+        {/* Custom Quote Modal */}
+        <CustomQuoteModal 
+          isOpen={isQuoteModalOpen} 
+          onClose={() => setIsQuoteModalOpen(false)} 
+          initialService={quoteModalService} 
+          allServices={services} 
+          language={language} 
+        />
 
         {/* LOAD MORE BUTTON */}
         {filteredServices.length > visibleCount && (

@@ -4,11 +4,12 @@ import {
   Sparkles, ArrowRight, BarChart3, Users, Star, ArrowUpRight, 
   ChevronRight, Calendar, Heart, ShieldCheck, Mail, MessageSquare, Phone
 } from 'lucide-react';
-import { SERVICES, TESTIMONIALS, PARTNERS } from '../lib/data';
+import { SERVICES, TESTIMONIALS, PARTNERS, ServiceItem } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
 import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
 import { CacTrustSection } from './CacTrustSection';
 import { OngoingProjectsSection } from './OngoingProjectsSection';
+import { CustomQuoteModal } from './CustomQuoteModal';
 import { apiGetServices, resolveImageUrl } from '../lib/api';
 
 interface HomeSectionProps {
@@ -29,7 +30,17 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
   const [bookingService, setBookingService] = useState('Digital Marketing');
   const [bookingSubmitted, setBookingSubmitted] = useState(false);
 
-  const [services, setServices] = useState(SERVICES);
+  const [services, setServices] = useState<ServiceItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('admin_services');
+      return saved ? JSON.parse(saved) : SERVICES;
+    } catch (e) {
+      return SERVICES;
+    }
+  });
+  const [homeCategory, setHomeCategory] = useState('all');
+  const [quoteModalService, setQuoteModalService] = useState<any | null>(null);
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
 
   useEffect(() => {
     async function loadServices() {
@@ -37,9 +48,25 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
         const fetchedServices = await apiGetServices();
         if (fetchedServices && fetchedServices.length > 0) {
           setServices(fetchedServices);
+          localStorage.setItem('admin_services', JSON.stringify(fetchedServices));
+        } else {
+          const saved = localStorage.getItem('admin_services');
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              if (parsed && parsed.length > 0) setServices(parsed);
+            } catch (err) {}
+          }
         }
       } catch (e) {
-        console.error("Failed to fetch services, using static data:", e);
+        console.error("Failed to fetch services, checking local storage:", e);
+        const saved = localStorage.getItem('admin_services');
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+            if (parsed && parsed.length > 0) setServices(parsed);
+          } catch (err) {}
+        }
       }
     }
     loadServices();
@@ -359,64 +386,151 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
       {/* 4.5 ENTERPRISE CAC CERTIFICATE TRUST CENTER */}
       <CacTrustSection language={language} />
 
-      {/* 5. FEATURED SERVICES PREVIEW */}
-      <section className="max-w-6xl mx-auto px-6 space-y-12">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-          <div className="text-left space-y-3">
-            <span className="text-orange-500 text-xs uppercase tracking-widest font-black">{t.featuredSolutionsSub}</span>
+      {/* 5. FEATURED SERVICES PREVIEW WITH HIGH MOTION CARDS */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8 text-left">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-slate-200/60 dark:border-slate-800 pb-6">
+          <div className="space-y-2">
+            <span className="text-orange-500 text-xs uppercase tracking-widest font-black flex items-center gap-1.5 font-mono">
+              <Sparkles size={14} className="text-amber-400" />
+              {t.featuredSolutionsSub}
+            </span>
             <h2 className="text-2xl md:text-4xl font-extrabold text-[#000E32] dark:text-white uppercase font-serif tracking-tight">
               {t.featuredSolutions}
             </h2>
+            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-xl font-medium">
+              Explore our vetted digital, AI, and regulatory compliance services. Click any service for instant details or submit a custom budget brief directly to WhatsApp.
+            </p>
           </div>
-          <button 
-            onClick={() => onNavigate('/services')}
-            className="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors border border-indigo-100/50 dark:border-indigo-900/30"
-          >
-            <span>{t.viewAllServicesBtn}</span>
-            <ChevronRight size={14} />
-          </button>
+
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <button
+              onClick={() => {
+                setQuoteModalService(null);
+                setIsQuoteModalOpen(true);
+              }}
+              className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-md transition-all active:scale-95"
+            >
+              <MessageSquare size={14} />
+              <span>Custom Quote & Brief</span>
+            </button>
+
+            <button 
+              onClick={() => onNavigate('/services')}
+              className="px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-colors border border-indigo-100/50 dark:border-indigo-900/30"
+            >
+              <span>{t.viewAllServicesBtn}</span>
+              <ChevronRight size={14} />
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {services.slice(0, 3).map((svc) => (
-            <motion.div 
-              whileHover={{ scale: 1.02, y: -4 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onSelectService(svc.id)}
-              key={svc.id} 
-              className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200/40 dark:border-slate-800 shadow-sm hover:shadow-lg transition-all group flex flex-col h-full cursor-pointer"
+        {/* Category Filter Pills on Home */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+          {[
+            { id: 'all', label: 'All Solutions' },
+            { id: 'marketing', label: 'Digital Marketing' },
+            { id: 'web', label: 'Software & Web' },
+            { id: 'ai', label: 'AI & Automation' },
+            { id: 'compliance', label: 'CAC Legal Compliance' }
+          ].map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setHomeCategory(cat.id)}
+              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all border ${
+                homeCategory === cat.id
+                  ? 'bg-orange-600 text-white border-orange-500 shadow-md scale-105'
+                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-400'
+              }`}
             >
-              <div className="relative h-48 overflow-hidden">
-                <img 
-                  src={resolveImageUrl(svc.image)} 
-                  alt={svc.name} 
-                  referrerPolicy="no-referrer"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute top-3 right-3 bg-[#000E32]/85 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] uppercase font-black text-orange-400 border border-white/5">
-                  {svc.price}
-                </div>
-              </div>
-              <div className="p-5 text-left flex-grow flex flex-col justify-between space-y-4">
-                <div className="space-y-2">
-                  <span className="text-[9px] font-mono tracking-widest uppercase text-indigo-500 dark:text-indigo-400 font-bold block">{svc.category}</span>
-                  <h3 className="font-extrabold text-[#000E32] dark:text-white text-sm line-clamp-1 group-hover:text-orange-500 transition-colors font-serif uppercase">{svc.name}</h3>
-                  <p className="text-slate-500 dark:text-slate-300 text-xs leading-relaxed line-clamp-2">{svc.description}</p>
-                </div>
-                
-                <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800/80">
-                  <span className="text-[10px] font-bold text-orange-500 group-hover:underline">
-                    {language === 'zh' ? '查看详情内容 →' : 'Learn Details →'}
-                  </span>
-                  <span className="text-[10px] text-slate-400">
-                    ID: {svc.id}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
+              {cat.label}
+            </button>
           ))}
         </div>
+
+        {/* High Motion Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {services
+            .filter(s => homeCategory === 'all' || s.category === homeCategory)
+            .slice(0, 6)
+            .map((svc, idx) => (
+              <motion.div 
+                key={svc.id}
+                layout
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                whileHover={{ 
+                  y: -8, 
+                  scale: 1.02,
+                  boxShadow: "0 25px 30px -5px rgba(0, 0, 0, 0.15)"
+                }}
+                transition={{ type: "spring", stiffness: 280, damping: 20 }}
+                onClick={() => onSelectService(svc.id)}
+                className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800/90 shadow-md hover:border-orange-500 dark:hover:border-orange-400 transition-all group flex flex-col justify-between cursor-pointer relative"
+              >
+                <div>
+                  <div className="relative h-48 overflow-hidden bg-slate-950">
+                    <img 
+                      src={resolveImageUrl(svc.image)} 
+                      alt={svc.name} 
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60" />
+                    <div className="absolute top-3 left-3 bg-[#000E32]/90 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] uppercase font-mono font-black text-orange-400 border border-white/10 shadow-md">
+                      {svc.price}
+                    </div>
+                    <div className="absolute top-3 right-3 bg-white/10 backdrop-blur-md px-2.5 py-1 rounded-xl text-[9px] uppercase font-black text-white border border-white/15">
+                      {svc.category}
+                    </div>
+                  </div>
+
+                  <div className="p-5 text-left space-y-3">
+                    <span className="text-[9px] font-mono tracking-widest uppercase text-indigo-600 dark:text-indigo-400 font-extrabold block">
+                      {svc.category}
+                    </span>
+                    <h3 className="font-extrabold text-[#000E32] dark:text-white text-base line-clamp-2 group-hover:text-orange-500 transition-colors font-serif uppercase tracking-tight">
+                      {svc.name}
+                    </h3>
+                    <p className="text-slate-700 dark:text-slate-300 text-xs leading-relaxed line-clamp-3 font-medium">
+                      {svc.description}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-5 pt-0 mt-2">
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/80 gap-2">
+                    <span className="text-[10px] font-black text-orange-500 group-hover:text-orange-600 uppercase tracking-wider flex items-center gap-1">
+                      <span>{language === 'zh' ? '查看详情内容 ➔' : 'Learn Details ➔'}</span>
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setQuoteModalService(svc);
+                        setIsQuoteModalOpen(true);
+                      }}
+                      className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 transition-all flex items-center gap-1 shadow-sm shrink-0"
+                    >
+                      <MessageSquare size={11} />
+                      <span>Custom Brief ➔</span>
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+        </div>
       </section>
+
+      {/* Custom Quote Modal Component on Home */}
+      <CustomQuoteModal 
+        isOpen={isQuoteModalOpen} 
+        onClose={() => setIsQuoteModalOpen(false)} 
+        initialService={quoteModalService} 
+        allServices={services} 
+        language={language} 
+      />
 
       {/* 5.5 ENTERPRISE ONGOING PROJECTS SECTION */}
       <OngoingProjectsSection language={language} />

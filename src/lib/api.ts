@@ -644,6 +644,17 @@ export interface CacMetadata {
 const CAC_COLLECTION = 'cac_metadata';
 
 export async function apiGetCacMetadata(admin: boolean = false): Promise<CacMetadata[]> {
+  // First attempt backend API endpoint
+  try {
+    const res = await fetch(`/api/cac/metadata${admin ? '?admin=true' : ''}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) return data;
+    }
+  } catch (apiErr) {
+    console.warn("Backend CAC GET failed, attempting Firestore fallback:", apiErr);
+  }
+
   try {
     const cacRef = collection(db, CAC_COLLECTION);
     let q;
@@ -661,6 +672,21 @@ export async function apiGetCacMetadata(admin: boolean = false): Promise<CacMeta
 }
 
 export async function apiSaveCacMetadata(metadata: Partial<CacMetadata>): Promise<CacMetadata> {
+  // Try backend API first to guarantee persistent storage
+  try {
+    const res = await fetch('/api/cac/metadata', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(metadata)
+    });
+    if (res.ok) {
+      const record = await res.json();
+      if (record && !record.error) return record;
+    }
+  } catch (apiErr) {
+    console.warn("Backend API save failed, attempting Firestore:", apiErr);
+  }
+
   try {
     const cacRef = collection(db, CAC_COLLECTION);
     const now = new Date().toISOString();
@@ -686,6 +712,10 @@ export async function apiSaveCacMetadata(metadata: Partial<CacMetadata>): Promis
 
 export async function apiDeleteCacMetadata(id: string): Promise<{ success: boolean }> {
   try {
+    const res = await fetch(`/api/cac/metadata?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+    if (res.ok) return { success: true };
+  } catch (e) {}
+  try {
     await deleteDoc(doc(db, CAC_COLLECTION, id));
     return { success: true };
   } catch (e) {
@@ -695,6 +725,14 @@ export async function apiDeleteCacMetadata(id: string): Promise<{ success: boole
 }
 
 export async function apiToggleCacPublish(id: string, isPublished: boolean): Promise<{ success: boolean; id: string; is_published: number }> {
+  try {
+    const res = await fetch('/api/cac/metadata/publish', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, is_published: isPublished ? 1 : 0 })
+    });
+    if (res.ok) return { success: true, id, is_published: isPublished ? 1 : 0 };
+  } catch (e) {}
   try {
     const cacDoc = doc(db, CAC_COLLECTION, id);
     const pubVal = isPublished ? 1 : 0;
@@ -947,8 +985,8 @@ export async function apiUploadGeneralFile(file: File): Promise<{
 
 // Universal image URL resolver helper
 export function resolveImageUrl(urlOrKey: string | null | undefined, fallbackUrl?: string): string {
-  if (!urlOrKey || !urlOrKey.trim() || urlOrKey.includes('unsplash.com')) {
-    if (fallbackUrl && !fallbackUrl.includes('unsplash.com')) return fallbackUrl;
+  if (!urlOrKey || !urlOrKey.trim()) {
+    if (fallbackUrl) return fallbackUrl;
     return generateDynamicSvgUrl('DS Tech Enterprise', 'software', 'card');
   }
   const trimmed = urlOrKey.trim();
@@ -963,8 +1001,8 @@ export function resolveImageUrl(urlOrKey: string | null | undefined, fallbackUrl
 
 // Staff image resolver helper
 export function resolveStaffImageUrl(urlOrKey: string | null | undefined, fallbackUrl?: string): string {
-  if (!urlOrKey || !urlOrKey.trim() || urlOrKey.includes('unsplash.com')) {
-    if (fallbackUrl && !fallbackUrl.includes('unsplash.com')) return fallbackUrl;
+  if (!urlOrKey || !urlOrKey.trim()) {
+    if (fallbackUrl) return fallbackUrl;
     return generateAvatarSvgUrl('Staff Member', 'Enterprise Specialist');
   }
   const trimmed = urlOrKey.trim();

@@ -90,6 +90,9 @@ export interface JobApplication {
   // HR/Admin status tracking
   status?: 'pending' | 'approved' | 'rejected';
   adminNotes?: string;
+  applicantEmail?: string;
+  recruiterEmail?: string;
+  submittedAt?: string;
 }
 
 export interface Department {

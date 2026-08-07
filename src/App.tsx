@@ -21,7 +21,7 @@ import { CareersSection } from './components/CareersSection';
 import { RecognitionSection } from './components/RecognitionSection';
 import { TutorDashboard } from './components/TutorDashboard';
 import { JobApplication } from './types';
-import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, ArrowLeft, ArrowRight, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint, Briefcase } from 'lucide-react';
+import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, ArrowLeft, ArrowRight, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint, Briefcase, FileCheck } from 'lucide-react';
 import { Logo } from './components/Logo';
 import { apiGetApplication, apiSaveApplication, apiUpdateApplication } from './lib/storage';
 import { apiGetCacMetadata } from './lib/api';
@@ -846,19 +846,6 @@ export default function App() {
             )}
 
             <button
-              onClick={() => safeNavigate('/account')}
-              type="button"
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shadow-sm border ${
-                activePage === 'account'
-                  ? 'bg-gradient-to-r from-orange-600 to-indigo-600 text-white border-transparent'
-                  : 'bg-indigo-50/50 hover:bg-indigo-100/60 dark:bg-slate-800 dark:hover:bg-slate-700 border-indigo-100/50 dark:border-slate-800 text-slate-700 dark:text-slate-300'
-              }`}
-            >
-              <Fingerprint size={12} className={activePage === 'account' ? 'text-white' : 'text-orange-500'} />
-              <span>Candidate Hub (2026)</span>
-            </button>
-
-            <button
               onClick={() => safeNavigate('/staff-portal')}
               type="button"
               className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shadow-sm border ${
@@ -873,12 +860,12 @@ export default function App() {
 
             {!currentAppId && !isAdminView && !isApplying && (
               <button
-                onClick={loadDemoSeed}
+                onClick={() => setIsApplying(true)}
                 type="button"
-                className="px-3 py-1.5 bg-orange-50 hover:bg-orange-100 dark:bg-orange-950/40 dark:hover:bg-orange-900/40 text-orange-700 dark:text-orange-400 hover:text-orange-800 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shadow-sm border border-orange-100 dark:border-orange-900"
+                className="px-3.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shadow-sm"
               >
-                <Play size={12} className="fill-current text-orange-600" />
-                {t.demoAutofill}
+                <ClipboardEdit size={12} />
+                <span>Apply Now</span>
               </button>
             )}
 
@@ -986,27 +973,6 @@ export default function App() {
                         <ArrowRight size={10} className="text-slate-400" />
                       </button>
                     )}
-
-                    <button
-                      onClick={() => {
-                        safeNavigate('/account');
-                        setIsMobileMenuOpen(false);
-                      }}
-                      type="button"
-                      className={`w-full flex items-center justify-between px-3.5 py-2 border rounded-2xl transition-all ${
-                        activePage === 'account'
-                          ? 'bg-orange-500/5 border-orange-500/20'
-                          : 'bg-slate-50 dark:bg-slate-800/40 border-slate-100/80 dark:border-slate-800/80'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${activePage === 'account' ? 'bg-orange-500/10' : 'bg-slate-200/50 dark:bg-slate-700/50'}`}>
-                          <Fingerprint size={12} className={activePage === 'account' ? 'text-orange-500' : 'text-slate-500'} />
-                        </div>
-                        <span className={`text-[10px] font-bold ${activePage === 'account' ? 'text-orange-600 dark:text-orange-400' : 'text-slate-600 dark:text-slate-400'}`}>Candidate Hub</span>
-                      </div>
-                      <ArrowRight size={10} className="text-slate-400" />
-                    </button>
 
                     <button
                       onClick={() => {
@@ -1398,16 +1364,6 @@ export default function App() {
                         >
                           <ClipboardEdit size={14} className="group-hover:rotate-6 transition-transform text-orange-200" />
                           <span>Apply For Accreditation</span>
-                        </motion.button>
-                        
-                        <motion.button
-                          whileHover={{ scale: 1.03, y: -2 }}
-                          whileTap={{ scale: 0.97 }}
-                          onClick={loadDemoSeed}
-                          className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Play size={12} className="fill-current text-orange-400 animate-pulse" />
-                          <span>Launch Demo Profile</span>
                         </motion.button>
                       </div>
 

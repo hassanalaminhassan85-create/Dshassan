@@ -94,11 +94,28 @@ export const RecruitmentCMS: React.FC<RecruitmentCMSProps> = ({
     }
   };
 
-  const handleUpdateStatus = async (id: string, status: string) => {
+  const handleUpdateStatus = async (id: string, status: 'pending' | 'approved' | 'rejected') => {
     try {
-      await apiUpdateApplication(id, { status });
+      const appToUpdate = applications.find(a => a.id === id);
+      const approvalPayload = status === 'approved' ? {
+        approvedBy: {
+          approved: true,
+          role: 'HR Executive',
+          signature: 'HR_STAMP_APPROVED_' + Math.random().toString(36).substring(2, 6).toUpperCase(),
+          date: new Date().toISOString().split('T')[0],
+          offerRole: appToUpdate?.positionSkills?.majorRole || 'Staff Member',
+          monthlySalary: '₦150,000'
+        }
+      } : { approvedBy: undefined };
+
+      const payload = {
+        status,
+        ...approvalPayload
+      };
+
+      await apiUpdateApplication(id, payload);
       if (selectedApp && selectedApp.id === id) {
-        setSelectedApp({ ...selectedApp, status } as any);
+        setSelectedApp({ ...selectedApp, status, ...approvalPayload } as any);
       }
       onRefresh();
     } catch (err) {
@@ -299,16 +316,56 @@ export const RecruitmentCMS: React.FC<RecruitmentCMSProps> = ({
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {(!app.status || app.status === 'pending') && (
+                              <>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleUpdateStatus(app.id, 'approved'); }}
+                                  title="Approve Applicant & Unlock Offer"
+                                  className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border border-emerald-200 flex items-center gap-1 shadow-sm"
+                                >
+                                  <CheckCircle2 size={12} />
+                                  Approve
+                                </button>
+                                <button
+                                  onClick={(e) => { e.stopPropagation(); handleUpdateStatus(app.id, 'rejected'); }}
+                                  title="Reject Applicant"
+                                  className="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border border-rose-200 flex items-center gap-1 shadow-sm"
+                                >
+                                  <XCircle size={12} />
+                                  Reject
+                                </button>
+                              </>
+                            )}
+                            {app.status === 'approved' && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleUpdateStatus(app.id, 'rejected'); }}
+                                title="Change to Rejected"
+                                className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border border-rose-200"
+                              >
+                                Reject
+                              </button>
+                            )}
+                            {app.status === 'rejected' && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleUpdateStatus(app.id, 'approved'); }}
+                                title="Change to Approved"
+                                className="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all border border-emerald-200"
+                              >
+                                Approve
+                              </button>
+                            )}
                             <button
                               onClick={(e) => { e.stopPropagation(); onViewApplicant(app.id); }}
-                              className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-indigo-500 transition-all border border-transparent hover:border-slate-200"
+                              title="View Full Profile"
+                              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-indigo-500 transition-all border border-transparent hover:border-slate-200"
                             >
                               <Eye size={16} />
                             </button>
                             <button
                               onClick={(e) => { e.stopPropagation(); handleDeleteRecord(app.id); }}
-                              className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-rose-500 transition-all border border-transparent hover:border-slate-200"
+                              title="Delete Record"
+                              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-rose-500 transition-all border border-transparent hover:border-slate-200"
                             >
                               <Trash2 size={16} />
                             </button>
