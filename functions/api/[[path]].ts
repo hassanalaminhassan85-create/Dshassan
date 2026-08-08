@@ -2758,7 +2758,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
               if (adminParam !== 'true') {
                 query += ' WHERE is_published = 1';
               }
-              query += ' ORDER BY display_order ASC, created_at DESC';
+              query += ' ORDER BY updated_at DESC, created_at DESC, display_order ASC';
               const res = await env.DB.prepare(query).all();
               return new Response(JSON.stringify(res.results || []), { headers });
             }

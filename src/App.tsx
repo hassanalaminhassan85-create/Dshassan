@@ -33,7 +33,7 @@ import {
   TikTokIcon 
 } from './components/SocialIcons';
 import { apiGetApplication, apiSaveApplication, apiUpdateApplication } from './lib/storage';
-import { apiGetCacMetadata } from './lib/api';
+import { apiGetCacMetadata, apiSubscribeToCacMetadata, apiSubscribeToRealtimeSync } from './lib/api';
 import { CAREER_ROLES, CATEGORIES, CareerRole } from './lib/roles';
 import { TRANSLATIONS, LANGUAGES, LanguageCode } from './lib/translations';
 import { RolesCatalog } from './components/RolesCatalog';
@@ -235,11 +235,34 @@ export default function App() {
       try {
         const data = await apiGetCacMetadata(false);
         if (data && data.length > 0) {
-          setPublishedCac(data[0]);
+          const published = data.find((c: any) => c.is_published === 1) || data[0];
+          if (published) {
+            setPublishedCac(published);
+          }
         }
       } catch (e) {}
     }
     loadCac();
+
+    const unsubCac = apiSubscribeToCacMetadata((cacData) => {
+      if (cacData && cacData.length > 0) {
+        const published = cacData.find((c: any) => c.is_published === 1) || cacData[0];
+        if (published) {
+          setPublishedCac(published);
+        }
+      }
+    });
+
+    const unsubSSE = apiSubscribeToRealtimeSync((event) => {
+      if (event?.type?.startsWith('CAC_')) {
+        loadCac();
+      }
+    });
+
+    return () => {
+      unsubCac();
+      unsubSSE();
+    };
   }, []);
 
   // Interactive 2027 App Shell full-screen state
@@ -1678,7 +1701,7 @@ export default function App() {
                 Amplifying digital footprints and building next-generation digital products across West Africa and beyond. We combine high-performance marketing, creative brand storytelling, and modern React/Web engineering.
               </p>
               <div className="text-[11px] text-slate-400 font-bold space-y-1">
-                <div>RC Number: <span className="text-slate-200 font-mono">{publishedCac?.registration_number || '1845921'}</span></div>
+                <div>RC Number: <motion.span key={publishedCac?.registration_number || publishedCac?.updated_at || '1845921'} initial={{ scale: 1.15, color: '#fb923c' }} animate={{ scale: 1, color: '#e2e8f0' }} transition={{ duration: 1.2, ease: 'easeOut' }} className="text-slate-200 font-mono inline-block">{publishedCac?.registration_number || '1845921'}</motion.span></div>
                 <div>Status: <span className="text-emerald-400">{publishedCac?.company_status || 'Incorporated & Active'}</span></div>
               </div>
             </motion.div>

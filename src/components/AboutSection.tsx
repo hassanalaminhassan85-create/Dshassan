@@ -95,10 +95,9 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
 
     const unsubCac = apiSubscribeToCacMetadata((cacData) => {
       if (cacData && cacData.length > 0) {
-        // Filter for published ones if not admin
-        const published = cacData.filter(c => c.is_published === 1);
-        if (published.length > 0) {
-          setPublishedCac(published[0]);
+        const published = cacData.find((c: any) => c.is_published === 1) || cacData[0];
+        if (published) {
+          setPublishedCac(published);
         }
       }
     });

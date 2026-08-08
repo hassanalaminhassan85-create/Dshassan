@@ -25,7 +25,7 @@ export const OngoingProjectsSection: React.FC<{ language?: string }> = ({ langua
   useEffect(() => {
     setLoading(true);
     const unsubscribe = apiSubscribeToOngoingProjects((data) => {
-      const published = data.filter(p => p.is_published === 1);
+      const published = data.filter(p => p.is_published === 1 || p.is_published === true || p.is_published === undefined || p.is_published === '1');
       
       if (published.length > 0) {
         setProjects(published);

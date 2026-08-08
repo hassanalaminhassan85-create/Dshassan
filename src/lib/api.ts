@@ -272,17 +272,19 @@ export function apiSubscribeToRecognitionCertificates(callback: (certs: any[]) =
 }
 
 export function apiSubscribeToCacMetadata(callback: (metadata: any[]) => void): () => void {
-  const q = query(collection(db, 'cac_metadata'));
+  const q = query(collection(db, 'cac_metadata'), orderBy('updated_at', 'desc'));
   // Robust one-time immediate fetch fallback
   getDocs(q).then((snapshot) => {
     if (!snapshot.empty) {
       const metadata = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      metadata.sort((a: any, b: any) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime());
       callback(metadata);
     }
   }).catch((err) => console.warn("One-time cac metadata fetch warning:", err));
 
   return onSnapshot(q, (snapshot) => {
     const metadata = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    metadata.sort((a: any, b: any) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime());
     callback(metadata);
   }, (err) => console.error("CAC Metadata sub error:", err));
 }
@@ -342,13 +344,32 @@ export function apiSubscribeToPageContent(sectionKey: string, callback: (content
 // --- Dynamic Services Sync ---
 export async function apiGetServices(): Promise<any[]> {
   try {
+    const res = await fetch('/api/services');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) return data;
+    }
+  } catch (e) {}
+
+  try {
     const q = query(collection(db, 'services'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (!snapshot.empty) {
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
   } catch (e) {
     console.error("Firestore Services GET error:", e);
-    return [];
   }
+
+  try {
+    const saved = localStorage.getItem('admin_services');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+
+  return [];
 }
 
 export async function apiSaveService(service: any): Promise<any> {
@@ -434,13 +455,32 @@ export async function apiInitializeServices(items: any[]): Promise<any> {
 // --- Dynamic Portfolio Sync ---
 export async function apiGetPortfolio(): Promise<any[]> {
   try {
+    const res = await fetch('/api/portfolio');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) return data;
+    }
+  } catch (e) {}
+
+  try {
     const q = query(collection(db, 'portfolio'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    if (!snapshot.empty) {
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
   } catch (e) {
     console.error("Firestore Portfolio GET error:", e);
-    return [];
   }
+
+  try {
+    const saved = localStorage.getItem('admin_portfolio_projects');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+
+  return [];
 }
 
 export async function apiSavePortfolio(project: any): Promise<any> {
@@ -525,12 +565,30 @@ export async function apiInitializePortfolio(items: any[]): Promise<any> {
 // --- Dynamic Blogs Sync ---
 export async function apiGetBlogs(): Promise<any[]> {
   try {
+    const res = await fetch('/api/blogs');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) return data;
+    }
+  } catch (e) {}
+
+  try {
     const q = query(collection(db, 'blogs'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  } catch (e) {
-    return [];
-  }
+    if (!snapshot.empty) {
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
+  } catch (e) {}
+
+  try {
+    const saved = localStorage.getItem('admin_blogs');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+
+  return [];
 }
 
 export async function apiSaveBlog(blog: any): Promise<any> {
@@ -615,12 +673,22 @@ export async function apiInitializeBlogs(items: any[]): Promise<any> {
 // --- Dynamic Courses Sync ---
 export async function apiGetCourses(): Promise<any[]> {
   try {
+    const res = await fetch('/api/courses');
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) return data;
+    }
+  } catch (e) {}
+
+  try {
     const q = query(collection(db, 'courses'));
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  } catch (e) {
-    return [];
-  }
+    if (!snapshot.empty) {
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
+  } catch (e) {}
+
+  return [];
 }
 
 export async function apiSaveCourse(course: any): Promise<any> {
@@ -1000,7 +1068,9 @@ export async function apiGetCacMetadata(admin: boolean = false): Promise<CacMeta
     const res = await fetch(`/api/cac/metadata${admin ? '?admin=true' : ''}`);
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) return data;
+      if (Array.isArray(data) && data.length > 0) {
+        return data.sort((a: any, b: any) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime());
+      }
     }
   } catch (apiErr) {
     console.warn("Backend CAC GET failed, attempting Firestore fallback:", apiErr);
@@ -1010,12 +1080,13 @@ export async function apiGetCacMetadata(admin: boolean = false): Promise<CacMeta
     const cacRef = collection(db, CAC_COLLECTION);
     let q;
     if (admin) {
-      q = query(cacRef, orderBy('display_order', 'asc'));
+      q = query(cacRef, orderBy('updated_at', 'desc'));
     } else {
-      q = query(cacRef, where('is_published', '==', 1), orderBy('display_order', 'asc'));
+      q = query(cacRef, where('is_published', '==', 1), orderBy('updated_at', 'desc'));
     }
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(docSnapshot => ({ id: docSnapshot.id, ...(docSnapshot.data() as any) } as CacMetadata));
+    const docs = querySnapshot.docs.map(docSnapshot => ({ id: docSnapshot.id, ...(docSnapshot.data() as any) } as CacMetadata));
+    return docs.sort((a, b) => new Date(b.updated_at || b.created_at || 0).getTime() - new Date(a.updated_at || a.created_at || 0).getTime());
   } catch (e) {
     console.error("Error fetching CAC metadata from Firestore:", e);
     return [];
@@ -1172,13 +1243,28 @@ export interface RecognitionCertificate {
 }
 
 export async function apiGetRecognitionCertificates(admin: boolean = false, category?: string): Promise<RecognitionCertificate[]> {
-  let url = admin ? '/api/recognition/certificates?admin=true' : '/api/recognition/certificates';
-  if (category) {
-    url += (admin ? '&' : '?') + `category=${encodeURIComponent(category)}`;
-  }
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to retrieve recognition certificates.');
-  return res.json();
+  try {
+    let url = admin ? '/api/recognition/certificates?admin=true' : '/api/recognition/certificates';
+    if (category) {
+      url += (admin ? '&' : '?') + `category=${encodeURIComponent(category)}`;
+    }
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) return data;
+    }
+  } catch (e) {}
+
+  try {
+    const ref = collection(db, 'recognition_certificates');
+    const q = admin ? query(ref, orderBy('updated_at', 'desc')) : query(ref, where('is_published', '==', 1), orderBy('updated_at', 'desc'));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      return snapshot.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as RecognitionCertificate[];
+    }
+  } catch (e) {}
+
+  return [];
 }
 
 export async function apiSaveRecognitionCertificate(cert: Partial<RecognitionCertificate>): Promise<RecognitionCertificate> {
@@ -1327,10 +1413,25 @@ export interface OngoingProject {
 }
 
 export async function apiGetOngoingProjects(admin: boolean = false): Promise<OngoingProject[]> {
-  const url = admin ? '/api/ongoing-projects?admin=true' : '/api/ongoing-projects';
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Failed to retrieve ongoing projects.');
-  return res.json();
+  try {
+    const url = admin ? '/api/ongoing-projects?admin=true' : '/api/ongoing-projects';
+    const res = await fetch(url);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) return data;
+    }
+  } catch (e) {}
+
+  try {
+    const ongoingRef = collection(db, 'ongoing_projects');
+    const q = admin ? query(ongoingRef, orderBy('updated_at', 'desc')) : query(ongoingRef, where('is_published', '==', 1), orderBy('updated_at', 'desc'));
+    const snapshot = await getDocs(q);
+    if (!snapshot.empty) {
+      return snapshot.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as OngoingProject[];
+    }
+  } catch (e) {}
+
+  return [];
 }
 
 export async function apiSaveOngoingProject(project: Partial<OngoingProject>): Promise<OngoingProject> {
