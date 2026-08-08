@@ -1,23 +1,26 @@
 {
-  "short_name": "Al Ihsan",
-  "name": "Al Ihsan Online",
+  "short_name": "DS Tech PWA",
+  "name": "DS Tech Career Portal & Digital Agency",
   "icons": [
     {
-      "src": "https://alihsan.online/logo.png",
-      "type": "image/png",
+      "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=192&h=192&fit=crop&auto=format",
+      "type": "image/jpeg",
       "sizes": "192x192",
-      "purpose": "any"
+      "purpose": "any maskable"
     },
     {
-      "src": "https://alihsan.online/logo.png",
-      "type": "image/png",
+      "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=512&h=512&fit=crop&auto=format",
+      "type": "image/jpeg",
       "sizes": "512x512",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ],
   "start_url": "/",
-  "background_color": "#0c1428",
-  "theme_color": "#0c1428",
+  "scope": "/",
   "display": "standalone",
-  "orientation": "portrait"
+  "orientation": "any",
+  "background_color": "#090d16",
+  "theme_color": "#f59e0b",
+  "description": "DS Tech Official Career Portal, HR Admin Academy, and secure offline-first Progressive Web Application."
 }
+

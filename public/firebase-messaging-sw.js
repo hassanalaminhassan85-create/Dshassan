@@ -1,6 +1,60 @@
-// Firebase Service Worker for alihsan.online Push Notifications
+// Firebase Service Worker for DS Tech PWA & Push Notifications
 importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
 importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
+
+const CACHE_NAME = 'dstech-pwa-v1';
+const ASSETS_TO_CACHE = [
+  '/',
+  '/index.html',
+  '/manifest.json'
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS_TO_CACHE);
+    }).then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) => {
+      return Promise.all(
+        keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+      );
+    }).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        // Return cached response and fetch updated version in background
+        fetch(event.request).then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, networkResponse);
+            });
+          }
+        }).catch(() => {});
+        return cachedResponse;
+      }
+      return fetch(event.request).then((networkResponse) => {
+        return caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, networkResponse.clone());
+          return networkResponse;
+        });
+      }).catch(() => {
+        if (event.request.headers.get('accept')?.includes('text/html')) {
+          return caches.match('/');
+        }
+      });
+    })
+  );
+});
 
 // Initialize the Firebase app in the service worker
 firebase.initializeApp({
@@ -20,11 +74,11 @@ messaging.setBackgroundMessageHandler(function(payload) {
   console.log('[firebase-messaging-sw.js] Received background message:', payload);
   
   // Extract notification parameters
-  const notificationTitle = payload.notification?.title || payload.data?.title || 'New Notification';
+  const notificationTitle = payload.notification?.title || payload.data?.title || 'DS Tech Alert';
   const notificationOptions = {
-    body: payload.notification?.body || payload.data?.body || 'You have a new message from Al Ihsan.',
-    icon: payload.notification?.image || payload.data?.icon || 'https://alihsan.online/logo.png',
-    badge: 'https://alihsan.online/logo.png',
+    body: payload.notification?.body || payload.data?.body || 'You have a new update from DS Tech.',
+    icon: payload.notification?.image || payload.data?.icon || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=192&h=192&fit=crop&auto=format',
+    badge: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=192&h=192&fit=crop&auto=format',
     data: payload.data
   };
 
@@ -46,3 +100,4 @@ messaging.setBackgroundMessageHandler(function(payload) {
 
   return self.registration.showNotification(notificationTitle, notificationOptions);
 });
+

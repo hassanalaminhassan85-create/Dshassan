@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ApplicationView } from './components/ApplicationView';
 import { PremiumContactSection } from './components/PremiumContactSection';
+import { PWAPrompt } from './components/PWAPrompt';
 
 import { CareersForm } from './components/CareersForm';
 import { AdminDashboard } from './components/AdminDashboard';
@@ -491,6 +492,7 @@ export default function App() {
       dir={language === 'ar' ? 'rtl' : 'ltr'}
       className="min-h-screen bg-white dark:bg-slate-950 flex flex-col font-sans selection:bg-orange-500 selection:text-white transition-colors duration-300"
     >
+      <PWAPrompt />
       {/* Upper Navigation Header Bar */}
       {!isAdminView && !isUserLoggedIn && !['account', 'clients', 'training', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog'].includes(activePage) && (
         <header className="no-print bg-white dark:bg-slate-900/85 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-50 shadow-sm px-4 py-3 sm:px-6 sm:py-3.5 flex flex-col lg:flex-row gap-3 lg:gap-4 justify-between items-center transition-colors duration-300 animate-fade-in">
