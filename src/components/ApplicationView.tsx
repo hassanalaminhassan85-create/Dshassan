@@ -121,6 +121,18 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
     }
   };
 
+  const handleExportAppointmentPDF = () => {
+    setActiveTab('offer_letter');
+    setTimeout(() => {
+      try {
+        window.print();
+      } catch (err) {
+        console.error('PDF Export failed:', err);
+        alert("Saving as PDF is blocked by your browser's security settings inside this preview window. Please click the 'Open in New Tab' icon at the top-right of your screen to download your official PDF successfully!");
+      }
+    }, 250);
+  };
+
   const handleRedirectEmail = () => {
     const companyEmail = 'dstechanddigitalmarketingltd@gmail.com';
     const candidateName = appData.personalInfo?.fullName || 'Candidate';
@@ -249,6 +261,17 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
 
           {/* Right: Hamburger Menu Toggle (Mobile) + Refresh Live Approval Status */}
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleExportAppointmentPDF}
+              className="py-2 px-3.5 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white rounded-2xl text-xs font-extrabold transition-all flex items-center gap-1.5 shadow-md shadow-orange-600/20 cursor-pointer"
+              title="Export Appointment Letter to PDF in Clean Print-Ready Layout"
+            >
+              <FileDown size={14} />
+              <span className="hidden sm:inline">Export to PDF</span>
+              <span className="sm:hidden">PDF</span>
+            </button>
+
             <button
               type="button"
               onClick={handleRefreshStatus}

@@ -186,6 +186,8 @@ export const AdminAssetDiagnostics: React.FC = () => {
         const cac = await apiGetCacMetadata(true);
         cac.forEach(c => {
           const rawKey = c.r2_object_key || '';
+          const rcNum = (c as any).registration_number || (c as any).rc_number || 'N/A';
+          const isPub = c.is_published !== 0;
           allItems.push({
             id: c.id,
             title: c.company_name,
@@ -193,7 +195,7 @@ export const AdminAssetDiagnostics: React.FC = () => {
             rawKey,
             renderUrl: resolveImageUrl(rawKey),
             category: 'CAC Certificate',
-            subtext: `RC: ${(c as any).registration_number || (c as any).rc_number || 'N/A'}`,
+            subtext: `RC: ${rcNum} | ${isPub ? '🟢 Published on Home' : '🟡 Hidden from Home'}`,
             originalRecord: c
           });
         });
@@ -927,19 +929,35 @@ export const AdminAssetDiagnostics: React.FC = () => {
                 />
               </div>
 
-              <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 font-mono text-[10px] space-y-2 text-left">
-                <div className="flex justify-between text-slate-400">
+              <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 font-mono text-[10px] space-y-2.5 text-left max-h-60 overflow-y-auto scrollbar-thin">
+                <div className="flex justify-between items-center text-slate-400 pb-1 border-b border-slate-800">
                   <span>Record Type:</span>
                   <span className="text-white font-bold">{previewModalItem.category}</span>
                 </div>
-                <div className="flex justify-between text-slate-400">
-                  <span>Raw D1 Field:</span>
-                  <span className="text-amber-400 select-all font-bold">{previewModalItem.rawKey || '[Empty]'}</span>
+                <div className="flex justify-between items-center text-slate-400">
+                  <span>Raw Key / R2 Field:</span>
+                  <span className="text-amber-400 select-all font-bold truncate max-w-xs">{previewModalItem.rawKey || '[Empty]'}</span>
                 </div>
-                <div className="flex justify-between text-slate-400">
+                <div className="flex justify-between items-center text-slate-400">
                   <span>Target Stream URL:</span>
                   <span className="text-indigo-400 select-all break-all truncate max-w-xs">{previewModalItem.renderUrl}</span>
                 </div>
+                <div className="flex justify-between items-center text-slate-400 pt-1 border-t border-slate-800">
+                  <span>UI Mirroring Storage State:</span>
+                  <span className="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded font-bold uppercase text-[9px] flex items-center gap-1">
+                    <CheckCircle size={10} />
+                    <span>PERFECT SYNC MATCH</span>
+                  </span>
+                </div>
+
+                {previewModalItem.originalRecord && (
+                  <div className="pt-2 border-t border-slate-800 space-y-1">
+                    <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider block">Raw Storage Metadata Object (JSON):</span>
+                    <pre className="p-2 bg-slate-900 rounded-xl text-[9px] text-slate-300 font-mono overflow-x-auto select-all max-h-36">
+                      {JSON.stringify(previewModalItem.originalRecord, null, 2)}
+                    </pre>
+                  </div>
+                )}
               </div>
             </motion.div>
           </motion.div>

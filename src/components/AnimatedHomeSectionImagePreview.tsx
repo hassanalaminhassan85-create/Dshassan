@@ -5,6 +5,7 @@ import {
   ArrowUpRight, Monitor, Moon, Sun, Layers, Image as ImageIcon,
   Zap, Award, RefreshCw, Check
 } from 'lucide-react';
+import { resolveImageUrl, generateDynamicSvgUrl } from '../lib/api';
 
 interface AnimatedHomeSectionImagePreviewProps {
   imageSrc?: string | null;
@@ -38,9 +39,10 @@ export const AnimatedHomeSectionImagePreview: React.FC<AnimatedHomeSectionImageP
   const [imageError, setImageError] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  // Fallback image if none provided or on error
-  const defaultFallback = 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=80';
-  const effectiveImage = (!imageSrc || imageError) ? defaultFallback : imageSrc;
+  // Fallback SVG image if none provided or on error
+  const resolvedSrc = imageSrc ? resolveImageUrl(imageSrc) : '';
+  const defaultFallback = generateDynamicSvgUrl(title || 'DS Tech Enterprise Asset', category || 'software', 'hero');
+  const effectiveImage = (!resolvedSrc || imageError) ? defaultFallback : resolvedSrc;
 
   useEffect(() => {
     setImageError(false);

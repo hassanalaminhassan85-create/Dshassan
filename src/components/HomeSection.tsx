@@ -320,43 +320,72 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
       </section>
 
       {/* 4. WHY CHOOSE US */}
-      <section className="bg-white dark:bg-slate-900/50 py-16 border-y border-slate-200 dark:border-slate-800/40">
-        <div className="max-w-6xl mx-auto px-6 space-y-12">
-          <div className="text-center space-y-3">
-            <span className="text-orange-500 text-xs uppercase tracking-widest font-black">{t.whyBrandsTrustSub}</span>
-            <h2 className="text-2xl md:text-4xl font-extrabold text-[#000E32] dark:text-white uppercase font-serif tracking-tight">
+      <section className="relative bg-gradient-to-b from-slate-900/40 via-slate-900/80 to-slate-950 py-20 border-y border-orange-500/20 overflow-hidden">
+        {/* Animated Glow Orbs */}
+        <div className="absolute top-1/2 left-10 w-96 h-96 bg-orange-500/10 rounded-full filter blur-[120px] pointer-events-none animate-pulse" />
+        <div className="absolute bottom-0 right-10 w-96 h-96 bg-indigo-600/10 rounded-full filter blur-[120px] pointer-events-none animate-pulse" />
+
+        <div className="max-w-6xl mx-auto px-6 space-y-12 relative z-10">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center space-y-3"
+          >
+            <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 px-3.5 py-1 rounded-full text-orange-400 text-[11px] font-black uppercase tracking-widest shadow-lg">
+              <Sparkles size={13} className="animate-spin" />
+              <span className="font-hand text-xs normal-case tracking-wide text-orange-200">{t.whyBrandsTrustSub}</span>
+            </div>
+            <h2 className="text-3xl md:text-5xl font-extrabold text-[#000E32] dark:text-white uppercase font-serif tracking-tight leading-tight">
               {t.whyBrandsTrust}
             </h2>
-          </div>
+          </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {features.map((feat, i) => (
               <motion.div 
                 key={i} 
-                initial={{ opacity: 0, y: 25 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 35, scale: 0.95 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ delay: i * 0.08, type: "spring", stiffness: 300, damping: 20 }}
+                transition={{ delay: i * 0.12, type: "spring", stiffness: 260, damping: 18 }}
                 whileHover={{ 
-                  y: -8, 
+                  y: -12, 
                   scale: 1.04,
-                  borderColor: 'rgba(249, 115, 22, 0.45)',
-                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.06), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
+                  borderColor: 'rgba(249, 115, 22, 0.6)',
+                  boxShadow: "0 30px 45px -10px rgba(249, 115, 22, 0.18), 0 15px 20px -10px rgba(0, 0, 0, 0.2)"
                 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all space-y-4 text-left group cursor-pointer relative overflow-hidden"
+                className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xl transition-all space-y-5 text-left group cursor-pointer relative overflow-hidden"
               >
-                {/* Modern AI Indicator Line on hover */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 to-amber-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+                {/* Modern AI Shimmer Line on hover */}
+                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left shadow-md" />
                 
-                <div className="w-12 h-12 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center group-hover:scale-110 group-hover:bg-orange-500/10 group-hover:text-orange-500 transition-all duration-300">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500/10 to-indigo-500/10 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 group-hover:bg-orange-500/20 transition-all duration-500 border border-orange-500/20 shadow-inner">
                   {feat.icon}
                 </div>
-                <div className="space-y-1">
-                  <span className="text-[8px] font-mono tracking-widest text-orange-500 uppercase font-black block group-hover:animate-pulse">// INSTANT ACTION MATRIX</span>
-                  <h3 className="font-extrabold text-[#000E32] dark:text-white text-sm uppercase tracking-wide font-serif">{feat.title}</h3>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-mono tracking-widest text-orange-500 uppercase font-black block group-hover:animate-pulse">
+                      // HIGH MOTION MATRIX 0{i+1}
+                    </span>
+                    <span className="w-2 h-2 rounded-full bg-orange-500 group-hover:scale-150 transition-transform" />
+                  </div>
+                  <h3 className="font-extrabold text-[#000E32] dark:text-white text-base uppercase tracking-wider font-serif group-hover:text-orange-500 transition-colors">
+                    {feat.title}
+                  </h3>
                 </div>
-                <p className="text-slate-500 dark:text-slate-300 text-xs leading-relaxed font-light">{feat.desc}</p>
+
+                <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed font-light">
+                  {feat.desc}
+                </p>
+
+                <div className="pt-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-1 group-hover:translate-y-0 duration-300">
+                  <span>Explore Protocol</span>
+                  <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                </div>
               </motion.div>
             ))}
           </div>

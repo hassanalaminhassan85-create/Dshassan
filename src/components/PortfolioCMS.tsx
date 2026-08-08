@@ -4,11 +4,12 @@ import {
   FolderOpen, Plus, Edit3, Trash2, Sparkles, Filter, Check, 
   Search, Eye, Loader2, Image as ImageIcon, Save, X, 
   Target, ShieldCheck, Video, ExternalLink, Calendar,
-  Globe, User, Layout, Briefcase, ChevronRight, BarChart3
+  Globe, User, Layout, Briefcase, ChevronRight, BarChart3, Upload
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { 
-  apiGetPortfolio, apiSavePortfolio, apiUpdatePortfolio, apiDeletePortfolio, apiSubscribeToPortfolio 
+  apiGetPortfolio, apiSavePortfolio, apiUpdatePortfolio, apiDeletePortfolio, apiSubscribeToPortfolio,
+  apiUploadGeneralFile, resolveImageUrl
 } from '../lib/api';
 import { AnimatedHomeSectionImagePreview } from './AnimatedHomeSectionImagePreview';
 
@@ -46,7 +47,24 @@ export const PortfolioCMS: React.FC<PortfolioCMSProps> = ({ onRefresh }) => {
     display_live_website: true
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [tagInput, setTagInput] = useState('');
+
+  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploadingImage(true);
+      const res = await apiUploadGeneralFile(file);
+      if (res && (res.url || res.r2_object_key)) {
+        setFormState(prev => ({ ...prev, image: res.url || res.r2_object_key }));
+      }
+    } catch (err) {
+      console.error("Image upload failed:", err);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const categories = ['Digital Marketing', 'Software Development', 'Compliance Services', 'AI Solutions'];
 
@@ -328,13 +346,20 @@ export const PortfolioCMS: React.FC<PortfolioCMSProps> = ({ onRefresh }) => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-1.5 text-left">
-                      <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Visual Asset URL</label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Visual Asset Image</label>
+                        <label className="cursor-pointer text-[10px] font-bold text-orange-600 hover:text-orange-500 flex items-center gap-1">
+                          <Upload size={12} />
+                          <span>{uploadingImage ? 'Uploading...' : 'Upload File'}</span>
+                          <input type="file" accept="image/*" onChange={handleImageFileUpload} className="hidden" disabled={uploadingImage} />
+                        </label>
+                      </div>
                       <input 
                         type="text"
                         value={formState.image}
                         onChange={e => setFormState({...formState, image: e.target.value})}
                         className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-[10px] font-mono focus:bg-white focus:border-orange-500 transition-all outline-none"
-                        placeholder="https://images.unsplash.com/..."
+                        placeholder="Paste image URL or click 'Upload File' above"
                       />
                     </div>
                     <div className="space-y-1.5 text-left">
@@ -396,7 +421,7 @@ export const PortfolioCMS: React.FC<PortfolioCMSProps> = ({ onRefresh }) => {
                     {/* Hero Preview */}
                     <div className="relative h-64 rounded-3xl overflow-hidden group shadow-2xl">
                       {formState.image ? (
-                        <img src={formState.image} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        <img src={resolveImageUrl(formState.image)} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
                         <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-300"><ImageIcon size={48} strokeWidth={1} /></div>
                       )}
@@ -478,7 +503,7 @@ export const PortfolioCMS: React.FC<PortfolioCMSProps> = ({ onRefresh }) => {
                 >
                   <div className="h-56 relative bg-slate-900 overflow-hidden shrink-0">
                     <img 
-                      src={proj.image || 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=600&auto=format&fit=crop&q=80'} 
+                      src={resolveImageUrl(proj.image)} 
                       alt={proj.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000 opacity-90"
                       referrerPolicy="no-referrer"

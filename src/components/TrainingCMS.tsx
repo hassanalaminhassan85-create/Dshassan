@@ -4,10 +4,11 @@ import {
   GraduationCap, Plus, Edit3, Trash2, Sparkles, Filter, Check, 
   Search, Eye, Loader2, Image as ImageIcon, Save, X, 
   Clock, BookOpen, Layers, Target, Award, ArrowRight,
-  List, ShieldCheck, Zap
+  List, ShieldCheck, Zap, Upload
 } from 'lucide-react';
 import { 
-  apiGetCourses, apiSaveCourse, apiUpdateCourse, apiDeleteCourse, apiSubscribeToCourses 
+  apiGetCourses, apiSaveCourse, apiUpdateCourse, apiDeleteCourse, apiSubscribeToCourses,
+  apiUploadGeneralFile, resolveImageUrl
 } from '../lib/api';
 import { generateDynamicSvgUrl } from '../lib/mediaUtils';
 
@@ -35,6 +36,23 @@ export const TrainingCMS: React.FC<TrainingCMSProps> = ({ onRefresh }) => {
     lessons: [] as any[]
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploadingImage(true);
+      const res = await apiUploadGeneralFile(file);
+      if (res && (res.url || res.r2_object_key)) {
+        setFormState(prev => ({ ...prev, image: res.url || res.r2_object_key }));
+      }
+    } catch (err) {
+      console.error("Image upload failed:", err);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const categories = [
     { id: 'web', label: 'Frontend Web Engineering' },
@@ -305,14 +323,21 @@ export const TrainingCMS: React.FC<TrainingCMSProps> = ({ onRefresh }) => {
                   </div>
 
                   <div className="space-y-2 text-left">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Curriculum Visual Cover URL</label>
+                    <div className="flex items-center justify-between ml-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Curriculum Visual Cover Image</label>
+                      <label className="cursor-pointer text-[10px] font-bold text-orange-600 hover:text-orange-500 flex items-center gap-1">
+                        <Upload size={12} />
+                        <span>{uploadingImage ? 'Uploading...' : 'Upload File'}</span>
+                        <input type="file" accept="image/*" onChange={handleImageFileUpload} className="hidden" disabled={uploadingImage} />
+                      </label>
+                    </div>
                     <div className="flex gap-4">
                       <input 
                         type="text"
                         value={formState.image}
                         onChange={e => setFormState({...formState, image: e.target.value})}
                         className="flex-1 p-4 bg-slate-50 border border-slate-100 rounded-2xl text-[10px] font-mono focus:bg-white focus:border-orange-500 transition-all outline-none"
-                        placeholder="https://images.unsplash.com/..."
+                        placeholder="Paste image URL or click 'Upload File'"
                       />
                       <button 
                         type="button"
@@ -427,7 +452,7 @@ export const TrainingCMS: React.FC<TrainingCMSProps> = ({ onRefresh }) => {
                   <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-2xl max-w-[320px] mx-auto">
                     <div className="h-44 relative bg-slate-900">
                       {formState.image ? (
-                        <img src={formState.image} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                        <img src={resolveImageUrl(formState.image)} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-slate-700 bg-slate-50"><ImageIcon size={40} strokeWidth={1} /></div>
                       )}
@@ -523,7 +548,7 @@ export const TrainingCMS: React.FC<TrainingCMSProps> = ({ onRefresh }) => {
                 >
                   <div className="h-48 relative bg-slate-900 overflow-hidden shrink-0">
                     <img 
-                      src={crs.image || generateDynamicSvgUrl(crs.title, crs.category, 'course')} 
+                      src={resolveImageUrl(crs.image)} 
                       alt={crs.title}
                       className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-90"
                       referrerPolicy="no-referrer"

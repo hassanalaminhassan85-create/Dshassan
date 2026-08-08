@@ -3,11 +3,12 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   BookOpen, Plus, Edit3, Trash2, Sparkles, Filter, Check, 
   Search, Eye, Loader2, Image as ImageIcon, Save, X, 
-  Calendar, User, Clock, Tag, ChevronRight, Layout, ExternalLink
+  Calendar, User, Clock, Tag, ChevronRight, Layout, ExternalLink, Upload
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { 
-  apiGetBlogs, apiSaveBlog, apiUpdateBlog, apiDeleteBlog, apiSubscribeToBlogs 
+  apiGetBlogs, apiSaveBlog, apiUpdateBlog, apiDeleteBlog, apiSubscribeToBlogs,
+  apiUploadGeneralFile, resolveImageUrl
 } from '../lib/api';
 import { generateDynamicSvgUrl } from '../lib/mediaUtils';
 
@@ -35,7 +36,24 @@ export const BlogCMS: React.FC<BlogCMSProps> = ({ onRefresh }) => {
     tags: [] as string[]
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [tagInput, setTagInput] = useState('');
+
+  const handleImageFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploadingImage(true);
+      const res = await apiUploadGeneralFile(file);
+      if (res && (res.url || res.r2_object_key)) {
+        setFormState(prev => ({ ...prev, image: res.url || res.r2_object_key }));
+      }
+    } catch (err) {
+      console.error("Image upload failed:", err);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const categories = ['Marketing', 'Business Growth', 'AI', 'Technology', 'Legal'];
 
@@ -250,14 +268,21 @@ export const BlogCMS: React.FC<BlogCMSProps> = ({ onRefresh }) => {
                   </div>
 
                   <div className="space-y-1.5 text-left">
-                    <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Visual Asset URL</label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10px] font-black uppercase text-slate-400 ml-1 tracking-widest">Visual Asset Image</label>
+                      <label className="cursor-pointer text-[10px] font-bold text-orange-600 hover:text-orange-500 flex items-center gap-1">
+                        <Upload size={12} />
+                        <span>{uploadingImage ? 'Uploading...' : 'Upload File'}</span>
+                        <input type="file" accept="image/*" onChange={handleImageFileUpload} className="hidden" disabled={uploadingImage} />
+                      </label>
+                    </div>
                     <div className="flex gap-2">
                       <input 
                         type="text" 
                         value={formState.image}
                         onChange={e => setFormState({...formState, image: e.target.value})}
                         className="flex-1 p-3.5 bg-slate-50 border border-slate-100 rounded-2xl text-[10px] font-mono focus:bg-white focus:border-orange-500 focus:outline-none transition-all"
-                        placeholder="https://images.unsplash.com/..."
+                        placeholder="Paste URL or click 'Upload File'"
                       />
                       <button 
                         type="button"
@@ -346,7 +371,7 @@ export const BlogCMS: React.FC<BlogCMSProps> = ({ onRefresh }) => {
                       <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xl max-w-[320px] mx-auto">
                         <div className="h-40 relative bg-slate-900">
                           {formState.image ? (
-                            <img src={formState.image} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            <img src={resolveImageUrl(formState.image)} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-slate-700 bg-slate-50"><ImageIcon size={32} strokeWidth={1} /></div>
                           )}
@@ -438,7 +463,7 @@ export const BlogCMS: React.FC<BlogCMSProps> = ({ onRefresh }) => {
                           <div className="flex items-center gap-4">
                             <div className="w-16 h-10 rounded-xl overflow-hidden border border-slate-100 bg-slate-50 shrink-0">
                               <img 
-                                src={post.image || generateDynamicSvgUrl(post.title, post.category.toLowerCase(), 'blog')} 
+                                src={resolveImageUrl(post.image)} 
                                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                                 referrerPolicy="no-referrer"
                               />

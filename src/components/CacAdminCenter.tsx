@@ -262,6 +262,38 @@ export const CacAdminCenter: React.FC = () => {
   return (
     <div className="space-y-8 p-1 md:p-4 text-slate-800 dark:text-slate-100 text-left">
       
+      {/* Top Admin Action Header with Force Refresh */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-orange-600/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 rounded-2xl">
+            <ShieldCheck size={22} />
+          </div>
+          <div>
+            <h2 className="text-sm font-black uppercase tracking-wider text-[#000E32] dark:text-white">
+              CAC Trust & Accreditation Management
+            </h2>
+            <p className="text-xs text-slate-500 font-medium">
+              Synchronize, edit, or purge corporate CAC certificates mirrored on the public home portal.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={async () => {
+              await fetchCacData();
+              showNotification('Force refreshed CAC metadata directly from backend database.');
+            }}
+            disabled={loading}
+            className="px-4 py-2.5 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white text-xs font-black uppercase tracking-wider rounded-xl shadow transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+            title="Bypass local state and re-fetch latest CAC records from API"
+          >
+            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
+            <span>Force Refresh</span>
+          </button>
+        </div>
+      </div>
+
       {/* Dynamic Alerts */}
       <AnimatePresence>
         {error && (

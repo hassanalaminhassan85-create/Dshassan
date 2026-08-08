@@ -100,9 +100,10 @@ function readDB() {
     if (!data.cac_metadata) data.cac_metadata = [];
     if (!data.recognition_certificates) data.recognition_certificates = [];
     if (!data.ongoing_projects) data.ongoing_projects = [];
+    if (!data.uploaded_files) data.uploaded_files = [];
     return data;
   } catch (e) {
-    return { applications: [], scan_history: [], services: [], portfolio: [], blogs: [], courses: [], users: [], passkeys: [], biometric_logs: [], cac_metadata: [], recognition_certificates: [], ongoing_projects: [] };
+    return { applications: [], scan_history: [], services: [], portfolio: [], blogs: [], courses: [], users: [], passkeys: [], biometric_logs: [], cac_metadata: [], recognition_certificates: [], ongoing_projects: [], uploaded_files: [] };
   }
 }
 
@@ -198,6 +199,12 @@ const mockDB = {
             if (normalizedSql.includes("FROM cac_metadata WHERE id = ?")) {
               const id = params[0];
               const results = (db.cac_metadata || []).filter((r: any) => r.id === id);
+              return { results };
+            }
+            if (normalizedSql.includes("FROM uploaded_files")) {
+              const key1 = params[0];
+              const key2 = params[1] || key1;
+              const results = (db.uploaded_files || []).filter((f: any) => f.key === key1 || f.key === key2);
               return { results };
             }
             if (normalizedSql.includes("FROM cac_metadata")) {
@@ -484,6 +491,14 @@ const mockDB = {
               writeDB(db);
               return { success: true };
             }
+            if (normalizedSql.includes("uploaded_files") && (normalizedSql.includes("INSERT") || normalizedSql.includes("REPLACE"))) {
+              const [key, mime_type, base64_data, created_at] = params;
+              if (!db.uploaded_files) db.uploaded_files = [];
+              db.uploaded_files = db.uploaded_files.filter((f: any) => f.key !== key);
+              db.uploaded_files.push({ key, mime_type, base64_data, created_at });
+              writeDB(db);
+              return { success: true };
+            }
             return { success: true };
           }
         };
@@ -538,6 +553,9 @@ const mockDB = {
         }
         if (normalizedSql.includes("FROM biometric_logs")) {
           return { results: db.biometric_logs || [] };
+        }
+        if (normalizedSql.includes("FROM uploaded_files")) {
+          return { results: db.uploaded_files || [] };
         }
         return { results: [] };
       },

@@ -5,7 +5,7 @@ import {
   RotateCw, ZoomIn, ZoomOut, Maximize2, Download, Printer, Share2, 
   X, Loader2, CheckCircle, Info, Lock, ChevronLeft, ChevronRight, Eye, ArrowLeft, RotateCcw
 } from 'lucide-react';
-import { apiGetCacMetadata, CacMetadata, apiSubscribeToCacMetadata } from '../lib/api';
+import { apiGetCacMetadata, CacMetadata, apiSubscribeToCacMetadata, apiSubscribeToRealtimeSync } from '../lib/api';
 
 export function formatCleanFileName(fileNameOrKey: string, companyName?: string): string {
   if (!fileNameOrKey) return companyName ? `${companyName} Certificate` : 'Corporate Registration Certificate';
@@ -43,20 +43,13 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
   const viewerRef = React.useRef<HTMLDivElement>(null);
   const printFrameRef = React.useRef<HTMLIFrameElement>(null);
 
-  React.useEffect(() => {
-    setLoading(true);
-    const unsubscribe = apiSubscribeToCacMetadata((data) => {
-      setCertificates(data as CacMetadata[]);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
   const fetchCacData = async () => {
     try {
       setLoading(true);
       const data = await apiGetCacMetadata(false);
-      setCertificates(data);
+      if (Array.isArray(data)) {
+        setCertificates(data);
+      }
       setError(null);
     } catch (err: any) {
       console.error('Error fetching CAC metadata:', err);
@@ -66,7 +59,38 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
     }
   };
 
-  const activeCac = certificates.length > 0 ? certificates[activeIndex] : null;
+  React.useEffect(() => {
+    setLoading(true);
+    const unsubFS = apiSubscribeToCacMetadata((data) => {
+      if (Array.isArray(data)) {
+        setCertificates(data as CacMetadata[]);
+      }
+      setLoading(false);
+    });
+
+    const unsubSSE = apiSubscribeToRealtimeSync((event) => {
+      if (event?.type?.startsWith('CAC_')) {
+        fetchCacData();
+      }
+    });
+
+    fetchCacData();
+
+    return () => {
+      unsubFS();
+      unsubSSE();
+    };
+  }, []);
+
+  const publishedCertificates = React.useMemo(() => {
+    return certificates
+      .filter(c => c.is_published !== 0)
+      .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0));
+  }, [certificates]);
+
+  const activeCac = publishedCertificates.length > 0 
+    ? publishedCertificates[Math.min(activeIndex, publishedCertificates.length - 1)] 
+    : null;
 
   // Zoom controls
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.25, 3));
@@ -585,20 +609,20 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
             </div>
 
             {/* Pagination Controls */}
-            {certificates.length > 1 && (
+            {publishedCertificates.length > 1 && (
               <div className="flex items-center justify-end gap-3 mt-8 pt-4 border-t border-slate-800/80">
                 <button 
-                  onClick={() => setActiveIndex(prev => (prev - 1 + certificates.length) % certificates.length)}
+                  onClick={() => setActiveIndex(prev => (prev - 1 + publishedCertificates.length) % publishedCertificates.length)}
                   className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 rounded-xl transition-colors cursor-pointer"
                   title="Previous Certificate"
                 >
                   <ChevronLeft size={16} />
                 </button>
                 <span className="text-xs font-mono font-bold text-slate-400">
-                  Record {activeIndex + 1} of {certificates.length}
+                  Record {activeIndex + 1} of {publishedCertificates.length}
                 </span>
                 <button 
-                  onClick={() => setActiveIndex(prev => (prev + 1) % certificates.length)}
+                  onClick={() => setActiveIndex(prev => (prev + 1) % publishedCertificates.length)}
                   className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 rounded-xl transition-colors cursor-pointer"
                   title="Next Certificate"
                 >
