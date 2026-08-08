@@ -86,6 +86,9 @@ export interface JobApplication {
   appointmentAccepted?: boolean;
   appointmentSignature?: string;
   appointmentAcceptanceDate?: string;
+  appointmentAccountName?: string;
+  appointmentBankName?: string;
+  appointmentAccountNumber?: string;
 
   // HR/Admin status tracking
   status?: 'pending' | 'approved' | 'rejected';

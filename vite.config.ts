@@ -654,7 +654,23 @@ function cloudflarePagesDevPlugin() {
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss(), cloudflarePagesDevPlugin()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      cloudflarePagesDevPlugin(),
+      {
+        name: 'copy-200-html',
+        closeBundle() {
+          const distDir = path.resolve(process.cwd(), 'dist');
+          const indexHtml = path.resolve(distDir, 'index.html');
+          const fallbackHtml = path.resolve(distDir, '200.html');
+          if (fs.existsSync(indexHtml)) {
+            fs.copyFileSync(indexHtml, fallbackHtml);
+            console.log('Successfully copied index.html to 200.html for Cloudflare Pages SPA fallback');
+          }
+        }
+      }
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

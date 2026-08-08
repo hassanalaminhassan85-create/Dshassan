@@ -145,8 +145,8 @@ export const TrainingAcademySection: React.FC<{ onBackToPortal?: () => void }> =
       if (data.length > 0) {
         setCourses(data as Course[]);
       } else {
-        // Import original COURSES as fallback if firestore is empty
-        import('../lib/data').then(m => setCourses(m.COURSES));
+        // Fallback to imported COURSES if database returned empty
+        setCourses(COURSES);
       }
     });
     return () => unsubscribe();

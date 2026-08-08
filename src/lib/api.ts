@@ -161,6 +161,14 @@ import { onSnapshot } from 'firebase/firestore';
 
 export function apiSubscribeToServices(callback: (services: any[]) => void): () => void {
   const q = query(collection(db, 'services'));
+  // Robust one-time immediate fetch fallback
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const services = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(services);
+    }
+  }).catch((err) => console.warn("One-time services fetch warning:", err));
+
   return onSnapshot(q, (snapshot) => {
     const services = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(services);
@@ -169,6 +177,14 @@ export function apiSubscribeToServices(callback: (services: any[]) => void): () 
 
 export function apiSubscribeToPortfolio(callback: (projects: any[]) => void): () => void {
   const q = query(collection(db, 'portfolio'));
+  // Robust one-time immediate fetch fallback
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(projects);
+    }
+  }).catch((err) => console.warn("One-time portfolio fetch warning:", err));
+
   return onSnapshot(q, (snapshot) => {
     const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(projects);
@@ -177,6 +193,14 @@ export function apiSubscribeToPortfolio(callback: (projects: any[]) => void): ()
 
 export function apiSubscribeToBlogs(callback: (blogs: any[]) => void): () => void {
   const q = query(collection(db, 'blogs'));
+  // Robust one-time immediate fetch fallback
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const blogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(blogs);
+    }
+  }).catch((err) => console.warn("One-time blogs fetch warning:", err));
+
   return onSnapshot(q, (snapshot) => {
     const blogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(blogs);
@@ -185,6 +209,14 @@ export function apiSubscribeToBlogs(callback: (blogs: any[]) => void): () => voi
 
 export function apiSubscribeToCourses(callback: (courses: any[]) => void): () => void {
   const q = query(collection(db, 'courses'));
+  // Robust one-time immediate fetch fallback
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const courses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(courses);
+    }
+  }).catch((err) => console.warn("One-time courses fetch warning:", err));
+
   return onSnapshot(q, (snapshot) => {
     const courses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(courses);
@@ -193,6 +225,14 @@ export function apiSubscribeToCourses(callback: (courses: any[]) => void): () =>
 
 export function apiSubscribeToClientProjects(callback: (projects: any[]) => void): () => void {
   const q = query(collection(db, 'client_projects'));
+  // Robust one-time immediate fetch fallback
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(projects);
+    }
+  }).catch((err) => console.warn("One-time client projects fetch warning:", err));
+
   return onSnapshot(q, (snapshot) => {
     const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(projects);
@@ -201,6 +241,14 @@ export function apiSubscribeToClientProjects(callback: (projects: any[]) => void
 
 export function apiSubscribeToOngoingProjects(callback: (projects: any[]) => void): () => void {
   const q = query(collection(db, 'ongoing_projects'));
+  // Robust one-time immediate fetch fallback
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(projects);
+    }
+  }).catch((err) => console.warn("One-time ongoing projects fetch warning:", err));
+
   return onSnapshot(q, (snapshot) => {
     const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(projects);
@@ -209,6 +257,14 @@ export function apiSubscribeToOngoingProjects(callback: (projects: any[]) => voi
 
 export function apiSubscribeToRecognitionCertificates(callback: (certs: any[]) => void): () => void {
   const q = query(collection(db, 'recognition_certificates'));
+  // Robust one-time immediate fetch fallback
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const certs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(certs);
+    }
+  }).catch((err) => console.warn("One-time recognition certs fetch warning:", err));
+
   return onSnapshot(q, (snapshot) => {
     const certs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(certs);
@@ -217,6 +273,14 @@ export function apiSubscribeToRecognitionCertificates(callback: (certs: any[]) =
 
 export function apiSubscribeToCacMetadata(callback: (metadata: any[]) => void): () => void {
   const q = query(collection(db, 'cac_metadata'));
+  // Robust one-time immediate fetch fallback
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const metadata = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(metadata);
+    }
+  }).catch((err) => console.warn("One-time cac metadata fetch warning:", err));
+
   return onSnapshot(q, (snapshot) => {
     const metadata = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(metadata);
@@ -225,6 +289,14 @@ export function apiSubscribeToCacMetadata(callback: (metadata: any[]) => void): 
 
 export function apiSubscribeToStaff(callback: (staff: any[]) => void): () => void {
   const q = query(collection(db, 'staff'));
+  // Robust one-time immediate fetch fallback
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const staff = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(staff);
+    }
+  }).catch((err) => console.warn("One-time staff fetch warning:", err));
+
   return onSnapshot(q, (snapshot) => {
     const staff = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(staff);
@@ -233,6 +305,14 @@ export function apiSubscribeToStaff(callback: (staff: any[]) => void): () => voi
 
 export function apiSubscribeToDepartments(callback: (departments: any[]) => void): () => void {
   const q = query(collection(db, 'departments'));
+  // Robust one-time immediate fetch fallback
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const depts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(depts);
+    }
+  }).catch((err) => console.warn("One-time departments fetch warning:", err));
+
   return onSnapshot(q, (snapshot) => {
     const depts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     callback(depts);
@@ -241,6 +321,14 @@ export function apiSubscribeToDepartments(callback: (departments: any[]) => void
 
 export function apiSubscribeToPageContent(sectionKey: string, callback: (content: any) => void): () => void {
   const q = query(collection(db, 'page_content'), where('section_key', '==', sectionKey));
+  // Robust one-time immediate fetch fallback
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const docData = snapshot.docs[0].data();
+      callback({ id: snapshot.docs[0].id, ...docData });
+    }
+  }).catch((err) => console.warn(`One-time page content fetch warning for ${sectionKey}:`, err));
+
   return onSnapshot(q, (snapshot) => {
     if (!snapshot.empty) {
       const docData = snapshot.docs[0].data();
@@ -264,35 +352,72 @@ export async function apiGetServices(): Promise<any[]> {
 }
 
 export async function apiSaveService(service: any): Promise<any> {
+  const id = service.id || doc(collection(db, 'services')).id;
+  const record = { ...service, id };
+  
+  // 1. Write to Firestore (real-time sync)
   try {
-    const id = service.id || doc(collection(db, 'services')).id;
-    const record = { ...service, id };
     await setDoc(doc(db, 'services', id), record);
-    return record;
   } catch (e) {
     console.error("Firestore Services SAVE error:", e);
-    throw e;
   }
+  
+  // 2. Write to D1 (Cloudflare persistent storage)
+  try {
+    await fetch('/api/services', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Services SAVE error:", apiErr);
+  }
+
+  return record;
 }
 
 export async function apiUpdateService(id: string, service: any): Promise<any> {
+  const record = { ...service, id };
+
+  // 1. Write to Firestore (real-time sync)
   try {
     await updateDoc(doc(db, 'services', id), service);
-    return { id, ...service };
   } catch (e) {
     console.error("Firestore Services UPDATE error:", e);
-    throw e;
   }
+
+  // 2. Write to D1 (Cloudflare persistent storage)
+  try {
+    await fetch(`/api/services/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Services UPDATE error:", apiErr);
+  }
+
+  return record;
 }
 
 export async function apiDeleteService(id: string): Promise<any> {
+  // 1. Delete from Firestore (real-time sync)
   try {
     await deleteDoc(doc(db, 'services', id));
-    return { success: true };
   } catch (e) {
     console.error("Firestore Services DELETE error:", e);
-    throw e;
   }
+
+  // 2. Delete from D1 (Cloudflare persistent storage)
+  try {
+    await fetch(`/api/services/${id}`, {
+      method: 'DELETE'
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Services DELETE error:", apiErr);
+  }
+
+  return { success: true };
 }
 
 export async function apiInitializeServices(items: any[]): Promise<any> {
@@ -319,32 +444,72 @@ export async function apiGetPortfolio(): Promise<any[]> {
 }
 
 export async function apiSavePortfolio(project: any): Promise<any> {
+  const id = project.id || doc(collection(db, 'portfolio')).id;
+  const record = { ...project, id };
+
+  // 1. Write to Firestore (real-time sync)
   try {
-    const id = project.id || doc(collection(db, 'portfolio')).id;
-    const record = { ...project, id };
     await setDoc(doc(db, 'portfolio', id), record);
-    return record;
   } catch (e) {
-    throw e;
+    console.error("Firestore Portfolio SAVE error:", e);
   }
+
+  // 2. Write to D1 (Cloudflare persistent storage)
+  try {
+    await fetch('/api/portfolio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Portfolio SAVE error:", apiErr);
+  }
+
+  return record;
 }
 
 export async function apiUpdatePortfolio(id: string, project: any): Promise<any> {
+  const record = { ...project, id };
+
+  // 1. Write to Firestore (real-time sync)
   try {
     await updateDoc(doc(db, 'portfolio', id), project);
-    return { id, ...project };
   } catch (e) {
-    throw e;
+    console.error("Firestore Portfolio UPDATE error:", e);
   }
+
+  // 2. Write to D1 (Cloudflare persistent storage)
+  try {
+    await fetch(`/api/portfolio/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Portfolio UPDATE error:", apiErr);
+  }
+
+  return record;
 }
 
 export async function apiDeletePortfolio(id: string): Promise<any> {
+  // 1. Delete from Firestore (real-time sync)
   try {
     await deleteDoc(doc(db, 'portfolio', id));
-    return { success: true };
   } catch (e) {
-    throw e;
+    console.error("Firestore Portfolio DELETE error:", e);
   }
+
+  // 2. Delete from D1 (Cloudflare persistent storage)
+  try {
+    await fetch(`/api/portfolio/${id}`, {
+      method: 'DELETE'
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Portfolio DELETE error:", apiErr);
+  }
+
+  return { success: true };
 }
 
 export async function apiInitializePortfolio(items: any[]): Promise<any> {
@@ -369,32 +534,72 @@ export async function apiGetBlogs(): Promise<any[]> {
 }
 
 export async function apiSaveBlog(blog: any): Promise<any> {
+  const id = blog.id || doc(collection(db, 'blogs')).id;
+  const record = { ...blog, id };
+
+  // 1. Write to Firestore (real-time sync)
   try {
-    const id = blog.id || doc(collection(db, 'blogs')).id;
-    const record = { ...blog, id };
     await setDoc(doc(db, 'blogs', id), record);
-    return record;
   } catch (e) {
-    throw e;
+    console.error("Firestore Blogs SAVE error:", e);
   }
+
+  // 2. Write to D1 (Cloudflare persistent storage)
+  try {
+    await fetch('/api/blogs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Blogs SAVE error:", apiErr);
+  }
+
+  return record;
 }
 
 export async function apiUpdateBlog(id: string, blog: any): Promise<any> {
+  const record = { ...blog, id };
+
+  // 1. Write to Firestore (real-time sync)
   try {
     await updateDoc(doc(db, 'blogs', id), blog);
-    return { id, ...blog };
   } catch (e) {
-    throw e;
+    console.error("Firestore Blogs UPDATE error:", e);
   }
+
+  // 2. Write to D1 (Cloudflare persistent storage)
+  try {
+    await fetch(`/api/blogs/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Blogs UPDATE error:", apiErr);
+  }
+
+  return record;
 }
 
 export async function apiDeleteBlog(id: string): Promise<any> {
+  // 1. Delete from Firestore (real-time sync)
   try {
     await deleteDoc(doc(db, 'blogs', id));
-    return { success: true };
   } catch (e) {
-    throw e;
+    console.error("Firestore Blogs DELETE error:", e);
   }
+
+  // 2. Delete from D1 (Cloudflare persistent storage)
+  try {
+    await fetch(`/api/blogs/${id}`, {
+      method: 'DELETE'
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Blogs DELETE error:", apiErr);
+  }
+
+  return { success: true };
 }
 
 export async function apiInitializeBlogs(items: any[]): Promise<any> {
@@ -419,32 +624,72 @@ export async function apiGetCourses(): Promise<any[]> {
 }
 
 export async function apiSaveCourse(course: any): Promise<any> {
+  const id = course.id || doc(collection(db, 'courses')).id;
+  const record = { ...course, id };
+
+  // 1. Write to Firestore (real-time sync)
   try {
-    const id = course.id || doc(collection(db, 'courses')).id;
-    const record = { ...course, id };
     await setDoc(doc(db, 'courses', id), record);
-    return record;
   } catch (e) {
-    throw e;
+    console.error("Firestore Courses SAVE error:", e);
   }
+
+  // 2. Write to D1 (Cloudflare persistent storage)
+  try {
+    await fetch('/api/courses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Courses SAVE error:", apiErr);
+  }
+
+  return record;
 }
 
 export async function apiUpdateCourse(id: string, course: any): Promise<any> {
+  const record = { ...course, id };
+
+  // 1. Write to Firestore (real-time sync)
   try {
     await updateDoc(doc(db, 'courses', id), course);
-    return { id, ...course };
   } catch (e) {
-    throw e;
+    console.error("Firestore Courses UPDATE error:", e);
   }
+
+  // 2. Write to D1 (Cloudflare persistent storage)
+  try {
+    await fetch(`/api/courses/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Courses UPDATE error:", apiErr);
+  }
+
+  return record;
 }
 
 export async function apiDeleteCourse(id: string): Promise<any> {
+  // 1. Delete from Firestore (real-time sync)
   try {
     await deleteDoc(doc(db, 'courses', id));
-    return { success: true };
   } catch (e) {
-    throw e;
+    console.error("Firestore Courses DELETE error:", e);
   }
+
+  // 2. Delete from D1 (Cloudflare persistent storage)
+  try {
+    await fetch(`/api/courses/${id}`, {
+      method: 'DELETE'
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Courses DELETE error:", apiErr);
+  }
+
+  return { success: true };
 }
 
 export async function apiInitializeCourses(items: any[]): Promise<any> {
@@ -778,79 +1023,83 @@ export async function apiGetCacMetadata(admin: boolean = false): Promise<CacMeta
 }
 
 export async function apiSaveCacMetadata(metadata: Partial<CacMetadata>): Promise<CacMetadata> {
-  // Try backend API first to guarantee persistent storage
+  const cacRef = collection(db, CAC_COLLECTION);
+  const now = new Date().toISOString();
+  const id = metadata.id || doc(cacRef).id;
+  
+  const record: CacMetadata = {
+    ...metadata,
+    id,
+    updated_at: now,
+    created_at: metadata.created_at || now
+  } as CacMetadata;
+
+  // 1. Write to Firestore (real-time sync)
   try {
-    const res = await fetch('/api/cac/metadata', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(metadata)
-    });
-    if (res.ok) {
-      const record = await res.json();
-      if (record && !record.error) return record;
-    }
-  } catch (apiErr) {
-    console.warn("Backend API save failed, attempting Firestore:", apiErr);
+    const fsRecord: any = { ...record };
+    Object.keys(fsRecord).forEach(key => fsRecord[key] === undefined && delete fsRecord[key]);
+    await setDoc(doc(db, CAC_COLLECTION, id), fsRecord);
+  } catch (fsErr) {
+    console.error("Firestore CAC SAVE error:", fsErr);
   }
 
+  // 2. Write to D1 (Cloudflare persistent storage)
   try {
-    const cacRef = collection(db, CAC_COLLECTION);
-    const now = new Date().toISOString();
-    const id = metadata.id || doc(cacRef).id;
-    
-    const newRecord: any = {
-      ...metadata,
-      id,
-      updated_at: now,
-      created_at: metadata.created_at || now
-    };
-    
-    // Clean undefined fields for Firestore
-    Object.keys(newRecord).forEach(key => newRecord[key] === undefined && delete newRecord[key]);
-    
-    await setDoc(doc(db, CAC_COLLECTION, id), newRecord);
-    return newRecord as CacMetadata;
-  } catch (e) {
-    console.error("Error saving CAC metadata to Firestore:", e);
-    throw e;
+    await fetch('/api/cac/metadata', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 CAC SAVE error:", apiErr);
   }
+
+  return record;
 }
 
 export async function apiDeleteCacMetadata(id: string): Promise<{ success: boolean }> {
-  try {
-    const res = await fetch(`/api/cac/metadata?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
-    if (res.ok) return { success: true };
-  } catch (e) {}
+  // 1. Delete from Firestore (real-time sync)
   try {
     await deleteDoc(doc(db, CAC_COLLECTION, id));
-    return { success: true };
-  } catch (e) {
-    console.error("Error deleting CAC metadata from Firestore:", e);
-    throw e;
+  } catch (fsErr) {
+    console.error("Firestore CAC DELETE error:", fsErr);
   }
+
+  // 2. Delete from D1 (Cloudflare persistent storage)
+  try {
+    await fetch(`/api/cac/metadata?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+  } catch (apiErr) {
+    console.warn("Backend D1 CAC DELETE error:", apiErr);
+  }
+
+  return { success: true };
 }
 
 export async function apiToggleCacPublish(id: string, isPublished: boolean): Promise<{ success: boolean; id: string; is_published: number }> {
+  const pubVal = isPublished ? 1 : 0;
+
+  // 1. Update Firestore (real-time sync)
   try {
-    const res = await fetch('/api/cac/metadata/publish', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, is_published: isPublished ? 1 : 0 })
-    });
-    if (res.ok) return { success: true, id, is_published: isPublished ? 1 : 0 };
-  } catch (e) {}
-  try {
-    const cacDoc = doc(db, CAC_COLLECTION, id);
-    const pubVal = isPublished ? 1 : 0;
-    await updateDoc(cacDoc, {
+    await updateDoc(doc(db, CAC_COLLECTION, id), {
       is_published: pubVal,
       updated_at: new Date().toISOString()
     });
-    return { success: true, id, is_published: pubVal };
-  } catch (e) {
-    console.error("Error toggling CAC publish state in Firestore:", e);
-    throw e;
+  } catch (fsErr) {
+    console.error("Firestore CAC publish toggle error:", fsErr);
   }
+
+  // 2. Update D1 (Cloudflare persistent storage)
+  try {
+    await fetch('/api/cac/metadata/publish', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, is_published: pubVal })
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 CAC publish toggle error:", apiErr);
+  }
+
+  return { success: true, id, is_published: pubVal };
 }
 
 export async function apiUploadCacFile(file: File): Promise<{
@@ -921,45 +1170,81 @@ export async function apiGetRecognitionCertificates(admin: boolean = false, cate
 }
 
 export async function apiSaveRecognitionCertificate(cert: Partial<RecognitionCertificate>): Promise<RecognitionCertificate> {
+  const id = cert.id || doc(collection(db, 'recognition_certificates')).id;
+  const now = new Date().toISOString();
+  const record = {
+    ...cert,
+    id,
+    created_at: cert.created_at || now,
+    updated_at: now
+  };
+
+  // 1. Write to Firestore (real-time sync)
   try {
-    const id = cert.id || doc(collection(db, 'recognition_certificates')).id;
-    const now = new Date().toISOString();
-    const record = {
-      ...cert,
-      id,
-      created_at: cert.created_at || now,
-      updated_at: now
-    };
     await setDoc(doc(db, 'recognition_certificates', id), record);
-    return record as RecognitionCertificate;
   } catch (e) {
     console.error("Firestore Recognition SAVE error:", e);
-    throw e;
   }
+
+  // 2. Write to D1 (Cloudflare persistent storage)
+  try {
+    await fetch('/api/recognition/certificates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Recognition SAVE error:", apiErr);
+  }
+
+  return record as RecognitionCertificate;
 }
 
 export async function apiDeleteRecognitionCertificate(id: string): Promise<{ success: boolean }> {
+  // 1. Delete from Firestore (real-time sync)
   try {
     await deleteDoc(doc(db, 'recognition_certificates', id));
-    return { success: true };
   } catch (e) {
     console.error("Firestore Recognition DELETE error:", e);
-    throw e;
   }
+
+  // 2. Delete from D1 (Cloudflare persistent storage)
+  try {
+    await fetch(`/api/recognition/certificates?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Recognition DELETE error:", apiErr);
+  }
+
+  return { success: true };
 }
 
 export async function apiToggleRecognitionPublish(id: string, isPublished: boolean): Promise<{ success: boolean; id: string; is_published: number }> {
+  const pubVal = isPublished ? 1 : 0;
+
+  // 1. Update Firestore (real-time sync)
   try {
-    const pubVal = isPublished ? 1 : 0;
     await updateDoc(doc(db, 'recognition_certificates', id), {
       is_published: pubVal,
       updated_at: new Date().toISOString()
     });
-    return { success: true, id, is_published: pubVal };
   } catch (e) {
     console.error("Firestore Recognition TOGGLE error:", e);
-    throw e;
   }
+
+  // 2. Update D1 (Cloudflare persistent storage)
+  try {
+    await fetch('/api/recognition/certificates/publish', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, is_published: isPublished })
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Recognition TOGGLE error:", apiErr);
+  }
+
+  return { success: true, id, is_published: pubVal };
 }
 
 export async function apiUploadRecognitionFile(file: File): Promise<{
@@ -1013,58 +1298,106 @@ export async function apiGetOngoingProjects(admin: boolean = false): Promise<Ong
 }
 
 export async function apiSaveOngoingProject(project: Partial<OngoingProject>): Promise<OngoingProject> {
+  const id = project.id || doc(collection(db, 'ongoing_projects')).id;
+  const now = new Date().toISOString();
+  const record = {
+    ...project,
+    id,
+    created_at: project.created_at || now,
+    updated_at: now
+  };
+
+  // 1. Write to Firestore (real-time sync)
   try {
-    const id = project.id || doc(collection(db, 'ongoing_projects')).id;
-    const now = new Date().toISOString();
-    const record = {
-      ...project,
-      id,
-      created_at: project.created_at || now,
-      updated_at: now
-    };
     await setDoc(doc(db, 'ongoing_projects', id), record);
-    return record as OngoingProject;
   } catch (e) {
     console.error("Firestore Ongoing Project SAVE error:", e);
-    throw e;
   }
+
+  // 2. Write to D1 (Cloudflare persistent storage)
+  try {
+    await fetch('/api/ongoing-projects', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Ongoing Project SAVE error:", apiErr);
+  }
+
+  return record as OngoingProject;
 }
 
 export async function apiDeleteOngoingProject(id: string): Promise<{ success: boolean; id: string }> {
+  // 1. Delete from Firestore (real-time sync)
   try {
     await deleteDoc(doc(db, 'ongoing_projects', id));
-    return { success: true, id };
   } catch (e) {
     console.error("Firestore Ongoing Project DELETE error:", e);
-    throw e;
   }
+
+  // 2. Delete from D1 (Cloudflare persistent storage)
+  try {
+    await fetch(`/api/ongoing-projects?id=${encodeURIComponent(id)}`, {
+      method: 'DELETE'
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Ongoing Project DELETE error:", apiErr);
+  }
+
+  return { success: true, id };
 }
 
 export async function apiToggleOngoingProjectPublish(id: string, isPublished: boolean): Promise<{ success: boolean; id: string; is_published: number }> {
+  const pubVal = isPublished ? 1 : 0;
+
+  // 1. Update Firestore (real-time sync)
   try {
-    const pubVal = isPublished ? 1 : 0;
     await updateDoc(doc(db, 'ongoing_projects', id), {
       is_published: pubVal,
       updated_at: new Date().toISOString()
     });
-    return { success: true, id, is_published: pubVal };
   } catch (e) {
     console.error("Firestore Ongoing Project TOGGLE error:", e);
-    throw e;
   }
+
+  // 2. Update D1 (Cloudflare persistent storage)
+  try {
+    await fetch('/api/ongoing-projects/publish', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, is_published: isPublished })
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Ongoing Project TOGGLE error:", apiErr);
+  }
+
+  return { success: true, id, is_published: pubVal };
 }
 
 export async function apiUpdateOngoingProjectProgress(id: string, progress: number): Promise<{ success: boolean; id: string; progress_percentage: number }> {
+  // 1. Update Firestore (real-time sync)
   try {
     await updateDoc(doc(db, 'ongoing_projects', id), {
       progress_percentage: progress,
       updated_at: new Date().toISOString()
     });
-    return { success: true, id, progress_percentage: progress };
   } catch (e) {
     console.error("Firestore Ongoing Project PROGRESS error:", e);
-    throw e;
   }
+
+  // 2. Update D1 (Cloudflare persistent storage)
+  try {
+    await fetch('/api/ongoing-projects/progress', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, progress_percentage: progress })
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Ongoing Project PROGRESS error:", apiErr);
+  }
+
+  return { success: true, id, progress_percentage: progress };
 }
 
 export async function apiUploadOngoingProjectFile(file: File): Promise<{
@@ -1167,31 +1500,52 @@ export async function apiGetDepartments(admin: boolean = false): Promise<Departm
 }
 
 export async function apiSaveDepartment(dept: Partial<Department>): Promise<{ success: boolean; department: Department }> {
+  const id = dept.id || doc(collection(db, 'departments')).id;
+  const now = new Date().toISOString();
+  const record = {
+    ...dept,
+    id,
+    updated_at: now,
+    created_at: dept.created_at || now
+  };
+
+  // 1. Write to Firestore (real-time sync)
   try {
-    const id = dept.id || doc(collection(db, 'departments')).id;
-    const now = new Date().toISOString();
-    const newRecord = {
-      ...dept,
-      id,
-      updated_at: now,
-      created_at: dept.created_at || now
-    };
-    await setDoc(doc(db, 'departments', id), newRecord);
-    return { success: true, department: newRecord as Department };
+    await setDoc(doc(db, 'departments', id), record);
   } catch (e) {
     console.error("Firestore Department SAVE error:", e);
-    throw e;
   }
+
+  // 2. Write to D1 (Cloudflare persistent storage)
+  try {
+    await fetch('/api/departments', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Department SAVE error:", apiErr);
+  }
+
+  return { success: true, department: record as Department };
 }
 
 export async function apiDeleteDepartment(id: string): Promise<{ success: boolean }> {
+  // 1. Delete from Firestore (real-time sync)
   try {
     await deleteDoc(doc(db, 'departments', id));
-    return { success: true };
   } catch (e) {
     console.error("Firestore Department DELETE error:", e);
-    throw e;
   }
+
+  // 2. Delete from D1 (Cloudflare persistent storage)
+  try {
+    await fetch(`/api/departments?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+  } catch (apiErr) {
+    console.warn("Backend D1 Department DELETE error:", apiErr);
+  }
+
+  return { success: true };
 }
 
 export async function apiGetStaff(admin: boolean = false, departmentId?: string): Promise<StaffMember[]> {
@@ -1224,35 +1578,57 @@ export async function apiGetStaff(admin: boolean = false, departmentId?: string)
 }
 
 export async function apiSaveStaff(member: Partial<StaffMember>): Promise<{ success: boolean; staff: StaffMember }> {
+  const id = member.id || doc(collection(db, 'staff')).id;
+  const now = new Date().toISOString();
+  const record: any = {
+    ...member,
+    id,
+    updated_at: now,
+    created_at: member.created_at || now,
+    is_published: member.is_published !== undefined ? member.is_published : 1,
+    status: member.status || 'Active'
+  };
+
+  // Remove undefined for Firestore
+  Object.keys(record).forEach(k => record[k] === undefined && delete record[k]);
+
+  // 1. Write to Firestore (real-time sync)
   try {
-    const id = member.id || doc(collection(db, 'staff')).id;
-    const now = new Date().toISOString();
-    const newRecord: any = {
-      ...member,
-      id,
-      updated_at: now,
-      created_at: member.created_at || now,
-      is_published: member.is_published !== undefined ? member.is_published : 1,
-      status: member.status || 'Active'
-    };
-    // Remove undefined
-    Object.keys(newRecord).forEach(k => newRecord[k] === undefined && delete newRecord[k]);
-    await setDoc(doc(db, 'staff', id), newRecord);
-    return { success: true, staff: newRecord as StaffMember };
+    await setDoc(doc(db, 'staff', id), record);
   } catch (e) {
     console.error("Firestore Staff SAVE error:", e);
-    throw e;
   }
+
+  // 2. Write to D1 (Cloudflare persistent storage)
+  try {
+    await fetch('/api/staff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(record)
+    });
+  } catch (apiErr) {
+    console.warn("Backend D1 Staff SAVE error:", apiErr);
+  }
+
+  return { success: true, staff: record as StaffMember };
 }
 
 export async function apiDeleteStaff(id: string): Promise<{ success: boolean }> {
+  // 1. Delete from Firestore (real-time sync)
   try {
     await deleteDoc(doc(db, 'staff', id));
-    return { success: true };
   } catch (e) {
     console.error("Firestore Staff DELETE error:", e);
-    throw e;
   }
+
+  // 2. Delete from D1 (Cloudflare persistent storage)
+  try {
+    await fetch(`/api/staff?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+  } catch (apiErr) {
+    console.warn("Backend D1 Staff DELETE error:", apiErr);
+  }
+
+  return { success: true };
 }
 
 export async function apiUploadStaffFile(file: File): Promise<{

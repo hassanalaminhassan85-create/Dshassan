@@ -680,6 +680,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     sqlLines.push("    appointment_accepted INTEGER DEFAULT 0,");
     sqlLines.push("    appointment_signature TEXT,");
     sqlLines.push("    appointment_acceptance_date TEXT,");
+    sqlLines.push("    appointment_account_name TEXT,");
+    sqlLines.push("    appointment_bank_name TEXT,");
+    sqlLines.push("    appointment_account_number TEXT,");
     sqlLines.push("    status TEXT DEFAULT 'pending',");
     sqlLines.push("    admin_notes TEXT");
     sqlLines.push(");\n");

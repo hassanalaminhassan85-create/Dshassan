@@ -24,7 +24,7 @@ interface ApplicationViewProps {
   isAdminPreview?: boolean;
 }
 
-export type DashboardTab = 'overview' | 'offer_letter' | 'application_record' | 'ai_screening' | 'biometric_vault' | 'qr_portal';
+export type DashboardTab = 'overview' | 'offer_letter' | 'application_record' | 'ai_screening' | 'biometric_vault' | 'qr_portal' | 'combined_contract';
 
 export const ApplicationView: React.FC<ApplicationViewProps> = ({
   application,
@@ -88,6 +88,9 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
         appointmentAccepted: true,
         appointmentSignature: acceptance.signature,
         appointmentAcceptanceDate: acceptance.date,
+        appointmentAccountName: acceptance.accountDetails.accountName,
+        appointmentBankName: acceptance.accountDetails.bankName,
+        appointmentAccountNumber: acceptance.accountDetails.accountNumber,
         approvedBy: {
           approved: true,
           role: 'CEO / Admin',
@@ -102,6 +105,9 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
         appointmentAccepted: true,
         appointmentSignature: acceptance.signature,
         appointmentAcceptanceDate: acceptance.date,
+        appointmentAccountName: acceptance.accountDetails.accountName,
+        appointmentBankName: acceptance.accountDetails.bankName,
+        appointmentAccountNumber: acceptance.accountDetails.accountNumber,
       }));
     }
   };
@@ -171,6 +177,13 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
       badge: '11 Steps',
       badgeColor: 'bg-indigo-900/60 text-indigo-200',
     },
+    ...(isAdminPreview && appData.status === 'approved' && appData.appointmentAccepted ? [{
+      id: 'combined_contract' as DashboardTab,
+      label: 'Combined Contract (A4 PDF)',
+      icon: Award,
+      badge: 'Admin Dual Preview',
+      badgeColor: 'bg-gradient-to-r from-orange-600 to-amber-600 text-white font-extrabold',
+    }] : []),
     {
       id: 'ai_screening' as DashboardTab,
       label: 'AI Cognitive Screening',
@@ -847,6 +860,178 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
             <div className="print-page w-full">
               <CareersFormPDFView application={appData} />
             </div>
+          </div>
+        )}
+
+        {/* TAB 3.5: COMBINED CONTRACT PREVIEW & A4 PDF EXPORTER */}
+        {activeTab === 'combined_contract' && (
+          <div className="space-y-6">
+            
+            {/* ADMIN COMBINED EXPORT CONTROLS */}
+            <div className="no-print bg-slate-900 dark:bg-slate-950 text-white rounded-3xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl relative overflow-hidden border border-slate-800">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-orange-500/10 rounded-full filter blur-2xl pointer-events-none" />
+              <div className="text-left space-y-1.5 flex-1 relative z-10">
+                <div className="flex items-center gap-2">
+                  <span className="bg-orange-600 text-white px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wide">Admin Control</span>
+                  <span className="text-[10px] text-orange-400 font-extrabold uppercase tracking-wider">Dual-Document Signed Bundle</span>
+                </div>
+                <h2 className="text-base sm:text-lg font-black text-white">
+                  Completed Recruiter Contract Bundle (A4 PDF)
+                </h2>
+                <p className="text-xs text-slate-350 max-w-2xl font-medium leading-relaxed">
+                  This administrative preview loads both the submitted <span className="text-white font-bold underline">Careers Application Record</span> (Pages 1 & 2) and the executed <span className="text-white font-bold underline">Appointment Offer Agreement</span> (Page 3). Click below to export the entire 3-page package in precise A4 print format.
+                </p>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0 relative z-10">
+                <button
+                  type="button"
+                  onClick={handlePrintPDF}
+                  className="w-full sm:w-auto py-3.5 px-6 bg-gradient-to-r from-orange-600 to-orange-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:scale-[1.02] active:scale-95 cursor-pointer border border-orange-500/30"
+                >
+                  <Printer size={14} className="stroke-[3]" />
+                  <span>Download Combined A4 PDF</span>
+                </button>
+              </div>
+            </div>
+
+            {/* THE PRINTABLE AREA ENFORCING PAGE BREAKS */}
+            <div className="w-full space-y-8 print:space-y-0">
+              
+              {/* DOCUMENT 1: CAREERS FORM (PAGES 1 & 2) */}
+              <div className="print-page w-full">
+                <div className="text-center no-print py-2 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-[10px] font-mono text-slate-500 font-bold mb-4">
+                  --- DOCUMENT PART A: Careers Application Record (Page 1 & 2) ---
+                </div>
+                <CareersFormPDFView application={appData} />
+              </div>
+
+              {/* STAGE BREAK IN PRINT FOR DOCUMENT 2 */}
+              <div className="print:break-before-page" style={{ pageBreakBefore: 'always', breakBefore: 'page' }} />
+
+              {/* DOCUMENT 2: SIGNED APPOINTMENT LETTER (PAGE 3) */}
+              <div className="print-page w-full">
+                <div className="text-center no-print py-2 bg-slate-100 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-[10px] font-mono text-slate-500 font-bold mb-4 mt-8">
+                  --- DOCUMENT PART B: Executed Appointment Contract (Page 3) ---
+                </div>
+                
+                {/* Embedded Signed Document Sheet matching AppointmentLetter.tsx structure but clean and styled for paper */}
+                <div className="bg-white text-slate-900 rounded-3xl shadow-2xl border border-slate-200 overflow-hidden font-writing relative w-full max-w-[900px] mx-auto print:shadow-none print:border-none print:p-0 print:m-0 text-left">
+                  <div className="h-4 bg-gradient-to-r from-orange-500 to-[#000E32] w-full" />
+                  
+                  <div className="p-4 xs:p-6 md:p-10 space-y-6 overflow-hidden">
+                    {/* Header */}
+                    <div className="flex justify-between items-start border-b border-slate-100 pb-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center border border-slate-200 p-1">
+                          <svg viewBox="0 0 100 100" className="w-full h-full">
+                            <circle cx="50" cy="50" r="46" stroke="#000E32" strokeWidth="6" fill="none" />
+                            <path d="M25,50 C25,35 35,25 50,25 C65,25 75,35 75,50" stroke="#EA580C" strokeWidth="6" fill="none" strokeLinecap="round" />
+                            <text x="50" y="58" fontSize="26" fontWeight="bold" fill="#000E32" textAnchor="middle">DS</text>
+                          </svg>
+                        </div>
+                        <div>
+                          <span className="text-sm font-black text-[#000E32]">DS TECH</span>
+                          <p className="text-[8px] font-bold text-slate-500 -mt-1 uppercase">Agency Limited</p>
+                        </div>
+                      </div>
+                      
+                      <div className="text-right text-[8px] text-slate-500 space-y-0.5">
+                        <h3 className="font-extrabold text-[#000E32] text-[9px]">DS TECH AND DIGITAL MARKETING AGENCY</h3>
+                        <p>dstechanddigitalmarketingltd@gmail.com</p>
+                        <p>Area 11 Garki Abuja | +2349023489111</p>
+                      </div>
+                    </div>
+
+                    {/* Metadata block */}
+                    <div className="flex justify-between items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-[10px] text-slate-600">
+                      <span className="font-extrabold text-[#000E32] uppercase">REF: DST-APP-2026-{(appData.personalInfo?.fullName || 'USR').substring(0, 3).toUpperCase()}</span>
+                      <span className="font-bold">Execution Date: {appData.appointmentAcceptanceDate || new Date().toLocaleDateString()}</span>
+                    </div>
+
+                    {/* Content */}
+                    <div className="text-center">
+                      <h1 className="text-lg font-black uppercase text-[#000E32] tracking-wider border-b-2 border-orange-500 pb-1 inline-block">
+                        Appointment Offer Agreement
+                      </h1>
+                    </div>
+
+                    <p className="text-xs text-slate-700 leading-relaxed font-semibold">
+                      This official agreement confirms the appointment of <strong className="text-[#000E32] underline">{appData.personalInfo?.fullName || 'Applicant'}</strong> as a <strong className="text-[#000E32]">Professional Staff Member</strong> of <strong className="text-[#000E32]">DS Tech and Digital Marketing Agency Limited</strong>.
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[10px] text-slate-600 font-medium leading-normal">
+                      <div className="border border-slate-100 p-3 rounded-xl bg-slate-50/50">
+                        <h4 className="font-extrabold text-[#000E32] uppercase mb-1 text-[9px]">Scope & Position</h4>
+                        <p><strong>Appointed Role:</strong> {appData.approvedBy?.offerRole || appData.positionSkills?.majorRole || 'Staff Member'}</p>
+                        <p><strong>Commencement Date:</strong> {appData.appointmentAcceptanceDate}</p>
+                        <p><strong>Work Mode:</strong> {appData.workMode?.monthlySalaryJob ? 'Salary Opportunities' : 'Project/Freelance'}</p>
+                      </div>
+
+                      <div className="border border-slate-100 p-3 rounded-xl bg-slate-50/50">
+                        <h4 className="font-extrabold text-[#000E32] uppercase mb-1 text-[9px]">Salary Remittance Bank</h4>
+                        <p><strong>Account Name:</strong> {appData.appointmentAccountName || appData.personalInfo?.fullName || 'Not provided yet'}</p>
+                        <p><strong>Bank Provider:</strong> {appData.appointmentBankName || 'Not provided yet'}</p>
+                        <p><strong>Account Number:</strong> {appData.appointmentAccountNumber || 'Not provided yet'}</p>
+                      </div>
+                    </div>
+
+                    {/* Terms short preview */}
+                    <div className="p-3 border border-slate-100 rounded-xl text-[9px] text-slate-500 space-y-1">
+                      <p className="font-bold text-slate-700 uppercase">Core Terms and Commitments:</p>
+                      <p>1. The appointee agrees to perform brand promotion, content development, and technological support assignments professionally.</p>
+                      <p>2. DS Tech shall coordinate client project billing, contracts, and provide administrative backing for edge assignments.</p>
+                      <p>3. Appointee shall maintain integrity, strict confidentiality, and full compliance with company security standards.</p>
+                    </div>
+
+                    {/* Signatures block mimicking real execution page */}
+                    <div className="pt-4 border-t border-slate-100 grid grid-cols-2 gap-6 items-end">
+                      {/* Employer endorsement */}
+                      <div className="space-y-2 text-left">
+                        <span className="text-[8px] font-mono uppercase text-slate-400 block">Issued & Authorized By</span>
+                        <div className="h-14 flex items-center justify-start bg-slate-50/60 border border-slate-100 rounded-xl p-2 select-none relative">
+                          <span className="text-[10px] text-emerald-800 font-extrabold font-mono border-2 border-emerald-500/30 bg-emerald-50 px-2 py-0.5 rounded-md rotate-[-4deg] shadow-sm">
+                            DS TECH APPROVED
+                          </span>
+                        </div>
+                        <div className="text-[9px] font-bold text-[#000E32]">
+                          <p>CEO / HR Administrator</p>
+                          <p className="text-slate-400 font-mono text-[8px]">DS Tech & Digital Marketing Agency Ltd</p>
+                        </div>
+                      </div>
+
+                      {/* Recruiter / Candidate Acceptance Sign */}
+                      <div className="space-y-2 text-left">
+                        <span className="text-[8px] font-mono uppercase text-slate-400 block">Electronically Signed By Candidate</span>
+                        <div className="h-14 flex items-center justify-center bg-orange-50/20 border border-dashed border-orange-200 rounded-xl p-1 relative overflow-hidden">
+                          {appData.appointmentSignature ? (
+                            <img src={appData.appointmentSignature} className="max-h-full max-w-full object-contain" alt="candidate-signature" referrerPolicy="no-referrer" />
+                          ) : (
+                            <span className="text-[9px] text-slate-400 italic">Signed Contract File Sealed</span>
+                          )}
+                        </div>
+                        <div className="text-[9px] font-bold text-[#000E32]">
+                          <p className="underline">{appData.personalInfo?.fullName}</p>
+                          <p className="text-slate-400 font-mono text-[8px]">Acceptance Date: {appData.appointmentAcceptanceDate}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Biometric verification stamp */}
+                    <div className="flex items-center justify-between p-2.5 bg-slate-900 text-white rounded-xl text-[8px] font-mono">
+                      <div className="flex items-center gap-1.5">
+                        <Fingerprint size={12} className="text-emerald-400 animate-pulse" />
+                        <span>SECURITY PROTOCOL: EIDAS MULTI-FACTOR WEBAUTHN SYSTEM SECURED</span>
+                      </div>
+                      <span className="text-[7.5px] text-slate-400">HASH: SHA-256#{(appData.id || 'N/A').substring(0, 8).toUpperCase()}</span>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         )}
 

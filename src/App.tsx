@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { CareersForm } from './components/CareersForm';
 import { ApplicationView } from './components/ApplicationView';
-import { AdminDashboard } from './components/AdminDashboard';
 import { PremiumContactSection } from './components/PremiumContactSection';
+
+import { CareersForm } from './components/CareersForm';
+import { AdminDashboard } from './components/AdminDashboard';
 import { UserDashboard } from './components/UserDashboard';
 import { StaffPortal } from './components/StaffPortal';
-
 
 // Website Ecosystem Modules
 import { HomeSection } from './components/HomeSection';
@@ -15,10 +15,10 @@ import { ServicesSection } from './components/ServicesSection';
 import { PortfolioSection } from './components/PortfolioSection';
 import { MeetOurTeamSection } from './components/MeetOurTeamSection';
 import { BlogSection } from './components/BlogSection';
-import { TrainingAcademySection } from './components/TrainingAcademySection';
 import { ClientPortalSection } from './components/ClientPortalSection';
 import { CareersSection } from './components/CareersSection';
 import { RecognitionSection } from './components/RecognitionSection';
+import { TrainingAcademySection } from './components/TrainingAcademySection';
 import { TutorDashboard } from './components/TutorDashboard';
 import { JobApplication } from './types';
 import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, ArrowLeft, ArrowRight, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint, Briefcase, FileCheck, UserCheck } from 'lucide-react';
@@ -1059,7 +1059,7 @@ export default function App() {
         {/* Dynamic State views mapping with AnimatePresence */}
         {!loading && !errorMsg && (
           <div className="flex-grow">
-            {isAdminView ? (
+              {isAdminView ? (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -1493,7 +1493,7 @@ export default function App() {
                           <motion.a 
                             whileHover={{ scale: 1.15, y: -2 }}
                             whileTap={{ scale: 0.95 }}
-                            href="https://facebook.com" 
+                            href="https://www.facebook.com/share/1DUwq656cM/" 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             className="flex items-center justify-center p-2 rounded-xl bg-blue-50/80 dark:bg-slate-850 text-[#1877F2] hover:bg-[#1877F2] hover:text-white transition-all duration-300 shadow-sm border border-blue-100/40 dark:border-blue-900/30"
@@ -1503,7 +1503,7 @@ export default function App() {
                           <motion.a 
                             whileHover={{ scale: 1.15, y: -2 }}
                             whileTap={{ scale: 0.95 }}
-                            href="https://instagram.com" 
+                            href="https://www.instagram.com/dstechltd3?igsh=Y2xmb3BhODk4eGF3&utm_source=qr" 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             className="flex items-center justify-center p-2 rounded-xl bg-pink-50/80 dark:bg-slate-850 text-[#E4405F] hover:bg-gradient-to-tr hover:from-[#FD1D1D] hover:via-[#E4405F] hover:to-[#C13584] hover:text-white transition-all duration-300 shadow-sm border border-pink-100/40 dark:border-pink-900/30"
@@ -1513,7 +1513,7 @@ export default function App() {
                           <motion.a 
                             whileHover={{ scale: 1.15, y: -2 }}
                             whileTap={{ scale: 0.95 }}
-                            href="https://twitter.com" 
+                            href="https://x.com/DigitalDs18246" 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             className="flex items-center justify-center p-2 rounded-xl bg-sky-50/80 dark:bg-slate-850 text-[#1DA1F2] hover:bg-[#1DA1F2] hover:text-white transition-all duration-300 shadow-sm border border-sky-100/40 dark:border-sky-900/30"
@@ -1523,7 +1523,7 @@ export default function App() {
                           <motion.a 
                             whileHover={{ scale: 1.15, y: -2 }}
                             whileTap={{ scale: 0.95 }}
-                            href="https://linkedin.com" 
+                            href="https://www.linkedin.com/company/dstechanddigitaltd" 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             className="flex items-center justify-center p-2 rounded-xl bg-indigo-50/80 dark:bg-slate-850 text-[#0077B5] hover:bg-[#0077B5] hover:text-white transition-all duration-300 shadow-sm border border-indigo-100/40 dark:border-indigo-900/30"
@@ -1533,7 +1533,7 @@ export default function App() {
                           <motion.a 
                             whileHover={{ scale: 1.15, y: -2 }}
                             whileTap={{ scale: 0.95 }}
-                            href="https://youtube.com" 
+                            href="https://www.youtube.com/@DSTECHANDDIGITALMARKETINGLTD" 
                             target="_blank" 
                             rel="noopener noreferrer" 
                             className="flex items-center justify-center p-2 rounded-xl bg-red-50/80 dark:bg-slate-850 text-[#FF0000] hover:bg-[#FF0000] hover:text-white transition-all duration-300 shadow-sm border border-red-100/40 dark:border-red-900/30"
@@ -1738,7 +1738,7 @@ export default function App() {
                   { icon: InstagramIcon, href: 'https://www.instagram.com/dstechltd3?igsh=Y2xmb3BhODk4eGF3&utm_source=qr', label: 'Instagram', hoverClass: 'hover:bg-gradient-to-tr hover:from-yellow-500 hover:to-purple-600 hover:text-white hover:shadow-purple-500/30' },
                   { icon: TikTokIcon, href: 'https://www.tiktok.com/@dstechanddigitalltd?_r=1&_t=ZS-98f9P59z155', label: 'TikTok', hoverClass: 'hover:bg-black hover:text-white hover:shadow-white/20' },
                   { icon: XIcon, href: 'https://x.com/DigitalDs18246', label: 'Twitter/X', hoverClass: 'hover:bg-slate-950 hover:text-white hover:shadow-white/10 border-slate-700' },
-                  { icon: LinkedInIcon, href: '#', label: 'LinkedIn', hoverClass: 'hover:bg-blue-700 hover:text-white hover:shadow-blue-700/30' },
+                  { icon: LinkedInIcon, href: 'https://www.linkedin.com/company/dstechanddigitaltd', label: 'LinkedIn', hoverClass: 'hover:bg-blue-700 hover:text-white hover:shadow-blue-700/30' },
                   { icon: YouTubeIcon, href: 'https://www.youtube.com/@DSTECHANDDIGITALMARKETINGLTD', label: 'YouTube', hoverClass: 'hover:bg-red-600 hover:text-white hover:shadow-red-600/30' },
                 ].map((social, index) => {
                   const SocialIcon = social.icon;

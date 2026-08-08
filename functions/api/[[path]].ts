@@ -317,8 +317,9 @@ async function saveUploadedFile(env: any, key: string, fileBuffer: ArrayBuffer, 
         let binary = '';
         const bytes = uint8;
         const len = bytes.byteLength;
-        for (let i = 0; i < len; i++) {
-          binary += String.fromCharCode(bytes[i]);
+        const chunk_size = 0x8000; // 32KB chunks
+        for (let i = 0; i < len; i += chunk_size) {
+          binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk_size) as any);
         }
         const base64Data = btoa(binary);
         const now = new Date().toISOString();

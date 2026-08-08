@@ -627,7 +627,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
               </div>
               <div className="flex items-center gap-2">
                 <Mail size={13} className="text-orange-500" />
-                <span>consult@dstech.example.com</span>
+                <span>dstechanddigitalmarketingltd@gmail.com</span>
               </div>
             </div>
           </div>
