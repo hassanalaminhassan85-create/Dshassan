@@ -38,10 +38,13 @@ export const BlogSection: React.FC<BlogSectionProps> = ({ onBackToMain }) => {
   const [blogs, setBlogs] = useState<BlogPost[]>(() => {
     try {
       const saved = localStorage.getItem('admin_blogs');
-      return saved ? JSON.parse(saved) : [];
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return BLOG_POSTS;
     } catch (e) {
-      console.error('Failed to parse admin_blogs from localStorage:', e);
-      return [];
+      return BLOG_POSTS;
     }
   });
 
@@ -49,10 +52,6 @@ export const BlogSection: React.FC<BlogSectionProps> = ({ onBackToMain }) => {
     const unsubscribe = apiSubscribeToBlogs((data) => {
       if (data && data.length > 0) {
         setBlogs(data);
-        localStorage.setItem('admin_blogs', JSON.stringify(data));
-      } else {
-        setBlogs([]);
-        localStorage.setItem('admin_blogs', JSON.stringify([]));
       }
     });
 

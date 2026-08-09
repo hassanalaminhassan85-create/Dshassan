@@ -4,6 +4,7 @@ import {
   ArrowRight, X, Activity, ArrowLeft, Sun, Moon
 } from 'lucide-react';
 import { apiGetPortfolio, resolveImageUrl, apiSubscribeToPortfolio } from '../lib/api';
+import { PORTFOLIO } from '../lib/data';
 import { Logo } from './Logo';
 
 export const PortfolioSection: React.FC<{ onBackToMain?: () => void }> = ({ onBackToMain }) => {
@@ -28,9 +29,13 @@ export const PortfolioSection: React.FC<{ onBackToMain?: () => void }> = ({ onBa
   const [projects, setProjects] = useState<any[]>(() => {
     try {
       const saved = localStorage.getItem('admin_portfolio_projects');
-      return saved ? JSON.parse(saved) : [];
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      return PORTFOLIO;
     } catch (e) {
-      return [];
+      return PORTFOLIO;
     }
   });
 
@@ -38,10 +43,6 @@ export const PortfolioSection: React.FC<{ onBackToMain?: () => void }> = ({ onBa
     const unsubscribe = apiSubscribeToPortfolio((data) => {
       if (data && data.length > 0) {
         setProjects(data);
-        localStorage.setItem('admin_portfolio_projects', JSON.stringify(data));
-      } else {
-        setProjects([]);
-        localStorage.setItem('admin_portfolio_projects', JSON.stringify([]));
       }
     });
 

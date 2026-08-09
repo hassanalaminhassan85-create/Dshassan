@@ -7,7 +7,7 @@ import {
   Edit3, ArrowLeft, Heart, BarChart3, Users, Landmark, UserMinus, ShieldAlert, LogOut,
   QrCode, MessageSquare, Send, FileText, Printer, Layers, FolderOpen, BookOpen,
   Video, Plus, PlusCircle, Check, MoreVertical, Settings, Sliders, Database, ArrowUp, Camera,
-  Sun, Moon, Globe, ChevronDown, Copy, X, Code, Bell, ShieldCheck, Award, FolderKanban, Info, LayoutDashboard
+  Sun, Moon, Globe, ChevronDown, Copy, X, Code, Bell, ShieldCheck, Award, FolderKanban, Info, LayoutDashboard, Activity
 } from 'lucide-react';
 import { JobApplication } from '../types';
 import { useNotifications } from './NotificationProvider';
@@ -47,6 +47,7 @@ import { CacAdminCenter } from './CacAdminCenter';
 import { RecognitionAdminDashboard } from './RecognitionAdminDashboard';
 import { OngoingProjectsAdminDashboard } from './OngoingProjectsAdminDashboard';
 import { AdminAssetDiagnostics } from './AdminAssetDiagnostics';
+import { AdminSyncDiagnostics } from './AdminSyncDiagnostics';
 import { AdminStaffManagement } from './AdminStaffManagement';
 import { AnimatedHomeSectionImagePreview } from './AnimatedHomeSectionImagePreview';
 import { generateDynamicSvgUrl } from '../lib/mediaUtils';
@@ -316,7 +317,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   
 
   // Super Admin Control Center State
-  const [adminModule, setAdminModule] = useState<'dashboard' | 'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'client-projects' | 'about' | 'diagnostics'>('dashboard');
+  const [adminModule, setAdminModule] = useState<'dashboard' | 'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'client-projects' | 'about' | 'diagnostics' | 'sync-logs'>('dashboard');
   
   // Custom navigation header states
   const [isThreeDotsOpen, setIsThreeDotsOpen] = useState<boolean>(false);
@@ -379,16 +380,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   useEffect(() => {
     const unsubServices = apiSubscribeToServices(data => {
-      if (data && data.length > 0) setAdminServices(data);
+      if (data) setAdminServices(data);
     });
     const unsubPortfolio = apiSubscribeToPortfolio(data => {
-      if (data && data.length > 0) setAdminProjects(data);
+      if (data) setAdminProjects(data);
     });
     const unsubBlogs = apiSubscribeToBlogs(data => {
-      if (data && data.length > 0) setAdminBlogs(data);
+      if (data) setAdminBlogs(data);
     });
     const unsubCourses = apiSubscribeToCourses(data => {
-      if (data && data.length > 0) setAdminCourses(data);
+      if (data) setAdminCourses(data);
     });
 
     const unsubApps = apiSubscribeToApplications(data => {
@@ -2099,6 +2100,7 @@ export default {
       items: [
         { id: 'analytics', label: 'Intelligence Charts', icon: BarChart3 },
         { id: 'trust', label: 'Trust & Compliance', icon: ShieldCheck },
+        { id: 'sync-logs', label: 'Real-Time Sync Logs', icon: Activity },
       ]
     }
   ];
@@ -2950,6 +2952,10 @@ export default {
 
       {adminModule === 'diagnostics' && (
         <AdminAssetDiagnostics />
+      )}
+
+      {adminModule === 'sync-logs' && (
+        <AdminSyncDiagnostics />
       )}
 
 

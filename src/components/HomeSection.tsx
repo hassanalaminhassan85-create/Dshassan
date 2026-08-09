@@ -9,7 +9,11 @@ import { LanguageCode } from '../lib/translations';
 import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
 import { CacTrustSection } from './CacTrustSection';
 import { OngoingProjectsSection } from './OngoingProjectsSection';
+import { PortfolioSection } from './PortfolioSection';
+import { BlogSection } from './BlogSection';
+import { RecognitionSection } from './RecognitionSection';
 import { CustomQuoteModal } from './CustomQuoteModal';
+import { PaystackPayButton } from './PaystackMotionCheckout';
 import { apiGetServices, resolveImageUrl, apiSubscribeToServices } from '../lib/api';
 
 interface HomeSectionProps {
@@ -44,7 +48,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
 
   useEffect(() => {
     const unsubscribe = apiSubscribeToServices((fetchedServices) => {
-      if (fetchedServices && fetchedServices.length > 0) {
+      if (fetchedServices) {
         setServices(fetchedServices);
         localStorage.setItem('admin_services', JSON.stringify(fetchedServices));
       }
@@ -226,7 +230,17 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
             {t.heroDesc}
           </p>
 
-          <div className="flex flex-wrap gap-3 pt-1">
+          <div className="flex flex-wrap gap-3 pt-1 items-center">
+            <PaystackPayButton
+              amount={100000}
+              email="client@dstech.agency"
+              customerName="DS Tech Client"
+              title="DS Tech Instant Deposit / Retainer"
+              description="Fast-Track 30% Retainer Deposit for DS Tech Solutions"
+              variant="emerald"
+              className="px-5 py-2.5 text-[10px]"
+            />
+
             <motion.button
               whileHover={{ scale: 1.03, y: -2 }}
               whileTap={{ scale: 0.97 }}
@@ -543,6 +557,15 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
 
       {/* 5.5 ENTERPRISE ONGOING PROJECTS SECTION */}
       <OngoingProjectsSection language={language} />
+
+      {/* 5.6 PORTFOLIO SECTION */}
+      <PortfolioSection />
+
+      {/* 5.7 RECOGNITION SECTION */}
+      <RecognitionSection />
+
+      {/* 5.8 BLOG SECTION */}
+      <BlogSection />
 
       {/* 6. CAREERS PREVIEW */}
       <section className="bg-gradient-to-br from-indigo-950 to-slate-950 text-white py-16 rounded-3xl mx-4 md:mx-6 border border-indigo-900 shadow-xl overflow-hidden relative">

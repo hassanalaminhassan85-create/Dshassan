@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, MessageSquare, Sparkles, CheckCircle2, 
-  DollarSign, Clock, User, Phone, Mail, Building, FileText, ArrowRight
+  DollarSign, Clock, User, Phone, Mail, Building, FileText, ArrowRight, CreditCard
 } from 'lucide-react';
 import { ServiceItem } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
+import { PaystackPayButton } from './PaystackMotionCheckout';
 
 interface CustomQuoteModalProps {
   isOpen: boolean;
@@ -330,17 +331,27 @@ ${description}
                   />
                 </div>
 
-                {/* Action Buttons */}
+                {/* Action Buttons: WhatsApp Brief + Custom Paystack Deposit */}
                 <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
-                  <p className="text-[10px] text-slate-400 font-medium">
-                    ⚡ Instant WhatsApp redirect with pre-formatted brief.
-                  </p>
+                  <PaystackPayButton
+                    amount={50000}
+                    email={email || 'client@dstech.agency'}
+                    customerName={fullName || 'Valued Client'}
+                    phone={phone}
+                    title={`Custom Project Deposit: ${serviceTitle}`}
+                    description={`Initial Retainer Deposit for Custom Quote: ${serviceTitle}`}
+                    variant="emerald"
+                    className="w-full sm:w-auto"
+                  >
+                    <CreditCard size={15} />
+                    <span>Pay ₦50,000 Deposit via Paystack</span>
+                  </PaystackPayButton>
 
                   <button
                     type="submit"
-                    className="w-full sm:w-auto px-6 py-3.5 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl shadow-xl hover:shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2 border border-emerald-400/40 shrink-0"
+                    className="w-full sm:w-auto px-6 py-3.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl shadow-xl hover:shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-2 shrink-0"
                   >
-                    <MessageSquare size={16} />
+                    <MessageSquare size={16} className="text-emerald-400" />
                     <span>Send Brief to WhatsApp ➔</span>
                   </button>
                 </div>

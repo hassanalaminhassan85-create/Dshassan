@@ -21,8 +21,10 @@ import { CareersSection } from './components/CareersSection';
 import { RecognitionSection } from './components/RecognitionSection';
 import { TrainingAcademySection } from './components/TrainingAcademySection';
 import { TutorDashboard } from './components/TutorDashboard';
+import { PaystackPayButton, PaystackPaymentConfig } from './components/PaystackMotionCheckout';
+import { PaystackPaymentPage } from './components/PaystackPaymentPage';
 import { JobApplication } from './types';
-import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, ArrowLeft, ArrowRight, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint, Briefcase, FileCheck, UserCheck } from 'lucide-react';
+import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, ArrowLeft, ArrowRight, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint, Briefcase, FileCheck, UserCheck, CreditCard } from 'lucide-react';
 import { Logo } from './components/Logo';
 import { 
   FacebookIcon, 
@@ -297,6 +299,24 @@ export default function App() {
   const desktopLangRef = useRef<HTMLDivElement>(null);
   const mobileLangRef = useRef<HTMLDivElement>(null);
 
+  // Global Paystack Payment Page Redirect State
+  const [paymentCheckoutConfig, setPaymentCheckoutConfig] = useState<PaystackPaymentConfig | null>(null);
+
+  // Listen to global Paystack payment redirect trigger
+  useEffect(() => {
+    const handlePaystackEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<PaystackPaymentConfig>;
+      if (customEvent.detail) {
+        setPaymentCheckoutConfig(customEvent.detail);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+    window.addEventListener('dstech_paystack_pay', handlePaystackEvent);
+    return () => {
+      window.removeEventListener('dstech_paystack_pay', handlePaystackEvent);
+    };
+  }, []);
+
   // Close mobile menu on page shift and reset service details selection
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -509,6 +529,20 @@ export default function App() {
 
   const isAtRoot = !currentAppId && !isAdminView && !application;
   const isFormFilling = isAtRoot && isApplying;
+
+  if (paymentCheckoutConfig) {
+    return (
+      <PaystackPaymentPage
+        config={paymentCheckoutConfig}
+        onBack={() => setPaymentCheckoutConfig(null)}
+        onSuccess={(ref, res) => {
+          if (paymentCheckoutConfig.onSuccess) {
+            paymentCheckoutConfig.onSuccess(ref, res);
+          }
+        }}
+      />
+    );
+  }
 
   return (
     <div 
@@ -872,6 +906,21 @@ export default function App() {
             </motion.button>
 
             <div className="h-4 w-px bg-slate-200 dark:bg-slate-750 mx-0.5" />
+
+            {/* Quick Paystack Direct Deposit Button */}
+            <PaystackPayButton
+              amount={100000}
+              email="client@dstech.agency"
+              customerName="DS Tech Client"
+              title="DS Tech Instant Deposit / Settlement"
+              description="Direct deposit for retainer, project milestone or service settlement"
+              variant="orange"
+              className="px-3 py-1.5 text-xs font-bold"
+            >
+              <CreditCard size={13} className="text-white" />
+              <span className="hidden xl:inline">Pay via Paystack</span>
+              <span className="xl:hidden">Pay</span>
+            </PaystackPayButton>
 
             {/* Admin Suite Toggle */}
             {isAdminView ? (

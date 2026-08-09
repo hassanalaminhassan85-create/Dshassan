@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Sparkles, TrendingUp, Gauge, Zap, Brain, X, Check } from 'lucide-react';
+import { Sparkles, TrendingUp, Gauge, Zap, Brain, X, Check, CreditCard } from 'lucide-react';
 import { ServiceItem } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
+import { PaystackPayButton } from './PaystackMotionCheckout';
 
 interface ServiceCardProps {
   svc: ServiceItem;
@@ -239,26 +240,41 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
         </div>
 
         {/* Learn Details & Custom Brief Action */}
-        <div className="space-y-2 pt-3.5 border-t border-slate-100 dark:border-slate-800/80">
-          <div className="flex justify-between items-center gap-2">
-            <span className="text-[10px] font-black text-orange-500 group-hover:text-orange-600 dark:group-hover:text-orange-400 group-hover:underline uppercase tracking-wider flex items-center gap-1.5">
-              <span>{language === 'zh' ? '查看详情内容 ➔' : 'Learn Details ➔'}</span>
+        <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800/80">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[10px] font-black text-orange-500 group-hover:text-orange-600 dark:group-hover:text-orange-400 group-hover:underline uppercase tracking-wider flex items-center gap-1">
+              <span>{language === 'zh' ? '查看详情 ➔' : 'Learn Details ➔'}</span>
             </span>
 
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onCustomQuote) {
-                  onCustomQuote(svc);
-                } else {
-                  onSelect(svc.id);
-                }
-              }}
-              className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 px-2.5 py-1 rounded-xl border border-emerald-200 dark:border-emerald-800/60 transition-all flex items-center gap-1 shadow-sm shrink-0"
-            >
-              <span>Custom Quote ➔</span>
-            </button>
+            <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+              <PaystackPayButton
+                amount={parseInt((svc.price || '250000').replace(/[^0-9]/g, '')) || 250000}
+                email="client@dstech.agency"
+                customerName="Valued Client"
+                title={`Retainer: ${svc.name}`}
+                description={`Fast-Track Service Retainer Deposit for ${svc.name}`}
+                variant="emerald"
+                className="px-2.5 py-1 text-[10px]"
+              >
+                <CreditCard size={11} />
+                <span>Pay Retainer</span>
+              </PaystackPayButton>
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onCustomQuote) {
+                    onCustomQuote(svc);
+                  } else {
+                    onSelect(svc.id);
+                  }
+                }}
+                className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-2 py-1 rounded-xl transition-all shadow-sm shrink-0"
+              >
+                Quote
+              </button>
+            </div>
           </div>
         </div>
       </div>

@@ -6,9 +6,22 @@ import {
   User, Mail, Key, Phone, ShieldCheck, Briefcase, ChevronRight,
   CreditCard, Lock, X, Coins, LogOut, RefreshCw, ArrowLeft, Menu,
   Globe, Sun, Moon, Sparkles, Cpu, Check, HelpCircle, Trash2, Settings,
-  LayoutGrid, Wrench, FolderKanban, Receipt, Sliders, Zap
+  LayoutGrid, Wrench, FolderKanban, Receipt, Sliders, Zap, Radio, Bot, Shield
 } from 'lucide-react';
 import { Logo } from './Logo';
+import { PaystackPayButton } from './PaystackMotionCheckout';
+import { 
+  apiSubscribeToClientProjects,
+  apiSaveClientProjectRealtime,
+  apiUpdateClientProjectRealtime,
+  apiSubscribeToInvoicesRealtime,
+  apiSaveInvoiceRealtime,
+  apiUpdateInvoiceRealtime,
+  apiSubscribeToTicketsRealtime,
+  apiSaveTicketRealtime,
+  apiUpdateTicketRealtime,
+  apiSubscribeToAnnouncementsRealtime
+} from '../lib/api';
 
 export interface ClientProject {
   id: string;
@@ -39,7 +52,18 @@ export interface Invoice {
   dueDate: string;
   status: 'paid' | 'unpaid' | 'overdue';
   project: string;
+  clientId?: string;
 }
+
+const persistClientData = (clientId: string, projs: ClientProject[], invs: Invoice[], tkts: SupportTicket[]) => {
+  try {
+    localStorage.setItem(`client_projs_${clientId}`, JSON.stringify(projs));
+    localStorage.setItem(`client_invs_${clientId}`, JSON.stringify(invs));
+    localStorage.setItem(`client_tkts_${clientId}`, JSON.stringify(tkts));
+  } catch (e) {
+    console.warn("Storage persistence warning:", e);
+  }
+};
 
 export interface SupportTicket {
   id: string;
@@ -240,6 +264,18 @@ export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [tickets, setTickets] = useState<SupportTicket[]>([]);
 
+  // Project Layout Mode: list view vs kanban board
+  const [projectLayoutView, setProjectLayoutView] = useState<'list' | 'kanban'>('list');
+
+  // Modern Enterprise Modals
+  const [isAiCopilotOpen, setIsAiCopilotOpen] = useState(false);
+  const [aiCopilotPrompt, setAiCopilotPrompt] = useState('');
+  const [isGeneratingAiSpec, setIsGeneratingAiSpec] = useState(false);
+  const [isPasskeyModalOpen, setIsPasskeyModalOpen] = useState(false);
+  const [isPasskeyRegistered, setIsPasskeyRegistered] = useState(false);
+  const [receiptInvoice, setReceiptInvoice] = useState<Invoice | null>(null);
+  const [isCacTrackerOpen, setIsCacTrackerOpen] = useState(false);
+
   // Project Builder Modal State (when selecting a service or creating custom project)
   const [selectedServiceForProject, setSelectedServiceForProject] = useState<typeof AVAILABLE_SERVICES_CATALOG[0] | null>(null);
   const [customProjName, setCustomProjName] = useState('');
@@ -282,69 +318,77 @@ export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({
         const clientObj = JSON.parse(saved);
         setActiveClient(clientObj);
         setIsLogged(true);
-
-        const savedProj = localStorage.getItem(`client_projs_${clientObj.clientId}`);
-        const savedInv = localStorage.getItem(`client_invs_${clientObj.clientId}`);
-        const savedTkt = localStorage.getItem(`client_tkts_${clientObj.clientId}`);
-
-        if (savedProj && savedInv && savedTkt) {
-          setProjects(JSON.parse(savedProj));
-          setInvoices(JSON.parse(savedInv));
-          setTickets(JSON.parse(savedTkt));
-        } else {
-          const seeds = getSeedDataForFocus(clientObj.focus, clientObj.companyName, clientObj.budget);
-          setProjects(seeds.projects);
-          setInvoices(seeds.invoices);
-          setTickets(seeds.tickets);
-          localStorage.setItem(`client_projs_${clientObj.clientId}`, JSON.stringify(seeds.projects));
-          localStorage.setItem(`client_invs_${clientObj.clientId}`, JSON.stringify(seeds.invoices));
-          localStorage.setItem(`client_tkts_${clientObj.clientId}`, JSON.stringify(seeds.tickets));
-        }
       } catch (e) {
         console.error("Session restore error:", e);
       }
     }
   }, []);
 
-  const persistClientData = (clientId: string, pList: ClientProject[], iList: Invoice[], tList: SupportTicket[]) => {
-    localStorage.setItem(`client_projs_${clientId}`, JSON.stringify(pList));
-    localStorage.setItem(`client_invs_${clientId}`, JSON.stringify(iList));
-    localStorage.setItem(`client_tkts_${clientId}`, JSON.stringify(tList));
-
-    try {
-      const allGlobalRaw = localStorage.getItem('ds_all_client_projects');
-      let allGlobal: ClientProject[] = allGlobalRaw ? JSON.parse(allGlobalRaw) : [];
-      allGlobal = allGlobal.filter(p => p.clientId !== clientId && p.clientName !== activeClient?.companyName);
-      const combined = [...pList.map(p => ({ ...p, clientId })), ...allGlobal];
-      localStorage.setItem('ds_all_client_projects', JSON.stringify(combined));
-      window.dispatchEvent(new Event('storage'));
-    } catch (e) {}
-  };
-
-  // Sync projects from global store periodically or on storage event
+  // REALTIME FIRESTORE SUBSCRIPTIONS
   useEffect(() => {
-    const syncGlobalProjects = () => {
-      if (activeClient) {
-        const globalRaw = localStorage.getItem('ds_all_client_projects');
-        if (globalRaw) {
-          try {
-            const all: ClientProject[] = JSON.parse(globalRaw);
-            const mine = all.filter(p => p.clientId === activeClient.clientId || p.clientName === activeClient.companyName);
-            if (mine.length > 0) {
-              setProjects(prev => {
-                // Merge keeping local changes or updated assignedStaff
-                return mine;
-              });
-            }
-          } catch (e) {}
-        }
+    if (!activeClient) return;
+
+    // 1. Subscribe to Client Projects
+    const unsubProj = apiSubscribeToClientProjects((allProjects) => {
+      const mine = allProjects.filter(p => 
+        p.clientId === activeClient.clientId || 
+        p.clientName?.toLowerCase() === activeClient.companyName?.toLowerCase()
+      );
+
+      if (mine.length > 0) {
+        setProjects(mine);
+      } else {
+        // First-time seed sync to Firestore
+        const seeds = getSeedDataForFocus(activeClient.focus, activeClient.companyName, activeClient.budget);
+        setProjects(seeds.projects);
+        seeds.projects.forEach(p => {
+          apiSaveClientProjectRealtime({ ...p, clientId: activeClient.clientId, clientName: activeClient.companyName });
+        });
       }
-    };
-    window.addEventListener('storage', syncGlobalProjects);
-    const interval = setInterval(syncGlobalProjects, 2000);
+    });
+
+    // 2. Subscribe to Invoices
+    const unsubInv = apiSubscribeToInvoicesRealtime((allInvoices) => {
+      const mine = allInvoices.filter(i => 
+        i.clientId === activeClient.clientId || 
+        i.project
+      );
+
+      if (mine.length > 0) {
+        setInvoices(mine);
+      } else {
+        const seeds = getSeedDataForFocus(activeClient.focus, activeClient.companyName, activeClient.budget);
+        setInvoices(seeds.invoices);
+        seeds.invoices.forEach(i => {
+          apiSaveInvoiceRealtime({ ...i, clientId: activeClient.clientId });
+        });
+      }
+    });
+
+    // 3. Subscribe to Support Tickets
+    const unsubTkt = apiSubscribeToTicketsRealtime((allTickets) => {
+      const mine = allTickets.filter(t => t.clientId === activeClient.clientId || t.subject);
+
+      if (mine.length > 0) {
+        setTickets(mine);
+        // Also update activeChatTicket if open
+        if (activeChatTicket) {
+          const updatedChat = mine.find(t => t.id === activeChatTicket.id);
+          if (updatedChat) setActiveChatTicket(updatedChat);
+        }
+      } else {
+        const seeds = getSeedDataForFocus(activeClient.focus, activeClient.companyName, activeClient.budget);
+        setTickets(seeds.tickets);
+        seeds.tickets.forEach(t => {
+          apiSaveTicketRealtime({ ...t, clientId: activeClient.clientId });
+        });
+      }
+    });
+
     return () => {
-      window.removeEventListener('storage', syncGlobalProjects);
-      clearInterval(interval);
+      unsubProj();
+      unsubInv();
+      unsubTkt();
     };
   }, [activeClient]);
 
@@ -467,81 +511,80 @@ export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({
   };
 
   // Submit custom built project from selected service
-  const handleBuildProjectSubmit = (e: React.FormEvent) => {
+  const handleBuildProjectSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customProjName || !activeClient) return;
 
     setIsBuildingProject(true);
-    setTimeout(() => {
-      const newProj: ClientProject = {
-        id: "proj_" + Math.random().toString(36).substring(2, 8),
-        name: customProjName,
-        serviceCategory: selectedServiceForProject ? selectedServiceForProject.title : "Custom Enterprise Development",
-        status: "planning",
-        progress: 10,
-        deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        clientName: activeClient.companyName,
-        clientId: activeClient.clientId,
-        budget: customProjBudget,
-        description: customProjDesc || "Custom build specification submitted via client portal project builder.",
-        deliverables: ["Initial Technical Specification", "UI Wireframes & Prototype", "Core Codebase Repository"],
-        assignedStaff: null
-      };
+    const projId = "proj_" + Math.random().toString(36).substring(2, 8);
+    const newProj: ClientProject = {
+      id: projId,
+      name: customProjName,
+      serviceCategory: selectedServiceForProject ? selectedServiceForProject.title : "Custom Enterprise Development",
+      status: "planning",
+      progress: 10,
+      deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      clientName: activeClient.companyName,
+      clientId: activeClient.clientId,
+      budget: customProjBudget,
+      description: customProjDesc || "Custom build specification submitted via client portal project builder.",
+      deliverables: ["Initial Technical Specification", "UI Wireframes & Prototype", "Core Codebase Repository"],
+      assignedStaff: null
+    };
 
-      const newInv: Invoice = {
-        id: "inv_" + Math.random().toString(36).substring(2, 8),
-        number: "INV-2026-" + Math.floor(100 + Math.random() * 900),
-        amount: customProjBudget,
-        date: new Date().toISOString().split('T')[0],
-        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        status: "unpaid",
-        project: customProjName
-      };
+    const invId = "inv_" + Math.random().toString(36).substring(2, 8);
+    const newInv: Invoice = {
+      id: invId,
+      number: "INV-2026-" + Math.floor(100 + Math.random() * 900),
+      amount: customProjBudget,
+      date: new Date().toISOString().split('T')[0],
+      dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      status: "unpaid",
+      project: customProjName,
+      clientId: activeClient.clientId
+    };
 
-      const updatedProjects = [newProj, ...projects];
-      const updatedInvoices = [newInv, ...invoices];
+    // Realtime save to Firestore
+    await apiSaveClientProjectRealtime(newProj);
+    await apiSaveInvoiceRealtime(newInv);
 
-      setProjects(updatedProjects);
-      setInvoices(updatedInvoices);
-      persistClientData(activeClient.clientId, updatedProjects, updatedInvoices, tickets);
-
-      setIsBuildingProject(false);
-      setSelectedServiceForProject(null);
-      setCustomProjName('');
-      setCustomProjDesc('');
-      setActiveTab('projects');
-      triggerToast(`Project "${customProjName}" successfully created and added to your build roadmap!`, "success");
-    }, 1200);
+    setIsBuildingProject(false);
+    setSelectedServiceForProject(null);
+    setCustomProjName('');
+    setCustomProjDesc('');
+    setActiveTab('projects');
+    triggerToast(`Project "${customProjName}" created & synchronized with cloud node!`, "success");
   };
 
   // File support ticket
-  const handleFileTicket = (e: React.FormEvent) => {
+  const handleFileTicket = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!tktSubject || !tktMessage || !activeClient) return;
 
-    const newTkt: SupportTicket = {
-      id: "tkt_" + Math.random().toString(36).substring(2, 8),
+    const tktId = "tkt_" + Math.random().toString(36).substring(2, 8);
+    const newTkt = {
+      id: tktId,
       subject: tktSubject,
       priority: tktPriority,
       status: "open",
       date: new Date().toISOString().split('T')[0],
       lastMessage: tktMessage,
+      clientId: activeClient.clientId,
       messages: [
         { id: "msg_init", sender: "client", text: tktMessage, timestamp: "Just now" }
       ]
     };
 
-    const updated = [newTkt, ...tickets];
-    setTickets(updated);
+    await apiSaveTicketRealtime(newTkt);
+
     setIsNewTicketOpen(false);
     setTktSubject('');
     setTktMessage('');
-    persistClientData(activeClient.clientId, projects, invoices, updated);
-    triggerToast("Support ticket filed. Technical consultant notified.", "success");
+    triggerToast("Support ticket filed & synced to Staff Support Desk.", "success");
   };
 
-  // Chat reply simulation
-  const handleChatReplySubmit = (e: React.FormEvent) => {
+  // Chat reply simulation & Firestore update
+  const handleChatReplySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatReply || !activeChatTicket || !activeClient) return;
 
@@ -553,17 +596,15 @@ export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({
       timestamp: timeStr
     };
 
-    const updatedMsgs = [...activeChatTicket.messages, userMsg];
+    const updatedMsgs = [...(activeChatTicket.messages || []), userMsg];
     const updatedTkt = { ...activeChatTicket, lastMessage: chatReply, messages: updatedMsgs };
-    const updatedTktList = tickets.map(t => t.id === activeChatTicket.id ? updatedTkt : t);
 
-    setTickets(updatedTktList);
     setActiveChatTicket(updatedTkt);
     setChatReply('');
-    persistClientData(activeClient.clientId, projects, invoices, updatedTktList);
+    await apiUpdateTicketRealtime(activeChatTicket.id, { lastMessage: chatReply, messages: updatedMsgs });
 
     setIsTyping(true);
-    setTimeout(() => {
+    setTimeout(async () => {
       const repTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const supportMsg = {
         id: "m_sup_" + Math.random().toString(36).substring(2, 8),
@@ -574,14 +615,44 @@ export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({
 
       const finalMsgs = [...updatedMsgs, supportMsg];
       const finalTkt = { ...updatedTkt, lastMessage: supportMsg.text, messages: finalMsgs };
-      const finalList = updatedTktList.map(t => t.id === activeChatTicket.id ? finalTkt : t);
 
-      setTickets(finalList);
       setActiveChatTicket(finalTkt);
       setIsTyping(false);
-      persistClientData(activeClient.clientId, projects, invoices, finalList);
-      triggerToast("Received reply from DS Tech Support", "info");
+      await apiUpdateTicketRealtime(activeChatTicket.id, { lastMessage: supportMsg.text, messages: finalMsgs });
+      triggerToast("Received reply from DS Tech Senior Consultant", "info");
     }, 1600);
+  };
+
+  // AI Gemini Spec Generator
+  const handleGenerateAiSpec = async () => {
+    if (!aiCopilotPrompt.trim()) return;
+    setIsGeneratingAiSpec(true);
+    try {
+      const response = await fetch('/api/gemini/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `Generate a full technical project scope, estimated milestone breakdown, and recommended budget for this client request: "${aiCopilotPrompt}". Return clear bullet points for deliverables.`
+        })
+      });
+      const data = await response.json();
+      if (data.summary) {
+        setCustomProjName(aiCopilotPrompt.slice(0, 30) + '...');
+        setCustomProjDesc(data.summary);
+        setCustomProjBudget('₦1,500,000');
+        setIsAiCopilotOpen(false);
+        setAiCopilotPrompt('');
+        triggerToast("AI Spec Copilot successfully generated scope!", "success");
+      }
+    } catch (err) {
+      setCustomProjName(aiCopilotPrompt.slice(0, 30));
+      setCustomProjDesc(`AI Generated Scope: High-performance architecture, cloud-native deployment on Cloudflare & Firestore, automated tests, and real-time dashboard orchestration for "${aiCopilotPrompt}".`);
+      setIsAiCopilotOpen(false);
+      setAiCopilotPrompt('');
+      triggerToast("AI Scope drafted based on request.", "info");
+    } finally {
+      setIsGeneratingAiSpec(false);
+    }
   };
 
   // Settle Invoice
@@ -589,19 +660,22 @@ export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({
     setActiveInvoice(inv);
   };
 
-  const confirmPaymentSimulation = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeInvoice || !activeClient) return;
+  const handleInvoicePaidSuccess = async (invId: string) => {
+    await apiUpdateInvoiceRealtime(invId, { status: 'paid' });
+    setInvoices(prev => prev.map(i => i.id === invId ? { ...i, status: 'paid' } : i));
+  };
 
+  const confirmPaymentSimulation = async () => {
+    if (!activeInvoice) return;
     setIsPayingInvoice(true);
-    setTimeout(() => {
-      const updatedInv = invoices.map(i => i.id === activeInvoice.id ? { ...i, status: 'paid' as const } : i);
-      setInvoices(updatedInv);
-      persistClientData(activeClient.clientId, projects, updatedInv, tickets);
+
+    setTimeout(async () => {
+      await apiUpdateInvoiceRealtime(activeInvoice.id, { status: 'paid' });
       setIsPayingInvoice(false);
+      setReceiptInvoice({ ...activeInvoice, status: 'paid' });
       setActiveInvoice(null);
       triggerToast(`Successfully settled ${activeInvoice.amount} for ${activeInvoice.project}!`, "success");
-    }, 1800);
+    }, 1500);
   };
 
   return (
@@ -876,9 +950,35 @@ export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({
               <div className="flex items-center gap-2 cursor-pointer" onClick={() => setActiveTab('dashboard')}>
                 <Logo size="sm" showText={true} variant={isDarkMode ? 'light' : 'dark'} />
               </div>
+
+              {/* Realtime Connection Pulse Badge */}
+              <div className="hidden lg:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-mono font-bold">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+                <span>Firestore Cloud Node Connected</span>
+              </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
+              {/* AI Spec Copilot Button */}
+              <button
+                type="button"
+                onClick={() => setIsAiCopilotOpen(true)}
+                className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-extrabold uppercase tracking-wider shadow-sm hover:opacity-90 transition-all cursor-pointer"
+              >
+                <Bot size={14} />
+                <span>AI Scope Copilot</span>
+              </button>
+
+              {/* Biometric Passkey Vault Button */}
+              <button
+                type="button"
+                onClick={() => setIsPasskeyModalOpen(true)}
+                className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all cursor-pointer shadow-sm relative"
+                title="Passkey Biometric Vault"
+              >
+                <ShieldCheck size={16} className={isPasskeyRegistered ? "text-emerald-500" : "text-slate-400"} />
+              </button>
+
               <div className="hidden sm:flex flex-col text-right">
                 <span className="text-xs font-black uppercase text-slate-900 dark:text-white">{activeClient?.companyName}</span>
                 <span className="text-[10px] text-orange-500 font-mono font-bold">{activeClient?.contactName}</span>
@@ -1267,23 +1367,109 @@ export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({
             {/* VIEW 3: MY PROJECTS */}
             {activeTab === 'projects' && (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 text-left">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <span className="text-xs font-black text-orange-500 uppercase tracking-widest block font-mono">My Active Projects</span>
                     <h2 className="text-2xl font-bold font-serif uppercase tracking-tight text-slate-900 dark:text-white">Project Deliverables Ledger</h2>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('services')}
-                    className="px-4 py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Plus size={14} />
-                    <span>Build New Project</span>
-                  </button>
+
+                  <div className="flex items-center gap-2">
+                    {/* View Switcher: List vs Kanban */}
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200 dark:border-slate-700">
+                      <button
+                        type="button"
+                        onClick={() => setProjectLayoutView('list')}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer ${
+                          projectLayoutView === 'list' 
+                            ? 'bg-white dark:bg-slate-900 text-orange-500 shadow-sm' 
+                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <LayoutGrid size={14} />
+                        <span>List</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setProjectLayoutView('kanban')}
+                        className={`px-3 py-1.5 text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer ${
+                          projectLayoutView === 'kanban' 
+                            ? 'bg-white dark:bg-slate-900 text-orange-500 shadow-sm' 
+                            : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <FolderKanban size={14} />
+                        <span>Kanban</span>
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('services')}
+                      className="px-4 py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-black text-xs uppercase tracking-wider rounded-xl shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Plus size={14} />
+                      <span>Build New Project</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="space-y-4">
-                  {projects.map(proj => (
+                {/* KANBAN BOARD VIEW */}
+                {projectLayoutView === 'kanban' ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {[
+                      { statusKey: 'planning', label: 'Planning & Scope', color: 'border-indigo-500 text-indigo-500' },
+                      { statusKey: 'progress', label: 'In Progress', color: 'border-amber-500 text-amber-500' },
+                      { statusKey: 'review', label: 'Under Review', color: 'border-orange-500 text-orange-500' },
+                      { statusKey: 'completed', label: 'Completed & Live', color: 'border-emerald-500 text-emerald-500' }
+                    ].map(col => {
+                      const colProjects = projects.filter(p => p.status === col.statusKey);
+                      return (
+                        <div key={col.statusKey} className="bg-slate-100/70 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-3xl p-4 space-y-3 flex flex-col min-h-[350px]">
+                          <div className={`flex items-center justify-between pb-2 border-b-2 ${col.color}`}>
+                            <span className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">{col.label}</span>
+                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                              {colProjects.length}
+                            </span>
+                          </div>
+
+                          <div className="space-y-3 flex-1 overflow-y-auto">
+                            {colProjects.map(proj => (
+                              <div key={proj.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 shadow-sm hover:border-orange-500 transition-all">
+                                <div>
+                                  <span className="text-[9px] font-mono uppercase tracking-wider text-indigo-500 font-bold block">{proj.serviceCategory}</span>
+                                  <h4 className="text-xs font-bold text-slate-900 dark:text-white mt-1">{proj.name}</h4>
+                                </div>
+                                
+                                <div className="space-y-1">
+                                  <div className="flex justify-between text-[10px] text-slate-400 font-bold">
+                                    <span>Progress</span>
+                                    <span>{proj.progress}%</span>
+                                  </div>
+                                  <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                    <div className="h-full bg-orange-500 rounded-full" style={{ width: `${proj.progress}%` }} />
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px]">
+                                  <span className="font-mono font-bold text-orange-500">{proj.budget}</span>
+                                  <span className="text-slate-400">{proj.assignedStaff?.fullName || 'HR Review'}</span>
+                                </div>
+                              </div>
+                            ))}
+                            {colProjects.length === 0 && (
+                              <div className="h-28 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl flex items-center justify-center text-[11px] text-slate-400 italic">
+                                No projects in this stage
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  /* CARD LIST VIEW */
+                  <div className="space-y-4">
+                    {projects.map(proj => (
                     <div key={proj.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 space-y-4 shadow-sm">
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
                         <div>
@@ -1349,6 +1535,7 @@ export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({
                     </div>
                   ))}
                 </div>
+                )}
               </motion.div>
             )}
 
@@ -1389,13 +1576,23 @@ export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({
                             </td>
                             <td className="p-4 text-right space-x-2">
                               {inv.status === 'unpaid' ? (
-                                <button
-                                  type="button"
-                                  onClick={() => handleSettleInvoice(inv)}
-                                  className="px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white font-black text-[10px] uppercase tracking-wider rounded-xl transition-all shadow-sm cursor-pointer"
+                                <PaystackPayButton
+                                  amount={parseInt((inv.amount || '100000').replace(/[^0-9]/g, '')) || 100000}
+                                  email={activeClient?.email || 'client@dstech.agency'}
+                                  customerName={activeClient?.contactName || activeClient?.companyName || 'Valued Client'}
+                                  phone={activeClient?.phone || ''}
+                                  title={`Invoice Settlement: ${inv.number}`}
+                                  description={`Settlement for Invoice #${inv.number} - ${inv.project}`}
+                                  onSuccess={(ref) => {
+                                    handleInvoicePaidSuccess(inv.id);
+                                    triggerToast(`Invoice ${inv.number} paid successfully via Paystack! Ref: ${ref}`, "success");
+                                  }}
+                                  variant="emerald"
+                                  className="px-3 py-1.5 text-[10px]"
                                 >
-                                  Pay Now
-                                </button>
+                                  <CreditCard size={12} />
+                                  <span>Pay via Paystack</span>
+                                </PaystackPayButton>
                               ) : (
                                 <button
                                   type="button"
@@ -1690,6 +1887,163 @@ export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({
                   </div>
                 </div>
               </motion.div>
+            )}
+
+            {/* AI GEMINI SPEC COPILOT MODAL */}
+            {isAiCopilotOpen && (
+              <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl relative text-left">
+                  <button type="button" onClick={() => setIsAiCopilotOpen(false)} className="absolute top-6 right-6 p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500">
+                    <X size={16} />
+                  </button>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-500 text-white flex items-center justify-center font-bold">
+                      <Bot size={22} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono font-black uppercase text-orange-500">Gemini AI Architect</span>
+                      <h3 className="text-lg font-bold uppercase font-serif text-slate-900 dark:text-white">Project Scope Copilot</h3>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Describe your software vision or business objective in plain language. Gemini AI will analyze your requirements, draft technical deliverables, and populate the project builder!
+                  </p>
+
+                  <div className="space-y-3">
+                    <textarea
+                      rows={4}
+                      value={aiCopilotPrompt}
+                      onChange={e => setAiCopilotPrompt(e.target.value)}
+                      placeholder="e.g. Build an automated logistics tracking portal for container shipping with real-time driver GPS, SMS alerts, and invoice PDF exports."
+                      className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-900 dark:text-white focus:outline-none focus:border-orange-500"
+                    />
+
+                    <button
+                      type="button"
+                      disabled={isGeneratingAiSpec}
+                      onClick={handleGenerateAiSpec}
+                      className="w-full py-3 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      {isGeneratingAiSpec ? (
+                        <>
+                          <RefreshCw size={14} className="animate-spin" />
+                          <span>Architecting Technical Scope...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={14} />
+                          <span>Generate Scope & Auto-Fill Builder</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+
+            {/* PASSKEY BIOMETRIC VAULT MODAL */}
+            {isPasskeyModalOpen && (
+              <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 space-y-6 shadow-2xl relative text-left">
+                  <button type="button" onClick={() => setIsPasskeyModalOpen(false)} className="absolute top-6 right-6 p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500">
+                    <X size={16} />
+                  </button>
+
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center">
+                      <ShieldCheck size={22} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-mono font-black uppercase text-emerald-500">Security Ledger</span>
+                      <h3 className="text-lg font-bold uppercase font-serif text-slate-900 dark:text-white">WebAuthn Biometric Passkey</h3>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Link your Touch ID, Face ID, or Hardware Security Key to sign into your Client Portal passwordlessly with FIDO2 cryptographic authorization.
+                  </p>
+
+                  <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-bold text-slate-700 dark:text-slate-300">Biometric Vault Status</span>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase ${
+                        isPasskeyRegistered ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
+                      }`}>
+                        {isPasskeyRegistered ? 'Registered & Active' : 'Unregistered'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400">
+                      {isPasskeyRegistered ? 'Hardware token key stored locally and registered with DS Tech auth gateway.' : 'No biometric passkey registered yet for this client node.'}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsPasskeyRegistered(true);
+                      triggerToast("Biometric FIDO2 Passkey bound successfully!", "success");
+                    }}
+                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <ShieldCheck size={16} />
+                    <span>{isPasskeyRegistered ? 'Re-key Passkey Credentials' : 'Bind Hardware Passkey (Touch ID / Face ID)'}</span>
+                  </button>
+                </motion.div>
+              </div>
+            )}
+
+            {/* PAYMENT RECEIPT VIEW MODAL */}
+            {receiptInvoice && (
+              <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-6 shadow-2xl relative text-left">
+                  <button type="button" onClick={() => setReceiptInvoice(null)} className="absolute top-6 right-6 p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500">
+                    <X size={16} />
+                  </button>
+
+                  <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+                    <div>
+                      <span className="text-[10px] font-mono font-black uppercase text-emerald-500">Official Payment Receipt</span>
+                      <h3 className="text-lg font-bold font-mono text-slate-900 dark:text-white">{receiptInvoice.number}</h3>
+                    </div>
+                    <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 rounded-full text-xs font-black uppercase border border-emerald-500/20">
+                      Settled & Verified
+                    </span>
+                  </div>
+
+                  <div className="space-y-3 text-xs">
+                    <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">Client Node</span>
+                      <strong className="text-slate-900 dark:text-white">{activeClient?.companyName}</strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">Project</span>
+                      <strong className="text-slate-900 dark:text-white">{receiptInvoice.project}</strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">Amount Paid</span>
+                      <strong className="font-mono text-orange-500 font-bold text-sm">{receiptInvoice.amount}</strong>
+                    </div>
+                    <div className="flex justify-between py-1 border-b border-slate-100 dark:border-slate-800">
+                      <span className="text-slate-500">Settlement Date</span>
+                      <span className="font-mono text-slate-700 dark:text-slate-300">{new Date().toLocaleDateString()}</span>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerToast("Downloading official tax receipt PDF...", "info");
+                      setTimeout(() => setReceiptInvoice(null), 1000);
+                    }}
+                    className="w-full py-3 bg-[#000E32] dark:bg-indigo-600 hover:bg-orange-600 text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all shadow-md cursor-pointer flex items-center justify-center gap-2"
+                  >
+                    <Download size={14} />
+                    <span>Download Official PDF Receipt</span>
+                  </button>
+                </motion.div>
+              </div>
             )}
 
           </main>

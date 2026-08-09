@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   ArrowLeft, MessageSquare, CheckCircle2, ShieldCheck, 
-  Sparkles, Calendar, Award, Phone, Mail, Clock, DollarSign, FileText
+  Sparkles, Calendar, Award, Phone, Mail, Clock, DollarSign, FileText, CreditCard
 } from 'lucide-react';
 import { ServiceItem } from '../lib/data';
 import { resolveImageUrl } from '../lib/api';
 import { generateDynamicSvgUrl } from '../lib/mediaUtils';
 import { LanguageCode } from '../lib/translations';
 import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
+import { PaystackPayButton } from './PaystackMotionCheckout';
 
 interface ServiceDetailViewProps {
   service: ServiceItem;
@@ -205,16 +206,32 @@ ${notes || 'Client requested consultation for this service.'}
             </div>
           </div>
 
-          {/* Direct WhatsApp Action */}
-          <div className="flex flex-wrap gap-4 pt-2">
+          {/* Direct Actions: WhatsApp Brief + High Motion Paystack Checkout */}
+          <div className="flex flex-wrap gap-3 pt-2 items-center">
+            <PaystackPayButton
+              amount={parseInt((service.price || '120000').replace(/[^0-9]/g, '')) || 120000}
+              email={email || 'client@dstech.agency'}
+              customerName={fullName || 'Valued Client'}
+              title={`Service Retainer: ${service.name}`}
+              description={`30% Initial Retainer Deposit for ${service.name} (${service.category})`}
+              metadata={{
+                service_id: service.id,
+                category: service.category
+              }}
+              variant="emerald"
+            >
+              <CreditCard size={15} />
+              <span>{language === 'zh' ? '通过 Paystack 极速支付预付款' : 'Pay Deposit via Custom Paystack'}</span>
+            </PaystackPayButton>
+
             <button
               onClick={() => {
                 const el = document.getElementById('brief-form');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="px-6 py-3 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-2"
+              className="px-5 py-3 bg-slate-900 border border-slate-700 hover:border-emerald-500/50 text-slate-200 hover:text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-md flex items-center gap-2"
             >
-              <MessageSquare size={15} />
+              <MessageSquare size={15} className="text-emerald-400" />
               <span>{language === 'zh' ? '在 WhatsApp 沟通提交需求' : 'Submit Custom Brief on WhatsApp'}</span>
             </button>
           </div>

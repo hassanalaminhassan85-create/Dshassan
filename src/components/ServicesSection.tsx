@@ -59,27 +59,11 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
 
   useEffect(() => {
     const unsubscribe = apiSubscribeToServices((data) => {
-      if (data && data.length > 0) {
+      if (data) {
         setServices(data);
         localStorage.setItem('admin_services', JSON.stringify(data));
-      } else {
-        // Handle initialization if Firestore is truly empty
-        const initialize = async () => {
-          const saved = localStorage.getItem('admin_services');
-          let initialData = SERVICES;
-          if (saved) {
-            try {
-              const parsed = JSON.parse(saved);
-              if (parsed && parsed.length > 0) initialData = parsed;
-            } catch (e) {}
-          }
-          setServices(initialData);
-          await apiInitializeServices(initialData);
-        };
-        initialize();
       }
     });
-
     return () => unsubscribe();
   }, []);
 

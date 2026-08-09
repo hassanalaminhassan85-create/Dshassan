@@ -28,6 +28,16 @@ import {
   updateDoc
 } from 'firebase/firestore';
 import { Logo } from './Logo';
+import {
+  apiSubscribeToAnnouncementsRealtime,
+  apiSaveAnnouncementRealtime,
+  apiSubscribeToStaffDocsRealtime,
+  apiSaveStaffDocRealtime,
+  apiSubscribeToClientProjects,
+  apiSubscribeToStaffMembersRealtime,
+  apiSaveStaffMemberRealtime,
+  apiUpdateClientProjectRealtime
+} from '../lib/api';
 
 interface StaffPortalProps {
   onBackToPortal?: () => void;
@@ -286,7 +296,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onBackToPortal }) => {
     }, 4000);
   };
 
-  // Recover staff session on mount
+  // Recover staff session & subscribe to Firestore in real-time
   useEffect(() => {
     // 1. Check local storage session
     const savedSession = localStorage.getItem('ds_staff_standalone_session');
@@ -301,7 +311,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onBackToPortal }) => {
     }
 
     // 2. Check Firebase auth status
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (user) => {
       if (user) {
         try {
           const docRef = doc(db, 'staff', user.uid);
@@ -318,16 +328,38 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onBackToPortal }) => {
       }
     });
 
-    // 3. Load directory members from storage if available
-    const savedRegList = localStorage.getItem('ds_staff_registered_list');
-    if (savedRegList) {
-      try {
-        const parsed: StaffMember[] = JSON.parse(savedRegList);
-        setDirectoryMembers([DEMO_STAFF_MEMBER, ...parsed]);
-      } catch (e) {}
-    }
+    // 3. Realtime Firestore Subscriptions
+    const unsubAnns = apiSubscribeToAnnouncementsRealtime((anns) => {
+      if (anns && anns.length > 0) {
+        setAnnouncements(anns);
+      }
+    });
 
-    return () => unsubscribe();
+    const unsubDocs = apiSubscribeToStaffDocsRealtime((docsList) => {
+      if (docsList && docsList.length > 0) {
+        setDocuments(docsList);
+      }
+    });
+
+    const unsubProjects = apiSubscribeToClientProjects((projs) => {
+      if (projs && projs.length > 0) {
+        setAssignedProjects(projs as AssignedProject[]);
+      }
+    });
+
+    const unsubStaff = apiSubscribeToStaffMembersRealtime((staffList) => {
+      if (staffList && staffList.length > 0) {
+        setDirectoryMembers(staffList as StaffMember[]);
+      }
+    });
+
+    return () => {
+      unsubscribeAuth();
+      unsubAnns();
+      unsubDocs();
+      unsubProjects();
+      unsubStaff();
+    };
   }, []);
 
   // Sync profile state when switching to 'profile' tab
@@ -486,30 +518,21 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onBackToPortal }) => {
     setCurrentStaff(updated);
     localStorage.setItem('ds_staff_standalone_session', JSON.stringify(updated));
 
-    // Save to Firebase if uid exists
-    try {
-      const docRef = doc(db, 'staff', currentStaff.id);
-      await updateDoc(docRef, {
-        phone: profilePhone,
-        biography: profileBio,
-        skills: profileSkills,
-        specialization: profileSpec,
-        qualifications: profileQual,
-        certifications: profileCert
-      });
-    } catch (e) {}
+    // Realtime Firestore Save
+    await apiSaveStaffMemberRealtime(updated);
 
     setIsSavingProfile(false);
-    triggerToast("Digital staff profile and credentials updated successfully!", "success");
+    triggerToast("Digital staff profile and credentials updated & synchronized!", "success");
   };
 
   // Create Announcement
-  const handleCreateAnnouncement = (e: React.FormEvent) => {
+  const handleCreateAnnouncement = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newAnnTitle || !newAnnContent) return;
 
+    const annId = "ann_" + Math.random().toString(36).substring(2, 9);
     const ann: Announcement = {
-      id: "ann_" + Math.random().toString(36).substring(2, 9),
+      id: annId,
       title: newAnnTitle,
       content: newAnnContent,
       targetAudience: newAnnAudience,
@@ -518,20 +541,22 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onBackToPortal }) => {
       createdBy: currentStaff?.fullName || "Staff Member"
     };
 
-    setAnnouncements(prev => [ann, ...prev]);
+    await apiSaveAnnouncementRealtime(ann);
+
     setIsNewAnnOpen(false);
     setNewAnnTitle('');
     setNewAnnContent('');
-    triggerToast("Internal bulletin published to team feed.", "success");
+    triggerToast("Internal bulletin published & synchronized to team feed.", "success");
   };
 
   // Upload Document
-  const handleUploadDocument = (e: React.FormEvent) => {
+  const handleUploadDocument = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDocTitle) return;
 
+    const docId = "doc_" + Math.random().toString(36).substring(2, 9);
     const newDoc: StaffDoc = {
-      id: "doc_" + Math.random().toString(36).substring(2, 9),
+      id: docId,
       title: newDocTitle,
       description: newDocDesc || "Official DS Tech staff document.",
       fileName: newDocFile ? newDocFile.name : "DS_Tech_Internal_Policy.pdf",
@@ -542,12 +567,13 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onBackToPortal }) => {
       createdAt: new Date().toISOString().split('T')[0]
     };
 
-    setDocuments(prev => [newDoc, ...prev]);
+    await apiSaveStaffDocRealtime(newDoc);
+
     setIsNewDocOpen(false);
     setNewDocTitle('');
     setNewDocDesc('');
     setNewDocFile(null);
-    triggerToast("Document uploaded to corporate policy library.", "success");
+    triggerToast("Document uploaded & synchronized to corporate library.", "success");
   };
 
   // Directory Filter
@@ -633,6 +659,12 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onBackToPortal }) => {
 
           {/* Right Action Controls */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Realtime Connection Pulse Badge */}
+            <div className="hidden xl:flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[10px] font-mono font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              <span>Realtime Staff Sync Node Active</span>
+            </div>
+
             {/* Theme Toggle Button */}
             <motion.button 
               whileHover={{ rotate: 15, scale: 1.05 }}

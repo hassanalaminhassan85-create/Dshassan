@@ -155,13 +155,47 @@
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
+        "serviceCategory": { "type": "string" },
         "status": { "type": "string" },
         "progress": { "type": "number" },
         "deadline": { "type": "string" },
         "clientName": { "type": "string" },
-        "budget": { "type": "string" }
+        "clientId": { "type": "string" },
+        "budget": { "type": "string" },
+        "description": { "type": "string" }
       },
       "required": ["name", "status", "clientName"]
+    },
+    "ClientInvoice": {
+      "title": "Client Invoice",
+      "description": "Financial billing statement for client projects.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "number": { "type": "string" },
+        "amount": { "type": "string" },
+        "date": { "type": "string" },
+        "dueDate": { "type": "string" },
+        "status": { "type": "string" },
+        "project": { "type": "string" },
+        "clientId": { "type": "string" }
+      },
+      "required": ["number", "amount", "status", "project"]
+    },
+    "SupportTicket": {
+      "title": "Support Ticket",
+      "description": "Client support desk inquiry and chat thread.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "subject": { "type": "string" },
+        "priority": { "type": "string" },
+        "status": { "type": "string" },
+        "date": { "type": "string" },
+        "lastMessage": { "type": "string" },
+        "clientId": { "type": "string" }
+      },
+      "required": ["subject", "status", "priority"]
     }
   },
   "firestore": {
@@ -184,6 +218,14 @@
     "/client_projects/{projectId}": {
       "schema": "ClientProject",
       "description": "Individual client projects for the portal."
+    },
+    "/client_invoices/{invoiceId}": {
+      "schema": "ClientInvoice",
+      "description": "Client invoices and settlement records."
+    },
+    "/support_tickets/{ticketId}": {
+      "schema": "SupportTicket",
+      "description": "Support tickets and client support chats."
     },
     "/cac_metadata/{cacId}": {
       "schema": "CacMetadata",

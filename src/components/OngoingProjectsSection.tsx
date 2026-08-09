@@ -27,71 +27,10 @@ export const OngoingProjectsSection: React.FC<{ language?: string }> = ({ langua
     const unsubscribe = apiSubscribeToOngoingProjects((data) => {
       const published = data.filter(p => p.is_published === 1 || p.is_published === true || p.is_published === undefined || p.is_published === '1');
       
-      if (published.length > 0) {
+      if (data) {
         setProjects(published);
       } else {
-        setProjects([
-          {
-            id: 'proj-1',
-            title: 'Al Ihsan Cryptographic Security Hub',
-            slug: 'al-ihsan-crypto-security-hub',
-            category: 'Cyber Security',
-            short_description: 'An advanced multi-tenant identity verification framework securing state information portals using WebAuthn biometrics and real-time ledger verification.',
-            full_description: 'Our core cyber security project focuses on establishing a decentralized identity verification gateway. Designed to mitigate deep-fake identities, automated spam registrations, and malicious cyber attacks on sovereign portals. Features complete end-to-end encryption, multi-device physical passkey registrations, and live biometric telemetry auditing.',
-            cover_image_key: 'seeds/crypto_security_hub.png',
-            gallery: '[]',
-            status: 'UI/UX Design',
-            progress_percentage: 45,
-            technologies: 'WebAuthn, Cryptographic Signatures, Cloudflare Edge, SQLite',
-            estimated_completion: '2026-12-15',
-            last_updated: '2026-07-18',
-            is_featured: 1,
-            is_published: 1,
-            display_order: 1,
-            created_at: '',
-            updated_at: ''
-          },
-          {
-            id: 'proj-2',
-            title: 'DS Tech Autonomous Client Engine (ACE)',
-            slug: 'ds-tech-autonomous-client-engine',
-            category: 'Enterprise Cloud',
-            short_description: 'A cloud-native SaaS suite that manages client SLAs, real-time ticket escalation, auto-invoicing, and ledger payment tracking.',
-            full_description: 'The Autonomous Client Engine (ACE) is engineered to automate corporate client communication and payments. It features AI-driven ticket priority triaging, automated transactional email delivery using Brevo, PDF invoice generation directly at the edge, and secure client registry logs synchronized via WebSockets.',
-            cover_image_key: 'seeds/autonomous_client_engine.png',
-            gallery: '[]',
-            status: 'Frontend Development',
-            progress_percentage: 72,
-            technologies: 'React, TypeScript, Tailwind CSS, SSE WebSockets, Cloudflare R2',
-            estimated_completion: '2026-10-01',
-            last_updated: '2026-07-18',
-            is_featured: 1,
-            is_published: 1,
-            display_order: 2,
-            created_at: '',
-            updated_at: ''
-          },
-          {
-            id: 'proj-3',
-            title: 'Unified National Identity Bridge (UNIB)',
-            slug: 'unified-national-identity-bridge',
-            category: 'Government Tech',
-            short_description: 'Strategic verification gateway connecting DS Tech biometric platforms directly with national registry ledgers for instantaneous pre-screening.',
-            full_description: 'The Unified National Identity Bridge (UNIB) integrates state biometric verification protocols with sovereign national identity registers. By using high-performance secure edge endpoints, it verifies credential badges, checks fraud threat ratings in real-time using Gemini AI models, and logs secure verification histories on a transparent audit ledger.',
-            cover_image_key: 'seeds/national_identity_bridge.png',
-            gallery: '[]',
-            status: 'Testing',
-            progress_percentage: 90,
-            technologies: 'Gemini 3.5 Flash, Cloudflare D1, secure API proxy, R2 Storage',
-            estimated_completion: '2026-08-30',
-            last_updated: '2026-07-18',
-            is_featured: 0,
-            is_published: 1,
-            display_order: 3,
-            created_at: '',
-            updated_at: ''
-          }
-        ]);
+        setProjects([]);
       }
       setLoading(false);
     });

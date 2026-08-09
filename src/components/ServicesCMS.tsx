@@ -68,7 +68,7 @@ export const ServicesCMS: React.FC<ServicesCMSProps> = ({ onRefresh }) => {
     try {
       setLoading(true);
       const data = await apiGetServices();
-      if (data && data.length > 0) {
+      if (data) {
         setServices(data);
         localStorage.setItem('admin_services', JSON.stringify(data));
       } else {

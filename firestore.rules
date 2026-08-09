@@ -81,8 +81,14 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
-    // Client Projects (Compatibility)
+    // Client Projects, Invoices and Support Tickets (Enterprise Synchronization)
     match /client_projects/{projectId} {
+      allow read, write: if true;
+    }
+    match /client_invoices/{invoiceId} {
+      allow read, write: if true;
+    }
+    match /support_tickets/{ticketId} {
       allow read, write: if true;
     }
   }

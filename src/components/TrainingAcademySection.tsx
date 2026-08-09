@@ -9,6 +9,7 @@ import {
   Key, EyeOff, Search, Filter, Building2, Layers, Cpu, Globe
 } from 'lucide-react';
 import { Logo } from './Logo';
+import { PaystackPayButton } from './PaystackMotionCheckout';
 import { 
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid
@@ -1141,17 +1142,32 @@ export const TrainingAcademySection: React.FC<{ onBackToPortal?: () => void }> =
                         </div>
 
                         <div className="p-5 pt-0">
-                          <button
-                            onClick={() => handleEnroll(course)}
-                            className={`w-full py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                              isEnrolled
-                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-md'
-                                : 'bg-[#000E32] hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500 text-white shadow-md'
-                            }`}
-                          >
-                            <span>{isEnrolled ? 'Continue Track' : 'Enroll & Start Learning'}</span>
-                            <ArrowRight size={14} />
-                          </button>
+                          {isEnrolled ? (
+                            <button
+                              onClick={() => handleEnroll(course)}
+                              className="w-full py-2.5 font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white shadow-md"
+                            >
+                              <span>Continue Track</span>
+                              <ArrowRight size={14} />
+                            </button>
+                          ) : (
+                            <PaystackPayButton
+                              amount={parseInt((course.price || '150000').replace(/[^0-9]/g, '')) || 150000}
+                              email={currentUser?.email || 'student@dstech.agency'}
+                              customerName={currentUser?.name || 'Valued Student'}
+                              title={`Course Enrollment: ${course.title}`}
+                              description={`Accredited Vocational Course Fee: ${course.title}`}
+                              onSuccess={() => {
+                                handleEnroll(course);
+                                triggerToast(`Successfully enrolled in ${course.title} via Paystack!`, "success");
+                              }}
+                              variant="emerald"
+                              className="w-full py-2.5"
+                            >
+                              <span>Enroll & Pay via Paystack</span>
+                              <ArrowRight size={14} />
+                            </PaystackPayButton>
+                          )}
                         </div>
                       </motion.div>
                     );

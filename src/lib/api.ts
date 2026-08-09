@@ -3,6 +3,7 @@
 
 import { Department, StaffMember, StaffActivityLog } from '../types';
 import { generateDynamicSvgUrl, generateAvatarSvgUrl } from './mediaUtils';
+import { SERVICES, PORTFOLIO, BLOG_POSTS } from './data';
 import { 
   collection, 
   getDocs, 
@@ -156,60 +157,116 @@ export function apiSubscribeToRealtimeSync(onEvent: (data: any) => void): () => 
   };
 }
 
-// --- Firestore Real-time Subscription Helpers ---
+// --- Firestore & Cloudflare Real-time Subscription Helpers ---
 import { onSnapshot } from 'firebase/firestore';
 
 export function apiSubscribeToServices(callback: (services: any[]) => void): () => void {
+  // 1. Initial immediate multi-tier fetch
+  apiGetServices().then(data => {
+    if (data && data.length > 0) callback(data);
+  }).catch(() => callback(SERVICES));
+
+  // 2. Firestore listener
   const q = query(collection(db, 'services'));
-  // Robust one-time immediate fetch fallback
-  getDocs(q).then((snapshot) => {
+  const unsubFirestore = onSnapshot(q, (snapshot) => {
     if (!snapshot.empty) {
       const services = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      localStorage.setItem('admin_services', JSON.stringify(services));
       callback(services);
     }
-  }).catch((err) => console.warn("One-time services fetch warning:", err));
+  }, (err) => console.warn("Services sub warning:", err));
 
-  return onSnapshot(q, (snapshot) => {
-    const services = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    callback(services);
-  }, (err) => console.error("Services sub error:", err));
+  // 3. Custom Window Event listener for tab/cross-component synchronization
+  const handleUpdate = () => {
+    apiGetServices().then(data => callback(data));
+  };
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('dstech_content_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+  }
+
+  return () => {
+    unsubFirestore();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('dstech_content_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    }
+  };
 }
 
 export function apiSubscribeToPortfolio(callback: (projects: any[]) => void): () => void {
+  // 1. Initial immediate multi-tier fetch
+  apiGetPortfolio().then(data => {
+    if (data && data.length > 0) callback(data);
+  }).catch(() => callback(PORTFOLIO));
+
+  // 2. Firestore listener
   const q = query(collection(db, 'portfolio'));
-  // Robust one-time immediate fetch fallback
-  getDocs(q).then((snapshot) => {
+  const unsubFirestore = onSnapshot(q, (snapshot) => {
     if (!snapshot.empty) {
       const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      localStorage.setItem('admin_portfolio_projects', JSON.stringify(projects));
       callback(projects);
     }
-  }).catch((err) => console.warn("One-time portfolio fetch warning:", err));
+  }, (err) => console.warn("Portfolio sub warning:", err));
 
-  return onSnapshot(q, (snapshot) => {
-    const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    callback(projects);
-  }, (err) => console.error("Portfolio sub error:", err));
+  // 3. Custom Window Event listener for sync
+  const handleUpdate = () => {
+    apiGetPortfolio().then(data => callback(data));
+  };
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('dstech_content_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+  }
+
+  return () => {
+    unsubFirestore();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('dstech_content_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    }
+  };
 }
 
 export function apiSubscribeToBlogs(callback: (blogs: any[]) => void): () => void {
+  // 1. Initial immediate multi-tier fetch
+  apiGetBlogs().then(data => {
+    if (data && data.length > 0) callback(data);
+  }).catch(() => callback(BLOG_POSTS));
+
+  // 2. Firestore listener
   const q = query(collection(db, 'blogs'));
-  // Robust one-time immediate fetch fallback
-  getDocs(q).then((snapshot) => {
+  const unsubFirestore = onSnapshot(q, (snapshot) => {
     if (!snapshot.empty) {
       const blogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      localStorage.setItem('admin_blogs', JSON.stringify(blogs));
       callback(blogs);
     }
-  }).catch((err) => console.warn("One-time blogs fetch warning:", err));
+  }, (err) => console.warn("Blogs sub warning:", err));
 
-  return onSnapshot(q, (snapshot) => {
-    const blogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    callback(blogs);
-  }, (err) => console.error("Blogs sub error:", err));
+  // 3. Custom Window Event listener for sync
+  const handleUpdate = () => {
+    apiGetBlogs().then(data => callback(data));
+  };
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('dstech_content_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+  }
+
+  return () => {
+    unsubFirestore();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('dstech_content_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    }
+  };
 }
 
 export function apiSubscribeToCourses(callback: (courses: any[]) => void): () => void {
   const q = query(collection(db, 'courses'));
-  // Robust one-time immediate fetch fallback
   getDocs(q).then((snapshot) => {
     if (!snapshot.empty) {
       const courses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -218,14 +275,15 @@ export function apiSubscribeToCourses(callback: (courses: any[]) => void): () =>
   }).catch((err) => console.warn("One-time courses fetch warning:", err));
 
   return onSnapshot(q, (snapshot) => {
-    const courses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    callback(courses);
+    if (!snapshot.empty) {
+      const courses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(courses);
+    }
   }, (err) => console.error("Courses sub error:", err));
 }
 
 export function apiSubscribeToClientProjects(callback: (projects: any[]) => void): () => void {
   const q = query(collection(db, 'client_projects'));
-  // Robust one-time immediate fetch fallback
   getDocs(q).then((snapshot) => {
     if (!snapshot.empty) {
       const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -234,41 +292,81 @@ export function apiSubscribeToClientProjects(callback: (projects: any[]) => void
   }).catch((err) => console.warn("One-time client projects fetch warning:", err));
 
   return onSnapshot(q, (snapshot) => {
-    const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    callback(projects);
-  }, (err) => console.error("Client Projects sub error:", err));
-}
-
-export function apiSubscribeToOngoingProjects(callback: (projects: any[]) => void): () => void {
-  const q = query(collection(db, 'ongoing_projects'));
-  // Robust one-time immediate fetch fallback
-  getDocs(q).then((snapshot) => {
     if (!snapshot.empty) {
       const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       callback(projects);
     }
-  }).catch((err) => console.warn("One-time ongoing projects fetch warning:", err));
+  }, (err) => console.error("Client Projects sub error:", err));
+}
 
-  return onSnapshot(q, (snapshot) => {
-    const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    callback(projects);
-  }, (err) => console.error("Ongoing Projects sub error:", err));
+export function apiSubscribeToOngoingProjects(callback: (projects: any[]) => void): () => void {
+  // 1. Initial immediate multi-tier fetch
+  apiGetOngoingProjects(true).then(data => {
+    if (data) callback(data);
+  }).catch(() => {});
+
+  // 2. Firestore listener
+  const q = query(collection(db, 'ongoing_projects'));
+  const unsubFirestore = onSnapshot(q, (snapshot) => {
+    if (!snapshot.empty) {
+      const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      localStorage.setItem('admin_ongoing_projects', JSON.stringify(projects));
+      callback(projects);
+    }
+  }, (err) => console.warn("Ongoing Projects sub warning:", err));
+
+  // 3. Custom Window Event listener for sync
+  const handleUpdate = () => {
+    apiGetOngoingProjects(true).then(data => callback(data));
+  };
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('dstech_content_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+  }
+
+  return () => {
+    unsubFirestore();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('dstech_content_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    }
+  };
 }
 
 export function apiSubscribeToRecognitionCertificates(callback: (certs: any[]) => void): () => void {
+  // 1. Initial immediate multi-tier fetch
+  apiGetRecognitionCertificates(true).then(data => {
+    if (data) callback(data);
+  }).catch(() => {});
+
+  // 2. Firestore listener
   const q = query(collection(db, 'recognition_certificates'));
-  // Robust one-time immediate fetch fallback
-  getDocs(q).then((snapshot) => {
+  const unsubFirestore = onSnapshot(q, (snapshot) => {
     if (!snapshot.empty) {
       const certs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      localStorage.setItem('admin_recognition_certs', JSON.stringify(certs));
       callback(certs);
     }
-  }).catch((err) => console.warn("One-time recognition certs fetch warning:", err));
+  }, (err) => console.warn("Recognition sub warning:", err));
 
-  return onSnapshot(q, (snapshot) => {
-    const certs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    callback(certs);
-  }, (err) => console.error("Recognition sub error:", err));
+  // 3. Custom Window Event listener for sync
+  const handleUpdate = () => {
+    apiGetRecognitionCertificates(true).then(data => callback(data));
+  };
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('dstech_content_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+  }
+
+  return () => {
+    unsubFirestore();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('dstech_content_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    }
+  };
 }
 
 export function apiSubscribeToCacMetadata(callback: (metadata: any[]) => void): () => void {
@@ -343,24 +441,34 @@ export function apiSubscribeToPageContent(sectionKey: string, callback: (content
 
 // --- Dynamic Services Sync ---
 export async function apiGetServices(): Promise<any[]> {
+  // 1. Attempt Cloudflare REST API first
   try {
     const res = await fetch('/api/services');
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) return data;
+      if (Array.isArray(data) && data.length > 0) {
+        localStorage.setItem('admin_services', JSON.stringify(data));
+        return data;
+      }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn("Cloudflare REST Services GET warning:", e);
+  }
 
+  // 2. Attempt Firestore
   try {
     const q = query(collection(db, 'services'));
     const snapshot = await getDocs(q);
     if (!snapshot.empty) {
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const services = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      localStorage.setItem('admin_services', JSON.stringify(services));
+      return services;
     }
   } catch (e) {
-    console.error("Firestore Services GET error:", e);
+    console.warn("Firestore Services GET warning:", e);
   }
 
+  // 3. Attempt LocalStorage
   try {
     const saved = localStorage.getItem('admin_services');
     if (saved) {
@@ -369,7 +477,11 @@ export async function apiGetServices(): Promise<any[]> {
     }
   } catch (e) {}
 
-  return [];
+  // 4. Default Seed Fallback
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('admin_services', JSON.stringify(SERVICES));
+  }
+  return SERVICES;
 }
 
 export async function apiSaveService(service: any): Promise<any> {
@@ -392,6 +504,22 @@ export async function apiSaveService(service: any): Promise<any> {
     });
   } catch (apiErr) {
     console.warn("Backend D1 Services SAVE error:", apiErr);
+  }
+
+  // 3. Update localStorage directly
+  try {
+    const existing = await apiGetServices();
+    const idx = existing.findIndex((s: any) => s.id === id);
+    let newList = [...existing];
+    if (idx >= 0) newList[idx] = record;
+    else newList.push(record);
+    localStorage.setItem('admin_services', JSON.stringify(newList));
+  } catch (e) {}
+
+  // 4. Dispatch sync event
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'services', action: 'save', item: record } }));
+    window.dispatchEvent(new Event('storage'));
   }
 
   return record;
@@ -418,6 +546,25 @@ export async function apiUpdateService(id: string, service: any): Promise<any> {
     console.warn("Backend D1 Services UPDATE error:", apiErr);
   }
 
+  // 3. Update localStorage directly
+  try {
+    const saved = localStorage.getItem('admin_services');
+    if (saved) {
+      let parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        const idx = parsed.findIndex((s: any) => s.id === id);
+        if (idx >= 0) parsed[idx] = { ...parsed[idx], ...record };
+        else parsed.push(record);
+        localStorage.setItem('admin_services', JSON.stringify(parsed));
+      }
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'services', action: 'update', item: record } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
   return record;
 }
 
@@ -438,40 +585,63 @@ export async function apiDeleteService(id: string): Promise<any> {
     console.warn("Backend D1 Services DELETE error:", apiErr);
   }
 
+  // 3. Update localStorage directly
+  try {
+    const saved = localStorage.getItem('admin_services');
+    if (saved) {
+      let parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        parsed = parsed.filter((s: any) => s.id !== id);
+        localStorage.setItem('admin_services', JSON.stringify(parsed));
+      }
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'services', action: 'delete', id } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
   return { success: true };
 }
 
 export async function apiInitializeServices(items: any[]): Promise<any> {
-  // Batch initialization if empty
-  const current = await apiGetServices();
-  if (current.length === 0) {
-    for (const item of items) {
-      await apiSaveService(item);
-    }
+  for (const item of items) {
+    await apiSaveService(item);
   }
   return { success: true };
 }
 
 // --- Dynamic Portfolio Sync ---
 export async function apiGetPortfolio(): Promise<any[]> {
+  // 1. Attempt Cloudflare REST API
   try {
     const res = await fetch('/api/portfolio');
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) return data;
+      if (Array.isArray(data) && data.length > 0) {
+        localStorage.setItem('admin_portfolio_projects', JSON.stringify(data));
+        return data;
+      }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn("Cloudflare REST Portfolio GET warning:", e);
+  }
 
+  // 2. Attempt Firestore
   try {
     const q = query(collection(db, 'portfolio'));
     const snapshot = await getDocs(q);
     if (!snapshot.empty) {
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const projects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      localStorage.setItem('admin_portfolio_projects', JSON.stringify(projects));
+      return projects;
     }
   } catch (e) {
-    console.error("Firestore Portfolio GET error:", e);
+    console.warn("Firestore Portfolio GET warning:", e);
   }
 
+  // 3. Attempt LocalStorage
   try {
     const saved = localStorage.getItem('admin_portfolio_projects');
     if (saved) {
@@ -480,7 +650,11 @@ export async function apiGetPortfolio(): Promise<any[]> {
     }
   } catch (e) {}
 
-  return [];
+  // 4. Default Seed Fallback
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('admin_portfolio_projects', JSON.stringify(PORTFOLIO));
+  }
+  return PORTFOLIO;
 }
 
 export async function apiSavePortfolio(project: any): Promise<any> {
@@ -503,6 +677,21 @@ export async function apiSavePortfolio(project: any): Promise<any> {
     });
   } catch (apiErr) {
     console.warn("Backend D1 Portfolio SAVE error:", apiErr);
+  }
+
+  // 3. Update localStorage directly
+  try {
+    const existing = await apiGetPortfolio();
+    const idx = existing.findIndex((p: any) => p.id === id);
+    let newList = [...existing];
+    if (idx >= 0) newList[idx] = record;
+    else newList.push(record);
+    localStorage.setItem('admin_portfolio_projects', JSON.stringify(newList));
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'portfolio', action: 'save', item: record } }));
+    window.dispatchEvent(new Event('storage'));
   }
 
   return record;
@@ -529,6 +718,25 @@ export async function apiUpdatePortfolio(id: string, project: any): Promise<any>
     console.warn("Backend D1 Portfolio UPDATE error:", apiErr);
   }
 
+  // 3. Update localStorage directly
+  try {
+    const saved = localStorage.getItem('admin_portfolio_projects');
+    if (saved) {
+      let parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        const idx = parsed.findIndex((p: any) => p.id === id);
+        if (idx >= 0) parsed[idx] = { ...parsed[idx], ...record };
+        else parsed.push(record);
+        localStorage.setItem('admin_portfolio_projects', JSON.stringify(parsed));
+      }
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'portfolio', action: 'update', item: record } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
   return record;
 }
 
@@ -549,37 +757,63 @@ export async function apiDeletePortfolio(id: string): Promise<any> {
     console.warn("Backend D1 Portfolio DELETE error:", apiErr);
   }
 
+  // 3. Update localStorage directly
+  try {
+    const saved = localStorage.getItem('admin_portfolio_projects');
+    if (saved) {
+      let parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        parsed = parsed.filter((p: any) => p.id !== id);
+        localStorage.setItem('admin_portfolio_projects', JSON.stringify(parsed));
+      }
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'portfolio', action: 'delete', id } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
   return { success: true };
 }
 
 export async function apiInitializePortfolio(items: any[]): Promise<any> {
-  const current = await apiGetPortfolio();
-  if (current.length === 0) {
-    for (const item of items) {
-      await apiSavePortfolio(item);
-    }
+  for (const item of items) {
+    await apiSavePortfolio(item);
   }
   return { success: true };
 }
 
 // --- Dynamic Blogs Sync ---
 export async function apiGetBlogs(): Promise<any[]> {
+  // 1. Attempt Cloudflare REST API
   try {
     const res = await fetch('/api/blogs');
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) return data;
+      if (Array.isArray(data) && data.length > 0) {
+        localStorage.setItem('admin_blogs', JSON.stringify(data));
+        return data;
+      }
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn("Cloudflare REST Blogs GET warning:", e);
+  }
 
+  // 2. Attempt Firestore
   try {
     const q = query(collection(db, 'blogs'));
     const snapshot = await getDocs(q);
     if (!snapshot.empty) {
-      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const blogs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      localStorage.setItem('admin_blogs', JSON.stringify(blogs));
+      return blogs;
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn("Firestore Blogs GET warning:", e);
+  }
 
+  // 3. Attempt LocalStorage
   try {
     const saved = localStorage.getItem('admin_blogs');
     if (saved) {
@@ -588,7 +822,11 @@ export async function apiGetBlogs(): Promise<any[]> {
     }
   } catch (e) {}
 
-  return [];
+  // 4. Default Seed Fallback
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('admin_blogs', JSON.stringify(BLOG_POSTS));
+  }
+  return BLOG_POSTS;
 }
 
 export async function apiSaveBlog(blog: any): Promise<any> {
@@ -611,6 +849,21 @@ export async function apiSaveBlog(blog: any): Promise<any> {
     });
   } catch (apiErr) {
     console.warn("Backend D1 Blogs SAVE error:", apiErr);
+  }
+
+  // 3. Update localStorage directly
+  try {
+    const existing = await apiGetBlogs();
+    const idx = existing.findIndex((b: any) => b.id === id);
+    let newList = [...existing];
+    if (idx >= 0) newList[idx] = record;
+    else newList.push(record);
+    localStorage.setItem('admin_blogs', JSON.stringify(newList));
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'blogs', action: 'save', item: record } }));
+    window.dispatchEvent(new Event('storage'));
   }
 
   return record;
@@ -637,6 +890,25 @@ export async function apiUpdateBlog(id: string, blog: any): Promise<any> {
     console.warn("Backend D1 Blogs UPDATE error:", apiErr);
   }
 
+  // 3. Update localStorage directly
+  try {
+    const saved = localStorage.getItem('admin_blogs');
+    if (saved) {
+      let parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        const idx = parsed.findIndex((b: any) => b.id === id);
+        if (idx >= 0) parsed[idx] = { ...parsed[idx], ...record };
+        else parsed.push(record);
+        localStorage.setItem('admin_blogs', JSON.stringify(parsed));
+      }
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'blogs', action: 'update', item: record } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
   return record;
 }
 
@@ -657,28 +929,36 @@ export async function apiDeleteBlog(id: string): Promise<any> {
     console.warn("Backend D1 Blogs DELETE error:", apiErr);
   }
 
+  // 3. Update localStorage directly
+  try {
+    const saved = localStorage.getItem('admin_blogs');
+    if (saved) {
+      let parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        parsed = parsed.filter((b: any) => b.id !== id);
+        localStorage.setItem('admin_blogs', JSON.stringify(parsed));
+      }
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'blogs', action: 'delete', id } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
   return { success: true };
 }
 
 export async function apiInitializeBlogs(items: any[]): Promise<any> {
-  const current = await apiGetBlogs();
-  if (current.length === 0) {
-    for (const item of items) {
-      await apiSaveBlog(item);
-    }
+  for (const item of items) {
+    await apiSaveBlog(item);
   }
   return { success: true };
 }
 
 // --- Dynamic Courses Sync ---
 export async function apiGetCourses(): Promise<any[]> {
-  try {
-    const res = await fetch('/api/courses');
-    if (res.ok) {
-      const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) return data;
-    }
-  } catch (e) {}
+  
 
   try {
     const q = query(collection(db, 'courses'));
@@ -1243,6 +1523,7 @@ export interface RecognitionCertificate {
 }
 
 export async function apiGetRecognitionCertificates(admin: boolean = false, category?: string): Promise<RecognitionCertificate[]> {
+  // 1. Attempt Cloudflare REST API
   try {
     let url = admin ? '/api/recognition/certificates?admin=true' : '/api/recognition/certificates';
     if (category) {
@@ -1251,16 +1532,31 @@ export async function apiGetRecognitionCertificates(admin: boolean = false, cate
     const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) return data;
+      if (Array.isArray(data) && data.length > 0) {
+        localStorage.setItem('admin_recognition_certs', JSON.stringify(data));
+        return data;
+      }
     }
   } catch (e) {}
 
+  // 2. Attempt Firestore
   try {
     const ref = collection(db, 'recognition_certificates');
     const q = admin ? query(ref, orderBy('updated_at', 'desc')) : query(ref, where('is_published', '==', 1), orderBy('updated_at', 'desc'));
     const snapshot = await getDocs(q);
     if (!snapshot.empty) {
-      return snapshot.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as RecognitionCertificate[];
+      const certs = snapshot.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as RecognitionCertificate[];
+      localStorage.setItem('admin_recognition_certs', JSON.stringify(certs));
+      return certs;
+    }
+  } catch (e) {}
+
+  // 3. Attempt LocalStorage
+  try {
+    const saved = localStorage.getItem('admin_recognition_certs');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch (e) {}
 
@@ -1295,6 +1591,21 @@ export async function apiSaveRecognitionCertificate(cert: Partial<RecognitionCer
     console.warn("Backend D1 Recognition SAVE error:", apiErr);
   }
 
+  // 3. Update localStorage directly
+  try {
+    const existing = await apiGetRecognitionCertificates(true);
+    const idx = existing.findIndex((c: any) => c.id === id);
+    let newList = [...existing];
+    if (idx >= 0) newList[idx] = record as RecognitionCertificate;
+    else newList.push(record as RecognitionCertificate);
+    localStorage.setItem('admin_recognition_certs', JSON.stringify(newList));
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'recognition', action: 'save', item: record } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
   return record as RecognitionCertificate;
 }
 
@@ -1313,6 +1624,23 @@ export async function apiDeleteRecognitionCertificate(id: string): Promise<{ suc
     });
   } catch (apiErr) {
     console.warn("Backend D1 Recognition DELETE error:", apiErr);
+  }
+
+  // 3. Update localStorage directly
+  try {
+    const saved = localStorage.getItem('admin_recognition_certs');
+    if (saved) {
+      let parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        parsed = parsed.filter((c: any) => c.id !== id);
+        localStorage.setItem('admin_recognition_certs', JSON.stringify(parsed));
+      }
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'recognition', action: 'delete', id } }));
+    window.dispatchEvent(new Event('storage'));
   }
 
   return { success: true };
@@ -1340,6 +1668,24 @@ export async function apiToggleRecognitionPublish(id: string, isPublished: boole
     });
   } catch (apiErr) {
     console.warn("Backend D1 Recognition TOGGLE error:", apiErr);
+  }
+
+  // 3. Update LocalStorage
+  try {
+    const saved = localStorage.getItem('admin_recognition_certs');
+    if (saved) {
+      let parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        const idx = parsed.findIndex((c: any) => c.id === id);
+        if (idx >= 0) parsed[idx].is_published = pubVal;
+        localStorage.setItem('admin_recognition_certs', JSON.stringify(parsed));
+      }
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'recognition', action: 'publish', id, is_published: pubVal } }));
+    window.dispatchEvent(new Event('storage'));
   }
 
   return { success: true, id, is_published: pubVal };
@@ -1413,21 +1759,37 @@ export interface OngoingProject {
 }
 
 export async function apiGetOngoingProjects(admin: boolean = false): Promise<OngoingProject[]> {
+  // 1. Attempt Cloudflare REST API
   try {
     const url = admin ? '/api/ongoing-projects?admin=true' : '/api/ongoing-projects';
     const res = await fetch(url);
     if (res.ok) {
       const data = await res.json();
-      if (Array.isArray(data)) return data;
+      if (Array.isArray(data) && data.length > 0) {
+        localStorage.setItem('admin_ongoing_projects', JSON.stringify(data));
+        return data;
+      }
     }
   } catch (e) {}
 
+  // 2. Attempt Firestore
   try {
     const ongoingRef = collection(db, 'ongoing_projects');
     const q = admin ? query(ongoingRef, orderBy('updated_at', 'desc')) : query(ongoingRef, where('is_published', '==', 1), orderBy('updated_at', 'desc'));
     const snapshot = await getDocs(q);
     if (!snapshot.empty) {
-      return snapshot.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as OngoingProject[];
+      const projects = snapshot.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as OngoingProject[];
+      localStorage.setItem('admin_ongoing_projects', JSON.stringify(projects));
+      return projects;
+    }
+  } catch (e) {}
+
+  // 3. Attempt LocalStorage
+  try {
+    const saved = localStorage.getItem('admin_ongoing_projects');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
     }
   } catch (e) {}
 
@@ -1462,6 +1824,21 @@ export async function apiSaveOngoingProject(project: Partial<OngoingProject>): P
     console.warn("Backend D1 Ongoing Project SAVE error:", apiErr);
   }
 
+  // 3. Update localStorage directly
+  try {
+    const existing = await apiGetOngoingProjects(true);
+    const idx = existing.findIndex((p: any) => p.id === id);
+    let newList = [...existing];
+    if (idx >= 0) newList[idx] = record as OngoingProject;
+    else newList.push(record as OngoingProject);
+    localStorage.setItem('admin_ongoing_projects', JSON.stringify(newList));
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'ongoing_projects', action: 'save', item: record } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
   return record as OngoingProject;
 }
 
@@ -1480,6 +1857,23 @@ export async function apiDeleteOngoingProject(id: string): Promise<{ success: bo
     });
   } catch (apiErr) {
     console.warn("Backend D1 Ongoing Project DELETE error:", apiErr);
+  }
+
+  // 3. Update localStorage directly
+  try {
+    const saved = localStorage.getItem('admin_ongoing_projects');
+    if (saved) {
+      let parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        parsed = parsed.filter((p: any) => p.id !== id);
+        localStorage.setItem('admin_ongoing_projects', JSON.stringify(parsed));
+      }
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'ongoing_projects', action: 'delete', id } }));
+    window.dispatchEvent(new Event('storage'));
   }
 
   return { success: true, id };
@@ -1509,6 +1903,24 @@ export async function apiToggleOngoingProjectPublish(id: string, isPublished: bo
     console.warn("Backend D1 Ongoing Project TOGGLE error:", apiErr);
   }
 
+  // 3. Update LocalStorage
+  try {
+    const saved = localStorage.getItem('admin_ongoing_projects');
+    if (saved) {
+      let parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        const idx = parsed.findIndex((p: any) => p.id === id);
+        if (idx >= 0) parsed[idx].is_published = pubVal;
+        localStorage.setItem('admin_ongoing_projects', JSON.stringify(parsed));
+      }
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'ongoing_projects', action: 'publish', id, is_published: pubVal } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
   return { success: true, id, is_published: pubVal };
 }
 
@@ -1532,6 +1944,24 @@ export async function apiUpdateOngoingProjectProgress(id: string, progress: numb
     });
   } catch (apiErr) {
     console.warn("Backend D1 Ongoing Project PROGRESS error:", apiErr);
+  }
+
+  // 3. Update LocalStorage
+  try {
+    const saved = localStorage.getItem('admin_ongoing_projects');
+    if (saved) {
+      let parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        const idx = parsed.findIndex((p: any) => p.id === id);
+        if (idx >= 0) parsed[idx].progress_percentage = progress;
+        localStorage.setItem('admin_ongoing_projects', JSON.stringify(parsed));
+      }
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'ongoing_projects', action: 'progress', id, progress_percentage: progress } }));
+    window.dispatchEvent(new Event('storage'));
   }
 
   return { success: true, id, progress_percentage: progress };
@@ -1864,6 +2294,209 @@ export async function apiAddStaffLog(log: { operator_email: string; action: stri
   });
   if (!res.ok) throw new Error('Failed to append activity log');
   return res.json();
+}
+
+// ============================================================================
+// REAL-TIME FIRESTORE & CLOUDFLARE DASHBOARD SYNCHRONIZATION HELPERS
+// ============================================================================
+
+export function apiSubscribeToInvoicesRealtime(callback: (invoices: any[]) => void): () => void {
+  const q = query(collection(db, 'client_invoices'));
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const invoices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(invoices);
+    }
+  }).catch((err) => console.warn("Initial invoices fetch warning:", err));
+
+  return onSnapshot(q, (snapshot) => {
+    if (!snapshot.empty) {
+      const invoices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(invoices);
+    }
+  }, (err) => console.warn("Invoices realtime subscription error:", err));
+}
+
+export async function apiSaveInvoiceRealtime(invoice: any): Promise<void> {
+  const id = invoice.id || 'inv_' + Math.random().toString(36).substring(2, 9);
+  const cleanObj = { ...invoice, id };
+  Object.keys(cleanObj).forEach(k => cleanObj[k] === undefined && delete cleanObj[k]);
+  
+  try {
+    await setDoc(doc(db, 'client_invoices', id), cleanObj);
+    window.dispatchEvent(new Event('dstech_content_updated'));
+  } catch (err) {
+    console.error("Error saving invoice to Firestore:", err);
+  }
+}
+
+export async function apiUpdateInvoiceRealtime(id: string, updates: any): Promise<void> {
+  const cleanObj = { ...updates };
+  Object.keys(cleanObj).forEach(k => cleanObj[k] === undefined && delete cleanObj[k]);
+  
+  try {
+    await updateDoc(doc(db, 'client_invoices', id), cleanObj);
+    window.dispatchEvent(new Event('dstech_content_updated'));
+  } catch (err) {
+    console.error("Error updating invoice in Firestore:", err);
+  }
+}
+
+export function apiSubscribeToTicketsRealtime(callback: (tickets: any[]) => void): () => void {
+  const q = query(collection(db, 'support_tickets'));
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const tickets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(tickets);
+    }
+  }).catch((err) => console.warn("Initial tickets fetch warning:", err));
+
+  return onSnapshot(q, (snapshot) => {
+    if (!snapshot.empty) {
+      const tickets = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(tickets);
+    }
+  }, (err) => console.warn("Tickets realtime subscription error:", err));
+}
+
+export async function apiSaveTicketRealtime(ticket: any): Promise<void> {
+  const id = ticket.id || 'tkt_' + Math.random().toString(36).substring(2, 9);
+  const cleanObj = { ...ticket, id };
+  Object.keys(cleanObj).forEach(k => cleanObj[k] === undefined && delete cleanObj[k]);
+
+  try {
+    await setDoc(doc(db, 'support_tickets', id), cleanObj);
+    window.dispatchEvent(new Event('dstech_content_updated'));
+  } catch (err) {
+    console.error("Error saving support ticket to Firestore:", err);
+  }
+}
+
+export async function apiUpdateTicketRealtime(id: string, updates: any): Promise<void> {
+  const cleanObj = { ...updates };
+  Object.keys(cleanObj).forEach(k => cleanObj[k] === undefined && delete cleanObj[k]);
+
+  try {
+    await updateDoc(doc(db, 'support_tickets', id), cleanObj);
+    window.dispatchEvent(new Event('dstech_content_updated'));
+  } catch (err) {
+    console.error("Error updating ticket in Firestore:", err);
+  }
+}
+
+export async function apiSaveClientProjectRealtime(project: any): Promise<void> {
+  const id = project.id || 'proj_' + Math.random().toString(36).substring(2, 9);
+  const cleanObj = { ...project, id };
+  Object.keys(cleanObj).forEach(k => cleanObj[k] === undefined && delete cleanObj[k]);
+
+  try {
+    await setDoc(doc(db, 'client_projects', id), cleanObj);
+    window.dispatchEvent(new Event('dstech_content_updated'));
+  } catch (err) {
+    console.error("Error saving client project to Firestore:", err);
+  }
+}
+
+export async function apiUpdateClientProjectRealtime(id: string, updates: any): Promise<void> {
+  const cleanObj = { ...updates };
+  Object.keys(cleanObj).forEach(k => cleanObj[k] === undefined && delete cleanObj[k]);
+
+  try {
+    await updateDoc(doc(db, 'client_projects', id), cleanObj);
+    window.dispatchEvent(new Event('dstech_content_updated'));
+  } catch (err) {
+    console.error("Error updating client project in Firestore:", err);
+  }
+}
+
+export function apiSubscribeToAnnouncementsRealtime(callback: (announcements: any[]) => void): () => void {
+  const q = query(collection(db, 'announcements'));
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const anns = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(anns);
+    }
+  }).catch((err) => console.warn("Initial announcements fetch warning:", err));
+
+  return onSnapshot(q, (snapshot) => {
+    if (!snapshot.empty) {
+      const anns = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(anns);
+    }
+  }, (err) => console.warn("Announcements realtime subscription error:", err));
+}
+
+export async function apiSaveAnnouncementRealtime(ann: any): Promise<void> {
+  const id = ann.id || 'ann_' + Math.random().toString(36).substring(2, 9);
+  const cleanObj = { ...ann, id };
+  Object.keys(cleanObj).forEach(k => cleanObj[k] === undefined && delete cleanObj[k]);
+
+  try {
+    await setDoc(doc(db, 'announcements', id), cleanObj);
+    window.dispatchEvent(new Event('dstech_content_updated'));
+  } catch (err) {
+    console.error("Error saving announcement to Firestore:", err);
+  }
+}
+
+export function apiSubscribeToStaffDocsRealtime(callback: (docs: any[]) => void): () => void {
+  const q = query(collection(db, 'staff_docs'));
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const docsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(docsList);
+    }
+  }).catch((err) => console.warn("Initial staff docs fetch warning:", err));
+
+  return onSnapshot(q, (snapshot) => {
+    if (!snapshot.empty) {
+      const docsList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(docsList);
+    }
+  }, (err) => console.warn("Staff docs realtime subscription error:", err));
+}
+
+export async function apiSaveStaffDocRealtime(docItem: any): Promise<void> {
+  const id = docItem.id || 'doc_' + Math.random().toString(36).substring(2, 9);
+  const cleanObj = { ...docItem, id };
+  Object.keys(cleanObj).forEach(k => cleanObj[k] === undefined && delete cleanObj[k]);
+
+  try {
+    await setDoc(doc(db, 'staff_docs', id), cleanObj);
+    window.dispatchEvent(new Event('dstech_content_updated'));
+  } catch (err) {
+    console.error("Error saving staff doc to Firestore:", err);
+  }
+}
+
+export function apiSubscribeToStaffMembersRealtime(callback: (staffList: any[]) => void): () => void {
+  const q = query(collection(db, 'staff'));
+  getDocs(q).then((snapshot) => {
+    if (!snapshot.empty) {
+      const staffList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(staffList);
+    }
+  }).catch((err) => console.warn("Initial staff fetch warning:", err));
+
+  return onSnapshot(q, (snapshot) => {
+    if (!snapshot.empty) {
+      const staffList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      callback(staffList);
+    }
+  }, (err) => console.warn("Staff members subscription error:", err));
+}
+
+export async function apiSaveStaffMemberRealtime(staff: any): Promise<void> {
+  const id = staff.id || staff.uid || 'staff_' + Math.random().toString(36).substring(2, 9);
+  const cleanObj = { ...staff, id };
+  Object.keys(cleanObj).forEach(k => cleanObj[k] === undefined && delete cleanObj[k]);
+
+  try {
+    await setDoc(doc(db, 'staff', id), cleanObj);
+    window.dispatchEvent(new Event('dstech_content_updated'));
+  } catch (err) {
+    console.error("Error saving staff member to Firestore:", err);
+  }
 }
 
 export async function verifyImageUrlAccessible(urlOrKey: string | null | undefined): Promise<boolean> {
