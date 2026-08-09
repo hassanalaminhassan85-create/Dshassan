@@ -3,6 +3,21 @@
 
 import { generateDynamicSvgUrl, generateAvatarSvgUrl } from './mediaUtils';
 
+export function parsePriceToNumeric(priceStr?: string | number, defaultPrice = 100000): number {
+  if (priceStr === undefined || priceStr === null || priceStr === '') return defaultPrice;
+  if (typeof priceStr === 'number') return priceStr > 0 ? priceStr : defaultPrice;
+
+  // Handle range formats like "₦30,000 – ₦250,000+" by extracting the initial value
+  const stringVal = priceStr.toString();
+  const rangeParts = stringVal.split(/–|-|\bto\b/i);
+  const firstPart = rangeParts[0] || '';
+
+  const digits = firstPart.replace(/[^0-9]/g, '');
+  const parsed = parseInt(digits, 10);
+
+  return !isNaN(parsed) && parsed > 0 ? parsed : defaultPrice;
+}
+
 export interface ServiceItem {
   id: string;
   name: string;

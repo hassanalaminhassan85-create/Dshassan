@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, TrendingUp, Gauge, Zap, Brain, X, Check, CreditCard } from 'lucide-react';
-import { ServiceItem } from '../lib/data';
+import { ServiceItem, parsePriceToNumeric } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
 import { PaystackPayButton } from './PaystackMotionCheckout';
 
@@ -248,7 +248,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
 
             <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
               <PaystackPayButton
-                amount={parseInt((svc.price || '250000').replace(/[^0-9]/g, '')) || 250000}
+                amount={parsePriceToNumeric(svc.price, 100000)}
                 email="client@dstech.agency"
                 customerName="Valued Client"
                 title={`Retainer: ${svc.name}`}

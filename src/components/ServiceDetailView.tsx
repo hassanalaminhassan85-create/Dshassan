@@ -4,7 +4,7 @@ import {
   ArrowLeft, MessageSquare, CheckCircle2, ShieldCheck, 
   Sparkles, Calendar, Award, Phone, Mail, Clock, DollarSign, FileText, CreditCard
 } from 'lucide-react';
-import { ServiceItem } from '../lib/data';
+import { ServiceItem, parsePriceToNumeric } from '../lib/data';
 import { resolveImageUrl } from '../lib/api';
 import { generateDynamicSvgUrl } from '../lib/mediaUtils';
 import { LanguageCode } from '../lib/translations';
@@ -209,7 +209,7 @@ ${notes || 'Client requested consultation for this service.'}
           {/* Direct Actions: WhatsApp Brief + High Motion Paystack Checkout */}
           <div className="flex flex-wrap gap-3 pt-2 items-center">
             <PaystackPayButton
-              amount={parseInt((service.price || '120000').replace(/[^0-9]/g, '')) || 120000}
+              amount={parsePriceToNumeric(service.price, 30000)}
               email={email || 'client@dstech.agency'}
               customerName={fullName || 'Valued Client'}
               title={`Service Retainer: ${service.name}`}

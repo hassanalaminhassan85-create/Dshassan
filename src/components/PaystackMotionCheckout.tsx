@@ -157,23 +157,23 @@ export const PaystackMotionCheckoutModal: React.FC<PaystackMotionCheckoutModalPr
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.9, y: 25 }}
           transition={{ type: "spring", stiffness: 280, damping: 24 }}
-          className="bg-slate-900 border border-slate-800 text-white rounded-3xl max-w-xl w-full shadow-2xl overflow-hidden relative my-auto text-left"
+          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl max-w-xl w-full shadow-2xl overflow-hidden relative my-auto text-left"
         >
           {/* Top Energy Ambient Glow */}
-          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-indigo-500 animate-pulse" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-amber-500 to-emerald-500 animate-pulse" />
 
           {/* Header */}
-          <div className="p-5 sm:p-6 pb-4 border-b border-slate-800 bg-slate-900/90 flex items-center justify-between">
+          <div className="p-5 sm:p-6 pb-4 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold shadow-lg shadow-emerald-500/10">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-orange-500/30 flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold shadow-lg shadow-orange-500/10">
                 <CreditCard size={20} />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400 font-mono flex items-center gap-1">
-                  <Sparkles size={11} className="animate-spin text-teal-300" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-orange-600 dark:text-emerald-400 font-mono flex items-center gap-1">
+                  <Sparkles size={11} className="animate-spin text-amber-500" />
                   Secure Paystack Payment Node
                 </span>
-                <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight">
                   {config.title}
                 </h3>
               </div>
@@ -182,7 +182,7 @@ export const PaystackMotionCheckoutModal: React.FC<PaystackMotionCheckoutModalPr
             <button 
               onClick={onClose}
               disabled={isProcessing}
-              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-2xl transition-colors disabled:opacity-50 shrink-0"
+              className="p-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white rounded-2xl transition-colors disabled:opacity-50 shrink-0 cursor-pointer"
             >
               <X size={18} />
             </button>

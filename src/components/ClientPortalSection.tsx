@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Logo } from './Logo';
 import { PaystackPayButton } from './PaystackMotionCheckout';
+import { parsePriceToNumeric } from '../lib/data';
 import { 
   apiSubscribeToClientProjects,
   apiSaveClientProjectRealtime,
@@ -1577,7 +1578,7 @@ export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({
                             <td className="p-4 text-right space-x-2">
                               {inv.status === 'unpaid' ? (
                                 <PaystackPayButton
-                                  amount={parseInt((inv.amount || '100000').replace(/[^0-9]/g, '')) || 100000}
+                                  amount={parsePriceToNumeric(inv.amount, 100000)}
                                   email={activeClient?.email || 'client@dstech.agency'}
                                   customerName={activeClient?.contactName || activeClient?.companyName || 'Valued Client'}
                                   phone={activeClient?.phone || ''}

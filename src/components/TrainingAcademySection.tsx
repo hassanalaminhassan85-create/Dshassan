@@ -15,7 +15,7 @@ import {
   PieChart, Pie, Cell, LineChart, Line, CartesianGrid
 } from 'recharts';
 import { apiSubscribeToCourses } from '../lib/api';
-import { Course, Lesson, COURSES } from '../lib/data';
+import { Course, Lesson, COURSES, parsePriceToNumeric } from '../lib/data';
 
 export interface Enrollment {
   id: string;
@@ -1152,7 +1152,7 @@ export const TrainingAcademySection: React.FC<{ onBackToPortal?: () => void }> =
                             </button>
                           ) : (
                             <PaystackPayButton
-                              amount={parseInt((course.price || '150000').replace(/[^0-9]/g, '')) || 150000}
+                              amount={parsePriceToNumeric(course.price, 150000)}
                               email={currentUser?.email || 'student@dstech.agency'}
                               customerName={currentUser?.name || 'Valued Student'}
                               title={`Course Enrollment: ${course.title}`}
