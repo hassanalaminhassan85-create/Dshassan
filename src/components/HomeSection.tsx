@@ -1,20 +1,69 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   Sparkles, ArrowRight, BarChart3, Users, Star, ArrowUpRight, 
-  ChevronRight, Calendar, Heart, ShieldCheck, Mail, MessageSquare, Phone
+  ChevronRight, Calendar, Heart, ShieldCheck, Mail, MessageSquare, Phone,
+  Shield, Target, Smile, Briefcase, TrendingUp, Zap, Award, CheckCircle2,
+  FileText, X, ExternalLink
 } from 'lucide-react';
-import { SERVICES, TESTIMONIALS, PARTNERS, ServiceItem } from '../lib/data';
+
+const OrbitalVisualNode: React.FC = () => {
+  return (
+    <div className="relative w-full aspect-square max-w-[280px] sm:max-w-[340px] lg:max-w-[380px] mx-auto flex items-center justify-center select-none pointer-events-none">
+      {/* Background Ambient Radial Glow */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/25 via-orange-500/20 to-transparent rounded-full filter blur-3xl opacity-80 animate-pulse" />
+
+      {/* Orbit Ring 1 - Blue Outer Ring */}
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+        className="absolute w-[88%] h-[88%] rounded-full border border-blue-500/25 shadow-[0_0_15px_rgba(59,130,246,0.15)]"
+      >
+        <div className="absolute -top-1.5 left-1/2 w-3.5 h-3.5 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500 shadow-[0_0_12px_#3b82f6]" />
+      </motion.div>
+
+      {/* Orbit Ring 2 - Orange Middle Ring */}
+      <motion.div
+        animate={{ rotate: -360 }}
+        transition={{ duration: 32, repeat: Infinity, ease: "linear" }}
+        className="absolute w-[72%] h-[72%] rounded-full border border-orange-500/30 rotate-45 shadow-[0_0_15px_rgba(249,115,22,0.15)]"
+      >
+        <div className="absolute -bottom-2 right-1/4 w-4 h-4 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 shadow-[0_0_14px_#f97316]" />
+      </motion.div>
+
+      {/* Orbit Ring 3 - Inner Subtle Ring */}
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
+        className="absolute w-[56%] h-[56%] rounded-full border border-blue-400/30 -rotate-12"
+      >
+        <div className="absolute top-1/4 -left-1.5 w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-[0_0_8px_#818cf8]" />
+      </motion.div>
+
+      {/* Center Sphere Emblem */}
+      <motion.div 
+        animate={{ y: [-5, 5, -5] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-slate-950/90 border-2 border-blue-500/60 shadow-[0_0_50px_rgba(37,99,235,0.4),inset_0_0_20px_rgba(249,115,22,0.25)] flex flex-col items-center justify-center text-center backdrop-blur-xl z-10"
+      >
+        <div className="absolute inset-1 rounded-full border border-orange-500/30 pointer-events-none" />
+        <span className="text-3xl sm:text-4xl font-extrabold tracking-wider text-white font-sans drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]">
+          DS
+        </span>
+        <span className="text-[10px] sm:text-[11px] font-black tracking-[0.3em] text-slate-300 uppercase mt-0.5">
+          TECH
+        </span>
+      </motion.div>
+    </div>
+  );
+};
+
+import { SERVICES, TESTIMONIALS, ServiceItem } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
 import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
 import { CacTrustSection } from './CacTrustSection';
-import { OngoingProjectsSection } from './OngoingProjectsSection';
-import { PortfolioSection } from './PortfolioSection';
-import { BlogSection } from './BlogSection';
-import { RecognitionSection } from './RecognitionSection';
 import { CustomQuoteModal } from './CustomQuoteModal';
-import { PaystackPayButton } from './PaystackMotionCheckout';
-import { apiGetServices, resolveImageUrl, apiSubscribeToServices } from '../lib/api';
+import { resolveImageUrl, apiSubscribeToServices } from '../lib/api';
 
 interface HomeSectionProps {
   onNavigate: (path: string) => void;
@@ -42,13 +91,14 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
       return SERVICES;
     }
   });
-  const [homeCategory, setHomeCategory] = useState('all');
+
   const [quoteModalService, setQuoteModalService] = useState<any | null>(null);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  const [isCacModalOpen, setIsCacModalOpen] = useState(false);
 
   useEffect(() => {
     const unsubscribe = apiSubscribeToServices((fetchedServices) => {
-      if (fetchedServices) {
+      if (fetchedServices && fetchedServices.length > 0) {
         setServices(fetchedServices);
         localStorage.setItem('admin_services', JSON.stringify(fetchedServices));
       }
@@ -58,97 +108,60 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
 
   const t = HOME_TRANSLATIONS[language] || HOME_TRANSLATIONS.en;
 
-  // Translated features based on language
   const getTranslatedFeatures = () => {
     switch (language) {
       case 'fr':
         return [
           {
-            icon: <BarChart3 className="text-orange-500 w-6 h-6" />,
+            icon: <BarChart3 className="text-orange-500 w-5 h-5" />,
             title: "Décisions Basées sur les Données",
-            desc: "Chaque campagne, entonnoir de conversion et nœud d'application est suivi, modélisé et optimisé pour un rendement maximal."
+            desc: "Chaque campagne, entonnoir de conversion et application est modélisé et optimisé pour un rendement maximal."
           },
           {
-            icon: <ShieldCheck className="text-indigo-500 w-6 h-6" />,
+            icon: <ShieldCheck className="text-indigo-500 w-5 h-5" />,
             title: "100% Légal & Conforme",
-            desc: "Nous relions le déploiement de logiciels aux autorisations d'entreprise (CAC, TIN, SCUML) afin que vous opériez en toute légalité."
+            desc: "Nous relions le déploiement de logiciels aux autorisations d'entreprise (CAC, TIN, SCUML) pour une opération légale."
           },
           {
-            icon: <Sparkles className="text-amber-500 w-6 h-6" />,
+            icon: <Sparkles className="text-amber-500 w-5 h-5" />,
             title: "Intégrations d'IA de Nouvelle Génération",
-            desc: "Déployez de manière autonome des systèmes intelligents basés sur Gemini, des bots WhatsApp personnalisés et des flux d'enchères publicitaires programmatiques."
+            desc: "Déployez de manière autonome des systèmes intelligents Gemini, bots WhatsApp et enchères publicitaires."
           }
         ];
       case 'ha':
         return [
           {
-            icon: <BarChart3 className="text-orange-500 w-6 h-6" />,
+            icon: <BarChart3 className="text-orange-500 w-5 h-5" />,
             title: "Yanke Shawara Dangane da Bayanai",
-            desc: "Kowane kamfen, hanyar canzawa, da kumburin aikace-aikacen ana bin diddigin su, ƙirar su, da inganta su don matsakaicin amfanin gona."
+            desc: "Kowane kamfen, hanyar canzawa, da aikace-aikace ana bin diddigin su don matsakaicin amfani."
           },
           {
-            icon: <ShieldCheck className="text-indigo-500 w-6 h-6" />,
+            icon: <ShieldCheck className="text-indigo-500 w-5 h-5" />,
             title: "100% Halal & Masu Kiyaye Dokoki",
-            desc: "Muna haɗa tura sassan software tare da izinin kamfanoni (CAC, TIN, SCUML) don ku gudanar da ayyukanku cikin cikakken izini."
+            desc: "Muna haɗa tura sassan software tare da izinin kamfanoni (CAC, TIN, SCUML) don aiki cikin izini."
           },
           {
-            icon: <Sparkles className="text-amber-500 w-6 h-6" />,
+            icon: <Sparkles className="text-amber-500 w-5 h-5" />,
             title: "Haɗin gwiwar AI Na Gaba",
-            desc: "Tura tsarin Gemini mai hankali, bots na WhatsApp na al'ada, da tsarin tallan talla ta atomatik."
-          }
-        ];
-      case 'yo':
-        return [
-          {
-            icon: <BarChart3 className="text-orange-500 w-6 h-6" />,
-            title: "Awọn Ipinnu Ti O Da Lori Data",
-            desc: "Gbogbo ipolongo, eefin iyipada, ati oju-iwe ohun elo jẹ titele, awoṣe, ati iṣapeye fun ikore ti o pọju."
-          },
-          {
-            icon: <ShieldCheck className="text-indigo-500 w-6 h-6" />,
-            title: "100% Ofin & Ibamu",
-            desc: "A so imuṣiṣẹ sọfitiwia pẹlu awọn iyọọda ile-iṣẹ (CAC, TIN, SCUML) ki o le ṣiṣẹ pẹlu aṣẹ to ni aabo."
-          },
-          {
-            icon: <Sparkles className="text-amber-500 w-6 h-6" />,
-            title: "Awọn Iṣọkan AI Ti Akoko Tuntun",
-            desc: "Mule awọn eto agbara Gemini smati, awọn bot WhatsApp ti adani, ati awọn ṣiṣan ipolowo oni-nọmba."
-          }
-        ];
-      case 'zh':
-        return [
-          {
-            icon: <BarChart3 className="text-orange-500 w-6 h-6" />,
-            title: "数据驱动决策",
-            desc: "对每一个在线推广活动、转化漏斗和应用节点进行精确追踪与算法分析，确保ROI收益最大化。"
-          },
-          {
-            icon: <ShieldCheck className="text-indigo-500 w-6 h-6" />,
-            title: "100% 合规与合法准入",
-            desc: "无缝对接尼日利亚合规企业监管（CAC 执照、FIRS 税号、SCUML 证书），确保商业运营完全合法。"
-          },
-          {
-            icon: <Sparkles className="text-amber-500 w-6 h-6" />,
-            title: "下一代生成式 AI 整合",
-            desc: "自主编写和部署 Gemini 智能系统、WhatsApp 智能交互机器人以及广告实时自动竞价流程。"
+            desc: "Tura tsarin Gemini mai hankali, bots na WhatsApp, da tsarin tallan talla ta atomatik."
           }
         ];
       default:
         return [
           {
-            icon: <BarChart3 className="text-orange-500 w-6 h-6" />,
+            icon: <BarChart3 className="text-orange-500 w-5 h-5" />,
             title: "Data-Driven Decisions",
             desc: "Every campaign, conversion funnel, and application node is tracked, modeled, and optimized for maximum yield."
           },
           {
-            icon: <ShieldCheck className="text-indigo-500 w-6 h-6" />,
+            icon: <ShieldCheck className="text-indigo-500 w-5 h-5" />,
             title: "100% Legal & Compliant",
             desc: "We bridge software deployment with corporate clearances (CAC, TIN, SCUML) so you operate fully authorized."
           },
           {
-            icon: <Sparkles className="text-amber-500 w-6 h-6" />,
+            icon: <Sparkles className="text-amber-500 w-5 h-5" />,
             title: "Next-Gen AI Integrations",
-            desc: "Deploy smart Gemini-powered systems, custom WhatsApp bots, and programmatic ad bid flows autonomously."
+            desc: "Deploy smart Gemini-powered systems, custom WhatsApp bots, and programmatic ad flows autonomously."
           }
         ];
     }
@@ -163,26 +176,12 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
           { value: "10+", label: "Ans d'Expérience" },
           { value: "₦1.2B+", label: "Revenus Publicitaires" }
         ];
-      case 'ha':
-        return [
-          { value: "500+", label: "Kamfen Masu Nasara" },
-          { value: "98%", label: "Abokan Ciniki Sun Gamsu" },
-          { value: "10+", label: "Shekaru na Kwarewa" },
-          { value: "₦1.2B+", label: "Kudaden Talla Da Aka Samu" }
-        ];
-      case 'yo':
-        return [
-          { value: "500+", label: "Awọn Ipolongo Aṣeyọri" },
-          { value: "98%", label: "Itelorun Onibara" },
-          { value: "10+", label: "Ọdun ti Iriri" },
-          { value: "₦1.2B+", label: "Owo Ipolowo ti A Sọ Di Otitọ" }
-        ];
       case 'zh':
         return [
-          { value: "500+", label: "个成功商业活动" },
+          { value: "500+", label: "个成功商业项目" },
           { value: "98%", label: "真实客户满意度" },
           { value: "10+", label: "年行业深耕经验" },
-          { value: "₦12亿+", label: "广告销售总收益" }
+          { value: "₦12亿+", label: "广告销售收益" }
         ];
       default:
         return [
@@ -209,344 +208,360 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
   };
 
   return (
-    <div className="w-full space-y-20 pb-16 animate-fade-in">
+    <div className="w-full space-y-12 sm:space-y-16 pb-12 animate-fade-in">
+      
       {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#000E32] via-[#011442] to-slate-950 text-white rounded-3xl mx-4 md:mx-6 p-4 md:p-6 lg:p-7 border border-indigo-950 shadow-2xl mt-1.5 min-h-[340px] flex flex-col justify-center">
-        {/* Animated Background Lights */}
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-br from-orange-500/20 to-transparent rounded-full filter blur-[100px] pointer-events-none" />
-        <div className="absolute -bottom-40 -left-20 w-[300px] h-[300px] bg-indigo-50/10 rounded-full filter blur-[100px] pointer-events-none" />
+      <section className="relative overflow-hidden bg-[#020817] text-white rounded-2xl sm:rounded-3xl mx-3 sm:mx-5 lg:mx-8 p-6 sm:p-8 lg:p-10 border border-slate-800/80 shadow-2xl mt-2">
+        {/* Subtle Background Radial Lights */}
+        <div className="absolute -top-24 -right-24 w-[400px] h-[400px] bg-blue-600/15 rounded-full filter blur-[100px] pointer-events-none" />
+        <div className="absolute bottom-0 -left-24 w-[350px] h-[350px] bg-orange-500/10 rounded-full filter blur-[100px] pointer-events-none" />
 
-        <div className="relative z-10 max-w-4xl space-y-3.5 text-left">
-          <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 px-2.5 py-0.5 rounded-full text-orange-400 text-[10px] font-black uppercase tracking-widest shadow-inner">
-            <Sparkles size={10} className="animate-pulse" />
-            <span className="font-hand text-[11px] normal-case tracking-wide text-orange-100">{t.heroBadge}</span>
-          </div>
-
-          <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight leading-[1.1] uppercase font-serif">
-            {t.heroTitlePrefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-orange-500 to-amber-500 font-extrabold italic">{t.heroTitleSuffix}</span>
-          </h1>
-
-          <p className="text-slate-200 text-xs md:text-sm leading-relaxed max-w-2xl font-light opacity-95">
-            {t.heroDesc}
-          </p>
-
-          <div className="flex flex-wrap gap-3 pt-1 items-center">
-            <PaystackPayButton
-              amount={100000}
-              email="client@dstech.agency"
-              customerName="DS Tech Client"
-              title="DS Tech Instant Deposit / Retainer"
-              description="Fast-Track 30% Retainer Deposit for DS Tech Solutions"
-              variant="emerald"
-              className="px-5 py-2.5 text-[10px]"
-            />
-
-            <motion.button
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => onNavigate('/services')}
-              className="px-5 py-2.5 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 hover:from-orange-700 hover:to-orange-600 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all duration-300 shadow-lg shadow-orange-600/20 flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>{t.exploreServices}</span>
-              <ArrowRight size={12} />
-            </motion.button>
-
-            <motion.button
-              whileHover={{ scale: 1.03, y: -2 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => onNavigate('/client')}
-              className="px-5 py-2.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center gap-1.5 cursor-pointer"
-            >
-              <span>{t.clientDashboard}</span>
-              <ArrowUpRight size={12} />
-            </motion.button>
-          </div>
-        </div>
-
-        {/* Statistics Counter */}
-        <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 mt-6 border-t border-white/10">
-          {stats.map((stat, i) => (
-            <div key={i} className="text-left space-y-0.5">
-              <span className="text-lg md:text-xl font-black text-orange-400 block font-serif tracking-tight">{stat.value}</span>
-              <span className="text-[9px] text-slate-300 uppercase tracking-widest font-black opacity-80">{stat.label}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 2. PARTNERS (TRUST LOGOS) */}
-      <section className="max-w-6xl mx-auto px-6 text-center space-y-6">
-        <p className="text-slate-500 dark:text-slate-300 text-[10px] uppercase tracking-widest font-bold">
-          {t.trustSubtitle}
-        </p>
-        <div className="flex flex-wrap justify-center items-center gap-6 sm:gap-12 opacity-85">
-          {PARTNERS.map((p) => (
-            <div 
-              key={p.id} 
-              className="px-4 py-2.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/40 dark:border-slate-800 shadow-sm text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2 hover:scale-105 transition-all"
-            >
-              <span>{p.logo}</span>
-              <span>{p.name}</span>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* 3. COMPANY INTRODUCTION */}
-      <section className="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-        <div className="space-y-6 text-left">
-          <div className="inline-flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider">
-            <Heart size={12} />
-            <span>{t.whoWeAre}</span>
-          </div>
-          <h2 className="text-3xl md:text-4xl font-extrabold text-[#000E32] dark:text-white uppercase font-serif tracking-tight leading-tight">
-            {t.missionVisionTitle}
-          </h2>
-          <p className="text-slate-600 dark:text-slate-300 text-xs md:text-sm leading-relaxed font-light">
-            {t.missionVisionDesc}
-          </p>
+        {/* Top Split: Hero Content & Orbital Art */}
+        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-2">
-            <div className="p-4 bg-indigo-50/45 dark:bg-indigo-950/20 border border-indigo-100/30 dark:border-indigo-900/30 rounded-2xl space-y-2">
-              <span className="text-xs uppercase tracking-wider font-extrabold text-indigo-600 dark:text-indigo-400 font-serif">{t.missionTitle}</span>
-              <p className="text-slate-500 dark:text-slate-300 text-xs leading-relaxed">
-                {t.missionDesc}
-              </p>
+          {/* Left Column Content */}
+          <div className="lg:col-span-7 space-y-5 text-left">
+            {/* Small Eyebrow Badge */}
+            <div className="inline-flex items-center gap-2 bg-blue-950/70 border border-blue-500/30 px-3 py-1 rounded-full shadow-inner">
+              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
+              <span className="text-[10px] sm:text-[11px] font-semibold text-blue-300 tracking-wider uppercase font-mono">
+                {t.heroBadge || "DIGITAL EXCELLENCE. MEASURABLE IMPACT."}
+              </span>
             </div>
-            <div className="p-4 bg-orange-50/45 dark:bg-orange-950/20 border border-orange-100/30 dark:border-orange-900/30 rounded-2xl space-y-2">
-              <span className="text-xs uppercase tracking-wider font-extrabold text-orange-600 dark:text-orange-400 font-serif">{t.visionTitle}</span>
-              <p className="text-slate-500 dark:text-slate-300 text-xs leading-relaxed">
-                {t.visionDesc}
-              </p>
+
+            {/* Headline */}
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-[1.1] text-white font-sans">
+              {t.heroTitlePrefix || "We Build Brands That Lead"}{" "}
+              <span className="text-orange-500 block sm:inline">
+                {t.heroTitleSuffix || "and Scale."}
+              </span>
+            </h1>
+
+            {/* Description */}
+            <p className="text-slate-300/90 text-sm md:text-base leading-relaxed max-w-xl font-normal">
+              {t.heroDesc}
+            </p>
+
+            {/* Primary & Secondary CTAs */}
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <motion.button
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onNavigate('/services')}
+                className="px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-lg shadow-blue-600/25 flex items-center gap-2 cursor-pointer shrink-0"
+              >
+                <span>{t.exploreServices}</span>
+                <ArrowRight size={15} />
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onNavigate('/portfolio')}
+                className="px-5 py-3 bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-700/80 font-semibold text-xs sm:text-sm rounded-xl transition-all flex items-center gap-2 cursor-pointer shrink-0"
+              >
+                <span>{t.clientDashboard || "View Case Studies"}</span>
+                <ArrowUpRight size={15} />
+              </motion.button>
+
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 shrink-0">
+                <Shield size={14} className="text-emerald-400" />
+                <span className="text-[11px] text-slate-300 font-medium">
+                  {t.trustedByTag || "Trusted across West Africa"}
+                </span>
+              </div>
             </div>
+          </div>
+
+          {/* Right Column Orbital Graphic */}
+          <div className="lg:col-span-5 flex justify-center items-center py-2 lg:py-0">
+            <OrbitalVisualNode />
           </div>
         </div>
 
-        <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-orange-500 rounded-3xl blur opacity-15 group-hover:opacity-25 transition duration-1000" />
-          <img 
-            src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=60" 
-            alt="DS Tech Team" 
-            referrerPolicy="no-referrer"
-            className="relative rounded-3xl object-cover w-full h-[320px] md:h-[400px] border border-slate-200 dark:border-slate-800 shadow-xl"
-          />
-        </div>
-      </section>
-
-      {/* 4. WHY CHOOSE US */}
-      <section className="relative bg-gradient-to-b from-slate-900/40 via-slate-900/80 to-slate-950 py-20 border-y border-orange-500/20 overflow-hidden">
-        {/* Animated Glow Orbs */}
-        <div className="absolute top-1/2 left-10 w-96 h-96 bg-orange-500/10 rounded-full filter blur-[120px] pointer-events-none animate-pulse" />
-        <div className="absolute bottom-0 right-10 w-96 h-96 bg-indigo-600/10 rounded-full filter blur-[120px] pointer-events-none animate-pulse" />
-
-        <div className="max-w-6xl mx-auto px-6 space-y-12 relative z-10">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="text-center space-y-3"
-          >
-            <div className="inline-flex items-center gap-2 bg-orange-500/10 border border-orange-500/30 px-3.5 py-1 rounded-full text-orange-400 text-[11px] font-black uppercase tracking-widest shadow-lg">
-              <Sparkles size={13} className="animate-spin" />
-              <span className="font-hand text-xs normal-case tracking-wide text-orange-200">{t.whyBrandsTrustSub}</span>
+        {/* Integrated Partner Logos & Statistics Bar */}
+        <div className="relative z-10 pt-8 mt-8 border-t border-slate-800/80 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+          
+          {/* Partner Brand Logos (Left 5 Cols) */}
+          <div className="md:col-span-5 space-y-2 text-left">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
+              {t.brandsTrustText || "Trusted Technology & Media Partners"}
+            </p>
+            <div className="flex flex-wrap items-center gap-4 text-slate-300 text-xs font-bold opacity-85">
+              <span className="hover:text-white transition-colors">Meta</span>
+              <span className="text-slate-600">•</span>
+              <span className="hover:text-white transition-colors">Google Partner</span>
+              <span className="text-slate-600">•</span>
+              <span className="hover:text-white transition-colors">AWS</span>
+              <span className="text-slate-600">•</span>
+              <span className="hover:text-white transition-colors">Paystack</span>
             </div>
-            <h2 className="text-3xl md:text-5xl font-extrabold text-[#000E32] dark:text-white uppercase font-serif tracking-tight leading-tight">
-              {t.whyBrandsTrust}
-            </h2>
-          </motion.div>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {features.map((feat, i) => (
-              <motion.div 
-                key={i} 
-                initial={{ opacity: 0, y: 35, scale: 0.95 }}
-                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.12, type: "spring", stiffness: 260, damping: 18 }}
-                whileHover={{ 
-                  y: -12, 
-                  scale: 1.04,
-                  borderColor: 'rgba(249, 115, 22, 0.6)',
-                  boxShadow: "0 30px 45px -10px rgba(249, 115, 22, 0.18), 0 15px 20px -10px rgba(0, 0, 0, 0.2)"
-                }}
-                whileTap={{ scale: 0.98 }}
-                className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xl transition-all space-y-5 text-left group cursor-pointer relative overflow-hidden"
-              >
-                {/* Modern AI Shimmer Line on hover */}
-                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600 scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-left shadow-md" />
-                
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500/10 to-indigo-500/10 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 group-hover:bg-orange-500/20 transition-all duration-500 border border-orange-500/20 shadow-inner">
-                  {feat.icon}
-                </div>
-
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[9px] font-mono tracking-widest text-orange-500 uppercase font-black block group-hover:animate-pulse">
-                      // HIGH MOTION MATRIX 0{i+1}
-                    </span>
-                    <span className="w-2 h-2 rounded-full bg-orange-500 group-hover:scale-150 transition-transform" />
-                  </div>
-                  <h3 className="font-extrabold text-[#000E32] dark:text-white text-base uppercase tracking-wider font-serif group-hover:text-orange-500 transition-colors">
-                    {feat.title}
-                  </h3>
-                </div>
-
-                <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed font-light">
-                  {feat.desc}
-                </p>
-
-                <div className="pt-2 flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-1 group-hover:translate-y-0 duration-300">
-                  <span>Explore Protocol</span>
-                  <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
-                </div>
-              </motion.div>
+          {/* Key Metrics Grid (Right 7 Cols) */}
+          <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-4 text-left bg-slate-900/50 p-4 rounded-xl border border-slate-800/80">
+            {stats.map((st, i) => (
+              <div key={i} className="space-y-0.5">
+                <span className="text-xl sm:text-2xl font-black text-white tracking-tight font-sans block">
+                  {st.value}
+                </span>
+                <span className="text-[10px] text-slate-400 font-medium leading-tight block">
+                  {st.label}
+                </span>
+              </div>
             ))}
           </div>
+
         </div>
       </section>
 
-      {/* 4.5 ENTERPRISE CAC CERTIFICATE TRUST CENTER */}
-      <CacTrustSection language={language} />
-
-      {/* 5. FEATURED SERVICES PREVIEW WITH HIGH MOTION CARDS */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 space-y-8 text-left">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-slate-200/60 dark:border-slate-800 pb-6">
-          <div className="space-y-2">
-            <span className="text-orange-500 text-xs uppercase tracking-widest font-black flex items-center gap-1.5 font-mono">
-              <Sparkles size={14} className="text-amber-400" />
-              {t.featuredSolutionsSub}
-            </span>
-            <h2 className="text-2xl md:text-4xl font-extrabold text-[#000E32] dark:text-white uppercase font-serif tracking-tight">
-              {t.featuredSolutions}
-            </h2>
-            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-xl font-medium">
-              Explore our vetted digital, AI, and regulatory compliance services. Click any service for instant details or submit a custom budget brief directly to WhatsApp.
-            </p>
+      {/* 2. ENTERPRISE CAC ACCREDITATION TRUST BANNER */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="bg-gradient-to-r from-slate-900 via-[#031338] to-slate-900 text-white rounded-2xl p-5 sm:p-6 border border-indigo-900/60 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-4 text-left">
+            <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+              <ShieldCheck size={24} />
+            </div>
+            <div className="space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-black uppercase tracking-wider text-white">
+                  DS TECH & DIGITAL MARKETING LTD
+                </span>
+                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-mono font-bold">
+                  CAC RC: 7850720
+                </span>
+                <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[9px] font-mono font-bold">
+                  TIN & SCUML VERIFIED
+                </span>
+              </div>
+              <p className="text-xs text-slate-300 font-medium">
+                Official Federal Corporate Registration & SCUML Anti-Money Laundering Security Clearance.
+              </p>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <button
+            onClick={() => setIsCacModalOpen(true)}
+            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-2 shrink-0 cursor-pointer"
+          >
+            <FileText size={14} />
+            <span>Inspect CAC Credentials</span>
+          </button>
+        </div>
+      </section>
+
+      {/* 3. COMPANY OVERVIEW ("WHO WE ARE") */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-sm">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            
+            {/* Left Column: Mission & Vision */}
+            <div className="lg:col-span-7 space-y-6 text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 dark:bg-indigo-500/15 border border-indigo-500/25 text-indigo-600 dark:text-indigo-400 text-[11px] font-bold uppercase tracking-wider">
+                <Heart size={13} className="text-indigo-500 animate-pulse" />
+                <span>{t.whoWeAre}</span>
+              </div>
+
+              <div className="space-y-3">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white uppercase font-serif tracking-tight">
+                  {t.missionVisionTitle}
+                </h2>
+                <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed font-normal">
+                  {t.missionVisionDesc}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                {/* Mission Card */}
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 space-y-2 text-left">
+                  <div className="flex items-center gap-2">
+                    <Target size={16} className="text-indigo-500" />
+                    <span className="text-xs font-extrabold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider font-serif">
+                      {t.missionTitle}
+                    </span>
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+                    {t.missionDesc}
+                  </p>
+                </div>
+
+                {/* Vision Card */}
+                <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700/60 space-y-2 text-left">
+                  <div className="flex items-center gap-2">
+                    <Zap size={16} className="text-orange-500" />
+                    <span className="text-xs font-extrabold text-orange-600 dark:text-orange-400 uppercase tracking-wider font-serif">
+                      {t.visionTitle}
+                    </span>
+                  </div>
+                  <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+                    {t.visionDesc}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: High-Tech Team Showcase */}
+            <div className="lg:col-span-5 relative">
+              <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 bg-slate-950 shadow-lg">
+                <img 
+                  src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=60" 
+                  alt="DS Tech Team" 
+                  referrerPolicy="no-referrer"
+                  className="object-cover w-full h-[280px] sm:h-[320px]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute bottom-3 left-3 right-3 backdrop-blur-md bg-slate-950/85 border border-slate-800 p-3 rounded-xl flex items-center justify-between text-left">
+                  <div>
+                    <span className="block text-[10px] font-bold uppercase text-orange-400 font-mono">Engineering & Growth Core</span>
+                    <span className="block text-[10px] text-slate-300">Multi-Discipline Specialist Team</span>
+                  </div>
+                  <CheckCircle2 size={16} className="text-emerald-400" />
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* 4. WHY CHOOSE US (3 CORE PILLARS) */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
+        <div className="text-center max-w-xl mx-auto space-y-2">
+          <span className="text-orange-500 text-[11px] font-extrabold uppercase tracking-widest font-mono">
+            {t.whyBrandsTrustSub}
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white uppercase font-serif tracking-tight">
+            {t.whyBrandsTrust}
+          </h2>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {features.map((feat, i) => (
+            <div 
+              key={i}
+              className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4 text-left flex flex-col justify-between hover:border-orange-500/50 transition-colors"
+            >
+              <div className="space-y-4">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+                  {feat.icon}
+                </div>
+                <div className="space-y-2">
+                  <h3 className="font-serif font-extrabold text-slate-900 dark:text-white text-base uppercase tracking-wide">
+                    {feat.title}
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed">
+                    {feat.desc}
+                  </p>
+                </div>
+              </div>
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[10px] font-mono text-slate-400 uppercase font-bold">
+                <span>Verified Standard</span>
+                <span className="text-orange-500">Pillar 0{i+1}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 5. FEATURED SOLUTIONS PREVIEW */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 text-left">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
+          <div>
+            <span className="text-orange-500 text-[11px] uppercase tracking-widest font-extrabold font-mono flex items-center gap-1.5">
+              <Sparkles size={13} className="text-amber-400" />
+              {t.featuredSolutionsSub}
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white uppercase font-serif tracking-tight mt-1">
+              {t.featuredSolutions}
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-2">
             <button
               onClick={() => {
                 setQuoteModalService(null);
                 setIsQuoteModalOpen(true);
               }}
-              className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-md transition-all active:scale-95"
+              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all"
             >
-              <MessageSquare size={14} />
-              <span>Custom Quote & Brief</span>
+              <MessageSquare size={13} />
+              <span>Custom Quote</span>
             </button>
 
             <button 
               onClick={() => onNavigate('/services')}
-              className="px-4 py-2.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-colors border border-indigo-100/50 dark:border-indigo-900/30"
+              className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1 transition-colors border border-indigo-200/50 dark:border-indigo-900/50"
             >
               <span>{t.viewAllServicesBtn}</span>
-              <ChevronRight size={14} />
+              <ChevronRight size={13} />
             </button>
           </div>
         </div>
 
-        {/* Category Filter Pills on Home */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          {[
-            { id: 'all', label: 'All Solutions' },
-            { id: 'marketing', label: 'Digital Marketing' },
-            { id: 'web', label: 'Software & Web' },
-            { id: 'ai', label: 'AI & Automation' },
-            { id: 'compliance', label: 'CAC Legal Compliance' }
-          ].map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setHomeCategory(cat.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all border ${
-                homeCategory === cat.id
-                  ? 'bg-orange-600 text-white border-orange-500 shadow-md scale-105'
-                  : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-400'
-              }`}
+        {/* Top 3 Core Featured Service Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {services.slice(0, 3).map((svc) => (
+            <div 
+              key={svc.id}
+              onClick={() => onSelectService(svc.id)}
+              className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-500/80 transition-all flex flex-col justify-between cursor-pointer group"
             >
-              {cat.label}
-            </button>
+              <div>
+                <div className="relative h-40 overflow-hidden bg-slate-950">
+                  <img 
+                    src={resolveImageUrl(svc.image)} 
+                    alt={svc.name} 
+                    referrerPolicy="no-referrer"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+                  <div className="absolute top-2.5 left-2.5 bg-slate-950/90 px-2.5 py-1 rounded-lg text-[9px] uppercase font-mono font-bold text-orange-400 border border-slate-800">
+                    {svc.price}
+                  </div>
+                  <div className="absolute top-2.5 right-2.5 bg-white/10 backdrop-blur-md px-2 py-0.5 rounded-lg text-[9px] uppercase font-bold text-white border border-white/20">
+                    {svc.category}
+                  </div>
+                </div>
+
+                <div className="p-4 space-y-2 text-left">
+                  <span className="text-[9px] font-mono tracking-widest uppercase text-indigo-600 dark:text-indigo-400 font-extrabold block">
+                    {svc.category}
+                  </span>
+                  <h3 className="font-extrabold text-slate-900 dark:text-white text-sm line-clamp-1 group-hover:text-orange-500 transition-colors uppercase font-serif">
+                    {svc.name}
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed line-clamp-2">
+                    {svc.description}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 pt-0">
+                <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/80">
+                  <span className="text-[10px] font-bold text-orange-500 uppercase tracking-wider flex items-center gap-1">
+                    <span>Learn Details ➔</span>
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setQuoteModalService(svc);
+                      setIsQuoteModalOpen(true);
+                    }}
+                    className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 transition-all flex items-center gap-1"
+                  >
+                    <MessageSquare size={10} />
+                    <span>Quote</span>
+                  </button>
+                </div>
+              </div>
+            </div>
           ))}
-        </div>
-
-        {/* High Motion Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {services
-            .filter(s => homeCategory === 'all' || s.category === homeCategory)
-            .slice(0, 6)
-            .map((svc, idx) => (
-              <motion.div 
-                key={svc.id}
-                layout
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                whileHover={{ 
-                  y: -8, 
-                  scale: 1.02,
-                  boxShadow: "0 25px 30px -5px rgba(0, 0, 0, 0.15)"
-                }}
-                transition={{ type: "spring", stiffness: 280, damping: 20 }}
-                onClick={() => onSelectService(svc.id)}
-                className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800/90 shadow-md hover:border-orange-500 dark:hover:border-orange-400 transition-all group flex flex-col justify-between cursor-pointer relative"
-              >
-                <div>
-                  <div className="relative h-48 overflow-hidden bg-slate-950">
-                    <img 
-                      src={resolveImageUrl(svc.image)} 
-                      alt={svc.name} 
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60" />
-                    <div className="absolute top-3 left-3 bg-[#000E32]/90 backdrop-blur-md px-3 py-1 rounded-xl text-[10px] uppercase font-mono font-black text-orange-400 border border-white/10 shadow-md">
-                      {svc.price}
-                    </div>
-                    <div className="absolute top-3 right-3 bg-white/10 backdrop-blur-md px-2.5 py-1 rounded-xl text-[9px] uppercase font-black text-white border border-white/15">
-                      {svc.category}
-                    </div>
-                  </div>
-
-                  <div className="p-5 text-left space-y-3">
-                    <span className="text-[9px] font-mono tracking-widest uppercase text-indigo-600 dark:text-indigo-400 font-extrabold block">
-                      {svc.category}
-                    </span>
-                    <h3 className="font-extrabold text-[#000E32] dark:text-white text-base line-clamp-2 group-hover:text-orange-500 transition-colors font-serif uppercase tracking-tight">
-                      {svc.name}
-                    </h3>
-                    <p className="text-slate-700 dark:text-slate-300 text-xs leading-relaxed line-clamp-3 font-medium">
-                      {svc.description}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="p-5 pt-0 mt-2">
-                  <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/80 gap-2">
-                    <span className="text-[10px] font-black text-orange-500 group-hover:text-orange-600 uppercase tracking-wider flex items-center gap-1">
-                      <span>{language === 'zh' ? '查看详情内容 ➔' : 'Learn Details ➔'}</span>
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setQuoteModalService(svc);
-                        setIsQuoteModalOpen(true);
-                      }}
-                      className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 transition-all flex items-center gap-1 shadow-sm shrink-0"
-                    >
-                      <MessageSquare size={11} />
-                      <span>Custom Brief ➔</span>
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
         </div>
       </section>
 
-      {/* Custom Quote Modal Component on Home */}
+      {/* Custom Quote Modal */}
       <CustomQuoteModal 
         isOpen={isQuoteModalOpen} 
         onClose={() => setIsQuoteModalOpen(false)} 
@@ -555,87 +570,57 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
         language={language} 
       />
 
-      {/* 5.5 ENTERPRISE ONGOING PROJECTS SECTION */}
-      <OngoingProjectsSection language={language} />
+      {/* 6. CAREERS PREVIEW GATEWAY */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 text-white p-6 sm:p-8 rounded-2xl border border-indigo-900/60 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6 text-left">
+          <div className="space-y-2 max-w-xl">
+            <span className="text-orange-400 text-[10px] uppercase tracking-widest font-extrabold font-mono">
+              {t.joinTalentNodeSub}
+            </span>
+            <h2 className="text-xl sm:text-2xl font-extrabold uppercase font-serif tracking-tight">
+              {t.joinTalentNode}
+            </h2>
+            <p className="text-slate-300 text-xs leading-relaxed font-light">
+              {t.joinTalentNodeDesc}
+            </p>
+          </div>
 
-      {/* 5.6 PORTFOLIO SECTION */}
-      <PortfolioSection />
-
-      {/* 5.7 RECOGNITION SECTION */}
-      <RecognitionSection />
-
-      {/* 5.8 BLOG SECTION */}
-      <BlogSection />
-
-      {/* 6. CAREERS PREVIEW */}
-      <section className="bg-gradient-to-br from-indigo-950 to-slate-950 text-white py-16 rounded-3xl mx-4 md:mx-6 border border-indigo-900 shadow-xl overflow-hidden relative">
-        <div className="absolute top-0 right-1/4 w-80 h-80 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none" />
-        <div className="max-w-4xl mx-auto px-6 text-center space-y-6 relative z-10">
-          <span className="text-orange-400 text-xs uppercase tracking-widest font-black">{t.joinTalentNodeSub}</span>
-          <h2 className="text-3xl md:text-4xl font-extrabold uppercase font-serif tracking-tight leading-tight">
-            {t.joinTalentNode}
-          </h2>
-          <p className="text-slate-300 text-xs md:text-sm max-w-2xl mx-auto leading-relaxed font-light">
-            {t.joinTalentNodeDesc}
-          </p>
-
-          <div className="flex justify-center gap-4 pt-2">
+          <div className="flex items-center gap-3 shrink-0">
             <button 
               onClick={() => onNavigate('/careers')}
-              className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-1.5"
+              className="px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
             >
               <span>{t.exploreRolesBtn}</span>
               <ChevronRight size={14} />
-            </button>
-            <button 
-              onClick={() => onApplyForJob()}
-              className="px-6 py-2.5 bg-white/5 hover:bg-white/10 text-white border border-white/10 font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all"
-            >
-              <span>{t.quickApplyBtn}</span>
             </button>
           </div>
         </div>
       </section>
 
       {/* 7. CLIENT TESTIMONIALS */}
-      <section className="max-w-6xl mx-auto px-6 space-y-12">
-        <div className="text-center space-y-3">
-          <span className="text-orange-500 text-xs uppercase tracking-widest font-black">{t.verifiedSuccessStoriesSub}</span>
-          <h2 className="text-2xl md:text-4xl font-extrabold text-[#000E32] dark:text-white uppercase font-serif tracking-tight">
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
+        <div className="text-center space-y-2">
+          <span className="text-orange-500 text-[11px] uppercase tracking-widest font-extrabold font-mono">
+            {t.verifiedSuccessStoriesSub}
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white uppercase font-serif tracking-tight">
             {t.verifiedSuccessStories}
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {TESTIMONIALS.map((tst, idx) => (
-            <motion.div 
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {TESTIMONIALS.map((tst) => (
+            <div 
               key={tst.id} 
-              initial={{ opacity: 0, y: 30, scale: 0.95 }}
-              whileInView={{ opacity: 1, y: 0, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: idx * 0.08, type: "spring", stiffness: 280, damping: 20 }}
-              whileHover={{ 
-                y: -8, 
-                scale: 1.03,
-                borderColor: 'rgba(249, 115, 22, 0.4)',
-                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.04)"
-              }}
-              whileTap={{ scale: 0.98 }}
-              className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm text-left flex flex-col justify-between space-y-4 cursor-pointer relative overflow-hidden"
+              className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm text-left flex flex-col justify-between space-y-3"
             >
-              {/* Decorative AI verified badge */}
-              <div className="absolute top-3 right-3 bg-emerald-500/10 text-emerald-500 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>AI Verified Match</span>
-              </div>
-
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="flex gap-1">
                   {[...Array(tst.rating)].map((_, i) => (
-                    <Star key={i} size={13} className="fill-orange-400 text-orange-400" />
+                    <Star key={i} size={12} className="fill-orange-400 text-orange-400" />
                   ))}
                 </div>
-                <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed italic font-light pt-1">
+                <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed italic font-light">
                   "{tst.text}"
                 </p>
               </div>
@@ -645,34 +630,37 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                   src={tst.avatar} 
                   alt={tst.clientName} 
                   referrerPolicy="no-referrer"
-                  className="w-9 h-9 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-sm"
+                  className="w-8 h-8 rounded-full object-cover border border-slate-200 dark:border-slate-700"
                 />
                 <div className="space-y-0.5">
-                  <span className="text-xs font-extrabold text-[#000E32] dark:text-white block font-serif uppercase tracking-tight">{tst.clientName}</span>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-300 block font-bold leading-none">{tst.role} • {tst.company}</span>
+                  <span className="text-xs font-extrabold text-slate-900 dark:text-white block font-serif uppercase tracking-tight">
+                    {tst.clientName}
+                  </span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-bold leading-none">
+                    {tst.role} • {tst.company}
+                  </span>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* 8. CALL-TO-ACTION (CONSULTATION BOOKING) */}
-      <section className="max-w-4xl mx-auto px-6">
-        <div className="bg-white dark:bg-slate-900 p-6 md:p-10 rounded-3xl border border-slate-200/40 dark:border-slate-800 shadow-lg text-left grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-48 h-48 bg-indigo-500/5 rounded-full filter blur-2xl pointer-events-none" />
+      {/* 8. CONSULTATION BOOKING CTA */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-lg text-left grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
           
-          <div className="md:col-span-7 space-y-4">
-            <span className="text-indigo-600 dark:text-indigo-400 text-xs uppercase tracking-widest font-black">{t.instantBookingSub}</span>
-            <h2 className="text-2xl md:text-3xl font-extrabold text-[#000E32] dark:text-white uppercase font-serif tracking-tight">
+          <div className="md:col-span-7 space-y-3">
+            <span className="text-indigo-600 dark:text-indigo-400 text-[10px] uppercase tracking-widest font-extrabold font-mono">
+              {t.instantBookingSub}
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white uppercase font-serif tracking-tight">
               {t.instantBookingTitle}
             </h2>
-            <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed font-light">
-              {language === 'zh' 
-                ? '在线提交您的具体商务诉求，系统安全节点将分配专属客户经理，于15分钟内与您即时联系建联。' 
-                : 'Submit your inquiry and our consultant manager will schedule a 30-minute strategic branding and tech audit call.'}
+            <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed font-normal">
+              Submit your inquiry and our consultant manager will schedule a 30-minute strategic audit call.
             </p>
-            <div className="space-y-2 pt-2 text-xs font-bold text-slate-600 dark:text-slate-300">
+            <div className="space-y-1.5 pt-1 text-xs font-bold text-slate-600 dark:text-slate-300">
               <div className="flex items-center gap-2">
                 <Phone size={13} className="text-orange-500" />
                 <span>+234 902 348 9111</span>
@@ -684,60 +672,64 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
             </div>
           </div>
 
-          <form onSubmit={handleBookingSubmit} className="md:col-span-5 space-y-3 relative z-10 w-full">
+          <form onSubmit={handleBookingSubmit} className="md:col-span-5 space-y-3 w-full">
             {bookingSubmitted ? (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/30 p-5 rounded-2xl text-center space-y-2"
-              >
-                <div className="w-9 h-9 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400 font-bold">✓</div>
-                <span className="text-xs font-extrabold text-slate-800 dark:text-white block uppercase tracking-wide">{t.bookSuccess}</span>
-                <p className="text-slate-500 dark:text-slate-300 text-[10px] leading-relaxed">
-                  {language === 'zh' ? '合规顾问正在快马加鞭为您定制方案，请保持通信畅通！' : 'Our manager will message your email within 24 hours.'}
+              <div className="bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900/40 p-4 rounded-xl text-center space-y-2">
+                <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center mx-auto text-emerald-600 dark:text-emerald-400 font-bold">✓</div>
+                <span className="text-xs font-extrabold text-slate-800 dark:text-white block uppercase tracking-wide">
+                  {t.bookSuccess}
+                </span>
+                <p className="text-slate-500 dark:text-slate-400 text-[10px]">
+                  Our manager will message your email within 24 hours.
                 </p>
-              </motion.div>
+              </div>
             ) : (
               <>
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">{t.fullNameLabel}</label>
+                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
+                    {t.fullNameLabel}
+                  </label>
                   <input 
                     type="text" 
                     required
                     value={bookingName}
                     onChange={(e) => setBookingName(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
                     placeholder="e.g. David Alao"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">{t.emailLabel}</label>
+                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
+                    {t.emailLabel}
+                  </label>
                   <input 
                     type="email" 
                     required
                     value={bookingEmail}
                     onChange={(e) => setBookingEmail(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
                     placeholder="david@example.com"
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">{t.selectServiceLabel}</label>
+                  <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
+                    {t.selectServiceLabel}
+                  </label>
                   <select 
                     value={bookingService}
                     onChange={(e) => setBookingService(e.target.value)}
-                    className="w-full px-3 py-2 bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 rounded-xl text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-indigo-500 transition-colors"
                   >
-                    <option value="Digital Marketing">{language === 'zh' ? '数字营销与广告投放' : 'Digital Marketing & Social Ads'}</option>
-                    <option value="Web & Software">{language === 'zh' ? '网站及应用软件开发' : 'Website & Software Development'}</option>
-                    <option value="AI Solutions">{language === 'zh' ? 'AI 机器人及自动化流程' : 'AI Chatbots & Automation'}</option>
-                    <option value="CAC & Regulatory">{language === 'zh' ? 'CAC 及企业税务合规' : 'CAC Legal Registration'}</option>
-                    <option value="Consultancy">{language === 'zh' ? '企业级科技决策与咨询' : 'Enterprise Technology Consultancy'}</option>
+                    <option value="Digital Marketing">Digital Marketing & Social Ads</option>
+                    <option value="Web & Software">Website & Software Development</option>
+                    <option value="AI Solutions">AI Chatbots & Automation</option>
+                    <option value="CAC & Regulatory">CAC Legal Registration</option>
+                    <option value="Consultancy">Enterprise Technology Consultancy</option>
                   </select>
                 </div>
                 <button 
                   type="submit"
-                  className="w-full py-2.5 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"
+                  className="w-full py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Calendar size={13} />
                   <span>{t.bookBtn}</span>
@@ -747,6 +739,47 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
           </form>
         </div>
       </section>
+
+      {/* CAC CERTIFICATE INSPECTION MODAL */}
+      <AnimatePresence>
+        {isCacModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+            onClick={() => setIsCacModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="relative w-full max-w-5xl bg-slate-950 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+            >
+              <div className="p-4 bg-slate-900 border-b border-slate-800 flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={18} className="text-emerald-400" />
+                  <span className="text-sm font-extrabold text-white uppercase tracking-wide font-serif">
+                    Official CAC Accreditation Credentials
+                  </span>
+                </div>
+                <button
+                  onClick={() => setIsCacModalOpen(false)}
+                  className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="flex-grow overflow-y-auto p-4 sm:p-6">
+                <CacTrustSection language={language} onBack={() => setIsCacModalOpen(false)} />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 };

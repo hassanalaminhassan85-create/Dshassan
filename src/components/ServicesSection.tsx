@@ -208,14 +208,20 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
         </div>
       </header>
 
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-6 py-8 space-y-12 animate-fade-in text-left">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 md:px-6 py-10 space-y-12 animate-fade-in text-left relative">
+        {/* Subtle Ambient Radial Glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-72 bg-gradient-to-b from-orange-500/10 via-amber-500/5 to-transparent blur-3xl pointer-events-none -z-10 rounded-full" />
+
         {/* Page Header */}
         <div className="space-y-4">
-          <span className="text-orange-500 text-xs uppercase tracking-widest font-black">ELITE CATALOG</span>
-          <h1 className="text-4xl md:text-5xl font-extrabold uppercase font-serif tracking-tight text-[#000E32] dark:text-white">
-            {currentUi.titlePrefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500 font-extrabold italic">{currentUi.titleSuffix}</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 dark:bg-orange-500/15 border border-orange-500/20 text-orange-600 dark:text-orange-400 font-mono text-xs font-bold uppercase tracking-[0.2em]">
+            <Sparkles className="w-3.5 h-3.5 text-orange-500" />
+            <span>ELITE CATALOG</span>
+          </div>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold uppercase font-display tracking-tight text-slate-900 dark:text-white leading-[1.08]">
+            {currentUi.titlePrefix} <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 via-amber-500 to-orange-400 font-extrabold italic">{currentUi.titleSuffix}</span>
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm leading-relaxed max-w-3xl font-light">
+          <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base leading-relaxed max-w-3xl font-normal">
             {currentUi.desc}
           </p>
         </div>

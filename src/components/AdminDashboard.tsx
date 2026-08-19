@@ -7,7 +7,7 @@ import {
   Edit3, ArrowLeft, Heart, BarChart3, Users, Landmark, UserMinus, ShieldAlert, LogOut,
   QrCode, MessageSquare, Send, FileText, Printer, Layers, FolderOpen, BookOpen,
   Video, Plus, PlusCircle, Check, MoreVertical, Settings, Sliders, Database, ArrowUp, Camera,
-  Sun, Moon, Globe, ChevronDown, Copy, X, Code, Bell, ShieldCheck, Award, FolderKanban, Info, LayoutDashboard, Activity
+  Sun, Moon, Globe, ChevronDown, Copy, X, Code, Bell, ShieldCheck, Award, FolderKanban, Info, LayoutDashboard, Activity, Bot
 } from 'lucide-react';
 import { JobApplication } from '../types';
 import { useNotifications } from './NotificationProvider';
@@ -49,6 +49,7 @@ import { OngoingProjectsAdminDashboard } from './OngoingProjectsAdminDashboard';
 import { AdminAssetDiagnostics } from './AdminAssetDiagnostics';
 import { AdminSyncDiagnostics } from './AdminSyncDiagnostics';
 import { AdminStaffManagement } from './AdminStaffManagement';
+import { AdminAiKnowledgeCenter } from './AiAssistant/AdminAiKnowledgeCenter';
 import { AnimatedHomeSectionImagePreview } from './AnimatedHomeSectionImagePreview';
 import { generateDynamicSvgUrl } from '../lib/mediaUtils';
 
@@ -317,7 +318,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   
 
   // Super Admin Control Center State
-  const [adminModule, setAdminModule] = useState<'dashboard' | 'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'client-projects' | 'about' | 'diagnostics' | 'sync-logs'>('dashboard');
+  const [adminModule, setAdminModule] = useState<'dashboard' | 'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'client-projects' | 'about' | 'diagnostics' | 'sync-logs' | 'ai-knowledge'>('dashboard');
   
   // Custom navigation header states
   const [isThreeDotsOpen, setIsThreeDotsOpen] = useState<boolean>(false);
@@ -2098,6 +2099,7 @@ export default {
     {
       group: 'Ecosystem Security',
       items: [
+        { id: 'ai-knowledge', label: 'AI Knowledge & Analytics', icon: Bot },
         { id: 'analytics', label: 'Intelligence Charts', icon: BarChart3 },
         { id: 'trust', label: 'Trust & Compliance', icon: ShieldCheck },
         { id: 'sync-logs', label: 'Real-Time Sync Logs', icon: Activity },
@@ -2920,6 +2922,10 @@ export default {
           </div>
 
         </div>
+      )}
+
+      {adminModule === 'ai-knowledge' && (
+        <AdminAiKnowledgeCenter />
       )}
 
       {adminModule === 'about' && (

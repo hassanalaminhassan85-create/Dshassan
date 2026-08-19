@@ -1,43 +1,22 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Search, Tag, Calendar, User, BookOpen, Clock, Heart, 
-  ArrowLeft, ArrowRight, Brain, Sparkles, Sun, Moon,
-  MessageSquare, Share2, Bookmark
+  BookOpen, Search, Sparkles, Clock, User, ArrowRight, ArrowLeft, 
+  Share2, Tag, Bot, ChevronRight, CheckCircle2, Send, Flame, X
 } from 'lucide-react';
+import { apiSubscribeToBlogs } from '../lib/api';
 import { BLOG_POSTS, BlogPost } from '../lib/data';
-import { apiGetBlogs, apiInitializeBlogs, resolveImageUrl, apiSubscribeToBlogs } from '../lib/api';
-import { Logo } from './Logo';
+import { StandalonePageHeader } from './StandalonePageHeader';
+import { StandalonePageFooter } from './StandalonePageFooter';
 
 interface BlogSectionProps {
   onBackToMain?: () => void;
 }
 
 export const BlogSection: React.FC<BlogSectionProps> = ({ onBackToMain }) => {
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [readingPost, setReadingPost] = useState<BlogPost | null>(null);
-  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
-  const [aiSummaryGenerated, setAiSummaryGenerated] = useState(false);
-
-  // Sync theme with document root
-  useEffect(() => {
-    const isRootDark = document.documentElement.classList.contains('dark');
-    setIsDarkMode(isRootDark);
-  }, []);
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
-
-  const [blogs, setBlogs] = useState<BlogPost[]>(() => {
+  const [posts, setPosts] = useState<BlogPost[]>(() => {
     try {
-      const saved = localStorage.getItem('admin_blogs');
+      const saved = localStorage.getItem('admin_blog_posts');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) return parsed;
@@ -48,445 +27,410 @@ export const BlogSection: React.FC<BlogSectionProps> = ({ onBackToMain }) => {
     }
   });
 
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+  
+  // Newsletter subscription state
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterSubscribed, setNewsletterSubscribed] = useState(false);
+
+  // AI Executive Summary state
+  const [isGeneratingAiSummary, setIsGeneratingAiSummary] = useState(false);
+  const [aiSummary, setAiSummary] = useState<string[] | null>(null);
+
   useEffect(() => {
-    const unsubscribe = apiSubscribeToBlogs((data) => {
+    const unsub = apiSubscribeToBlogs((data) => {
       if (data && data.length > 0) {
-        setBlogs(data);
+        setPosts(data);
       }
     });
-
-    return () => unsubscribe();
+    return () => unsub();
   }, []);
 
-  const getAiSummary = (postId: string) => {
-    switch (postId) {
-      case 'post_1':
-        return [
-          'High-performance, type-safe development is crucial for mobile-first web loads on slower 3G networks in rural Nigeria.',
-          'Eliminating runtime overhead and pre-bundling templates guarantees zero layout-shifting on low-end Android browsers.',
-          'Enterprise structures gain continuous uptime and sub-12ms database latency via distributed edge computing.'
-        ];
-      case 'post_2':
-        return [
-          'Targeted ad pipelines should pivot from broad, expensive keywords to localized regional micro-hubs like Garki or Lekki.',
-          'Integrating direct CTA links to instant WhatsApp chat prompts increases conversion rates by 4.8x - 6.2x.',
-          'Automated AI-managed bidding algorithms shift budgets continuously to maximize active daytime engagement.'
-        ];
-      case 'post_3':
-        return [
-          'Automating regulatory name checking and parallel SCUML security scans shortens corporate registration times to 5 days.',
-          'Cloud-native legal filing interfaces remove manual physical courier delays and avoid compliance bottlenecks.',
-          'Standardizing KYC document validation checks through automated APIs guarantees 100% regulatory clearance confidence.'
-        ];
-      default:
-        return [
-          'Optimizing digital systems directly enhances operational velocity and eliminates waste in processing pathways.',
-          'Integrating modern frameworks allows local businesses to compete globally with lightweight web payloads.',
-          'Type-safe architectures and robust caching strategies safeguard business integrity against network interruptions.'
-        ];
-    }
+  const categories = useMemo(() => {
+    return ['all', ...Array.from(new Set(posts.map(p => p.category || 'General')))];
+  }, [posts]);
+
+  const filteredPosts = useMemo(() => {
+    return posts.filter(p => {
+      const matchesCategory = activeCategory === 'all' || p.category === activeCategory;
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch = !q ||
+        p.title?.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q) ||
+        p.content?.toLowerCase().includes(q) ||
+        p.tags?.some(t => t.toLowerCase().includes(q));
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [posts, activeCategory, searchQuery]);
+
+  const handleOpenPost = (post: BlogPost) => {
+    setSelectedPost(post);
+    setAiSummary(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const categories = ['all', 'Marketing', 'Business Growth', 'AI', 'Technology'];
+  const handleGenerateAiSummary = (post: BlogPost) => {
+    setIsGeneratingAiSummary(true);
+    setTimeout(() => {
+      setAiSummary([
+        `Core Focus: Strategic analysis of ${post.title} for enterprise execution.`,
+        `Key Takeaway: Adopting structured digital frameworks accelerates conversion rates and market positioning.`,
+        `Actionable Impact: Enforce compliant technical protocols to maintain maximum domain authority.`
+      ]);
+      setIsGeneratingAiSummary(false);
+    }, 1000);
+  };
 
-  // Filter posts
-  const filteredPosts = useMemo(() => {
-    return blogs.filter(post => {
-      const matchesSearch = post.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            post.description.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                            post.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase()));
-      const matchesCategory = selectedCategory === 'all' || post.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    });
-  }, [blogs, searchQuery, selectedCategory]);
-
-  const getRelatedArticles = (post: BlogPost) => {
-    return blogs.filter(p => p.id !== post.id && p.category === post.category).slice(0, 2);
+  const handleNewsletterSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsletterEmail) return;
+    setNewsletterSubscribed(true);
+    setTimeout(() => setNewsletterSubscribed(false), 4000);
+    setNewsletterEmail('');
   };
 
   return (
-    <div className={`min-h-screen ${isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-slate-50 text-slate-900'} font-sans antialiased transition-colors duration-500 relative flex flex-col w-full`}>
-      {/* Top Standalone Header Bar */}
-      <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 px-4 py-3.5 sm:px-8 flex items-center justify-between w-full">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={onBackToMain}>
-            <Logo size="sm" showText={true} variant={isDarkMode ? 'light' : 'dark'} />
-          </div>
-        </div>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased transition-colors duration-500 flex flex-col w-full selection:bg-orange-500 selection:text-white">
+      {/* Standalone Header */}
+      <StandalonePageHeader 
+        activePage="blog" 
+        badgeText="KNOWLEDGE NODE" 
+        onBackToMain={onBackToMain} 
+      />
 
-        <div className="flex items-center gap-3">
-          {onBackToMain && (
+      {/* Main Container */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16 space-y-16 animate-fade-in text-left">
+        
+        {/* ARTICLE DETAIL VIEW */}
+        {selectedPost ? (
+          <motion.div 
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            className="space-y-10 max-w-4xl mx-auto"
+          >
+            {/* Back Button */}
             <button
               type="button"
-              onClick={onBackToMain}
-              className="p-2 sm:px-3 sm:py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
-              title="Back to Main Site"
+              onClick={() => setSelectedPost(null)}
+              className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-bold uppercase tracking-wider flex items-center gap-2 cursor-pointer"
             >
-              <ArrowLeft size={15} className="text-orange-500" />
-              <span className="hidden sm:inline text-xs font-bold uppercase tracking-widest text-slate-500">Back</span>
+              <ArrowLeft size={16} className="text-orange-500" />
+              <span>Back to Articles</span>
             </button>
-          )}
 
-          <button
-            type="button"
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all cursor-pointer shadow-sm"
-          >
-            {isDarkMode ? <Sun size={15} className="text-orange-400" /> : <Moon size={15} className="text-indigo-500" />}
-          </button>
-        </div>
-      </header>
+            {/* Post Header */}
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-mono text-[10px] font-black uppercase tracking-widest border border-orange-500/20">
+                  {selectedPost.category}
+                </span>
+                <span className="text-xs text-slate-400 font-mono flex items-center gap-1">
+                  <Clock size={13} />
+                  <span>{selectedPost.readTime || '5 min read'}</span>
+                </span>
+                <span className="text-xs text-slate-400 font-mono">
+                  {selectedPost.date}
+                </span>
+              </div>
 
-      <main className="flex-1 w-full max-w-6xl mx-auto px-6 space-y-12 py-10 animate-fade-in text-left">
-        {readingPost ? (
-          /* BLOG POST IMMERSIVE READ MODE */
-          <motion.article 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="max-w-3xl mx-auto space-y-10"
-          >
-            {/* Back button */}
-            <button 
-              onClick={() => {
-                setReadingPost(null);
-                setAiSummaryGenerated(false);
-                setIsGeneratingSummary(false);
-                window.scrollTo({ top: 0, behavior: 'auto' });
-              }}
-              className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400 hover:text-orange-500 transition-colors text-xs font-black uppercase tracking-widest"
-            >
-              <ArrowLeft size={14} />
-              <span>Back to Insights Node</span>
-            </button>
+              <h1 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white font-serif tracking-tight leading-tight">
+                {selectedPost.title}
+              </h1>
+
+              {/* Author Strip */}
+              <div className="flex items-center gap-3 pt-2">
+                <div className="w-10 h-10 rounded-full bg-orange-500/20 text-orange-500 flex items-center justify-center font-bold text-sm">
+                  {selectedPost.author?.charAt(0) || 'D'}
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">
+                    {selectedPost.author || 'DS Tech Editorial Team'}
+                  </span>
+                  <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+                    Verified Technical Briefing
+                  </span>
+                </div>
+              </div>
+            </div>
 
             {/* Featured Image */}
-            <div className="h-64 sm:h-96 w-full rounded-3xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-2xl">
-              <img src={readingPost.image} alt={readingPost.title} className="w-full h-full object-cover" />
+            <div className="rounded-3xl overflow-hidden h-72 sm:h-96 relative bg-slate-950 border border-slate-200/80 dark:border-slate-800 shadow-xl">
+              <img 
+                src={selectedPost.image} 
+                alt={selectedPost.title} 
+                className="w-full h-full object-cover"
+              />
             </div>
 
-            {/* Article Meta */}
-            <div className="space-y-6">
-              <div className="flex flex-wrap items-center gap-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                <span className="px-3 py-1 bg-orange-500/10 text-orange-500 dark:text-orange-400 rounded-full border border-orange-500/20">
-                  {readingPost.category}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <Calendar size={13} className="text-slate-400" />
-                  <span>{readingPost.date}</span>
+            {/* AI EXECUTIVE SUMMARY WIDGET */}
+            <div className="bg-gradient-to-br from-orange-500/10 via-amber-500/5 to-transparent dark:from-orange-500/15 dark:to-transparent rounded-3xl p-6 sm:p-8 border border-orange-500/20 space-y-4">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400 font-mono text-xs font-black uppercase tracking-widest">
+                  <Bot size={18} className="animate-pulse" />
+                  <span>AI EXECUTIVE SUMMARY ENGINE</span>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <User size={13} className="text-slate-400" />
-                  <span>By {readingPost.author}</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <Clock size={13} className="text-slate-400" />
-                  <span>{readingPost.readTime}</span>
-                </div>
+
+                {!aiSummary && (
+                  <button
+                    onClick={() => handleGenerateAiSummary(selectedPost)}
+                    disabled={isGeneratingAiSummary}
+                    className="px-3.5 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Sparkles size={13} />
+                    <span>{isGeneratingAiSummary ? 'Analyzing...' : 'Generate AI Brief'}</span>
+                  </button>
+                )}
               </div>
 
-              <h1 className="text-4xl sm:text-5xl font-extrabold font-serif tracking-tight leading-tight uppercase text-slate-900 dark:text-white">
-                {readingPost.title}
-              </h1>
+              {aiSummary ? (
+                <div className="space-y-2 pt-2">
+                  {aiSummary.map((point, idx) => (
+                    <div key={idx} className="flex items-start gap-2 text-xs font-medium text-slate-700 dark:text-slate-200">
+                      <CheckCircle2 size={15} className="text-orange-500 shrink-0 mt-0.5" />
+                      <span>{point}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-500 dark:text-slate-400 text-xs font-normal">
+                  Click 'Generate AI Brief' to extract key strategic takeaways from this article using our AI engine.
+                </p>
+              )}
             </div>
 
-            {/* Article Content */}
-            <div className="prose prose-slate dark:prose-invert max-w-none text-slate-600 dark:text-slate-300 text-sm leading-relaxed space-y-6 font-light">
-              <p className="font-bold text-slate-900 dark:text-slate-100 text-sm sm:text-base leading-relaxed italic border-l-4 border-orange-500 pl-6 bg-slate-100 dark:bg-slate-900/50 py-4 rounded-r-2xl">
-                {readingPost.description}
-              </p>
-              <div className="h-px bg-slate-200 dark:bg-slate-800 my-8" />
-              <div className="space-y-4">
-                {readingPost.content.split('\n').map((paragraph, i) => (
-                  <p key={i}>{paragraph}</p>
-                ))}
-              </div>
-              <p>
-                In corporate structures, having an agile website dashboard paired with high-performance ad bidding models acts as a secondary lung for revenue expansion. At DS Tech, our consultants specialize in crafting digital workflows that guarantee consistent outreach and regulatory safety.
-              </p>
-            </div>
-
-            {/* Article Tags */}
-            <div className="flex flex-wrap items-center gap-2 pt-8 border-t border-slate-200 dark:border-slate-800">
-              <Tag size={13} className="text-slate-400" />
-              {readingPost.tags.map((t, i) => (
-                <span key={i} className="px-3 py-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase rounded-xl tracking-widest hover:border-orange-500/50 transition-colors cursor-default">
-                  #{t}
-                </span>
+            {/* Article Content Body */}
+            <div className="prose prose-slate dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 text-sm sm:text-base leading-relaxed space-y-6">
+              {selectedPost.content?.split('\n\n').map((paragraph, idx) => (
+                <p key={idx}>{paragraph}</p>
               ))}
             </div>
 
-            {/* Interactive AI Summary Block */}
-            <div className="bg-gradient-to-br from-[#000E32] to-slate-950 text-white p-8 rounded-3xl border border-indigo-900 relative overflow-hidden shadow-2xl text-left">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none" />
-              
-              <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6 border-b border-white/10 pb-6">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-500/20 shadow-inner shadow-orange-500/5">
-                    <Brain className="animate-pulse" size={24} />
-                  </div>
-                  <div>
-                    <span className="text-[10px] font-mono tracking-widest text-orange-400 font-black block uppercase">// COGNITIVE SUMMARIZATION ENGINE</span>
-                    <h3 className="text-base font-extrabold font-serif uppercase text-white tracking-tight">AI Executive Summary Assistant</h3>
-                  </div>
-                </div>
-
-                {!aiSummaryGenerated && !isGeneratingSummary && (
-                  <button
-                    onClick={() => {
-                      setIsGeneratingSummary(true);
-                      setTimeout(() => {
-                        setIsGeneratingSummary(false);
-                        setAiSummaryGenerated(true);
-                      }, 1500);
-                    }}
-                    className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-[11px] font-black uppercase tracking-widest rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-orange-500/20 hover:scale-105"
-                  >
-                    <Sparkles size={14} />
-                    <span>Generate Summary</span>
-                  </button>
-                )}
-              </div>
-
-              <div className="relative z-10 mt-6">
-                {isGeneratingSummary && (
-                  <div className="py-8 flex flex-col items-center justify-center gap-4 text-center">
-                    <div className="w-10 h-10 border-2 border-orange-500/20 border-t-orange-500 rounded-full animate-spin" />
-                    <span className="text-[10px] text-orange-300 font-mono tracking-widest uppercase animate-pulse">Running semantic decomposition...</span>
-                  </div>
-                )}
-
-                {aiSummaryGenerated && (
-                  <div className="space-y-4">
-                    <span className="text-[10px] font-mono tracking-widest text-orange-400 font-black block uppercase">Analysis Output:</span>
-                    <ul className="space-y-3.5">
-                      {getAiSummary(readingPost.id).map((point, idx) => (
-                        <motion.li
-                          initial={{ opacity: 0, x: -15 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.1, type: "spring", stiffness: 260, damping: 20 }}
-                          key={idx}
-                          className="text-xs text-slate-200 flex items-start gap-3 leading-relaxed font-light"
-                        >
-                          <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0 mt-1.5 shadow-sm shadow-orange-500/50" />
-                          <span>{point}</span>
-                        </motion.li>
-                      ))}
-                    </ul>
-                    <button
-                      onClick={() => setAiSummaryGenerated(false)}
-                      className="text-[9px] text-slate-500 hover:text-white underline font-mono tracking-widest uppercase block pt-4 transition-colors"
-                    >
-                      Clear Summary Cache
-                    </button>
-                  </div>
-                )}
-
-                {!aiSummaryGenerated && !isGeneratingSummary && (
-                  <p className="text-slate-400 text-xs leading-relaxed font-light max-w-2xl">
-                    Launch our server-side cognitive parser to instantly generate three compressed executive bullet takeaways for this guide. Perfect for rapid decision-making.
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* RELATED ARTICLES */}
-            <div className="pt-16 space-y-8">
-              <div className="flex items-center gap-4">
-                <h3 className="text-lg font-black uppercase font-serif tracking-widest text-slate-900 dark:text-white border-l-4 border-orange-500 pl-4">
-                  Explore More Insights
-                </h3>
-                <div className="flex-1 h-px bg-slate-200 dark:bg-slate-800" />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                {getRelatedArticles(readingPost).map(post => (
-                  <motion.div 
-                    key={post.id} 
-                    whileHover={{ y: -5 }}
-                    onClick={() => {
-                      setReadingPost(post);
-                      setAiSummaryGenerated(false);
-                      setIsGeneratingSummary(false);
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }}
-                    className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200/40 dark:border-slate-800 shadow-md hover:shadow-xl transition-all p-5 cursor-pointer text-left space-y-4 group"
-                  >
-                    <div className="h-40 overflow-hidden rounded-2xl relative">
-                      <img src={post.image} alt={post.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                    </div>
-                    <div className="space-y-2">
-                      <span className="text-[9px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest block">{post.category}</span>
-                      <h4 className="font-extrabold text-[#000E32] dark:text-white text-sm line-clamp-2 group-hover:text-orange-500 transition-colors uppercase font-serif tracking-tight leading-snug">{post.title}</h4>
-                    </div>
-                  </motion.div>
+            {/* Tags Strip */}
+            {selectedPost.tags && selectedPost.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-6 border-t border-slate-200 dark:border-slate-800">
+                {selectedPost.tags.map((tag, i) => (
+                  <span key={i} className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono text-xs font-bold rounded-xl">
+                    #{tag}
+                  </span>
                 ))}
-              </div>
-            </div>
-          </motion.article>
-        ) : (
-          /* BLOG POST DIRECTORY LIST */
-          <div className="space-y-12">
-            {/* Page Header */}
-            <div className="space-y-4">
-              <span className="text-orange-500 text-xs uppercase tracking-widest font-black">AGENCY INTEL</span>
-              <h1 className="text-4xl md:text-5xl font-extrabold uppercase font-serif tracking-tight text-[#000E32] dark:text-white">
-                The <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500 font-extrabold italic">Knowledge</span> Node
-              </h1>
-              <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm leading-relaxed max-w-3xl font-light">
-                Professional guides on high-conversion ad bidding, enterprise software architectures, and Nigerian corporate compliance strategies. Engineered for growth.
-              </p>
-            </div>
-
-            {/* Search & Filter Bar */}
-            <div className="flex flex-col md:flex-row gap-6 justify-between items-stretch md:items-center bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-5 rounded-3xl shadow-sm">
-              {/* Search Input */}
-              <div className="relative w-full max-w-md bg-white dark:bg-slate-950 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 p-2 flex items-center shadow-inner">
-                <Search className="w-4 h-4 text-slate-400 mx-3 shrink-0" />
-                <input 
-                  type="text" 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search articles, technical tags, or authors..." 
-                  className="w-full bg-transparent text-xs text-slate-800 dark:text-slate-200 focus:outline-none placeholder-slate-400 py-1.5"
-                />
-              </div>
-
-              {/* Pill Filters */}
-              <div className="flex flex-wrap gap-2">
-                {categories.map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
-                      selectedCategory === cat
-                        ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-lg shadow-orange-500/10'
-                        : 'bg-white dark:bg-slate-950 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200/50 dark:border-slate-800/60'
-                    }`}
-                  >
-                    {cat === 'all' ? 'All Intel' : cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Feed Grid */}
-            {filteredPosts.length === 0 ? (
-              <div className="py-24 text-center space-y-4 bg-white dark:bg-slate-900/35 rounded-[3rem] border border-dashed border-slate-200 dark:border-slate-800">
-                <div className="w-16 h-16 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto mb-2 text-slate-400">
-                  <BookOpen size={32} />
-                </div>
-                <h3 className="text-slate-500 dark:text-slate-400 text-sm font-black uppercase tracking-widest">No articles indexed</h3>
-                <p className="text-slate-400 dark:text-slate-500 text-xs font-light">Try adjusting your search filters or technical categories.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-10">
-                <AnimatePresence mode="popLayout">
-                  {filteredPosts.map((post, idx) => (
-                    <motion.article 
-                      key={post.id} 
-                      layout
-                      initial={{ opacity: 0, y: 30 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: idx * 0.08 }}
-                      whileHover={{ 
-                        y: -8, 
-                        borderColor: 'rgba(249, 115, 22, 0.4)',
-                      }}
-                      onClick={() => {
-                        setReadingPost(post);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      }}
-                      className="bg-white dark:bg-slate-900 rounded-[2.5rem] overflow-hidden border border-slate-200 dark:border-slate-800/80 shadow-md hover:shadow-2xl transition-all group flex flex-col sm:flex-row cursor-pointer relative min-h-[220px]"
-                    >
-                      {/* Floating AI Categorization Overlay Badge */}
-                      <div className="absolute top-4 left-4 bg-slate-950/90 text-orange-400 border border-orange-500/30 px-3 py-1.5 rounded-2xl text-[8px] font-black uppercase tracking-widest flex items-center gap-2 z-10 backdrop-blur-md shadow-lg">
-                        <Sparkles size={10} className="text-orange-400" />
-                        <span>Verified Insight</span>
-                      </div>
-
-                      <div className="sm:w-2/5 h-56 sm:h-auto overflow-hidden relative shrink-0">
-                        <img 
-                          src={resolveImageUrl(post.image)} 
-                          alt={post.title} 
-                          referrerPolicy="no-referrer" 
-                          onError={(e) => {
-                            (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=400&auto=format&fit=crop&q=60';
-                          }}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out" 
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent sm:hidden" />
-                      </div>
-
-                      <div className="p-8 sm:w-3/5 text-left flex flex-col justify-between space-y-6">
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-center text-[10px] font-black tracking-widest uppercase">
-                            <span className="text-indigo-500 dark:text-indigo-400">
-                              // {post.category}
-                            </span>
-                            <span className="text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
-                              <Clock size={12} />
-                              {post.readTime}
-                            </span>
-                          </div>
-                          
-                          <h3 className="font-extrabold text-[#000E32] dark:text-white text-base md:text-lg line-clamp-2 leading-tight font-serif uppercase group-hover:text-orange-500 transition-colors tracking-tight">
-                            {post.title}
-                          </h3>
-                          
-                          <p className="text-slate-500 dark:text-slate-400 text-xs font-light line-clamp-2 leading-relaxed">
-                            {post.description}
-                          </p>
-                        </div>
-
-                        <div className="flex justify-between items-center pt-4 border-t border-slate-100 dark:border-slate-800/80">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-400">
-                              <User size={12} />
-                            </div>
-                            <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{post.author}</span>
-                          </div>
-                          <span className="text-[10px] font-black text-orange-500 group-hover:translate-x-2 transition-transform uppercase tracking-widest flex items-center gap-2">
-                            <span>Read Guide</span>
-                            <ArrowRight size={14} />
-                          </span>
-                        </div>
-                      </div>
-                    </motion.article>
-                  ))}
-                </AnimatePresence>
               </div>
             )}
+          </motion.div>
+        ) : (
+          /* DIRECTORY LISTING VIEW */
+          <>
+            {/* HERO BANNER */}
+            <section className="relative rounded-3xl bg-gradient-to-br from-[#000E32] via-[#011442] to-slate-950 text-white p-6 sm:p-10 md:p-12 overflow-hidden border border-indigo-950 shadow-2xl">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-orange-500/20 to-amber-500/10 rounded-full filter blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-600/10 rounded-full filter blur-3xl pointer-events-none" />
 
-            {/* Newsletter / CTA Section */}
-            <section className="mt-12 p-10 bg-indigo-950 text-white rounded-[3rem] border border-indigo-900 relative overflow-hidden shadow-2xl">
-              <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/5 rounded-full filter blur-[100px] pointer-events-none" />
-              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-                <div className="space-y-4">
-                  <span className="text-orange-400 text-xs uppercase tracking-widest font-black">STAY SYNCED</span>
-                  <h2 className="text-3xl font-extrabold uppercase font-serif tracking-tight leading-tight">
-                    Get Technical Insights <br />
-                    <span className="text-orange-400 font-extrabold italic">Direct to Inbox</span>
-                  </h2>
-                  <p className="text-slate-300 text-xs leading-relaxed font-light max-w-md">
-                    Join 2,400+ Nigerian CEOs, enterprise founders, and innovators receiving our bi-weekly breakdown of ad-bidding optimizations and corporate compliance alerts.
-                  </p>
+              <div className="relative z-10 max-w-4xl space-y-6">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-400 text-xs font-mono font-bold uppercase tracking-widest backdrop-blur-md">
+                  <BookOpen className="w-3.5 h-3.5 text-orange-400" />
+                  <span>THE KNOWLEDGE NODE & STRATEGIC INTEL</span>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <input 
-                    type="email" 
-                    placeholder="Enter professional email" 
-                    className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-5 py-3 text-sm focus:outline-none focus:border-orange-500 transition-colors"
-                  />
-                  <button className="bg-orange-500 hover:bg-orange-600 text-white font-black text-xs uppercase tracking-widest px-8 py-3 rounded-2xl shadow-xl shadow-orange-500/20 transition-all hover:scale-105 active:scale-95">
-                    Subscribe
-                  </button>
+
+                <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight leading-[1.1] uppercase font-serif">
+                  Engineering Briefings <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 via-amber-400 to-orange-500 font-extrabold italic">
+                    & Digital Strategy
+                  </span>
+                </h1>
+
+                <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-3xl font-light">
+                  Actionable technical articles, software architecture breakdowns, performance advertising playbooks, and corporate compliance guides written by DS Tech lead engineers.
+                </p>
+
+                {/* Editorial Stats Bar */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-white/10">
+                  <div className="space-y-1">
+                    <span className="text-2xl sm:text-3xl font-black text-white font-mono">{posts.length}</span>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Published Guides</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-2xl sm:text-3xl font-black text-orange-400 font-mono">100%</span>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Technical Verification</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-2xl sm:text-3xl font-black text-amber-400 font-mono">AI Briefs</span>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Instant Summaries</span>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="text-2xl sm:text-3xl font-black text-emerald-400 font-mono">Weekly</span>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Fresh Briefings</span>
+                  </div>
                 </div>
               </div>
             </section>
-          </div>
+
+            {/* SEARCH AND CATEGORY FILTER DECK */}
+            <section className="space-y-6">
+              <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-between bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 rounded-3xl shadow-sm backdrop-blur-md">
+                
+                {/* Search Bar */}
+                <div className="relative w-full md:max-w-md">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search articles, topics, or keywords..."
+                    className="w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl pl-11 pr-10 py-2.5 text-xs text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:border-orange-500 transition-all font-sans"
+                  />
+                  {searchQuery && (
+                    <button 
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-white"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Category Pills */}
+                <div className="flex flex-wrap gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+                  {categories.map((cat) => {
+                    const isActive = activeCategory === cat;
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setActiveCategory(cat)}
+                        className={`px-3.5 py-2 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+                          isActive
+                            ? 'bg-[#000E32] dark:bg-orange-600 text-white shadow-md'
+                            : 'bg-slate-100 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60'
+                        }`}
+                      >
+                        {cat === 'all' ? 'All Intel' : cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* POSTS GRID */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <AnimatePresence mode="popLayout">
+                  {filteredPosts.map((post, idx) => (
+                    <motion.div
+                      key={post.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ delay: idx * 0.05, duration: 0.3 }}
+                      onClick={() => handleOpenPost(post)}
+                      className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden border border-slate-200/80 dark:border-slate-800/80 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-300 group flex flex-col justify-between cursor-pointer"
+                    >
+                      <div>
+                        {/* Image Box */}
+                        <div className="relative h-48 overflow-hidden bg-slate-950">
+                          <img 
+                            src={post.image} 
+                            alt={post.title} 
+                            className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700 ease-out opacity-90 group-hover:opacity-100"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
+
+                          <div className="absolute top-3 left-3 bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-xl text-[9px] font-mono font-bold uppercase text-orange-400 border border-white/10">
+                            {post.category}
+                          </div>
+
+                          <div className="absolute bottom-3 right-3 bg-slate-900/80 backdrop-blur-md px-2.5 py-1 rounded-xl text-[9px] font-mono font-bold text-slate-300 border border-white/10 flex items-center gap-1">
+                            <Clock size={11} />
+                            <span>{post.readTime || '5 min'}</span>
+                          </div>
+                        </div>
+
+                        {/* Text Body */}
+                        <div className="p-6 space-y-3">
+                          <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider block">
+                            {post.date}
+                          </span>
+
+                          <h3 className="font-extrabold text-slate-900 dark:text-white text-lg font-serif group-hover:text-orange-500 transition-colors tracking-tight line-clamp-2">
+                            {post.title}
+                          </h3>
+
+                          <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed font-normal line-clamp-3">
+                            {post.description}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Footer CTA */}
+                      <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs font-bold text-orange-500 dark:text-orange-400 group-hover:translate-x-1 transition-transform">
+                        <span>Read Technical Guide</span>
+                        <ArrowRight size={14} />
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+
+                {filteredPosts.length === 0 && (
+                  <div className="col-span-full py-16 text-center space-y-4 bg-white dark:bg-slate-900/40 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                    <BookOpen className="w-12 h-12 text-slate-400 mx-auto" />
+                    <p className="text-slate-500 dark:text-slate-400 text-sm font-bold">No technical articles found matching your query.</p>
+                    <button 
+                      onClick={() => { setActiveCategory('all'); setSearchQuery(''); }}
+                      className="px-4 py-2 bg-orange-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider"
+                    >
+                      Reset Filters
+                    </button>
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* NEWSLETTER SUBSCRIPTION CTA */}
+            <section className="bg-gradient-to-r from-slate-900 via-[#000E32] to-slate-900 text-white rounded-3xl p-6 sm:p-10 border border-slate-800 shadow-2xl relative overflow-hidden">
+              <div className="relative z-10 max-w-2xl space-y-4 text-left">
+                <span className="text-orange-400 font-mono text-xs font-black uppercase tracking-widest block">
+                  WEEKLY INTEL DESK
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-extrabold font-serif">
+                  Subscribe to Technical Briefings
+                </h3>
+                <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-light">
+                  Receive curated insights on enterprise software engineering, performance ad bidding strategy, and CAC corporate compliance directly in your inbox.
+                </p>
+
+                <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <input
+                    type="email"
+                    required
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    placeholder="Enter corporate email address..."
+                    className="bg-white/10 border border-white/20 rounded-2xl px-4 py-3 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-orange-500 flex-1"
+                  />
+                  <button
+                    type="submit"
+                    className="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <span>Subscribe</span>
+                    <Send size={14} />
+                  </button>
+                </form>
+
+                {newsletterSubscribed && (
+                  <p className="text-emerald-400 text-xs font-bold font-mono pt-1">
+                    ✓ Subscribed! You will receive our next technical dispatch.
+                  </p>
+                )}
+              </div>
+            </section>
+          </>
         )}
+
       </main>
+
+      {/* Standalone Footer */}
+      <StandalonePageFooter />
     </div>
   );
 };

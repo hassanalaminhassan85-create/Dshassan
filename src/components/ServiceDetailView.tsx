@@ -167,7 +167,7 @@ ${notes || 'Client requested consultation for this service.'}
         {/* Core Content */}
         <div className="md:col-span-7 space-y-6">
           <div className="space-y-3">
-            <span className="text-[10px] font-mono font-black tracking-widest uppercase text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-3 py-1 rounded-full inline-block">
+            <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-3.5 py-1.5 rounded-full inline-block border border-indigo-200/50 dark:border-indigo-800/40">
               {service.category}
             </span>
 
@@ -176,7 +176,7 @@ ${notes || 'Client requested consultation for this service.'}
               variants={titleContainerVariants}
               initial="hidden"
               animate="visible"
-              className="text-2xl md:text-3xl font-extrabold uppercase font-serif text-[#000E32] dark:text-white leading-tight flex flex-wrap gap-2"
+              className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-display text-slate-900 dark:text-white leading-tight flex flex-wrap gap-2 tracking-tight"
             >
               {titleWords.map((w, idx) => (
                 <motion.span key={idx} variants={wordVariants} className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-800 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
@@ -185,22 +185,22 @@ ${notes || 'Client requested consultation for this service.'}
               ))}
             </motion.h1>
 
-            <p className="text-slate-950 dark:text-slate-50 text-xs md:text-sm leading-relaxed font-bold">
+            <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base leading-relaxed font-normal">
               {service.description}
             </p>
           </div>
 
           {/* Deliverables / Highlights */}
-          <div className="space-y-3.5 border-t border-slate-100 dark:border-slate-800/80 pt-6">
-            <h3 className="text-xs font-black uppercase font-serif tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
-              <Award size={14} className="text-orange-500" />
+          <div className="space-y-4 border-t border-slate-100 dark:border-slate-800/80 pt-6">
+            <h3 className="text-xs font-bold uppercase font-display tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+              <Award size={15} className="text-orange-500" />
               <span>{language === 'zh' ? '核心交付标准' : 'Core Service Highlights'}</span>
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               {highlights.map((highlight, index) => (
-                <div key={index} className="flex gap-2.5 items-start">
-                  <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
-                  <span className="text-slate-950 dark:text-slate-50 text-xs leading-tight font-black">{highlight}</span>
+                <div key={index} className="flex gap-2.5 items-start bg-slate-50 dark:bg-slate-800/30 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/50">
+                  <CheckCircle2 size={15} className="text-emerald-500 shrink-0 mt-0.5" />
+                  <span className="text-slate-800 dark:text-slate-200 text-xs sm:text-[13px] leading-snug font-medium">{highlight}</span>
                 </div>
               ))}
             </div>

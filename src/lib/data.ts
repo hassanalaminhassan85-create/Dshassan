@@ -84,6 +84,101 @@ export interface ClientProject {
   budget: string;
 }
 
+export interface RecognitionCertificate {
+  id: string;
+  title: string;
+  issuingOrganization: string;
+  issueDate: string;
+  expiryDate?: string;
+  description: string;
+  category?: string;
+  referenceId?: string;
+  isVerified?: boolean;
+  verifyUrl?: string;
+  badgeUrl?: string;
+  imageUrl?: string;
+  pdfUrl?: string;
+  tags?: string[];
+  orderIndex?: number;
+}
+
+export const RECOGNITION_CERTIFICATES: RecognitionCertificate[] = [
+  {
+    id: 'cert_cac',
+    title: 'Certificate of Incorporation (Limited Liability Company)',
+    issuingOrganization: 'Corporate Affairs Commission (CAC Nigeria)',
+    issueDate: 'October 14, 2021',
+    description: 'Statutory certificate confirming full legal incorporation under the Companies and Allied Matters Act (CAMA 2020) with Company RC Number 1845921.',
+    category: 'Legal & Incorporation',
+    referenceId: 'RC: 1845921',
+    isVerified: true,
+    verifyUrl: 'https://search.cac.gov.ng',
+    badgeUrl: generateDynamicSvgUrl('CAC Certificate', 'compliance', 'cert'),
+    imageUrl: generateDynamicSvgUrl('Corporate Affairs Commission Certificate of Incorporation', 'compliance', 'cert'),
+    tags: ['CAC', 'Incorporation', 'RC1845921', 'Legal'],
+    orderIndex: 1
+  },
+  {
+    id: 'cert_scuml',
+    title: 'Special Control Unit Against Money Laundering (SCUML Clearance)',
+    issuingOrganization: 'Economic and Financial Crimes Commission (EFCC / SCUML)',
+    issueDate: 'January 20, 2022',
+    description: 'Official anti-money laundering and counter-terrorism financing compliance clearance certificate issued for corporate transparency and financial integrity.',
+    category: 'Statutory Compliance',
+    referenceId: 'SCUML-ABJ-2022-0941',
+    isVerified: true,
+    verifyUrl: 'https://scuml.org',
+    badgeUrl: generateDynamicSvgUrl('SCUML Clearance', 'compliance', 'cert'),
+    imageUrl: generateDynamicSvgUrl('SCUML Anti-Money Laundering Certificate', 'compliance', 'cert'),
+    tags: ['SCUML', 'EFCC', 'Compliance', 'AML'],
+    orderIndex: 2
+  },
+  {
+    id: 'cert_firs',
+    title: 'Federal Tax Clearance Certificate (TIN & Tax Clearance)',
+    issuingOrganization: 'Federal Inland Revenue Service (FIRS Nigeria)',
+    issueDate: 'March 10, 2022',
+    description: 'Verified tax registration and annual tax clearance certificate confirming full compliance with corporate income tax and VAT obligations.',
+    category: 'Tax & Finance',
+    referenceId: 'TIN: 248910382-0001',
+    isVerified: true,
+    verifyUrl: 'https://firs.gov.ng',
+    badgeUrl: generateDynamicSvgUrl('FIRS Tax Clearance', 'compliance', 'cert'),
+    imageUrl: generateDynamicSvgUrl('FIRS Federal Tax Clearance Certificate', 'compliance', 'cert'),
+    tags: ['FIRS', 'TIN', 'Tax Clearance', 'VAT'],
+    orderIndex: 3
+  },
+  {
+    id: 'cert_meta',
+    title: 'Meta Certified Media Buying & Performance Marketing Partner',
+    issuingOrganization: 'Meta Blueprint Academy',
+    issueDate: 'June 05, 2023',
+    description: 'Enterprise accreditation for advanced performance advertising, dynamic bidding, conversion tracking, and high-ROI lead generation funnels on Instagram & Facebook.',
+    category: 'Digital Accreditation',
+    referenceId: 'META-MBP-984201',
+    isVerified: true,
+    badgeUrl: generateDynamicSvgUrl('Meta Partner', 'marketing', 'cert'),
+    imageUrl: generateDynamicSvgUrl('Meta Certified Media Buying Partner', 'marketing', 'cert'),
+    tags: ['Meta', 'Ads', 'Facebook', 'Media Buying'],
+    orderIndex: 4
+  },
+  {
+    id: 'cert_google',
+    title: 'Google Certified Search Ads & Cloud Architecture Partner',
+    issuingOrganization: 'Google Skillshop & Cloud Academy',
+    issueDate: 'August 18, 2023',
+    description: 'Certified expertise in Google Search ad bidding, YouTube Video action campaigns, and Google Cloud Run containerized application deployment.',
+    category: 'Digital Accreditation',
+    referenceId: 'GGL-PARTNER-2023-88',
+    isVerified: true,
+    badgeUrl: generateDynamicSvgUrl('Google Certified', 'web', 'cert'),
+    imageUrl: generateDynamicSvgUrl('Google Certified Search Ads Partner', 'web', 'cert'),
+    tags: ['Google', 'Search Ads', 'Cloud', 'Partner'],
+    orderIndex: 5
+  }
+];
+
+
 export interface Invoice {
   id: string;
   number: string;

@@ -231,22 +231,22 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
           <span className="text-[10px] font-mono tracking-widest uppercase text-indigo-600 dark:text-indigo-400 font-extrabold block">
             {svc.category}
           </span>
-          <h3 className="font-extrabold text-slate-900 dark:text-white text-sm md:text-base line-clamp-2 leading-snug font-serif uppercase tracking-tight group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">
+          <h3 className="font-extrabold text-slate-900 dark:text-white text-base md:text-lg line-clamp-2 leading-snug font-display tracking-tight group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">
             {svc.name}
           </h3>
-          <p className="text-slate-950 dark:text-slate-50 text-xs leading-relaxed font-bold line-clamp-3">
+          <p className="text-slate-600 dark:text-slate-300 text-xs md:text-[13px] leading-relaxed font-normal line-clamp-3">
             {svc.description}
           </p>
         </div>
 
         {/* Learn Details & Custom Brief Action */}
-        <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800/80">
+        <div className="space-y-2 pt-3.5 border-t border-slate-100 dark:border-slate-800/80">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[10px] font-black text-orange-500 group-hover:text-orange-600 dark:group-hover:text-orange-400 group-hover:underline uppercase tracking-wider flex items-center gap-1">
+            <span className="text-[11px] font-extrabold text-orange-500 group-hover:text-orange-600 dark:group-hover:text-orange-400 uppercase tracking-wider flex items-center gap-1 transition-all">
               <span>{language === 'zh' ? '查看详情 ➔' : 'Learn Details ➔'}</span>
             </span>
 
-            <div className="flex items-center gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
               <PaystackPayButton
                 amount={parsePriceToNumeric(svc.price, 100000)}
                 email="client@dstech.agency"
@@ -254,7 +254,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
                 title={`Retainer: ${svc.name}`}
                 description={`Fast-Track Service Retainer Deposit for ${svc.name}`}
                 variant="emerald"
-                className="px-2.5 py-1 text-[10px]"
+                className="px-3 py-1.5 text-[10px] font-extrabold"
               >
                 <CreditCard size={11} />
                 <span>Pay Retainer</span>
@@ -270,7 +270,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
                     onSelect(svc.id);
                   }
                 }}
-                className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-2 py-1 rounded-xl transition-all shadow-sm shrink-0"
+                className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-2.5 py-1.5 rounded-xl transition-all shadow-sm shrink-0"
               >
                 Quote
               </button>

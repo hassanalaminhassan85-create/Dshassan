@@ -20,12 +20,23 @@ import { ClientPortalSection } from './components/ClientPortalSection';
 import { CareersSection } from './components/CareersSection';
 import { RecognitionSection } from './components/RecognitionSection';
 import { TrainingAcademySection } from './components/TrainingAcademySection';
+import { AcademyOverview } from './components/AcademyOverview';
+import { StudentRegistrationForm } from './components/StudentRegistration/StudentRegistrationForm';
+import { TutorRegistrationForm } from './components/TutorRegistration/TutorRegistrationForm';
+import { ScholarshipApplicationForm } from './components/ScholarshipApplication/ScholarshipApplicationForm';
+import { InternshipApplicationForm } from './components/InternshipApplication/InternshipApplicationForm';
+import { CorporateTrainingForm } from './components/CorporateTraining/CorporateTrainingForm';
+import { MentorshipApplicationForm } from './components/MentorshipApplication/MentorshipApplicationForm';
+import { StudentDashboard } from './components/StudentDashboard';
 import { TutorDashboard } from './components/TutorDashboard';
 import { PaystackPayButton, PaystackPaymentConfig } from './components/PaystackMotionCheckout';
 import { PaystackPaymentPage } from './components/PaystackPaymentPage';
 import { JobApplication } from './types';
-import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, ArrowLeft, ArrowRight, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint, Briefcase, FileCheck, UserCheck, CreditCard } from 'lucide-react';
+import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, ArrowLeft, ArrowRight, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint, Briefcase, FileCheck, UserCheck, CreditCard, Bot, GraduationCap, Award, BookOpen } from 'lucide-react';
+import { EnterpriseAiAssistantModal } from './components/AiAssistant/EnterpriseAiAssistantModal';
 import { Logo } from './components/Logo';
+import { MobileNavigationDrawer } from './components/MobileNavigationDrawer';
+import { ProfessionalHamburgerButton } from './components/ProfessionalHamburgerButton';
 import { 
   FacebookIcon, 
   InstagramIcon, 
@@ -225,10 +236,11 @@ export default function App() {
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [isAdminView, setIsAdminView] = useState<boolean>(false);
   const [isApplying, setIsApplying] = useState<boolean>(false);
+  const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
   const [selectedRoleTitle, setSelectedRoleTitle] = useState<string>('');
 
   // Active website ecosystem page routing state
-  const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard'>('home');
+  const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard'>('home');
 
   const [publishedCac, setPublishedCac] = useState<any>(null);
 
@@ -429,9 +441,23 @@ export default function App() {
           setActivePage('team');
         } else if (path === '/blog') {
           setActivePage('blog');
-        } else if (path === '/training' || path === '/academy') {
-          setActivePage('training');
-        } else if (path === '/tutor-dashboard' || path === '/tutor') {
+        } else if (path === '/academy-overview' || path === '/academy' || path === '/training' || path === '/courses') {
+          setActivePage('academy-overview');
+        } else if (path === '/student-registration' || path === '/student-apply' || path === '/register-student' || path === '/student-register' || path === '/enroll') {
+          setActivePage('student-registration');
+        } else if (path === '/tutor-application' || path === '/tutor-apply' || path === '/apply-tutor' || path === '/become-a-tutor' || path === '/instructor-apply' || path === '/faculty-apply') {
+          setActivePage('tutor-application');
+        } else if (path === '/scholarship-application' || path === '/scholarship' || path === '/apply-scholarship' || path === '/scholarships') {
+          setActivePage('scholarship-application');
+        } else if (path === '/internship-application' || path === '/internship' || path === '/apply-internship' || path === '/internships' || path === '/placement') {
+          setActivePage('internship-application');
+        } else if (path === '/corporate-training' || path === '/corporate' || path === '/corporate-request' || path === '/rfp' || path === '/enterprise-training') {
+          setActivePage('corporate-training');
+        } else if (path === '/mentorship-application' || path === '/mentorship' || path === '/apply-mentorship' || path === '/1-on-1-mentorship' || path === '/advisory') {
+          setActivePage('mentorship-application');
+        } else if (path === '/student-dashboard' || path === '/student' || path === '/student-portal' || path === '/my-courses') {
+          setActivePage('student-dashboard');
+        } else if (path === '/tutor-dashboard' || path === '/tutor' || path === '/tutor-portal' || path === '/instructor-dashboard' || path === '/faculty') {
           setActivePage('tutor-dashboard');
         } else if (path === '/clients' || path === '/client') {
           setActivePage('clients');
@@ -551,7 +577,7 @@ export default function App() {
     >
       <PWAPrompt />
       {/* Upper Navigation Header Bar */}
-      {!isAdminView && !isUserLoggedIn && !['account', 'clients', 'training', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog'].includes(activePage) && (
+      {!isAdminView && !isUserLoggedIn && !['student-registration', 'tutor-application', 'academy-overview', 'training', 'portfolio', 'recognition', 'about', 'blog'].includes(activePage) && (
         <header className="no-print bg-white dark:bg-slate-900/85 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-50 shadow-sm px-4 py-3 sm:px-6 sm:py-3.5 flex flex-col lg:flex-row gap-3 lg:gap-4 justify-between items-center transition-colors duration-300 animate-fade-in">
           
           {/* Logo Container and Mobile Controls (Language + Theme + Menu Toggle) */}
@@ -665,74 +691,12 @@ export default function App() {
                 </AnimatePresence>
               </motion.button>
 
-              {/* Custom Modern "Three Slash Dots" Menu Button - Branded with DS Tech Logo motifs */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+              {/* Professional Hamburger Menu Button */}
+              <ProfessionalHamburgerButton
+                isOpen={isMobileMenuOpen}
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                type="button"
-                className="lg:hidden flex items-center justify-center p-2.5 rounded-xl bg-white dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 transition-all border border-slate-200/40 dark:border-slate-700/50 shadow-sm"
-                title="Toggle Menu"
-              >
-                <div className="flex items-center gap-1.5 px-1 py-0.5">
-                  {/* Dot 1: Miniature Orange Arc Orb */}
-                  <motion.div
-                    className="relative w-3.5 h-3.5 flex items-center justify-center shrink-0"
-                    animate={isMobileMenuOpen 
-                      ? { rotate: 360, scale: [1, 1.15, 1] }
-                      : { y: [0, -4, 0] }
-                    }
-                    transition={isMobileMenuOpen
-                      ? { rotate: { repeat: Infinity, duration: 2.5, ease: "linear" }, scale: { repeat: Infinity, duration: 1.2, ease: "easeInOut" } }
-                      : { duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: 0 }
-                    }
-                  >
-                    <div className="absolute inset-0 rounded-full border-1.5 border-orange-500 border-t-transparent animate-spin-slow" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-orange-500 shadow-sm shadow-orange-500/50" />
-                  </motion.div>
-
-                  {/* Dot 2: Branded Blue Shield with Mini White 'DS' monogram */}
-                  <motion.div
-                    className="relative w-4 h-4 rounded-full bg-[#000E32] border border-blue-400/80 flex items-center justify-center shrink-0 shadow-md overflow-hidden"
-                    animate={isMobileMenuOpen
-                      ? { scale: [1, 1.25, 1], rotate: [0, -10, 10, 0] }
-                      : { y: [0, -4, 0] }
-                    }
-                    transition={isMobileMenuOpen
-                      ? { repeat: Infinity, duration: 1.2, ease: "easeInOut" }
-                      : { duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: 0.15 }
-                    }
-                  >
-                    <span className="text-[7px] font-black tracking-tighter text-white font-sans scale-90 leading-none select-none">
-                      DS
-                    </span>
-                  </motion.div>
-
-                  {/* Dot 3: Miniature Glowing Amber Diamond Crown */}
-                  <motion.div
-                    className="relative w-3.5 h-3.5 flex items-center justify-center shrink-0"
-                    animate={isMobileMenuOpen
-                      ? { y: [0, -3, 0], scale: [1, 1.15, 1] }
-                      : { y: [0, -4, 0] }
-                    }
-                    transition={isMobileMenuOpen
-                      ? { repeat: Infinity, duration: 1.2, ease: "easeInOut" }
-                      : { duration: 1.2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }
-                    }
-                  >
-                    <svg viewBox="0 0 12 12" className="w-3.5 h-3.5 drop-shadow-sm" fill="none">
-                      <path 
-                        d="M 6 1 L 9.5 4.5 L 6 8 L 2.5 4.5 Z" 
-                        fill="#FBBF24" 
-                        stroke="#EA580C" 
-                        strokeWidth="0.8" 
-                      />
-                      <path d="M 2.5 4.5 L 9.5 4.5" stroke="#EA580C" strokeWidth="0.8" />
-                      <path d="M 6 1 L 6 8" stroke="#EA580C" strokeWidth="0.5" />
-                    </svg>
-                  </motion.div>
-                </div>
-              </motion.button>
+                className="lg:hidden"
+              />
             </div>
           </div>
 
@@ -977,126 +941,29 @@ export default function App() {
                 {t.applyAccreditation}
               </button>
             )}
+
+            {/* Desktop Hamburger Menu Toggle */}
+            <ProfessionalHamburgerButton
+              isOpen={isMobileMenuOpen}
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            />
           </div>
 
-          {/* Mobile Collapsible Menu Drawer */}
-          <AnimatePresence>
-            {isMobileMenuOpen && (
-              <motion.div
-                initial={{ height: 0, opacity: 0, y: -20 }}
-                animate={{ height: 'auto', opacity: 1, y: 0 }}
-                exit={{ height: 0, opacity: 0, y: -20 }}
-                transition={{ type: "spring", stiffness: 220, damping: 26 }}
-                className="lg:hidden w-[calc(100%-2rem)] mx-auto overflow-hidden border border-slate-100 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl flex flex-col gap-2 py-4 px-2 rounded-3xl shadow-2xl mt-2 mb-4"
-              >
-                {/* Navigation Links List */}
-                <div className="grid grid-cols-2 gap-2 px-2">
-                  <span className="col-span-2 text-[8px] font-black tracking-widest uppercase text-slate-400 py-1 font-mono pl-2">QUICK NAVIGATION</span>
-                  {navMenuTranslations[language as LanguageCode].map((item, idx) => {
-                    const isActive = activePage === item.value;
-                    return (
-                      <motion.button
-                        key={item.value}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: idx * 0.02, type: "spring", stiffness: 400, damping: 25 }}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => {
-                          safeNavigate(item.value === 'home' ? '/' : `/${item.value}`);
-                          setIsMobileMenuOpen(false);
-                        }}
-                        className={`relative w-full text-left px-4 py-2.5 text-[10px] font-bold rounded-2xl transition-all flex items-center justify-between overflow-hidden border ${
-                          isActive 
-                            ? 'border-orange-500/30 dark:border-orange-500/20' 
-                            : 'border-slate-100/80 dark:border-slate-800/80 hover:border-orange-500/20'
-                        }`}
-                        type="button"
-                      >
-                        {isActive && (
-                          <motion.div
-                            layoutId="activeMobileNavBackground"
-                            className="absolute inset-0 bg-gradient-to-r from-orange-500/10 to-amber-500/10 z-0"
-                            transition={{ type: "spring", stiffness: 350, damping: 25 }}
-                          />
-                        )}
-                        <span className={`relative z-10 ${isActive ? 'text-orange-600 dark:text-orange-400 font-black' : 'text-slate-600 dark:text-slate-400'}`}>{item.label}</span>
-                        {item.value === 'careers' && (
-                          <span className="relative z-10 flex h-1.5 w-1.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500"></span>
-                          </span>
-                        )}
-                      </motion.button>
-                    );
-                  })}
-                </div>
-
-                {/* Mobile System Portals Block */}
-                <div className="flex flex-col gap-2 px-2 mt-1 pt-2 border-t border-slate-100 dark:border-slate-800/30">
-                  <span className="text-[8px] font-black tracking-widest uppercase text-slate-400 py-1 font-mono pl-2">SYSTEM PORTALS</span>
-                  <div className="grid grid-cols-1 gap-1.5 px-1">
-                    {isAdminView ? (
-                      <button
-                        onClick={() => {
-                          navigateToRoot();
-                          setIsMobileMenuOpen(false);
-                        }}
-                        type="button"
-                        className="w-full flex items-center justify-between px-3.5 py-2 bg-slate-50 dark:bg-slate-800/40 border border-slate-100/80 dark:border-slate-800/80 rounded-2xl transition-all"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 bg-orange-500/10 rounded-lg flex items-center justify-center">
-                            <ClipboardEdit size={12} className="text-orange-500" />
-                          </div>
-                          <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{t.portalTitle}</span>
-                        </div>
-                        <ArrowRight size={10} className="text-slate-400" />
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => {
-                          navigateToAdmin();
-                          setIsMobileMenuOpen(false);
-                        }}
-                        type="button"
-                        className="w-full flex items-center justify-between px-3.5 py-2 bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100/50 dark:border-indigo-900/50 rounded-2xl transition-all"
-                      >
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 bg-orange-600/10 rounded-lg flex items-center justify-center">
-                            <ShieldAlert size={12} className="text-orange-600 animate-pulse" />
-                          </div>
-                          <span className="text-[10px] font-bold text-[#000E32] dark:text-indigo-300">{t.adminTitle}</span>
-                        </div>
-                        <ArrowRight size={10} className="text-slate-400" />
-                      </button>
-                    )}
-
-                    <button
-                      onClick={() => {
-                        safeNavigate('/staff-portal');
-                        setIsMobileMenuOpen(false);
-                      }}
-                      type="button"
-                      className={`w-full flex items-center justify-between px-3.5 py-2 border rounded-2xl transition-all ${
-                        activePage === 'staff-portal'
-                          ? 'bg-blue-500/5 border-blue-500/20'
-                          : 'bg-slate-50 dark:bg-slate-800/40 border-slate-100/80 dark:border-slate-800/80'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className={`w-6 h-6 rounded-lg flex items-center justify-center ${activePage === 'staff-portal' ? 'bg-blue-500/10' : 'bg-slate-200/50 dark:bg-slate-700/50'}`}>
-                          <Briefcase size={12} className={activePage === 'staff-portal' ? 'text-blue-500' : 'text-slate-500'} />
-                        </div>
-                        <span className={`text-[10px] font-bold ${activePage === 'staff-portal' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400'}`}>Staff Cockpit</span>
-                      </div>
-                      <ArrowRight size={10} className="text-slate-400" />
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Mobile Navigation Drawer Overlay */}
+          <MobileNavigationDrawer
+            isOpen={isMobileMenuOpen}
+            onClose={() => setIsMobileMenuOpen(false)}
+            activePage={activePage}
+            onNavigate={safeNavigate}
+            language={language}
+            setLanguage={setLanguage}
+            theme={theme}
+            setTheme={setTheme}
+            isAdminView={isAdminView}
+            navigateToAdmin={navigateToAdmin}
+            navigateToRoot={navigateToRoot}
+            t={t}
+          />
         </header>
       )}
 
@@ -1286,18 +1153,307 @@ export default function App() {
                   }} 
                 />
               </motion.div>
-             ) : activePage === 'training' ? (
+             ) : activePage === 'academy-overview' || activePage === 'training' ? (
               <motion.div
-                key="training-section"
+                key="academy-overview-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <AcademyOverview 
+                  onNavigate={(p) => safeNavigate(p)} 
+                />
+              </motion.div>
+             ) : activePage === 'student-registration' ? (
+              <motion.div
+                key="student-registration-section"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="w-full"
               >
-                <TrainingAcademySection 
-                  onBackToPortal={() => {
+                <StudentRegistrationForm
+                  onNavigateHome={() => {
                     setActivePage('home');
+                    window.scrollTo(0, 0);
+                  }}
+                  onNavigateCourses={() => {
+                    setActivePage('academy-overview');
+                    window.scrollTo(0, 0);
+                  }}
+                />
+              </motion.div>
+             ) : activePage === 'tutor-application' ? (
+              <motion.div
+                key="tutor-application-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full"
+              >
+                <TutorRegistrationForm
+                  onNavigateHome={() => {
+                    setActivePage('home');
+                    window.scrollTo(0, 0);
+                  }}
+                  onNavigateCourses={() => {
+                    setActivePage('academy-overview');
+                    window.scrollTo(0, 0);
+                  }}
+                />
+              </motion.div>
+             ) : activePage === 'scholarship-application' ? (
+              <motion.div
+                key="scholarship-application-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full min-h-screen bg-slate-950 text-slate-100"
+              >
+                {/* Career-styled Header for Scholarship */}
+                <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-slate-900/90 border-b border-slate-800 shadow-md">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    <div 
+                      onClick={() => { setActivePage('home'); window.scrollTo(0, 0); }}
+                      className="flex items-center gap-3 cursor-pointer group"
+                    >
+                      <Logo size="sm" showText={false} />
+                      <div>
+                        <div className="text-sm font-black tracking-tight text-white flex items-center gap-1.5">
+                          <span>DS TECH ACADEMY</span>
+                          <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 font-mono text-[9px] font-bold">CSR SCHOLARSHIP</span>
+                        </div>
+                        <p className="text-[10px] text-slate-400">Tuition Assistance & Talent Fund Application</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => { setActivePage('academy-overview'); window.scrollTo(0, 0); }}
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-all cursor-pointer text-xs font-bold border border-slate-700 flex items-center gap-1.5"
+                      >
+                        <BookOpen size={13} className="text-emerald-400" />
+                        <span className="hidden sm:inline">115+ Courses</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => { setActivePage('home'); window.scrollTo(0, 0); }}
+                        className="p-2 sm:px-3.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-all cursor-pointer shadow-sm flex items-center gap-1.5 border border-slate-700 text-xs font-bold"
+                        title="Back to Main Site"
+                      >
+                        <ArrowLeft size={14} className="text-emerald-500" />
+                        <span className="hidden sm:inline uppercase tracking-widest text-slate-400">Back to Main</span>
+                      </button>
+                    </div>
+                  </div>
+                </header>
+
+                <ScholarshipApplicationForm
+                  onNavigateHome={() => {
+                    setActivePage('home');
+                    window.scrollTo(0, 0);
+                  }}
+                  onNavigateCourses={() => {
+                    setActivePage('academy-overview');
+                    window.scrollTo(0, 0);
+                  }}
+                />
+              </motion.div>
+             ) : activePage === 'internship-application' ? (
+              <motion.div
+                key="internship-application-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full min-h-screen bg-slate-950 text-slate-100"
+              >
+                {/* Career-styled Header for Internship */}
+                <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-slate-900/90 border-b border-slate-800 shadow-md">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    <div 
+                      onClick={() => { setActivePage('home'); window.scrollTo(0, 0); }}
+                      className="flex items-center gap-3 cursor-pointer group"
+                    >
+                      <Logo size="sm" showText={false} />
+                      <div>
+                        <div className="text-sm font-black tracking-tight text-white flex items-center gap-1.5">
+                          <span>DS TECH ACADEMY</span>
+                          <span className="px-1.5 py-0.5 rounded-md bg-blue-500/20 text-blue-400 font-mono text-[9px] font-bold">PLACEMENT</span>
+                        </div>
+                        <p className="text-[10px] text-slate-400">Graduate Industrial Internship Placement Docket</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => { setActivePage('academy-overview'); window.scrollTo(0, 0); }}
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-all cursor-pointer text-xs font-bold border border-slate-700 flex items-center gap-1.5"
+                      >
+                        <BookOpen size={13} className="text-blue-400" />
+                        <span className="hidden sm:inline">115+ Courses</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => { setActivePage('home'); window.scrollTo(0, 0); }}
+                        className="p-2 sm:px-3.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-all cursor-pointer shadow-sm flex items-center gap-1.5 border border-slate-700 text-xs font-bold"
+                        title="Back to Main Site"
+                      >
+                        <ArrowLeft size={14} className="text-blue-500" />
+                        <span className="hidden sm:inline uppercase tracking-widest text-slate-400">Back to Main</span>
+                      </button>
+                    </div>
+                  </div>
+                </header>
+
+                <InternshipApplicationForm
+                  onNavigateHome={() => {
+                    setActivePage('home');
+                    window.scrollTo(0, 0);
+                  }}
+                  onNavigateCourses={() => {
+                    setActivePage('academy-overview');
+                    window.scrollTo(0, 0);
+                  }}
+                />
+              </motion.div>
+             ) : activePage === 'corporate-training' ? (
+              <motion.div
+                key="corporate-training-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full min-h-screen bg-slate-950 text-slate-100"
+              >
+                {/* Career-styled Header for Corporate */}
+                <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-slate-900/90 border-b border-slate-800 shadow-md">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    <div 
+                      onClick={() => { setActivePage('home'); window.scrollTo(0, 0); }}
+                      className="flex items-center gap-3 cursor-pointer group"
+                    >
+                      <Logo size="sm" showText={false} />
+                      <div>
+                        <div className="text-sm font-black tracking-tight text-white flex items-center gap-1.5">
+                          <span>DS TECH ACADEMY</span>
+                          <span className="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-400 font-mono text-[9px] font-bold">ENTERPRISE</span>
+                        </div>
+                        <p className="text-[10px] text-slate-400">Custom Corporate Upskilling & RFP Submission</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => { setActivePage('academy-overview'); window.scrollTo(0, 0); }}
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-all cursor-pointer text-xs font-bold border border-slate-700 flex items-center gap-1.5"
+                      >
+                        <BookOpen size={13} className="text-amber-400" />
+                        <span className="hidden sm:inline">115+ Courses</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => { setActivePage('home'); window.scrollTo(0, 0); }}
+                        className="p-2 sm:px-3.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-all cursor-pointer shadow-sm flex items-center gap-1.5 border border-slate-700 text-xs font-bold"
+                        title="Back to Main Site"
+                      >
+                        <ArrowLeft size={14} className="text-amber-500" />
+                        <span className="hidden sm:inline uppercase tracking-widest text-slate-400">Back to Main</span>
+                      </button>
+                    </div>
+                  </div>
+                </header>
+
+                <CorporateTrainingForm
+                  onNavigateHome={() => {
+                    setActivePage('home');
+                    window.scrollTo(0, 0);
+                  }}
+                  onNavigateCourses={() => {
+                    setActivePage('academy-overview');
+                    window.scrollTo(0, 0);
+                  }}
+                />
+              </motion.div>
+             ) : activePage === 'mentorship-application' ? (
+              <motion.div
+                key="mentorship-application-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full min-h-screen bg-slate-950 text-slate-100"
+              >
+                {/* Career-styled Header for Mentorship */}
+                <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-slate-900/90 border-b border-slate-800 shadow-md">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+                    <div 
+                      onClick={() => { setActivePage('home'); window.scrollTo(0, 0); }}
+                      className="flex items-center gap-3 cursor-pointer group"
+                    >
+                      <Logo size="sm" showText={false} />
+                      <div>
+                        <div className="text-sm font-black tracking-tight text-white flex items-center gap-1.5">
+                          <span>DS TECH ACADEMY</span>
+                          <span className="px-1.5 py-0.5 rounded-md bg-purple-500/20 text-purple-400 font-mono text-[9px] font-bold">1-ON-1 ADVISORY</span>
+                        </div>
+                        <p className="text-[10px] text-slate-400">Individual Professional Mentorship Program</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => { setActivePage('academy-overview'); window.scrollTo(0, 0); }}
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-all cursor-pointer text-xs font-bold border border-slate-700 flex items-center gap-1.5"
+                      >
+                        <BookOpen size={13} className="text-purple-400" />
+                        <span className="hidden sm:inline">115+ Courses</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => { setActivePage('home'); window.scrollTo(0, 0); }}
+                        className="p-2 sm:px-3.5 sm:py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white transition-all cursor-pointer shadow-sm flex items-center gap-1.5 border border-slate-700 text-xs font-bold"
+                        title="Back to Main Site"
+                      >
+                        <ArrowLeft size={14} className="text-purple-500" />
+                        <span className="hidden sm:inline uppercase tracking-widest text-slate-400">Back to Main</span>
+                      </button>
+                    </div>
+                  </div>
+                </header>
+
+                <MentorshipApplicationForm
+                  onNavigateHome={() => {
+                    setActivePage('home');
+                    window.scrollTo(0, 0);
+                  }}
+                  onNavigateCourses={() => {
+                    setActivePage('academy-overview');
+                    window.scrollTo(0, 0);
+                  }}
+                />
+              </motion.div>
+              ) : activePage === 'student-dashboard' ? (
+              <motion.div
+                key="student-dashboard-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full"
+              >
+                <StudentDashboard 
+                  onBackToPortal={() => {
+                    setActivePage('academy-overview');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  onNavigatePathway={(pathwayPath) => {
+                    safeNavigate(pathwayPath);
                   }}
                 />
               </motion.div>
@@ -1311,7 +1467,7 @@ export default function App() {
               >
                 <TutorDashboard 
                   onBackToPortal={() => {
-                    setActivePage('home');
+                    setActivePage('academy-overview');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                 />
@@ -1724,7 +1880,7 @@ export default function App() {
       </main>
 
       {/* Document bottom footer info */}
-      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog'].includes(activePage) && (
+      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'academy-overview', 'student-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'student-dashboard', 'tutor-dashboard', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog'].includes(activePage) && (
         <footer className="no-print bg-slate-900 text-slate-400 border-t border-slate-800 mt-auto pt-16 pb-12 px-6 md:px-12 relative overflow-hidden font-sans">
         {/* Decorative ambient background light */}
         <div className="absolute top-0 right-1/4 w-96 h-96 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none" />
@@ -1859,6 +2015,58 @@ export default function App() {
         </div>
       </footer>
       )}
+      {/* Floating AI Assistant Copilot Launcher Button */}
+      <motion.button
+        whileHover={{ scale: 1.06, y: -2 }}
+        whileTap={{ scale: 0.94 }}
+        onClick={() => setIsAiModalOpen(true)}
+        className="fixed bottom-6 right-6 z-40 p-3 sm:px-4 sm:py-3 bg-slate-950/90 text-white rounded-2xl shadow-2xl shadow-slate-950/60 flex items-center gap-3 border border-orange-500/40 hover:border-orange-500 hover:brightness-110 transition-all cursor-pointer group backdrop-blur-md"
+        title="Open DS Tech AI Assistant"
+      >
+        <div className="relative flex items-center justify-center p-0.5">
+          <Logo size="xs" showText={false} variant="light" />
+          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-slate-950 animate-pulse" />
+        </div>
+        <div className="hidden sm:flex flex-col text-left leading-none">
+          <span className="text-[11px] font-black uppercase tracking-wider text-white font-serif">
+            DS Tech AI
+          </span>
+          <span className="text-[9px] font-bold text-orange-400 uppercase tracking-widest mt-0.5">
+            Assistant
+          </span>
+        </div>
+      </motion.button>
+
+      {/* Enterprise AI Assistant Modal */}
+      <EnterpriseAiAssistantModal
+        isOpen={isAiModalOpen}
+        onClose={() => setIsAiModalOpen(false)}
+        userRole={
+          isAdminView 
+            ? 'Admin' 
+            : activePage === 'staff-portal' 
+              ? 'Staff' 
+              : activePage === 'tutor-dashboard' 
+                ? 'Tutor' 
+                : activePage === 'clients' 
+                  ? 'Client' 
+                  : activePage === 'training' 
+                    ? 'Student' 
+                    : activePage === 'account' 
+                      ? 'Applicant' 
+                      : 'Public'
+        }
+        currentUser={
+          (() => {
+            try {
+              const u = localStorage.getItem('currentUser');
+              return u ? JSON.parse(u) : null;
+            } catch (e) {
+              return null;
+            }
+          })()
+        }
+      />
     </div>
   );
 }
