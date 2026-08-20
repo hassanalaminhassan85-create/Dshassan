@@ -424,7 +424,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
               title="DS Tech Academy Home"
             >
               <Logo size="sm" showText={true} variant={isDarkMode ? 'light' : 'dark'} />
-              <div className="hidden xs:flex items-center gap-1.5 pl-3 border-l border-slate-200 dark:border-slate-800">
+              <div className="hidden min-[540px]:flex items-center gap-1.5 pl-3 border-l border-slate-200 dark:border-slate-800">
                 <span className="px-2.5 py-1 rounded-full bg-gradient-to-r from-orange-500/10 to-amber-500/10 dark:from-orange-500/20 dark:to-amber-500/20 text-orange-600 dark:text-orange-400 font-extrabold text-[10px] tracking-wider uppercase border border-orange-500/30 flex items-center gap-1 shadow-2xs">
                   <BadgeCheck className="w-3 h-3 text-orange-500" />
                   <span>ACADEMY</span>
@@ -535,7 +535,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
               <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between shrink-0 bg-white dark:bg-slate-900">
                 <div className="flex items-center gap-3">
                   <Logo size="sm" showText={true} variant={isDarkMode ? 'light' : 'dark'} />
-                  <div className="hidden xs:flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-800">
+                  <div className="hidden min-[450px]:flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-800">
                     <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
                       Navigation
                     </span>
@@ -740,7 +740,10 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
               className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white dark:bg-slate-900 border border-orange-500/30 text-orange-600 dark:text-orange-400 text-xs sm:text-sm font-semibold tracking-wide shadow-sm mb-6 backdrop-blur-md"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>FCT ABUJA & ADAMAWA CAMPUSES • CAC ACCREDITED IT ACADEMY (RC: 95)</span>
+              <span>
+                <span className="inline sm:hidden">CAC ACCREDITED IT ACADEMY (RC: 95)</span>
+                <span className="hidden sm:inline">FCT ABUJA & ADAMAWA CAMPUSES • CAC ACCREDITED IT ACADEMY (RC: 95)</span>
+              </span>
             </motion.div>
 
             {/* Hero Main Headline */}
@@ -2081,7 +2084,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
             </div>
 
             {/* Consultation Card */}
-            <div className="p-8 sm:p-10 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl relative">
+            <div className="p-4 sm:p-10 rounded-3xl bg-slate-900/90 border border-slate-800 shadow-2xl relative">
               <h3 className="text-2xl font-bold text-white mb-2 font-display">
                 Need Help Selecting the Right Course?
               </h3>

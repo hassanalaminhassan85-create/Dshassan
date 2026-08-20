@@ -224,7 +224,7 @@ export const Logo: React.FC<LogoProps> = ({
       </svg>
 
       {showText && (
-        <div className="flex flex-col text-left justify-center leading-tight min-w-0 shrink">
+        <div className="hidden min-[450px]:flex flex-col text-left justify-center leading-tight min-w-0 shrink">
           <span className={`font-black uppercase tracking-[0.05em] font-serif ${currentSize.title} ${textColor}`}>
             DS TECH
           </span>
