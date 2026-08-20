@@ -210,23 +210,28 @@ ${liveContext ? liveContext : ''}`;
           });
 
           // Build multi-turn content if history exists
-          const contentsPayload: any[] = [{ text: systemInstruction }];
+          const contentsPayload: any[] = [];
 
           if (Array.isArray(history) && history.length > 0) {
             history.slice(-10).forEach((msg: any) => {
-              if (msg.sender === 'user') {
-                contentsPayload.push({ text: `User: ${msg.content}` });
-              } else if (msg.sender === 'assistant') {
-                contentsPayload.push({ text: `Assistant: ${msg.content}` });
-              }
+              contentsPayload.push({
+                role: msg.sender === 'user' ? 'user' : 'model',
+                parts: [{ text: msg.content }]
+              });
             });
           }
 
-          contentsPayload.push({ text: `User: ${message}` });
+          contentsPayload.push({
+            role: 'user',
+            parts: [{ text: message }]
+          });
 
           const streamResponse = await ai.models.generateContentStream({
             model: 'gemini-3.7-flash',
-            contents: contentsPayload
+            contents: contentsPayload,
+            config: {
+              systemInstruction: systemInstruction
+            }
           });
 
           for await (const chunk of streamResponse) {
@@ -237,33 +242,14 @@ ${liveContext ? liveContext : ''}`;
             }
           }
         } catch (streamErr: any) {
-          console.warn('Streaming failed or model unavailable, trying non-streaming fallback:', streamErr?.message);
+          console.warn('Streaming failed or model unavailable, trying non-streaming fallback:', streamErr?.message || streamErr);
         }
       }
 
-      // If streaming produced no output (or key missing), send fallback response
+      // If streaming produced no output (or key missing), send fallback error response
       if (!fullReply) {
-        const lower = message.toLowerCase();
-        if (lower.includes('cac') || lower.includes('registration') || lower.includes('rc-1849204')) {
-          fullReply = `**DS Tech & Digital Marketing Agency Limited** is fully registered with the Corporate Affairs Commission (CAC), Federal Republic of Nigeria, under registration **RC-1849204** (TIN: 24892019-0001).
-
-Operational status is active and verified for software engineering, IT consulting, and digital marketing services.`;
-        } else if (lower.includes('price') || lower.includes('pricing') || lower.includes('tuition') || lower.includes('cost')) {
-          fullReply = `Here is the official **DS TECH Academy Pricing Matrix**:
-
-| Duration | Virtual | Physical | Hybrid |
-| :--- | :--- | :--- | :--- |
-| **1 Month** | ₦50,000 | ₦100,000 | ₦150,000 |
-| **3 Months** | ₦100,000 | ₦200,000 | ₦300,000 |
-| **6 Months** | ₦200,000 | ₦300,000 | ₦400,000 |
-
-All programmes include certified practical projects and student portal access.`;
-        } else {
-          fullReply = `Hello! I am **DS TECH AI**, your general-purpose AI assistant. I can help you write code, solve problems, draft proposals, analyze data, or answer questions about DS TECH's services, courses, and pricing. How can I help you today?`;
-        }
-
-        // Send fallback chunk
-        res.write(`data: ${JSON.stringify({ chunk: fullReply })}\n\n`);
+        res.write(`data: ${JSON.stringify({ error: 'Unable to generate a response right now.' })}\n\n`);
+        return res.end();
       }
 
       conv.messages.push({
@@ -322,7 +308,7 @@ All programmes include certified practical projects and student portal access.`;
 
       const apiKey = process.env.GEMINI_API_KEY;
       if (apiKey) {
-        const modelsToTry = ['gemini-3.7-flash', 'gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+        const modelsToTry = ['gemini-3.7-flash', 'gemini-3.1-flash-lite'];
         for (const modelName of modelsToTry) {
           try {
             const ai = new GoogleGenAI({
@@ -334,23 +320,28 @@ All programmes include certified practical projects and student portal access.`;
               }
             });
 
-            const contentsPayload: any[] = [{ text: systemInstruction }];
+            const contentsPayload: any[] = [];
 
             if (Array.isArray(history) && history.length > 0) {
               history.slice(-10).forEach((msg: any) => {
-                if (msg.sender === 'user') {
-                  contentsPayload.push({ text: `User: ${msg.content}` });
-                } else if (msg.sender === 'assistant') {
-                  contentsPayload.push({ text: `Assistant: ${msg.content}` });
-                }
+                contentsPayload.push({
+                  role: msg.sender === 'user' ? 'user' : 'model',
+                  parts: [{ text: msg.content }]
+                });
               });
             }
 
-            contentsPayload.push({ text: `User: ${message}` });
+            contentsPayload.push({
+              role: 'user',
+              parts: [{ text: message }]
+            });
 
             const response = await ai.models.generateContent({
               model: modelName,
-              contents: contentsPayload
+              contents: contentsPayload,
+              config: {
+                systemInstruction: systemInstruction
+              }
             });
 
             if (response && response.text) {
@@ -364,27 +355,10 @@ All programmes include certified practical projects and student portal access.`;
       }
 
       if (!reply) {
-        const lower = message.toLowerCase();
-        if (lower.includes('cac') || lower.includes('registration') || lower.includes('rc-1849204')) {
-          reply = `**DS Tech & Digital Marketing Agency Limited** is fully registered with the Corporate Affairs Commission (CAC), Federal Republic of Nigeria, under registration **RC-1849204** (TIN: 24892019-0001).
-
-Operational status is active and verified for software engineering, IT consulting, and digital marketing services.`;
-          sources = [{ id: 'src_cac', title: 'CAC Corporate Registry Certificate', category: 'Compliance' }];
-        } else if (lower.includes('price') || lower.includes('pricing') || lower.includes('tuition') || lower.includes('cost')) {
-          reply = `Here is the official **DS TECH Academy Pricing Matrix**:
-
-| Duration | Virtual | Physical | Hybrid |
-| :--- | :--- | :--- | :--- |
-| **1 Month** | ₦50,000 | ₦100,000 | ₦150,000 |
-| **3 Months** | ₦100,000 | ₦200,000 | ₦300,000 |
-| **6 Months** | ₦200,000 | ₦300,000 | ₦400,000 |
-
-All programmes include certified practical projects and student portal access.`;
-          sources = [{ id: 'src_pricing', title: 'DS Tech Academy Fixed Pricing Matrix', category: 'Academy' }];
-        } else {
-          reply = `Hello! I am **DS TECH AI**, your general-purpose AI assistant. I can help you write code, solve complex problems, draft proposals, analyze data, or answer questions regarding DS TECH services and courses. How can I assist you today?`;
-          sources = [{ id: 'src_general', title: 'DS Tech Knowledge Hub', category: 'Support' }];
-        }
+        return res.status(500).json({
+          success: false,
+          error: 'Unable to generate a response right now.'
+        });
       }
 
       conv.messages.push({

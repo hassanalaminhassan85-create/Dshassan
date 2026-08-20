@@ -522,6 +522,9 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
           if (trimmed.startsWith('data: ')) {
             try {
               const json = JSON.parse(trimmed.slice(6));
+              if (json.error) {
+                throw new Error(json.error);
+              }
               if (json.chunk) {
                 accumulatedText += json.chunk;
                 setMessages(prev => prev.map(m => m.id === msgId ? { ...m, content: accumulatedText } : m));
@@ -530,7 +533,10 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
                 setActiveConvId(json.conversationId);
                 fetchConversations();
               }
-            } catch (e) {
+            } catch (e: any) {
+              if (e.message === 'Unable to generate a response right now.') {
+                throw e; // Propagate server fallback error to catch block
+              }
               // Ignore partial JSON parse errors
             }
           }
@@ -584,28 +590,12 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
         console.warn("Fallback chat error:", fallbackErr);
       }
 
-      // Final fallback
-      const lower = promptToSend.toLowerCase();
-      let fallbackText = '';
-      if (lower.includes('cac') || lower.includes('registration') || lower.includes('rc-1849204')) {
-        fallbackText = `**DS Tech & Digital Marketing Agency Limited** is officially registered with the Corporate Affairs Commission (CAC), Federal Republic of Nigeria, under RC Registration **RC-1849204** (TIN: 24892019-0001). Operational status is active and verified.`;
-      } else if (lower.includes('price') || lower.includes('pricing') || lower.includes('tuition')) {
-        fallbackText = `Here is the official **DS TECH Academy Pricing Matrix**:
-
-| Duration | Virtual | Physical | Hybrid |
-| :--- | :--- | :--- | :--- |
-| **1 Month** | ₦50,000 | ₦100,000 | ₦150,000 |
-| **3 Months** | ₦100,000 | ₦200,000 | ₦300,000 |
-| **6 Months** | ₦200,000 | ₦300,000 | ₦400,000 |`;
-      } else {
-        fallbackText = `I am **DS TECH AI**, your intelligent assistant for DS TECH services, Academy programmes, and general queries. How can I help you today?`;
-      }
-
+      // Final fallback - Show error message with Retry action
       setMessages(prev => {
         const filtered = prev.filter(m => !m.isThinking);
         return [
           ...filtered,
-          { sender: 'assistant', content: fallbackText }
+          { sender: 'assistant', content: "Unable to generate a response right now." }
         ];
       });
       setAttachments([]);

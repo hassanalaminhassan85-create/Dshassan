@@ -2207,143 +2207,149 @@ export default {
     }
   }
 
+  const getModuleTitle = (module: string) => {
+    switch (module) {
+      case 'dashboard': return 'Dashboard Overview';
+      case 'about': return 'About Company CMS';
+      case 'recruitment': return 'Recruitment Pipelines';
+      case 'staff': return 'Staff & Org HR';
+      case 'website': return 'Services Catalog';
+      case 'portfolio': return 'Portfolio Projects';
+      case 'blog': return 'Insights Blog';
+      case 'recognition': return 'Recognition Certs';
+      case 'ongoing-projects': return 'Ongoing Projects';
+      case 'diagnostics': return 'Image Verification Gallery';
+      case 'clients': return 'Clients CRM';
+      case 'client-projects': return 'Client Projects & Staff';
+      case 'ai-knowledge': return 'AI Knowledge & Analytics';
+      case 'analytics': return 'Intelligence Charts';
+      case 'trust': return 'Trust & Compliance';
+      case 'sync-logs': return 'Real-Time Sync Logs';
+      default: return 'Admin Center';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors duration-300 flex">
       
-      {/* 1. DESKTOP PERMANENT SIDEBAR & MOBILE SLIDEOUT SIDEBAR */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-[#000a26] via-[#000E32] to-[#000518] text-white flex flex-col justify-between border-r border-blue-500/20 shadow-[10px_0_30px_rgba(0,0,0,0.6)] backdrop-blur-xl transition-transform duration-300 ease-in-out md:translate-x-0 ${
+      {/* 1. COMPACT, QUIET, THEME-AWARE WORKSPACE SIDEBAR */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col justify-between border-r transition-transform duration-300 ease-in-out md:translate-x-0 ${
         isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      } ${
+        theme === 'light' 
+          ? 'bg-slate-50 border-slate-200/80 text-slate-900' 
+          : 'bg-[#090d16] border-slate-850 text-slate-100'
       }`}>
         
-        {/* Sidebar Header & Brand Logo */}
-        <div className="p-4 border-b border-blue-900/30 bg-white/5 backdrop-blur-md shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <motion.div whileHover={{ scale: 1.1, rotate: 5 }} transition={{ type: "spring", stiffness: 300 }}>
-                <Logo size="xs" showText={false} variant="light" className="p-1.5 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl shadow-lg shadow-orange-600/30 ring-1 ring-orange-400/40" />
-              </motion.div>
-              <div className="text-left">
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-black uppercase font-mono tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-300">DS Tech Suite</span>
-                  <span className="px-1.5 py-0.5 bg-gradient-to-r from-orange-600 to-amber-600 text-white rounded-md text-[7px] font-mono font-black shadow-xs">v2.5</span>
-                </div>
-                <h2 className="text-[9px] font-mono font-bold text-slate-300/90 flex items-center gap-1 mt-0.5 tracking-wider">
-                  <ShieldAlert size={10} className="text-orange-500 animate-pulse" />
-                  ADMIN CENTER
-                </h2>
+        {/* Brand / Logo Section */}
+        <div className={`p-4 border-b shrink-0 flex items-center justify-between ${
+          theme === 'light' ? 'border-slate-200/80' : 'border-slate-850'
+        }`}>
+          <div className="flex items-center gap-3">
+            <Logo size="xs" showText={false} variant={theme === 'light' ? 'dark' : 'light'} />
+            <div className="text-left">
+              <div className="flex items-center gap-1.5">
+                <span className={`text-[11px] font-semibold tracking-wider font-mono ${theme === 'light' ? 'text-slate-800' : 'text-slate-200'}`}>
+                  DS TECH
+                </span>
+                <span className="px-1.5 py-0.5 bg-orange-500/10 text-orange-600 dark:text-orange-400 rounded text-[8px] font-mono font-bold">
+                  v2.5
+                </span>
               </div>
+              <p className="text-[9px] font-medium text-slate-400 dark:text-slate-500 tracking-wider font-mono">
+                ADMIN CENTER
+              </p>
             </div>
-            
-            {/* Close Mobile Sidebar */}
-            <button 
-              onClick={() => setIsMobileSidebarOpen(false)}
-              className="md:hidden p-1.5 hover:bg-white/10 text-slate-400 hover:text-white rounded-lg cursor-pointer transition-colors"
-            >
-              <X size={16} />
-            </button>
           </div>
+          
+          {/* Close Mobile Sidebar */}
+          <button 
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className="md:hidden p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors"
+          >
+            <X size={16} />
+          </button>
         </div>
 
-        {/* Sidebar Scrollable Navigation */}
+        {/* Scrollable Navigation Menu */}
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 scrollbar-thin">
           {sidebarTabs.map((group, gIdx) => (
-            <motion.div 
-              key={gIdx} 
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: gIdx * 0.05, duration: 0.3 }}
-              className="space-y-1.5"
-            >
-              <div className="px-3 text-[8.5px] font-black text-slate-400/80 uppercase font-mono tracking-widest flex items-center justify-between border-b border-white/5 pb-1">
-                <span>{group.group}</span>
-                <span className="w-1 h-1 rounded-full bg-orange-500/60" />
+            <div key={gIdx} className="space-y-1.5">
+              <div className="px-3 text-[9px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest font-mono">
+                {group.group}
               </div>
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 {group.items.map((tab) => {
                   const Icon = tab.icon;
                   const isActive = adminModule === tab.id;
                   return (
-                    <motion.button
-                      whileHover={{ scale: 1.02, x: 5 }}
-                      whileTap={{ scale: 0.97 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                    <button
                       key={tab.id}
                       onClick={() => {
                         setAdminModule(tab.id as any);
                         setIsMobileSidebarOpen(false);
                       }}
-                      className={`w-full px-3.5 py-2.5 rounded-xl text-[10.5px] font-bold font-mono uppercase tracking-wider transition-all duration-200 flex items-center justify-between cursor-pointer relative group ${
+                      className={`w-full px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 flex items-center justify-between cursor-pointer relative group ${
                         isActive 
-                          ? 'text-white shadow-xl' 
-                          : 'text-slate-300 hover:text-white hover:bg-white/10'
+                          ? theme === 'light'
+                            ? 'bg-slate-200/70 text-slate-900 font-semibold'
+                            : 'bg-slate-800/80 text-white font-semibold'
+                          : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/40'
                       }`}
                     >
-                      {isActive && (
-                        <motion.div
-                          layoutId="activeAdminNavIndicator"
-                          className="absolute inset-0 bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 rounded-xl -z-10 shadow-[0_4px_20px_rgba(234,88,12,0.45)] ring-1 ring-orange-300/40"
-                          transition={{ type: "spring", stiffness: 380, damping: 28 }}
-                        />
-                      )}
-                      
                       <div className="flex items-center gap-2.5 relative z-10">
-                        <motion.div 
-                          whileHover={{ rotate: 12, scale: 1.2 }}
-                          transition={{ type: "spring", stiffness: 300 }}
-                          className={isActive ? 'text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]' : 'text-slate-400 group-hover:text-orange-400 transition-colors'}
-                        >
-                          <Icon size={14} />
-                        </motion.div>
-                        <span className={isActive ? 'font-black tracking-wide' : 'font-semibold'}>{tab.label}</span>
+                        <Icon size={15} className={`transition-colors ${
+                          isActive 
+                            ? 'text-orange-500 dark:text-orange-400' 
+                            : 'text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300'
+                        }`} />
+                        <span className="font-sans text-[11px] font-medium tracking-wide">{tab.label}</span>
                       </div>
 
-                      <div className="flex items-center gap-1.5 relative z-10">
+                      <div className="flex items-center gap-2 relative z-10">
                         {tab.count !== undefined && (
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-mono font-bold transition-all ${
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-mono transition-all ${
                             isActive 
-                              ? 'bg-white/25 text-white border border-white/30 shadow-inner' 
-                              : 'bg-white/10 text-slate-400 border border-white/5 group-hover:bg-white/15 group-hover:text-white'
+                              ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20' 
+                              : 'bg-slate-200/50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 group-hover:bg-slate-200/70 dark:group-hover:bg-slate-800/85'
                           }`}>
                             {tab.count}
                           </span>
                         )}
                         {isActive && (
-                          <motion.span 
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_10px_#ffffff] animate-pulse shrink-0 ml-0.5" 
-                          />
+                          <span className="w-1 h-3 rounded-full bg-orange-500 dark:bg-orange-400" />
                         )}
                       </div>
-                    </motion.button>
+                    </button>
                   );
                 })}
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
-        {/* Sidebar Footer with Admin Profile Node */}
-        <div className="p-3 border-t border-blue-900/30 bg-[#000518]/80 backdrop-blur-md space-y-2.5 shrink-0">
-          <div className="flex items-center gap-2.5 p-1.5 rounded-xl bg-white/5 border border-white/5">
-            <div className="relative">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500/30 to-amber-500/30 border border-orange-500/40 flex items-center justify-center font-extrabold font-mono text-orange-400 text-xs shrink-0 shadow-inner">
-                {adminUser?.fullName?.slice(0, 2) || 'AD'}
+        {/* Sidebar Footer - Clean profile node */}
+        <div className={`p-4 border-t shrink-0 space-y-3 ${
+          theme === 'light' ? 'border-slate-200/80 bg-slate-100/30' : 'border-slate-850 bg-[#070b13]/50'
+        }`}>
+          <div className="flex items-center gap-3">
+            <div className="relative shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 flex items-center justify-center font-semibold font-mono text-slate-700 dark:text-slate-300 text-xs shadow-sm">
+                {adminUser?.fullName?.slice(0, 2).toUpperCase() || 'AD'}
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#000E32] rounded-full" />
+              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 border-2 border-white dark:border-[#090d16] rounded-full" />
             </div>
             <div className="min-w-0 text-left flex-1">
-              <p className="text-[10px] font-black text-white truncate font-mono uppercase tracking-wide">
+              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate leading-tight">
                 {adminUser?.fullName || 'Administrator'}
               </p>
-              <p className="text-[8.5px] font-mono text-slate-400 truncate">
+              <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-none">
                 {adminUser?.email || 'admin@dstech.com'}
               </p>
             </div>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          
+          <button
             onClick={() => {
               try {
                 localStorage.removeItem('isAdminLoggedIn');
@@ -2352,11 +2358,11 @@ export default {
               setIsAdminLoggedIn(false);
               setAdminUser(null);
             }}
-            className="w-full py-2 bg-red-950/40 hover:bg-gradient-to-r hover:from-red-600 hover:to-rose-600 border border-red-900/50 hover:border-red-400 text-red-400 hover:text-white rounded-xl text-[9px] font-mono font-black uppercase tracking-widest transition-all duration-300 shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
+            className="w-full py-1.5 border border-slate-200 dark:border-slate-800 hover:border-red-500/20 hover:bg-red-500/5 hover:text-red-600 text-slate-500 dark:text-slate-400 rounded-lg text-[11px] font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer"
           >
             <LogOut size={12} />
             <span>Sign Out Workspace</span>
-          </motion.button>
+          </button>
         </div>
       </aside>
 
@@ -2364,49 +2370,160 @@ export default {
       {isMobileSidebarOpen && (
         <div 
           onClick={() => setIsMobileSidebarOpen(false)}
-          className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-xs"
+          className="fixed inset-0 bg-black/40 z-40 md:hidden backdrop-blur-xs"
         />
       )}
 
       {/* 2. MAIN SPACE CONTENT AREA */}
       <div className="flex-1 md:pl-64 flex flex-col min-w-0">
         
-        {/* Mobile Sticky Header */}
-        <header className="md:hidden sticky top-0 z-40 bg-[#000E32] text-white px-4 py-3 flex items-center justify-between border-b border-blue-900/40 shadow-lg no-print">
-          <div className="flex items-center gap-2">
+        {/* UNIFIED PROFESSIONAL APPLICATION HEADER */}
+        <header className={`sticky top-0 z-40 border-b flex items-center justify-between px-4 sm:px-6 h-14 no-print transition-colors ${
+          theme === 'light' 
+            ? 'bg-white border-slate-200/80' 
+            : 'bg-[#070b14]/95 border-slate-850 backdrop-blur-md'
+        }`}>
+          {/* Left section: Hamburger (mobile) + Page Context Title */}
+          <div className="flex items-center gap-3">
+            {/* Mobile menu trigger button */}
             <button 
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-slate-300 hover:text-white cursor-pointer"
+              className="md:hidden p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-850 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors cursor-pointer"
             >
-              <MoreVertical size={16} />
+              <Sliders size={16} />
             </button>
-            <Logo size="xs" showText={false} variant="light" className="p-1 bg-orange-600 rounded-lg" />
-            <span className="text-[10px] font-black uppercase tracking-wider text-orange-400">DS ADMIN</span>
+            
+            <div className="flex items-center gap-2">
+              <span className={`text-[10px] font-semibold uppercase tracking-wider font-mono ${
+                theme === 'light' ? 'text-indigo-600 font-bold' : 'text-indigo-400'
+              }`}>
+                DS SUITE
+              </span>
+              <span className="text-slate-300 dark:text-slate-700 text-xs">/</span>
+              <h1 className="text-xs sm:text-sm font-semibold text-slate-850 dark:text-slate-100 tracking-wide uppercase font-mono">
+                {getModuleTitle(adminModule)}
+              </h1>
+            </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
-            {/* Quick Language */}
+          {/* Right section: Global Existing Actions perfectly unified */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            
+            {/* 1. Scan QR Badge Action */}
             <button
-              onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
-              className="p-1.5 bg-white/5 rounded-lg text-xs font-bold"
+              onClick={() => setIsScannerOpen(true)}
+              className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                theme === 'light'
+                  ? 'border-slate-200 hover:bg-slate-50 text-slate-700'
+                  : 'border-slate-800 hover:bg-slate-800 text-slate-300'
+              }`}
+              title="Scan security badge QR code"
             >
-              {language.toUpperCase()}
+              <QrCode size={13} className="text-orange-500" />
+              <span>Scan QR Badge</span>
             </button>
-            {/* Quick Theme */}
+
+            {/* 2. Refresh Records Action */}
+            <button
+              onClick={fetchApplications}
+              className={`p-2 rounded-lg border transition-all cursor-pointer flex items-center justify-center ${
+                theme === 'light'
+                  ? 'border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-800'
+                  : 'border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+              title="Refresh relational records"
+            >
+              <RefreshCw size={13} />
+            </button>
+
+            {/* 3. Language Selector */}
+            <div className="relative">
+              <button
+                onClick={() => setIsAdminLangDropdownOpen(!isAdminLangDropdownOpen)}
+                className={`px-2 py-1.5 rounded-lg border text-[10px] font-bold font-mono uppercase tracking-wider flex items-center gap-1 cursor-pointer ${
+                  theme === 'light'
+                    ? 'border-slate-200 hover:bg-slate-50 text-slate-600'
+                    : 'border-slate-800 hover:bg-slate-800 text-slate-400'
+                }`}
+              >
+                <Globe size={11} className="text-slate-400" />
+                <span>{language}</span>
+                <ChevronDown size={10} className="text-slate-400" />
+              </button>
+              {isAdminLangDropdownOpen && (
+                <div className={`absolute right-0 mt-1.5 w-28 border rounded-xl shadow-lg p-1 z-50 text-[11px] font-medium ${
+                  theme === 'light' ? 'bg-white border-slate-200 text-slate-700' : 'bg-slate-900 border-slate-800 text-slate-200'
+                }`}>
+                  {[
+                    { code: 'en', flag: '🇺🇸', label: 'English' },
+                    { code: 'ar', flag: '🇸🇦', label: 'العربية' }
+                  ].map((lang) => (
+                    <button
+                      key={lang.code}
+                      onClick={() => {
+                        setLanguage(lang.code);
+                        setIsAdminLangDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-2 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
+                        language === lang.code 
+                          ? 'bg-orange-500/10 text-orange-600 dark:text-orange-400 font-bold' 
+                          : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                      }`}
+                    >
+                      <span>{lang.flag}</span>
+                      <span>{lang.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 4. Theme Selector */}
             <button
               onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-              className="p-1.5 bg-white/5 rounded-lg text-slate-300 hover:text-white"
+              className={`p-2 rounded-lg border transition-all cursor-pointer flex items-center justify-center ${
+                theme === 'light'
+                  ? 'border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-800'
+                  : 'border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+              title="Toggle theme mode"
             >
-              {theme === 'light' ? <Moon size={12} /> : <Sun size={12} />}
+              {theme === 'light' ? <Moon size={13} /> : <Sun size={13} />}
             </button>
-            {/* Back to Portal */}
+
+            {/* 5. Notifications Bell */}
+            <button
+              onClick={() => setIsNotifCenterOpen(true)}
+              className={`relative p-2 rounded-lg border transition-all cursor-pointer flex items-center justify-center ${
+                theme === 'light'
+                  ? 'border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-800'
+                  : 'border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
+              title="Notifications Center"
+            >
+              <Bell size={13} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2 rounded-full bg-rose-500" />
+              )}
+            </button>
+
+            {/* Divider */}
+            <span className="h-5 w-[1px] bg-slate-200 dark:bg-slate-800 mx-1 hidden sm:inline" />
+
+            {/* 6. Back to Portal Action */}
             <button
               onClick={onBackToPortal}
-              className="p-1.5 bg-orange-600 rounded-lg text-white"
+              className={`hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                theme === 'light'
+                  ? 'border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900'
+                  : 'border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-slate-200'
+              }`}
               title="Return to Careers Portal"
             >
-              <ArrowLeft size={12} />
+              <ArrowLeft size={11} />
+              <span>Exit Portal</span>
             </button>
+            
           </div>
         </header>
 
@@ -2428,125 +2545,39 @@ export default {
         {/* Main Workspace Body Content */}
         <div className={`w-full ${adminModule === 'dashboard' ? 'max-w-7xl' : 'max-w-full'} mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 font-sans no-print`}>
           
-          {/* Dynamic Breadcrumb Header Row - ONLY for Dashboard Home */}
+          {/* Elegant Welcome Card - ONLY for Dashboard Home */}
           {adminModule === 'dashboard' && (
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl md:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm text-left"
+              className={`p-6 rounded-2xl border text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 ${
+                theme === 'light' 
+                  ? 'bg-slate-50/50 border-slate-200/80' 
+                  : 'bg-[#090d16]/40 border-slate-850'
+              }`}
             >
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full">
-                <Logo size="sm" showText={false} variant="light" className="bg-[#000E32] p-2.5 rounded-2xl shrink-0 shadow-inner w-12 h-12 flex items-center justify-center" />
-                <div className="text-left space-y-1 w-full min-w-0">
-                  <div className="inline-flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-400 px-2.5 py-0.5 rounded-full text-[10px] font-black border border-indigo-100 dark:border-indigo-900 w-max uppercase tracking-wider">
-                    <ShieldAlert size={11} />
-                    Super Admin Control Panel / Overview
+                <div className={`p-3 rounded-xl shrink-0 flex items-center justify-center ${
+                  theme === 'light' ? 'bg-[#000E32] text-white shadow-sm' : 'bg-[#000E32] text-white'
+                }`}>
+                  <Logo size="sm" showText={false} variant="light" />
+                </div>
+                <div className="text-left space-y-1 min-w-0">
+                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-semibold border uppercase tracking-wider ${
+                    theme === 'light'
+                      ? 'bg-indigo-50 border-indigo-100 text-indigo-700'
+                      : 'bg-indigo-950/40 border-indigo-900/60 text-indigo-400'
+                  }`}>
+                    <ShieldCheck size={11} />
+                    Super Admin Console
                   </div>
-                  <h1 className="text-lg sm:text-2xl font-extrabold text-[#000E32] dark:text-white uppercase tracking-wide leading-tight break-words">
-                    Dashboard Overview
+                  <h1 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white uppercase tracking-wide">
+                    System Control Overview
                   </h1>
-                  <p className="text-slate-500 dark:text-slate-400 text-[11px] sm:text-xs leading-relaxed max-w-2xl font-medium">
-                    Welcome back to the DS Tech Suite administrative engine. Monitor your ecosystem, manage certificates, and coordinate enterprise projects from a unified command node.
+                  <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed max-w-2xl font-medium">
+                    Monitor application pipelines, manage digital assets, coordinate team roles, and track ecosystem telemetry from your unified administration panel.
                   </p>
                 </div>
-              </div>
-
-              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 w-full lg:w-auto shrink-0 border-t border-slate-100 dark:border-slate-800 pt-3 lg:border-none lg:pt-0">
-                {/* Language Selection */}
-                <div className="relative">
-                  <button
-                    onClick={() => setIsAdminLangDropdownOpen(!isAdminLangDropdownOpen)}
-                    className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-transparent flex items-center gap-1.5 text-xs font-black cursor-pointer"
-                  >
-                    <Globe size={13} className="text-indigo-400" />
-                    <span className="font-mono uppercase font-black">{language}</span>
-                  </button>
-                  {isAdminLangDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-32 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl overflow-hidden p-1 z-50 text-xs">
-                      {[
-                        { code: 'en', flag: '🇺🇸', label: 'English' },
-                        { code: 'ar', flag: '🇸🇦', label: 'العربية' }
-                      ].map((lang) => (
-                        <button
-                          key={lang.code}
-                          onClick={() => {
-                            setLanguage(lang.code);
-                            setIsAdminLangDropdownOpen(false);
-                          }}
-                          className={`w-full text-left px-2 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 ${
-                            language === lang.code ? 'bg-orange-600 text-white' : 'text-slate-300 hover:bg-white/5'
-                          }`}
-                        >
-                          <span>{lang.flag}</span>
-                          <span>{lang.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Theme Selector */}
-                <button
-                  onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                  className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl border border-transparent cursor-pointer"
-                  title="Toggle Theme"
-                >
-                  {theme === 'light' ? <Moon size={14} /> : <Sun size={14} />}
-                </button>
-
-                {/* Notifications bell */}
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  type="button"
-                  onClick={() => setIsNotifCenterOpen(true)}
-                  className="relative p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors border border-transparent shadow-sm shrink-0 flex items-center justify-center cursor-pointer"
-                  title="Notifications Center"
-                >
-                  <Bell size={14} />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white ring-2 ring-white dark:ring-slate-900 animate-pulse">
-                      {unreadCount}
-                    </span>
-                  )}
-                </motion.button>
-
-                {/* Refresh Button */}
-                <motion.button
-                  whileHover={{ scale: 1.05, rotate: 15 }}
-                  whileTap={{ scale: 0.95 }}
-                  type="button"
-                  onClick={fetchApplications}
-                  className="p-2.5 bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl transition-colors border border-transparent shadow-sm shrink-0 flex items-center justify-center cursor-pointer"
-                  title="Refresh Records"
-                >
-                  <RefreshCw size={14} />
-                </motion.button>
-                
-                {/* Scan QR Badge */}
-                <motion.button
-                  whileHover={{ scale: 1.03, y: -1 }}
-                  whileTap={{ scale: 0.97 }}
-                  type="button"
-                  onClick={() => setIsScannerOpen(true)}
-                  className="flex-1 sm:flex-none py-2 px-3 bg-[#000E32] hover:bg-slate-900 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5 cursor-pointer"
-                  title="Scan QR"
-                >
-                  <QrCode size={13} className="text-orange-400 animate-pulse" />
-                  <span className="whitespace-nowrap">Scan QR Badge</span>
-                </motion.button>
-                
-                {/* Back to Portal */}
-                <motion.button
-                  whileHover={{ scale: 1.03, y: -1 }}
-                  whileTap={{ scale: 0.97 }}
-                  type="button"
-                  onClick={onBackToPortal}
-                  className="flex-1 sm:flex-none py-2 px-4 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-700 hover:to-orange-600 text-white font-extrabold text-[10px] uppercase tracking-wider rounded-xl transition-all shadow-md flex items-center justify-center gap-1 cursor-pointer"
-                >
-                  <ArrowLeft size={13} className="shrink-0" />
-                  <span className="whitespace-nowrap">Careers Portal</span>
-                </motion.button>
               </div>
             </motion.div>
           )}

@@ -512,7 +512,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
       {/* ========================================================================= */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+          <div className="fixed inset-0 z-[100] flex justify-end sm:items-center sm:justify-center sm:p-6">
             {/* Minimalist Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -523,13 +523,13 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
               className="absolute inset-0 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-sm"
             />
 
-            {/* Elegant Floating Panel */}
+            {/* Elegant Mobile Drawer (full-height right-side on mobile, centered modal on desktop) */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.98, y: 8 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: 8 }}
-              transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-              className="relative z-10 w-[92vw] sm:w-[80vw] lg:w-[55vw] xl:w-[50vw] max-h-[85vh] lg:h-[60vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+              initial={{ x: "100%", opacity: 0.5 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "100%", opacity: 0.5 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="relative z-10 w-full sm:w-[500px] md:w-[550px] h-full sm:h-auto sm:max-h-[85vh] sm:rounded-2xl bg-white dark:bg-slate-900 border-l sm:border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden"
             >
               {/* Refined Header */}
               <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between shrink-0 bg-white dark:bg-slate-900">
@@ -876,7 +876,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1 * i }}
-                className="p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm text-center flex flex-col justify-center items-center group hover:border-orange-500/40 transition-colors"
+                className="p-3.5 sm:p-5 rounded-2xl bg-white dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-sm text-center flex flex-col justify-center items-center group hover:border-orange-500/40 transition-colors"
               >
                 <div className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-display group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
                   {stat.value}
@@ -918,7 +918,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
             
             {/* CARD 1: Student Registration Portal */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-950 border-2 border-orange-500/80 dark:border-orange-500/60 shadow-xl relative overflow-hidden flex flex-col justify-between group hover:border-orange-500 transition-all duration-300">
+            <div className="p-4 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-950 border-2 border-orange-500/80 dark:border-orange-500/60 shadow-xl relative overflow-hidden flex flex-col justify-between group hover:border-orange-500 transition-all duration-300">
               {/* Subtle Brand Ambient Backlight */}
               <div className="absolute -top-20 -right-20 w-56 h-56 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
               
@@ -996,7 +996,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
             </div>
 
             {/* CARD 2: Tutor & Faculty Registration Portal */}
-            <div className="p-6 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-950 border-2 border-amber-500/80 dark:border-amber-500/60 shadow-xl relative overflow-hidden flex flex-col justify-between group hover:border-amber-500 transition-all duration-300">
+            <div className="p-4 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-950 border-2 border-amber-500/80 dark:border-amber-500/60 shadow-xl relative overflow-hidden flex flex-col justify-between group hover:border-amber-500 transition-all duration-300">
               {/* Subtle Ambient Backlight */}
               <div className="absolute -top-20 -right-20 w-56 h-56 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -1189,7 +1189,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
               return (
                 <div
                   key={cat.id}
-                  className={`p-6 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border transition-all duration-300 flex flex-col justify-between group relative overflow-hidden ${
+                  className={`p-4 sm:p-6 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border transition-all duration-300 flex flex-col justify-between group relative overflow-hidden ${
                     isSelected
                       ? 'border-orange-500/80 ring-2 ring-orange-500/20 shadow-lg bg-white dark:bg-slate-800'
                       : 'border-slate-200/80 dark:border-slate-800 hover:border-orange-500/40 hover:bg-white dark:hover:bg-slate-800/90 shadow-2xs hover:shadow-xl'
@@ -1414,7 +1414,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
                 {paginatedCourses.map((course) => (
                   <div
                     key={course.id}
-                    className="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/80 shadow-sm hover:shadow-xl hover:border-orange-500/50 dark:hover:border-orange-500/50 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
+                    className="p-4 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800/80 shadow-sm hover:shadow-xl hover:border-orange-500/50 dark:hover:border-orange-500/50 transition-all duration-300 flex flex-col justify-between group relative overflow-hidden"
                   >
                     {/* Subtle top accent line on hover */}
                     <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-amber-500 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -1587,7 +1587,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* 1 Month Card */}
-            <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-md hover:border-orange-500/50 transition-all flex flex-col justify-between relative">
+            <div className="p-4 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-md hover:border-orange-500/50 transition-all flex flex-col justify-between relative">
               <div>
                 <div className="inline-block px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 text-xs font-black uppercase tracking-wider mb-4 border border-orange-500/20">
                   1-Month Intensive Foundations
@@ -1640,7 +1640,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
             </div>
 
             {/* 3 Months Card (Featured) */}
-            <div className="p-8 rounded-3xl bg-gradient-to-b from-orange-500/5 via-amber-500/5 to-transparent border-2 border-orange-500 shadow-xl flex flex-col justify-between relative">
+            <div className="p-4 sm:p-8 rounded-3xl bg-gradient-to-b from-orange-500/5 via-amber-500/5 to-transparent border-2 border-orange-500 shadow-xl flex flex-col justify-between relative">
               <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-orange-600 to-amber-500 text-white text-[10px] font-black uppercase tracking-widest shadow-md">
                 MOST POPULAR
               </div>
@@ -1697,7 +1697,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
             </div>
 
             {/* 6 Months Card */}
-            <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-md hover:border-orange-500/50 transition-all flex flex-col justify-between relative">
+            <div className="p-4 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-md hover:border-orange-500/50 transition-all flex flex-col justify-between relative">
               <div>
                 <div className="inline-block px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-black uppercase tracking-wider mb-4 border border-purple-500/20">
                   6-Month Executive Mastery
@@ -1793,7 +1793,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             
             {/* Pathway 1: Student Portal */}
-            <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-orange-500/40 transition-all flex flex-col justify-between">
+            <div className="p-4 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-orange-500/40 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-orange-500/10 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 flex items-center justify-center mb-6">
                   <GraduationCap className="w-6 h-6" />
@@ -1813,7 +1813,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
             </div>
 
             {/* Pathway 2: Faculty Network */}
-            <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-amber-500/40 transition-all flex flex-col justify-between">
+            <div className="p-4 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-amber-500/40 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-6">
                   <Users className="w-6 h-6" />
@@ -1833,7 +1833,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
             </div>
 
             {/* Pathway 3: Corporate Training */}
-            <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-yellow-500/40 transition-all flex flex-col justify-between">
+            <div className="p-4 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-yellow-500/40 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 flex items-center justify-center mb-6">
                   <Building2 className="w-6 h-6" />
@@ -1853,7 +1853,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
             </div>
 
             {/* Pathway 4: Scholarship Fund */}
-            <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-emerald-500/40 transition-all flex flex-col justify-between">
+            <div className="p-4 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-emerald-500/40 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-6">
                   <Award className="w-6 h-6" />
@@ -1873,7 +1873,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
             </div>
 
             {/* Pathway 5: Graduate Internship */}
-            <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-blue-500/40 transition-all flex flex-col justify-between">
+            <div className="p-4 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-blue-500/40 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-6">
                   <Briefcase className="w-6 h-6" />
@@ -1893,7 +1893,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
             </div>
 
             {/* Pathway 6: 1-on-1 Mentorship */}
-            <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-purple-500/40 transition-all flex flex-col justify-between">
+            <div className="p-4 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl hover:border-purple-500/40 transition-all flex flex-col justify-between">
               <div>
                 <div className="w-12 h-12 rounded-2xl bg-purple-500/10 dark:bg-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-6">
                   <UserCheck className="w-6 h-6" />
@@ -1923,7 +1923,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
       <section id="faculty" className="py-20 bg-slate-50 dark:bg-slate-950 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="p-8 sm:p-12 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xl relative overflow-hidden">
+          <div className="p-4 sm:p-8 md:p-12 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-xl relative overflow-hidden">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
               
               {/* CEO Info Column */}
@@ -1997,7 +1997,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
                 >
                   <button
                     onClick={() => setActiveAccordion(isOpen ? null : acc.id)}
-                    className="w-full p-6 text-left flex items-center justify-between gap-4 font-bold text-slate-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
+                    className="w-full p-4 sm:p-6 text-left flex items-center justify-between gap-4 font-bold text-slate-900 dark:text-white hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
                   >
                     <span className="text-base sm:text-lg font-display">{acc.title}</span>
                     <div className="p-1 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
@@ -2011,7 +2011,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="px-6 pb-6 text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-200/80 dark:border-slate-800 pt-4"
+                        className="px-4 pb-4 sm:px-6 sm:pb-6 text-sm text-slate-600 dark:text-slate-300 leading-relaxed border-t border-slate-200/80 dark:border-slate-800 pt-4"
                       >
                         {acc.content}
                       </motion.div>
