@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { Search, Calendar, BookOpen, Clock, Laptop, Monitor, Globe2, Tag, Check, AlertCircle } from 'lucide-react';
+import { Search, Calendar, BookOpen, Clock, Laptop, Monitor, Globe2, Tag, Check, AlertCircle, Sparkles, Grid } from 'lucide-react';
 import { ACADEMY_COURSES, AcademyCourse } from '../../lib/academyCoursesData';
+import { getAcademyTuition, MIN_ACADEMY_TUITION, formatNGN } from '../../lib/pricing';
+import { CourseCatalogue, AnimatedBookIcon } from '../CourseCatalogue';
 import { 
   DurationOption, 
   LearningMode, 
@@ -37,32 +39,32 @@ export const Step2ApplicationInfo: React.FC<Step2ApplicationInfoProps> = ({
 }) => {
   const [courseSearch, setCourseSearch] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isCatalogueOpen, setIsCatalogueOpen] = useState(false);
 
-  // Filter courses by code or title
+  // Filter courses by code, title, or category (all 115 courses)
   const filteredCourses = useMemo(() => {
-    if (!courseSearch.trim()) return ACADEMY_COURSES.slice(0, 15);
-    const q = courseSearch.toLowerCase();
-    return ACADEMY_COURSES.filter(
-      c => c.code.toLowerCase().includes(q) || c.title.toLowerCase().includes(q) || c.categoryName.toLowerCase().includes(q)
-    );
+    let list = ACADEMY_COURSES;
+    if (courseSearch.trim()) {
+      const q = courseSearch.toLowerCase();
+      list = list.filter(
+        c => c.code.toLowerCase().includes(q) || c.title.toLowerCase().includes(q) || c.categoryName.toLowerCase().includes(q) || c.industry.toLowerCase().includes(q)
+      );
+    }
+    return list;
   }, [courseSearch]);
 
-  const calculatePrice = (base: number, dur: DurationOption) => {
-    if (dur === '1 Month') return base;
-    if (dur === '3 Months') return Math.round(base * 2.2);
-    return Math.round(base * 3.8);
-  };
-
   const handleSelectCourse = (course: AcademyCourse) => {
-    const base = course.price;
-    const newPrice = calculatePrice(base, primaryCourse.duration);
+    const currentDur = primaryCourse.duration || '1 Month';
+    const currentMode = primaryCourse.mode || 'Physical';
+    const baseP = course.price || 50000;
+    const newPrice = getAcademyTuition(currentDur, currentMode, baseP);
     onChange({
       ...primaryCourse,
       courseId: course.id,
       courseCode: course.code,
       courseTitle: course.title,
       categoryName: course.categoryName,
-      basePrice: base,
+      basePrice: baseP,
       calculatedPrice: newPrice
     });
     setCourseSearch(`${course.code} - ${course.title}`);
@@ -70,10 +72,23 @@ export const Step2ApplicationInfo: React.FC<Step2ApplicationInfoProps> = ({
   };
 
   const handleDurationChange = (dur: DurationOption) => {
-    const newPrice = calculatePrice(primaryCourse.basePrice, dur);
+    const currentMode = primaryCourse.mode || 'Physical';
+    const baseP = primaryCourse.basePrice || 50000;
+    const newPrice = getAcademyTuition(dur, currentMode, baseP);
     onChange({
       ...primaryCourse,
       duration: dur,
+      calculatedPrice: newPrice
+    });
+  };
+
+  const handleModeChange = (mode: LearningMode) => {
+    const currentDur = primaryCourse.duration || '1 Month';
+    const baseP = primaryCourse.basePrice || 50000;
+    const newPrice = getAcademyTuition(currentDur, mode, baseP);
+    onChange({
+      ...primaryCourse,
+      mode,
       calculatedPrice: newPrice
     });
   };
@@ -110,11 +125,23 @@ export const Step2ApplicationInfo: React.FC<Step2ApplicationInfoProps> = ({
       </div>
 
       {/* Programme / Course Selection from ALL 115 Courses */}
-      <div className="space-y-2 relative">
-        <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300">
-          Select Programme / Course <span className="text-orange-400">*</span>
-          <span className="ml-2 text-[10px] font-normal text-slate-400 font-mono">(115 Courses with DSTA Codes Available)</span>
-        </label>
+      <div className="space-y-3 relative">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300">
+            Select Programme / Course <span className="text-orange-400">*</span>
+            <span className="ml-2 text-[10px] font-normal text-slate-400 font-mono">(115 Courses with DSTA Codes Available)</span>
+          </label>
+          
+          <button
+            type="button"
+            onClick={() => setIsCatalogueOpen(true)}
+            className="px-3.5 py-1.5 rounded-xl bg-orange-600/20 hover:bg-orange-600 border border-orange-500/40 text-orange-300 hover:text-white text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer shadow-sm"
+          >
+            <Grid className="w-3.5 h-3.5 text-orange-400" />
+            <span>Browse Animated Course Catalogue</span>
+            <Sparkles className="w-3 h-3 text-amber-300" />
+          </button>
+        </div>
         
         <div className="relative">
           <input
@@ -137,29 +164,33 @@ export const Step2ApplicationInfo: React.FC<Step2ApplicationInfoProps> = ({
             {filteredCourses.length > 0 ? (
               filteredCourses.map((c) => {
                 const isSelected = primaryCourse.courseCode === c.code;
+                const itemTuition = getAcademyTuition(primaryCourse.duration || '1 Month', primaryCourse.mode || 'Physical', c.price || 50000);
                 return (
                   <button
                     key={c.id}
                     type="button"
                     onClick={() => handleSelectCourse(c)}
-                    className={`w-full text-left p-3 rounded-xl transition-all flex items-start justify-between gap-3 ${
+                    className={`w-full text-left p-3 rounded-xl transition-all flex items-center justify-between gap-3 ${
                       isSelected
                         ? 'bg-orange-500/20 border border-orange-500/40 text-white'
                         : 'hover:bg-slate-800 text-slate-200 border border-transparent'
                     }`}
                   >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 text-[10px] font-mono font-bold">
-                          {c.code}
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-semibold">{c.categoryName}</span>
+                    <div className="flex items-center gap-3">
+                      <AnimatedBookIcon categoryId={c.categoryId} title={c.title} className="w-9 h-9 shrink-0" />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded-md bg-orange-500/20 text-orange-400 text-[10px] font-mono font-bold">
+                            {c.code}
+                          </span>
+                          <span className="text-[10px] text-slate-400 font-semibold">{c.categoryName}</span>
+                        </div>
+                        <h5 className="text-xs font-bold text-slate-100 mt-1">{c.title}</h5>
                       </div>
-                      <h5 className="text-xs font-bold text-slate-100 mt-1">{c.title}</h5>
                     </div>
                     <div className="text-right shrink-0">
-                      <div className="text-xs font-extrabold text-orange-400">₦{c.price.toLocaleString()}</div>
-                      <div className="text-[9px] text-slate-400 font-medium">1 Month Base</div>
+                      <div className="text-xs font-extrabold text-orange-400">₦{itemTuition.toLocaleString()}</div>
+                      <div className="text-[9px] text-slate-400 font-medium">{primaryCourse.duration || '1 Month'} ({primaryCourse.mode || 'Physical'})</div>
                     </div>
                   </button>
                 );
@@ -331,6 +362,18 @@ export const Step2ApplicationInfo: React.FC<Step2ApplicationInfoProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Course Catalogue Popup Modal */}
+      <CourseCatalogue
+        isOpen={isCatalogueOpen}
+        onClose={() => setIsCatalogueOpen(false)}
+        onSelectCourse={(selectedCourse) => {
+          handleSelectCourse(selectedCourse);
+          setIsCatalogueOpen(false);
+        }}
+        selectedCourseCodes={[primaryCourse.courseCode]}
+        actionText="Select as Primary Programme"
+      />
     </div>
   );
 };

@@ -5331,7 +5331,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
       const startTime = Date.now();
       try {
         const body = await request.json();
-        const { message, conversationId, roleOverride, attachments } = body;
+        const { message, conversationId, roleOverride, attachments, pageContext } = body;
 
         if (!message || !message.trim()) {
           return new Response(JSON.stringify({ error: "Message content cannot be empty." }), { status: 400, headers });
@@ -5456,12 +5456,16 @@ SECURITY & DATA ISOLATION DIRECTIVE:
 RELEVANT ISOLATED USER CONTEXT:
 ${JSON.stringify(roleContextData, null, 2)}
 
+ACTIVE PAGE & WORKSPACE CONTEXT:
+${pageContext ? JSON.stringify(pageContext, null, 2) : 'None'}
+
 ENTERPRISE KNOWLEDGE BASE ARTICLES:
 ${knowledgeArticles.map(a => `- [${a.category}] ${a.title}: ${a.content}`).join('\n')}
 
 RESPONSE FORMATTING:
 - Respond professionally with clear formatting, Markdown headings, concise lists, and executive clarity.
-- Tailor your guidance directly to the user's role (${effectiveRole}).`;
+- Tailor your guidance directly to the user's role (${effectiveRole}).
+- If pageContext indicates a specific viewed course, programme, or service, resolve ambiguous questions like "How long is this?" or "How much does it cost?" to that item automatically.`;
 
         // 6. Invoke Gemini API (gemini-3.7-flash with timeout & intelligent fallback)
         let replyText = "";
@@ -5472,19 +5476,19 @@ RESPONSE FORMATTING:
 
         const getSmartFallback = (msg: string, role: string) => {
           const lower = msg.toLowerCase();
-          if (lower.includes('cac') || lower.includes('registration') || lower.includes('corporate')) {
-            return `### CAC Corporate Registration Verification\n\n- **Company Name**: DS Tech & Digital Marketing Services Ltd\n- **RC Number**: RC-1849204\n- **Corporate Status**: Active & Fully Verified\n- **Tax Identification (TIN)**: 24892019-0001\n- **Regulatory Body**: Corporate Affairs Commission (CAC) Nigeria\n\nDS Tech is an officially incorporated digital marketing and enterprise software company operating under full Nigerian federal regulatory compliance.`;
+          if (lower.includes('cac') || lower.includes('registration') || lower.includes('corporate') || lower.includes('rc-1849204')) {
+            return `### CAC Corporate Registration Verification\n\n- **Company Name**: DS Tech & Digital Marketing Agency Limited\n- **RC Registration**: RC-1849204 (Corporate Affairs Commission, Federal Republic of Nigeria)\n- **Corporate Status**: Active, Certified & Compliant\n- **Tax Identification (TIN)**: 24892019-0001\n- **Headquarters Address**: Garki, Abuja, FCT, Nigeria\n- **Hotline**: +234 813 123 4567 | **Email**: info@dstech.com\n\nDS Tech is an officially incorporated enterprise software, AI integration, and digital marketing agency operating under full regulatory compliance.`;
           }
-          if (lower.includes('application') || lower.includes('status') || lower.includes('interview')) {
-            return `### DS Tech Application & Career Portal\n\n- **User Role**: ${role}\n- **Application Status**: Profile Verified & Active\n- **Next Stage**: Your technical assessment and document review are currently managed by the DS Tech Talent Acquisition team.\n\nFor real-time updates, please check your **Career Dashboard** or contact your hiring coordinator.`;
+          if (lower.includes('price') || lower.includes('pricing') || lower.includes('tuition') || lower.includes('cost') || lower.includes('fee')) {
+            return `### Official DS Tech Academy Pricing Matrix\n\n| Duration | Virtual Tuition | Physical Tuition | Hybrid Tuition |\n| :--- | :--- | :--- | :--- |\n| **1 Month** | ₦50,000 | ₦100,000 | ₦150,000 |\n| **3 Months** | ₦100,000 | ₦200,000 | ₦300,000 |\n| **6 Months** | ₦200,000 | ₦300,000 | ₦400,000 |\n\nAll courses include hands-on practical project portfolio development, 1-on-1 instructor support, and blockchain-verified certificates upon graduation.`;
           }
-          if (lower.includes('service') || lower.includes('digital transformation') || lower.includes('software')) {
-            return `### DS Tech Digital Transformation Services\n\nWe deliver enterprise solutions tailored for modern businesses:\n- **Custom Web & Mobile Engineering**: Scalable, high-performance web systems and mobile applications.\n- **Digital Performance Marketing**: Brand positioning, conversion optimization, and SEO campaigns.\n- **Tech Training Academy**: Hands-on certification programs in React, UI/UX design, and Cloud Architecture.`;
+          if (role === 'Student' || lower.includes('student') || lower.includes('tutor') || lower.includes('course')) {
+            return `### DS Tech Academy — Student Learning Hub\n\nWelcome to your 1-on-1 Academic Tutoring Workspace!\n\n- **Current Role**: ${role}\n- **Featured Programmes**: Full-Stack Software Engineering (React/Node/TS), AI for Business & Productivity (DSTA-AI101 - ₦45k), Data Science, Cybersecurity Defence, UI/UX Design, and Cloud Architecture.\n- **Instructor Support**: As your personal tutor, I am here to help you break down complex code, debug errors, review assignments, and guide your learning path.\n\nHow can I help with your studies today?`;
           }
-          if (lower.includes('course') || lower.includes('academy') || lower.includes('student')) {
-            return `### DS Tech Training Academy\n\nExplore our industry-standard technical training programs:\n- **Full-Stack Web Engineering**: React, TypeScript, Node.js & Cloud deployment\n- **UI/UX & Product Design**: Figma prototyping, user research & design systems\n- **Digital Marketing Masterclass**: Paid acquisition, analytics & growth strategies`;
+          if (lower.includes('application') || lower.includes('status') || lower.includes('interview') || role === 'Applicant') {
+            return `### DS Tech Career & Recruitment Specialist\n\n- **User Role**: ${role}\n- **Application Status**: Candidate Profile Active & Verified\n- **Next Stage**: Technical assessment and credential audit under review by DS Tech Talent Acquisition.\n\nI can assist you with technical interview preparation, resume tuning, or application status updates.`;
           }
-          return `### DS Tech Enterprise AI Assistance\n\nI have received your request: **"${msg}"**.\n\n- **Active Workspace**: ${role}\n- **System Status**: Verified Operational\n\nHow else can I assist you with DS Tech services, career opportunities, or project milestones?`;
+          return `### DS Tech Enterprise AI Copilot\n\nI have received your query: **"${msg}"**.\n\n- **Active Workspace Role**: ${role}\n- **Company Status**: Active (CAC RC-1849204 | Abuja, Nigeria)\n\nHow else can I assist you with DS Tech digital services, Academy courses, career paths, or technology planning?`;
         };
 
         if (!apiKey) {

@@ -79,6 +79,7 @@ import { Logo } from './Logo';
 import { ProfessionalHamburgerButton } from './ProfessionalHamburgerButton';
 import { MobileNavigationDrawer } from './MobileNavigationDrawer';
 import { TRANSLATIONS, LanguageCode } from '../lib/translations';
+import { AcademyEnrollmentModal } from './AcademyEnrollmentModal';
 
 interface AcademyOverviewProps {
   onNavigate?: (page: string) => void;
@@ -128,18 +129,8 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
   const [activeAccordion, setActiveAccordion] = useState<string | null>('why-1');
   const [pathwayModal, setPathwayModal] = useState<'student' | 'tutor' | 'corporate' | 'scholarship' | 'internship' | 'mentorship' | null>(null);
   
-  // Direct Quick Enrollment Modal State
+  // Direct Quick Enrollment Modal State (Managed via AcademyEnrollmentModal)
   const [enrollModalCourse, setEnrollModalCourse] = useState<AcademyCourse | null>(null);
-  const [enrollForm, setEnrollForm] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    location: 'Abuja Hub (Physical)',
-    languagePreference: 'English',
-    paymentMethod: 'paystack'
-  });
-  const [isSubmittingEnroll, setIsSubmittingEnroll] = useState(false);
-  const [enrollSuccess, setEnrollSuccess] = useState(false);
 
   // Keyboard accessibility for modal Escape key
   useEffect(() => {
@@ -347,7 +338,10 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
         return (
           <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <rect width="24" height="24" rx="6" fill="#6D28D9" fillOpacity="0.15" />
-            <path d="M12 3V21M7 8H17" stroke="#6D28D9" strokeWidth="2.5" strokeLinecap="round" />
+            <path d="M4 19.5C4 18.1193 5.11929 17 6.5 17H20" stroke="#6D28D9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M6.5 2H20V22H6.5C5.11929 22 4 20.8807 4 19.5V4.5C4 3.11929 5.11929 2 6.5 2Z" stroke="#8B5CF6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M8 7H16" stroke="#6D28D9" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M8 11H14" stroke="#6D28D9" strokeWidth="1.5" strokeLinecap="round" />
           </svg>
         );
       case 'manufacturing':
@@ -405,46 +399,11 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
       case 'Shirt': return <Shirt className={className} />;
       case 'HardHat': return <HardHat className={className} />;
       case 'Flame': return <Flame className={className} />;
-      case 'Cross': return <Cross className={className} />;
+      case 'Cross': return <BookOpen className={className} />;
       case 'Factory': return <Factory className={className} />;
       case 'Film': return <Film className={className} />;
       case 'Laptop': return <Laptop className={className} />;
       default: return <Sparkles className={className} />;
-    }
-  };
-
-  // Handle enrollment checkout submission
-  const handleEnrollSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!enrollModalCourse) return;
-    setIsSubmittingEnroll(true);
-
-    if (enrollForm.paymentMethod === 'paystack') {
-      // Trigger global Paystack event handled in App.tsx
-      const payEvent = new CustomEvent('dstech_paystack_pay', {
-        detail: {
-          serviceId: enrollModalCourse.id,
-          serviceName: `${enrollModalCourse.code} - ${enrollModalCourse.title}`,
-          amount: enrollModalCourse.price,
-          category: 'Training Academy Enrollment',
-          description: `Enrollment into ${enrollModalCourse.title} (${enrollForm.location})`,
-          customerName: enrollForm.fullName,
-          customerEmail: enrollForm.email,
-          customerPhone: enrollForm.phone
-        }
-      });
-      window.dispatchEvent(payEvent);
-      setIsSubmittingEnroll(false);
-      setEnrollModalCourse(null);
-    } else {
-      const msg = `Hello DS Tech Academy, I would like to enroll in *${enrollModalCourse.code}: ${enrollModalCourse.title}*.\n\n*Student Details:*\n- Name: ${enrollForm.fullName}\n- Email: ${enrollForm.email}\n- Phone: ${enrollForm.phone}\n- Preferred Center: ${enrollForm.location}\n- Language: ${enrollForm.languagePreference}\n- Course Fee: ₦${enrollModalCourse.price.toLocaleString()}`;
-      window.open(`https://wa.me/2349023489111?text=${encodeURIComponent(msg)}`, '_blank');
-      setIsSubmittingEnroll(false);
-      setEnrollSuccess(true);
-      setTimeout(() => {
-        setEnrollSuccess(false);
-        setEnrollModalCourse(null);
-      }, 2500);
     }
   };
 
@@ -476,6 +435,10 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
 
           {/* Desktop Quick Category / Navigation Links */}
           <nav className="hidden xl:flex items-center gap-6 text-xs font-semibold text-slate-600 dark:text-slate-300">
+            <a href="#registration-portals" className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors flex items-center gap-1.5 py-1">
+              <UserCheck className="w-4 h-4 text-emerald-500" />
+              <span>Registration Portals</span>
+            </a>
             <a href="#courses-catalog" className="hover:text-orange-600 dark:hover:text-orange-400 transition-colors flex items-center gap-1.5 py-1">
               <BookOpen className="w-4 h-4 text-orange-500" />
               <span>115+ Courses</span>
@@ -932,6 +895,232 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
       </section>
 
       {/* ========================================================================= */}
+      {/* REGISTRATION PORTALS — HIGH VISIBILITY DUAL ADMISSIONS SECTION */}
+      {/* ========================================================================= */}
+      <section id="registration-portals" className="py-12 lg:py-16 bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          {/* Section Header */}
+          <div className="text-center max-w-3xl mx-auto mb-10">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-500/10 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-extrabold uppercase tracking-widest border border-orange-500/30 mb-3 shadow-2xs">
+              <UserCheck className="w-4 h-4 text-orange-500" />
+              <span>OFFICIAL REGISTRATION PORTALS</span>
+            </div>
+            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white font-display tracking-tight">
+              Begin Your Journey — Student & Tutor Admissions
+            </h2>
+            <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base mt-2.5 max-w-2xl mx-auto leading-relaxed">
+              Select your registration portal below to access official online application forms, campus lab options, and portal dashboards.
+            </p>
+          </div>
+
+          {/* Dual Registration Cards Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+            
+            {/* CARD 1: Student Registration Portal */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-950 border-2 border-orange-500/80 dark:border-orange-500/60 shadow-xl relative overflow-hidden flex flex-col justify-between group hover:border-orange-500 transition-all duration-300">
+              {/* Subtle Brand Ambient Backlight */}
+              <div className="absolute -top-20 -right-20 w-56 h-56 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+              
+              <div>
+                {/* Badge & Status Header */}
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                  <span className="px-3 py-1 rounded-full bg-orange-500/15 text-orange-600 dark:text-orange-400 text-[11px] font-extrabold uppercase tracking-wider border border-orange-500/30 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    Student Admissions Open • 2026 Cohorts
+                  </span>
+                  <span className="text-[10px] font-mono font-extrabold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800">
+                    DSTA-STU-PORTAL
+                  </span>
+                </div>
+
+                {/* Card Title & Icon */}
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-orange-500/25 group-hover:scale-105 transition-transform">
+                    <GraduationCap className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-display">
+                      Student Registration Portal
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                      Start your official 10-step online enrollment for physical lab training (Abuja / Adamawa) or live virtual cohorts across 115+ certified programs.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Key Student Perks */}
+                <div className="my-6 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 space-y-2.5 text-xs text-slate-700 dark:text-slate-300">
+                  <div className="flex items-center gap-2.5 font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span><strong>70% Practical Training</strong> in state-of-the-art computer labs</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span><strong>Flexible Installment:</strong> Pay 70% deposit & 30% balance at graduation</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span><strong>Accredited Diploma:</strong> CAC Registered Institution (RC: 95)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onNavigate) {
+                      onNavigate('/student-registration');
+                    } else {
+                      setPathwayModal('student');
+                    }
+                  }}
+                  className="flex-1 py-3.5 px-5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  <span>Register as Student</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onNavigate?.('/student-dashboard')}
+                  className="py-3.5 px-4 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200/90 dark:border-slate-700/80 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <LayoutDashboard className="w-4 h-4 text-orange-500" />
+                  <span>Student Login</span>
+                </button>
+              </div>
+            </div>
+
+            {/* CARD 2: Tutor & Faculty Registration Portal */}
+            <div className="p-6 sm:p-8 rounded-3xl bg-slate-50 dark:bg-slate-950 border-2 border-amber-500/80 dark:border-amber-500/60 shadow-xl relative overflow-hidden flex flex-col justify-between group hover:border-amber-500 transition-all duration-300">
+              {/* Subtle Ambient Backlight */}
+              <div className="absolute -top-20 -right-20 w-56 h-56 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+
+              <div>
+                {/* Badge & Status Header */}
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                  <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 text-[11px] font-extrabold uppercase tracking-wider border border-amber-500/30 flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                    Faculty Recruitment • Active across 24 Domains
+                  </span>
+                  <span className="text-[10px] font-mono font-extrabold text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800">
+                    DSTA-TUT-PORTAL
+                  </span>
+                </div>
+
+                {/* Card Title & Icon */}
+                <div className="flex items-start gap-4 mb-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-600 to-orange-500 text-white flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/25 group-hover:scale-105 transition-transform">
+                    <Users className="w-7 h-7" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-display">
+                      Tutor & Faculty Registration Portal
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                      Join our distinguished faculty network. Deliver high-impact practical computer lab sessions or live virtual lectures across 24 teaching domains.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Key Faculty Perks */}
+                <div className="my-6 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 space-y-2.5 text-xs text-slate-700 dark:text-slate-300">
+                  <div className="flex items-center gap-2.5 font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span><strong>Competitive Remuneration</strong> & milestone honorariums</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span><strong>Dedicated Lab Workstations</strong> & AI assistant teaching tools</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 font-medium">
+                    <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span><strong>Flexible Schedules:</strong> Physical (Abuja/Adamawa) or Remote Virtual</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onNavigate) {
+                      onNavigate('/tutor-application');
+                    } else {
+                      setPathwayModal('tutor');
+                    }
+                  }}
+                  className="flex-1 py-3.5 px-5 rounded-xl bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 text-white font-extrabold text-xs sm:text-sm shadow-lg shadow-amber-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  <Users className="w-4 h-4" />
+                  <span>Register as Tutor / Faculty</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onNavigate?.('/tutor-dashboard')}
+                  className="py-3.5 px-4 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs border border-slate-200/90 dark:border-slate-700/80 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                >
+                  <LayoutDashboard className="w-4 h-4 text-amber-500" />
+                  <span>Tutor Login</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Quick Access Bar for Additional Special Pathways */}
+          <div className="mt-8 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+              <Sparkles className="w-4 h-4 text-orange-500 shrink-0" />
+              <span>Other Special Admission Frameworks:</span>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={() => onNavigate?.('/scholarship-application')}
+                className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 hover:bg-orange-500/10 hover:text-orange-600 text-slate-600 dark:text-slate-300 text-xs font-semibold border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer"
+              >
+                Scholarship Fund
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onNavigate?.('/corporate-training')}
+                className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 hover:bg-orange-500/10 hover:text-orange-600 text-slate-600 dark:text-slate-300 text-xs font-semibold border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer"
+              >
+                Corporate RFP
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onNavigate?.('/internship-application')}
+                className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 hover:bg-orange-500/10 hover:text-orange-600 text-slate-600 dark:text-slate-300 text-xs font-semibold border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer"
+              >
+                Graduate Internship
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onNavigate?.('/mentorship-application')}
+                className="px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 hover:bg-orange-500/10 hover:text-orange-600 text-slate-600 dark:text-slate-300 text-xs font-semibold border border-slate-200 dark:border-slate-800 transition-colors cursor-pointer"
+              >
+                Executive Mentorship
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
       {/* 2. PROGRAM DISCOVERY INTERFACE (22 SPECIALIZED FACULTIES) */}
       {/* ========================================================================= */}
       <section id="faculty" className="py-16 bg-white dark:bg-slate-900 border-b border-slate-200/80 dark:border-slate-800 transition-colors">
@@ -1153,6 +1342,53 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
             })}
           </div>
 
+          {/* Selected Category Programme -> Category -> Courses Hierarchy Banner */}
+          {selectedCategory !== 'all' && (
+            <motion.div 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-8 p-6 rounded-3xl bg-slate-900 text-white border border-orange-500/40 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-3xl pointer-events-none" />
+              
+              <div className="flex items-start gap-4 relative z-10">
+                <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700/80 text-orange-400 flex items-center justify-center shrink-0 shadow-md">
+                  {renderOfficialProgramSvg(selectedCategory, "w-8 h-8")}
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                    <span className="text-[10px] font-mono font-extrabold uppercase tracking-widest text-orange-400 bg-orange-500/15 px-2.5 py-0.5 rounded border border-orange-500/30">
+                      PROGRAMME CATEGORY
+                    </span>
+                    <span className="text-xs text-slate-400 font-semibold">
+                      Showing {filteredCourses.length} Accredited Courses
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-white font-display">
+                    {ACADEMY_CATEGORIES.find(c => c.id === selectedCategory)?.name}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-3xl leading-relaxed">
+                    {ACADEMY_CATEGORIES.find(c => c.id === selectedCategory)?.description}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCategory('all');
+                  setSelectedLevel('all');
+                  setSearchQuery('');
+                  setCurrentPage(1);
+                }}
+                className="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-extrabold border border-slate-700 transition-colors shrink-0 cursor-pointer flex items-center gap-2 shadow-sm relative z-10"
+              >
+                <X className="w-4 h-4 text-orange-400" />
+                <span>Show All 115 Courses</span>
+              </button>
+            </motion.div>
+          )}
+
           {/* Course Cards Grid */}
           {filteredCourses.length === 0 ? (
             <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-8">
@@ -1230,21 +1466,22 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
 
                     {/* Card Bottom: Pricing & Actions */}
                     <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80">
-                      <div className="flex items-baseline justify-between mb-4">
-                        <div>
-                          <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold block">Tuition Fee</span>
-                          <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-display">
-                            ₦{course.price.toLocaleString()}
+                      <div className="flex flex-col gap-1.5 mb-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-100 dark:border-slate-800">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[10px] uppercase tracking-wider text-slate-400 font-extrabold">Tuition Fee</span>
+                          <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded">
+                            Fixed Matrix Rates
+                          </span>
+                        </div>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-xs text-slate-400 font-semibold">From</span>
+                          <div className="text-xl font-black text-slate-900 dark:text-white font-display">
+                            ₦50,000
                           </div>
                         </div>
-                        {course.originalPrice && (
-                          <div className="text-right">
-                            <span className="text-xs text-slate-400 line-through">₦{course.originalPrice.toLocaleString()}</span>
-                            <span className="block text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
-                              Save ₦{(course.originalPrice - course.price).toLocaleString()}
-                            </span>
-                          </div>
-                        )}
+                        <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 leading-tight">
+                          1, 3, or 6 Months • Virtual, Physical or Hybrid
+                        </span>
                       </div>
 
                       <div className="grid grid-cols-2 gap-2">
@@ -1326,6 +1563,211 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
               </div>
             </>
           )}
+
+        </div>
+      </section>
+
+      {/* ========================================================================= */}
+      {/* OFFICIAL FIXED ACADEMY TUITION & PRICING SCHEDULE */}
+      {/* ========================================================================= */}
+      <section id="pricing-matrix" className="py-20 bg-white dark:bg-slate-900/60 border-t border-slate-200/80 dark:border-slate-800 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          
+          <div className="text-center max-w-3xl mx-auto mb-14">
+            <span className="text-xs uppercase font-extrabold tracking-widest text-orange-600 dark:text-orange-400 bg-orange-500/10 px-3 py-1.5 rounded-lg border border-orange-500/20">
+              OFFICIAL DSTA TUITION MATRIX • TRANSPARENT PRICING
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white mt-3 font-display tracking-tight">
+              Official Fixed Tuition Schedule
+            </h2>
+            <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base mt-3 leading-relaxed">
+              Pricing for ALL 115+ DS Tech Academy courses is fixed and determined solely by your chosen <strong>programme duration</strong> and <strong>training mode</strong>. No hidden fees, no individual course markup.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* 1 Month Card */}
+            <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-md hover:border-orange-500/50 transition-all flex flex-col justify-between relative">
+              <div>
+                <div className="inline-block px-3 py-1 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 text-xs font-black uppercase tracking-wider mb-4 border border-orange-500/20">
+                  1-Month Intensive Foundations
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white font-display">1 Month Programme</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Fast-track foundational mastery and core practical skill building.</p>
+
+                <div className="my-6 space-y-3 pt-6 border-t border-slate-200/80 dark:border-slate-800">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
+                    <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">Virtual (Online Live)</span>
+                    <span className="text-lg font-black text-orange-600 dark:text-orange-400 font-display">₦50,000</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
+                    <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">Physical (Campus Lab)</span>
+                    <span className="text-lg font-black text-orange-600 dark:text-orange-400 font-display">₦100,000</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
+                    <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">Hybrid (Combined)</span>
+                    <span className="text-lg font-black text-orange-600 dark:text-orange-400 font-display">₦150,000</span>
+                  </div>
+                </div>
+
+                <ul className="space-y-2.5 text-xs text-slate-600 dark:text-slate-300">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Comprehensive Core Syllabus</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>70% Practical Lab Work & Projects</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>DSTA Certificate of Completion</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>24/7 Access to Student LMS Portal</span>
+                  </li>
+                </ul>
+              </div>
+
+              <a
+                href="#courses-catalog"
+                className="mt-8 w-full py-3.5 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-orange-600 dark:hover:bg-orange-600 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 text-center"
+              >
+                <span>Select 1-Month Course</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
+
+            {/* 3 Months Card (Featured) */}
+            <div className="p-8 rounded-3xl bg-gradient-to-b from-orange-500/5 via-amber-500/5 to-transparent border-2 border-orange-500 shadow-xl flex flex-col justify-between relative">
+              <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full bg-gradient-to-r from-orange-600 to-amber-500 text-white text-[10px] font-black uppercase tracking-widest shadow-md">
+                MOST POPULAR
+              </div>
+
+              <div>
+                <div className="inline-block px-3 py-1 rounded-full bg-orange-500/20 text-orange-600 dark:text-orange-400 text-xs font-black uppercase tracking-wider mb-4 border border-orange-500/30">
+                  3-Month Professional Diploma
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white font-display">3 Months Programme</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Professional masterclass with real-world capstone project & mentorship.</p>
+
+                <div className="my-6 space-y-3 pt-6 border-t border-orange-500/20">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-950 border border-orange-500/20">
+                    <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">Virtual (Online Live)</span>
+                    <span className="text-lg font-black text-orange-600 dark:text-orange-400 font-display">₦100,000</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-950 border border-orange-500/20">
+                    <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">Physical (Campus Lab)</span>
+                    <span className="text-lg font-black text-orange-600 dark:text-orange-400 font-display">₦200,000</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-950 border border-orange-500/20">
+                    <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">Hybrid (Combined)</span>
+                    <span className="text-lg font-black text-orange-600 dark:text-orange-400 font-display">₦300,000</span>
+                  </div>
+                </div>
+
+                <ul className="space-y-2.5 text-xs text-slate-600 dark:text-slate-300">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Full Hands-on Practicals & Real Projects</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Weekly 1-on-1 Faculty Mentorship</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Portfolio Defense & Industry Review</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Official CAC-Accredited DSTA Diploma (RC: 95)</span>
+                  </li>
+                </ul>
+              </div>
+
+              <a
+                href="#courses-catalog"
+                className="mt-8 w-full py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold text-xs shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2 text-center"
+              >
+                <span>Select 3-Month Course</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
+
+            {/* 6 Months Card */}
+            <div className="p-8 rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-md hover:border-orange-500/50 transition-all flex flex-col justify-between relative">
+              <div>
+                <div className="inline-block px-3 py-1 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 text-xs font-black uppercase tracking-wider mb-4 border border-purple-500/20">
+                  6-Month Executive Mastery
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white font-display">6 Months Programme</h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Deep-dive apprenticeship with guaranteed paid internship placement pipeline.</p>
+
+                <div className="my-6 space-y-3 pt-6 border-t border-slate-200/80 dark:border-slate-800">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
+                    <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">Virtual (Online Live)</span>
+                    <span className="text-lg font-black text-orange-600 dark:text-orange-400 font-display">₦200,000</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
+                    <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">Physical (Campus Lab)</span>
+                    <span className="text-lg font-black text-orange-600 dark:text-orange-400 font-display">₦300,000</span>
+                  </div>
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800">
+                    <span className="text-xs font-extrabold text-slate-700 dark:text-slate-300">Hybrid (Combined)</span>
+                    <span className="text-lg font-black text-orange-600 dark:text-orange-400 font-display">₦400,000</span>
+                  </div>
+                </div>
+
+                <ul className="space-y-2.5 text-xs text-slate-600 dark:text-slate-300">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Deep-dive Industry Apprenticeship</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Paid Graduate Internship Placement</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Executive Leadership & Client Projects</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span>Lifetime Alumni Network & Career Support</span>
+                  </li>
+                </ul>
+              </div>
+
+              <a
+                href="#courses-catalog"
+                className="mt-8 w-full py-3.5 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-orange-600 dark:hover:bg-orange-600 text-white font-bold text-xs transition-colors flex items-center justify-center gap-2 text-center"
+              >
+                <span>Select 6-Month Course</span>
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+
+          {/* Payment Terms Callout */}
+          <div className="mt-12 p-6 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-600 dark:text-slate-300">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-orange-500/10 text-orange-500 border border-orange-500/20 flex items-center justify-center shrink-0">
+                <CreditCard className="w-5 h-5" />
+              </div>
+              <div>
+                <strong className="text-slate-900 dark:text-white font-bold text-sm block">Flexible 70% / 30% Tuition Payment Plan</strong>
+                <span>Pay 70% initial deposit before classes commence, and complete the 30% balance before graduation.</span>
+              </div>
+            </div>
+            <button
+              onClick={() => setPathwayModal('student')}
+              className="px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white font-bold text-xs shrink-0 cursor-pointer shadow-sm"
+            >
+              Enroll Now
+            </button>
+          </div>
 
         </div>
       </section>
@@ -1689,46 +2131,46 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
       {/* ========================================================================= */}
       {/* DEDICATED ACADEMY FOOTER */}
       {/* ========================================================================= */}
-      <footer className="bg-slate-950 text-slate-400 border-t border-slate-800/80 py-12 px-4 sm:px-6 lg:px-8 font-sans">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 pb-10 border-b border-slate-800/80">
+      <footer className="no-print bg-slate-950 text-slate-400 border-t border-slate-800/80 py-12 sm:py-16 px-5 sm:px-8 lg:px-12 font-sans antialiased text-xs relative overflow-hidden">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-8 pb-10 sm:pb-12 border-b border-slate-800/70">
           
           <div className="md:col-span-5 space-y-4">
-            <div className="flex items-center gap-2 cursor-pointer" onClick={() => onNavigate?.('/')}>
-              <Logo size="sm" showText={true} variant="light" />
+            <div className="inline-block cursor-pointer" onClick={() => onNavigate?.('/')}>
+              <Logo size="sm" showText={true} variant="light" className="transition-opacity duration-200 hover:opacity-90" />
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
+            <p className="text-xs text-slate-400 leading-relaxed max-w-sm font-normal">
               DS Tech Academy (DSTA) is the official training division of DS Tech & Digital Marketing Ltd (RC: 95). Certified IT, AI, and digital media education with campuses in FCT Abuja and Adamawa State.
             </p>
           </div>
 
-          <div className="md:col-span-3 space-y-2">
-            <h4 className="text-xs uppercase font-extrabold text-white tracking-wider mb-3">Academic Navigation</h4>
-            <ul className="text-xs space-y-2">
-              <li><a href="#courses-catalog" className="hover:text-orange-400 transition-colors">115+ Accredited Courses</a></li>
-              <li><button onClick={() => setPathwayModal('student')} className="hover:text-orange-400 transition-colors text-left cursor-pointer">Student Admissions Portal</button></li>
-              <li><button onClick={() => setPathwayModal('tutor')} className="hover:text-orange-400 transition-colors text-left cursor-pointer">Faculty Application</button></li>
-              <li><button onClick={() => setPathwayModal('scholarship')} className="hover:text-orange-400 transition-colors text-left cursor-pointer">Scholarship Fund</button></li>
-              <li><button onClick={() => setPathwayModal('corporate')} className="hover:text-orange-400 transition-colors text-left cursor-pointer">Corporate Upskilling RFPs</button></li>
+          <div className="md:col-span-3 space-y-3">
+            <h4 className="text-[11px] font-semibold uppercase tracking-wider text-slate-200">Academic Navigation</h4>
+            <ul className="text-xs space-y-2 text-slate-400 font-normal">
+              <li><a href="#courses-catalog" className="hover:text-slate-100 transition-colors duration-150 block py-0.5">115+ Accredited Courses</a></li>
+              <li><button onClick={() => setPathwayModal('student')} className="hover:text-slate-100 transition-colors duration-150 text-left cursor-pointer py-0.5">Student Admissions Portal</button></li>
+              <li><button onClick={() => setPathwayModal('tutor')} className="hover:text-slate-100 transition-colors duration-150 text-left cursor-pointer py-0.5">Faculty Application</button></li>
+              <li><button onClick={() => setPathwayModal('scholarship')} className="hover:text-slate-100 transition-colors duration-150 text-left cursor-pointer py-0.5">Scholarship Fund</button></li>
+              <li><button onClick={() => setPathwayModal('corporate')} className="hover:text-slate-100 transition-colors duration-150 text-left cursor-pointer py-0.5">Corporate Upskilling RFPs</button></li>
             </ul>
           </div>
 
-          <div className="md:col-span-4 space-y-2">
-            <h4 className="text-xs uppercase font-extrabold text-white tracking-wider mb-3">Campus Locations</h4>
-            <div className="text-xs space-y-2 text-slate-400">
-              <p><strong className="text-white">Abuja Main Campus:</strong> {CONTACT_DETAILS.headOffice}</p>
-              <p><strong className="text-white">Adamawa Regional Hub:</strong> {CONTACT_DETAILS.branchOffice}</p>
-              <p><strong className="text-white">Direct Line:</strong> {CONTACT_DETAILS.phone}</p>
+          <div className="md:col-span-4 space-y-3">
+            <h4 className="text-[11px] font-semibold uppercase tracking-wider text-slate-200">Campus Locations</h4>
+            <div className="text-xs space-y-2.5 text-slate-400 font-normal">
+              <p><strong className="text-slate-200 font-medium">Abuja Main Campus:</strong> {CONTACT_DETAILS.headOffice}</p>
+              <p><strong className="text-slate-200 font-medium">Adamawa Regional Hub:</strong> {CONTACT_DETAILS.branchOffice}</p>
+              <p><strong className="text-slate-200 font-medium">Direct Line:</strong> {CONTACT_DETAILS.phone}</p>
             </div>
           </div>
 
         </div>
 
-        <div className="max-w-7xl mx-auto pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+        <div className="max-w-7xl mx-auto pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
           <div>
             © {new Date().getFullYear()} DS Tech Academy. All Rights Reserved. CAC Reg: RC 95.
           </div>
           <div className="flex items-center gap-4">
-            <button onClick={() => onNavigate?.('/')} className="hover:text-orange-400 transition-colors cursor-pointer">
+            <button onClick={() => onNavigate?.('/')} className="hover:text-slate-300 transition-colors cursor-pointer">
               DS Tech Agency Main Site
             </button>
           </div>
@@ -1862,12 +2304,15 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
               </div>
 
               {/* Modal Footer */}
-              <div className="p-6 bg-slate-950 border-t border-slate-800 flex items-center justify-between">
+              <div className="p-6 bg-slate-950 border-t border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                  <span className="text-xs text-slate-400">Total Program Tuition</span>
-                  <div className="text-2xl font-extrabold text-white font-display">
-                    ₦{selectedCourseModal.price.toLocaleString()}
+                  <span className="text-xs text-slate-400 uppercase font-extrabold tracking-wider block">Official Tuition Matrix Rate</span>
+                  <div className="text-2xl font-black text-orange-400 font-display">
+                    From ₦50,000
                   </div>
+                  <span className="text-[11px] text-slate-400 block mt-0.5">
+                    Select 1, 3, or 6 Months & Virtual, Physical, or Hybrid mode upon enrollment.
+                  </span>
                 </div>
 
                 <button
@@ -1889,184 +2334,23 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
       </AnimatePresence>
 
       {/* ========================================================================= */}
-      {/* MODAL 2: DIRECT ENROLLMENT & PAYSTACK CHECKOUT MODAL */}
+      {/* MODAL 2: DIRECT ENROLLMENT & MANDATORY STUDENT VERIFICATION MODAL */}
       {/* ========================================================================= */}
       <AnimatePresence>
         {enrollModalCourse && (
-          <div 
-            onClick={() => setEnrollModalCourse(null)}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-slate-950/80 backdrop-blur-md"
-          >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-lg bg-slate-900 border border-slate-700 rounded-3xl shadow-2xl overflow-hidden text-slate-100"
-            >
-              {/* Header */}
-              <div className="p-6 bg-gradient-to-r from-orange-600/20 via-slate-900 to-slate-950 border-b border-slate-800 relative">
-                <button
-                  onClick={() => setEnrollModalCourse(null)}
-                  className="absolute right-5 top-5 p-1.5 rounded-full bg-slate-800 text-slate-400 hover:text-white cursor-pointer"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-                <span className="px-2.5 py-0.5 rounded-md bg-orange-500/20 text-orange-400 text-xs font-bold font-mono">
-                  {enrollModalCourse.code}
-                </span>
-                <h3 className="text-xl font-bold text-white mt-1">
-                  Admission & Enrollment
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  {enrollModalCourse.title} • <strong className="text-orange-400">₦{enrollModalCourse.price.toLocaleString()}</strong>
-                </p>
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleEnrollSubmit} className="p-6 space-y-4">
-                {enrollSuccess ? (
-                  <div className="text-center py-8">
-                    <CheckCircle2 className="w-14 h-14 text-emerald-400 mx-auto mb-3" />
-                    <h4 className="text-lg font-bold text-white">Enrollment Initiated!</h4>
-                    <p className="text-xs text-slate-300 mt-1">
-                      Our admissions desk is processing your registration.
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-1">
-                        Full Name (As you want it on certificate) *
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={enrollForm.fullName}
-                        onChange={(e) => setEnrollForm({ ...enrollForm, fullName: e.target.value })}
-                        placeholder="e.g. Amina Bello / David Chukwu"
-                        className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:border-orange-500"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">
-                          Email Address *
-                        </label>
-                        <input
-                          type="email"
-                          required
-                          value={enrollForm.email}
-                          onChange={(e) => setEnrollForm({ ...enrollForm, email: e.target.value })}
-                          placeholder="your.email@domain.com"
-                          className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:border-orange-500"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">
-                          WhatsApp / Phone Number *
-                        </label>
-                        <input
-                          type="tel"
-                          required
-                          value={enrollForm.phone}
-                          onChange={(e) => setEnrollForm({ ...enrollForm, phone: e.target.value })}
-                          placeholder="+234 800 000 0000"
-                          className="w-full px-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-sm focus:outline-none focus:border-orange-500"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">
-                          Learning Mode / Center
-                        </label>
-                        <select
-                          value={enrollForm.location}
-                          onChange={(e) => setEnrollForm({ ...enrollForm, location: e.target.value })}
-                          className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-orange-500"
-                        >
-                          <option value="Abuja Hub (Physical)">Abuja Campus (Area 11)</option>
-                          <option value="Adamawa Hub (Physical)">Adamawa Campus (Numan)</option>
-                          <option value="Virtual Online (Live Cohort)">Virtual Live Cohort (Zoom)</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-300 mb-1">
-                          Language Preference
-                        </label>
-                        <select
-                          value={enrollForm.languagePreference}
-                          onChange={(e) => setEnrollForm({ ...enrollForm, languagePreference: e.target.value })}
-                          className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-white text-xs focus:outline-none focus:border-orange-500"
-                        >
-                          <option value="English">English</option>
-                          <option value="Hausa">Hausa</option>
-                          <option value="Yoruba">Yoruba</option>
-                          <option value="Igbo">Igbo</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-300 mb-2">
-                        Payment & Checkout Channel
-                      </label>
-                      <div className="grid grid-cols-2 gap-3">
-                        <label className={`p-3 rounded-xl border cursor-pointer flex items-center gap-2.5 ${
-                          enrollForm.paymentMethod === 'paystack'
-                            ? 'bg-orange-500/10 border-orange-500 text-white'
-                            : 'bg-slate-950 border-slate-800 text-slate-400'
-                        }`}>
-                          <input
-                            type="radio"
-                            name="payMethod"
-                            checked={enrollForm.paymentMethod === 'paystack'}
-                            onChange={() => setEnrollForm({ ...enrollForm, paymentMethod: 'paystack' })}
-                            className="text-orange-500"
-                          />
-                          <span className="text-xs font-bold">Paystack (Instant Card/Transfer)</span>
-                        </label>
-
-                        <label className={`p-3 rounded-xl border cursor-pointer flex items-center gap-2.5 ${
-                          enrollForm.paymentMethod === 'whatsapp'
-                            ? 'bg-emerald-500/10 border-emerald-500 text-white'
-                            : 'bg-slate-950 border-slate-800 text-slate-400'
-                        }`}>
-                          <input
-                            type="radio"
-                            name="payMethod"
-                            checked={enrollForm.paymentMethod === 'whatsapp'}
-                            onChange={() => setEnrollForm({ ...enrollForm, paymentMethod: 'whatsapp' })}
-                            className="text-emerald-500"
-                          />
-                          <span className="text-xs font-bold">WhatsApp Assistant</span>
-                        </label>
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={isSubmittingEnroll}
-                      className="w-full mt-4 py-3.5 rounded-xl bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-500 hover:to-amber-400 text-white font-bold text-sm shadow-xl shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      {isSubmittingEnroll ? (
-                        <span>Processing Admission...</span>
-                      ) : (
-                        <>
-                          <span>Complete Enrollment (₦{enrollModalCourse.price.toLocaleString()})</span>
-                          <ArrowRight className="w-4 h-4" />
-                        </>
-                      )}
-                    </button>
-                  </>
-                )}
-              </form>
-            </motion.div>
-          </div>
+          <AcademyEnrollmentModal
+            course={enrollModalCourse}
+            isOpen={Boolean(enrollModalCourse)}
+            onClose={() => setEnrollModalCourse(null)}
+            onNavigateToRegistration={(courseId) => {
+              setEnrollModalCourse(null);
+              onNavigate?.('/student-registration');
+            }}
+            onNavigateToDashboard={() => {
+              setEnrollModalCourse(null);
+              onNavigate?.('/student-dashboard');
+            }}
+          />
         )}
       </AnimatePresence>
 

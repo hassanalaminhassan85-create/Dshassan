@@ -388,7 +388,7 @@ export const INSTRUCTOR_CATEGORIES: InstructorCategory[] = [
     id: 'religious-ministry',
     number: 21,
     name: 'Religious Organizations & Faith-Based',
-    iconName: 'Cross',
+    iconName: 'BookOpen',
     positions: [
       'Church Media & Digital Ministry Instructor',
       'AI for Ministry & Administration Instructor',

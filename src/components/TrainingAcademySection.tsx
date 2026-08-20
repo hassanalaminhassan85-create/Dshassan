@@ -200,7 +200,7 @@ export const TrainingAcademySection: React.FC<{ onBackToPortal?: () => void }> =
   // Tutor Course Creator State
   const [newCourseTitle, setNewCourseTitle] = useState('');
   const [newCourseDesc, setNewCourseDesc] = useState('');
-  const [newCoursePrice, setNewCoursePrice] = useState('₦45,000');
+  const [newCoursePrice, setNewCoursePrice] = useState('₦50,000');
   const [newCourseDuration, setNewCourseDuration] = useState('4 Weeks');
   const [newCourseLevel, setNewCourseLevel] = useState<'Beginner' | 'Advanced' | 'All Levels'>('Beginner');
   const [newCourseCategory, setNewCourseCategory] = useState<'marketing' | 'web' | 'ai' | 'business' | 'compliance'>('web');

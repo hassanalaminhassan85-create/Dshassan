@@ -1,13 +1,17 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Markdown from 'react-markdown';
 import { 
-  Send, Square, Sparkles, X, History, Plus, Trash2, Edit2, ShieldCheck, 
-  FileText, Paperclip, Copy, Check, BookOpen, Zap, MessageSquare, ArrowRight,
-  ArrowLeft, Clock, Search, Sun, Moon, Mic, MicOff, RefreshCw,
-  User, RotateCcw, PanelLeftClose, PanelLeftOpen, ArrowDown, ExternalLink, HelpCircle
+  Send, Square, X, Plus, Trash2, Edit2, ShieldCheck, 
+  FileText, Paperclip, Copy, Check, BookOpen, Zap, MessageSquare,
+  ArrowLeft, Clock, Search, Sun, Moon, Mic, MicOff,
+  RotateCcw, PanelLeftClose, PanelLeftOpen, ArrowDown,
+  GraduationCap, Building2, Code, PenTool, BarChart3, Bot, Image as ImageIcon,
+  Bell, Settings, Home, ChevronDown, Sparkles, Globe, Database, Terminal,
+  Layout, MoreHorizontal, HelpCircle, CheckCircle2, ArrowRight, Shield, RefreshCw
 } from 'lucide-react';
 import { Logo } from '../Logo';
+import { PageContext } from '../FloatingAiLauncher';
 
 interface Message {
   id?: string;
@@ -31,55 +35,146 @@ interface Props {
   onClose: () => void;
   userRole?: string;
   currentUser?: any;
+  pageContext?: PageContext;
 }
 
-const QUICK_PROMPTS_BY_ROLE: Record<string, { icon: string; title: string; prompt: string }[]> = {
+const QUICK_PROMPTS_BY_ROLE: Record<string, { title: string; prompt: string }[]> = {
   Public: [
-    { icon: 'ShieldCheck', title: 'Verify Registration', prompt: 'Verify CAC Corporate Registration & RC-1849204 details' },
-    { icon: 'Zap', title: 'Digital Solutions', prompt: 'Explore DS Tech Digital Transformation & Engineering Services' },
-    { icon: 'BookOpen', title: 'Academy Programs', prompt: 'Browse DS Tech Training Academy certifications & courses' },
-    { icon: 'HelpCircle', title: 'Project Consultation', prompt: 'How do I request custom software development or marketing?' }
+    { title: 'CAC Verification', prompt: 'Verify DS TECH Corporate Registration & RC-1849204 details' },
+    { title: 'Academy Courses', prompt: 'What Academy programmes and courses are currently offered?' },
+    { title: 'Academy Pricing', prompt: 'What is the current price matrix for 1, 3, and 6-month programmes?' },
+    { title: 'Digital Services', prompt: 'Tell me about DS TECH software development and marketing services' }
   ],
   Applicant: [
-    { icon: 'FileText', title: 'Application Status', prompt: 'Check my current candidate application status & next steps' },
-    { icon: 'Sparkles', title: 'Interview Guidance', prompt: 'What should I prepare for my upcoming technical interview?' },
-    { icon: 'BookOpen', title: 'Skill Upgrades', prompt: 'Suggest courses to upgrade my profile for senior engineering roles' },
-    { icon: 'ShieldCheck', title: 'Security & Verification', prompt: 'How does DS Tech secure my credentials and biometric proof?' }
-  ],
-  Candidate: [
-    { icon: 'FileText', title: 'Status Check', prompt: 'Check my job application and document evaluation status' },
-    { icon: 'Sparkles', title: 'Technical Screening', prompt: 'Prepare for technical assessment and architectural questions' },
-    { icon: 'BookOpen', title: 'Submitted Assets', prompt: 'View my submitted certificates and appointment status' }
+    { title: 'Application Status', prompt: 'What is my current candidate application status?' },
+    { title: 'Interview Preparation', prompt: 'What should I prepare for my upcoming technical interview?' },
+    { title: 'Skill Recommendations', prompt: 'Which courses do you recommend for full-stack engineering?' },
+    { title: 'Security Proof', prompt: 'How does DS TECH secure my application credentials?' }
   ],
   Client: [
-    { icon: 'Zap', title: 'Project Tracking', prompt: 'Track my software project progress, milestones and deliverables' },
-    { icon: 'FileText', title: 'Custom Scope', prompt: 'Request a custom software engineering or marketing contract' },
-    { icon: 'BookOpen', title: 'Invoices & Billing', prompt: 'Review invoice logs, payment history and payment gateways' }
+    { title: 'Project Status', prompt: 'What is the progress on my software project milestones?' },
+    { title: 'Request Proposal', prompt: 'How do I request a custom software development contract?' },
+    { title: 'Billing & Payments', prompt: 'Review my invoice history and payment options' },
+    { title: 'Consultation', prompt: 'Schedule an executive architecture consultation' }
   ],
   Student: [
-    { icon: 'BookOpen', title: 'Enrollment Progress', prompt: 'Check my course enrollment status and syllabus progress' },
-    { icon: 'FileText', title: 'Assignments', prompt: 'View pending assignment submissions and instructor reviews' },
-    { icon: 'ShieldCheck', title: 'Certificate Verification', prompt: 'Verify and download my graduation certificate' }
-  ],
-  Tutor: [
-    { icon: 'FileText', title: 'Pending Grading', prompt: 'View student assignment submissions awaiting grading' },
-    { icon: 'Zap', title: 'Cohort Analytics', prompt: 'Show my active cohort performance and attendance overview' },
-    { icon: 'BookOpen', title: 'Curriculum Feedback', prompt: 'Guidelines for student feedback and mentor evaluations' }
-  ],
-  Staff: [
-    { icon: 'Zap', title: 'Company Announcements', prompt: 'Read latest DS Tech internal announcements & campaign updates' },
-    { icon: 'BookOpen', title: 'Employee Handbook', prompt: 'Access DS Tech operational directives and employee guidelines' },
-    { icon: 'User', title: 'Team Directory', prompt: 'Find team leads, department contact directory and project leads' }
+    { title: 'Enrollment Status', prompt: 'What courses am I currently enrolled in?' },
+    { title: 'Syllabus Progress', prompt: 'Show my course schedule and module milestones' },
+    { title: 'Graduation Certificate', prompt: 'How do I verify and download my certificate?' },
+    { title: 'Ask Instructor', prompt: 'Help me understand recursion and async programming' }
   ],
   Admin: [
-    { icon: 'ShieldCheck', title: 'Platform Diagnostics', prompt: 'Platform health, security logs & API diagnostics summary' },
-    { icon: 'Zap', title: 'AI Usage Metrics', prompt: 'View AI usage, system query analytics and model performance' },
-    { icon: 'FileText', title: 'Applicant Reviews', prompt: 'Check pending candidate reviews and biometric security logs' }
+    { title: 'Platform Health', prompt: 'Give me an overview of platform metrics and diagnostics' },
+    { title: 'AI Usage Stats', prompt: 'What is the current AI system query throughput?' },
+    { title: 'Pending Candidates', prompt: 'Show pending recruitment reviews and applicant logs' },
+    { title: 'System Audits', prompt: 'Review recent security events and data sync logs' }
   ]
 };
 
-// Code Block Renderer with Language Label and Copy Code Button
-const CodeBlock: React.FC<{ language?: string; code: string }> = ({ language = 'code', code }) => {
+const CAPABILITY_PILLARS = [
+  { label: 'General Knowledge', icon: Globe },
+  { label: 'Live DS TECH Data', icon: Database },
+  { label: 'Code & Analysis', icon: Code },
+  { label: 'Writing & Planning', icon: PenTool }
+];
+
+const SUGGESTION_CARDS = [
+  {
+    id: 'academy',
+    icon: GraduationCap,
+    iconBg: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400',
+    title: 'Academy Courses',
+    prompt: 'What programmes are currently available in the DS TECH Academy?',
+    sub: 'What programmes are currently available?'
+  },
+  {
+    id: 'cac',
+    icon: Building2,
+    iconBg: 'bg-[#002f6c]/10 text-[#002f6c] dark:bg-blue-400/20 dark:text-blue-300',
+    title: 'CAC Verification',
+    prompt: 'Show DS TECH RC-1849204 corporate registration & verification details.',
+    sub: 'Show DS TECH RC-1849204 details.'
+  },
+  {
+    id: 'concept',
+    icon: Code,
+    iconBg: 'bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400',
+    title: 'Explain a concept',
+    prompt: 'Explain JavaScript promises and asynchronous execution clearly.',
+    sub: 'Explain JavaScript promises.'
+  },
+  {
+    id: 'write',
+    icon: PenTool,
+    iconBg: 'bg-fuchsia-500/10 text-fuchsia-600 dark:bg-fuchsia-500/20 dark:text-fuchsia-400',
+    title: 'Write for me',
+    prompt: 'Create a professional business proposal for a modern tech project.',
+    sub: 'Create a professional business proposal.'
+  },
+  {
+    id: 'business',
+    icon: BarChart3,
+    iconBg: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400',
+    title: 'Business ideas',
+    prompt: 'Suggest profitable online business ideas with high growth potential.',
+    sub: 'Suggest profitable online business ideas.'
+  },
+  {
+    id: 'plan',
+    icon: Bot,
+    iconBg: 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400',
+    title: 'Help me plan',
+    prompt: 'Help me plan a modern website architecture and development roadmap.',
+    sub: 'Help me plan a modern website.'
+  }
+];
+
+// Helper: Date grouping for sidebar conversation list
+function groupConversationsByDate(conversations: Conversation[]) {
+  const today: Conversation[] = [];
+  const past7Days: Conversation[] = [];
+  const earlier: Conversation[] = [];
+
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const sevenDaysAgo = new Date(startOfToday.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  conversations.forEach(conv => {
+    const date = new Date(conv.updated_at || Date.now());
+    if (date >= startOfToday) {
+      today.push(conv);
+    } else if (date >= sevenDaysAgo) {
+      past7Days.push(conv);
+    } else {
+      earlier.push(conv);
+    }
+  });
+
+  return { today, past7Days, earlier };
+}
+
+function formatConvTimestamp(updatedAt: string): string {
+  if (!updatedAt) return '';
+  const date = new Date(updatedAt);
+  if (isNaN(date.getTime())) return '';
+  
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfYesterday = new Date(startOfToday.getTime() - 24 * 60 * 60 * 1000);
+
+  if (date >= startOfToday) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } else if (date >= startOfYesterday) {
+    return 'Yesterday';
+  } else if (now.getTime() - date.getTime() < 7 * 24 * 60 * 60 * 1000) {
+    return date.toLocaleDateString([], { weekday: 'short' });
+  } else {
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  }
+}
+
+// Code Block Renderer with Language Header & Copy Button
+const CodeBlock: React.FC<{ language?: string; code: string; isDark: boolean }> = ({ language = 'code', code, isDark }) => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
@@ -89,9 +184,11 @@ const CodeBlock: React.FC<{ language?: string; code: string }> = ({ language = '
   };
 
   return (
-    <div className="my-3 rounded-xl overflow-hidden border border-slate-700/60 dark:border-slate-800 bg-[#0d1117] text-slate-200 font-mono text-xs shadow-md">
-      <div className="flex items-center justify-between px-3.5 py-1.5 bg-[#161b22] border-b border-slate-800 text-[11px] text-slate-400 select-none">
-        <span className="font-sans font-semibold uppercase tracking-wider text-amber-400">{language}</span>
+    <div className={`my-3.5 rounded-xl overflow-hidden border font-mono text-xs shadow-xs ${
+      isDark ? 'border-slate-800 bg-[#0b101d] text-slate-200' : 'border-slate-200 bg-[#0d1117] text-slate-100'
+    }`}>
+      <div className="flex items-center justify-between px-3.5 py-2 bg-slate-950/90 border-b border-slate-800 text-[11px] text-slate-400 select-none">
+        <span className="font-sans font-semibold uppercase tracking-wider text-blue-400">{language}</span>
         <button
           type="button"
           onClick={handleCopy}
@@ -99,11 +196,11 @@ const CodeBlock: React.FC<{ language?: string; code: string }> = ({ language = '
           title="Copy code"
         >
           {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-          <span>{copied ? 'Copied' : 'Copy'}</span>
+          <span>{copied ? 'Copied' : 'Copy code'}</span>
         </button>
       </div>
       <div className="p-3.5 overflow-x-auto scrollbar-thin">
-        <pre className="text-xs sm:text-sm leading-relaxed text-slate-100 font-mono whitespace-pre">{code}</pre>
+        <pre className="text-xs leading-relaxed font-mono whitespace-pre">{code}</pre>
       </div>
     </div>
   );
@@ -113,14 +210,15 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
   isOpen,
   onClose,
   userRole = 'Public',
-  currentUser
+  currentUser,
+  pageContext
 }) => {
-  // Theme state: light vs dark mode
+  // Theme state
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>(() => {
     try {
-      return (localStorage.getItem('theme') as 'dark' | 'light') || 'dark';
+      return (localStorage.getItem('theme') as 'dark' | 'light') || 'light';
     } catch (e) {
-      return 'dark';
+      return 'light';
     }
   });
 
@@ -132,24 +230,29 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
     } catch (e) {}
   };
 
-  // Chat State
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      sender: 'assistant',
-      content: `Hello **${currentUser?.fullName || 'there'}**! Welcome to the **DS TECH AI Workspace**. How can I assist you with our services, courses, CAC corporate verification, or account workflow today?`
-    }
-  ]);
+  const isDark = themeMode === 'dark';
+
+  // Chat & Conversation States
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    return typeof window !== 'undefined' ? window.innerWidth >= 768 : true;
+  });
   const [effectiveRole, setEffectiveRole] = useState<string>(userRole);
   const [attachments, setAttachments] = useState<Array<{ name: string; dataUrl: string }>>([]);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  // Rename conversation state
+  // UI Dropdowns & Controls
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<'Gemini 3.7' | 'Gemini 3.5 Flash'>('Gemini 3.7');
+  const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
+  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+
+  // Edit title state
   const [editingConvId, setEditingConvId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState<string>('');
 
@@ -157,11 +260,12 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
 
-  // Auto-scroll control state
+  // Scroll tracking
   const [showScrollBottom, setShowScrollBottom] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -175,19 +279,32 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
     }
   }, [isOpen]);
 
+  // Keyboard shortcut Ctrl+K / Cmd+K for new chat
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        if (isOpen) {
+          e.preventDefault();
+          handleStartNewChat();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen]);
+
   // Handle textarea height auto-expansion
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 160)}px`;
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 180)}px`;
     }
   }, [input]);
 
-  // Scroll tracking
   const handleScroll = () => {
     if (!chatContainerRef.current) return;
     const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
-    const isFarFromBottom = scrollHeight - scrollTop - clientHeight > 120;
+    const isFarFromBottom = scrollHeight - scrollTop - clientHeight > 100;
     setShowScrollBottom(isFarFromBottom);
   };
 
@@ -201,7 +318,7 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
     }
   }, [messages, loading]);
 
-  // Initialize Speech Recognition if supported
+  // Speech Recognition setup
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -228,7 +345,7 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
 
   const toggleVoiceInput = () => {
     if (!recognitionRef.current) {
-      alert("Voice speech recognition is not supported in this browser. Please type your message.");
+      alert("Voice speech recognition is not supported in this browser.");
       return;
     }
     if (isListening) {
@@ -261,7 +378,7 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
       const res = await fetch(`/api/ai/conversations/${convId}`);
       if (res.ok) {
         const data = await res.json();
-        if (data.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+        if (data.messages && Array.isArray(data.messages)) {
           setMessages(data.messages.map((m: any) => ({
             id: m.id,
             sender: m.sender,
@@ -279,12 +396,7 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
   const handleStartNewChat = () => {
     if (loading) handleStopGeneration();
     setActiveConvId(null);
-    setMessages([
-      {
-        sender: 'assistant',
-        content: `Started a new AI conversation session for **${effectiveRole}**. What would you like to explore next?`
-      }
-    ]);
+    setMessages([]);
     if (window.innerWidth < 768) {
       setSidebarOpen(false);
     }
@@ -339,36 +451,6 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
     setMessages(prev => prev.map(m => m.isThinking || m.isStreaming ? { ...m, isThinking: false, isStreaming: false } : m));
   };
 
-  // Helper function to stream text character by character into message
-  const streamResponseText = async (fullText: string, sources?: any[]) => {
-    // Add streaming assistant message
-    const msgId = 'msg_' + Date.now();
-    setMessages(prev => {
-      const filtered = prev.filter(m => !m.isThinking);
-      return [
-        ...filtered,
-        {
-          id: msgId,
-          sender: 'assistant',
-          content: '',
-          sources,
-          isStreaming: true
-        }
-      ];
-    });
-
-    const chunkSize = 4;
-    for (let i = 0; i <= fullText.length; i += chunkSize) {
-      if (abortControllerRef.current?.signal.aborted) break;
-      const currentChunk = fullText.substring(0, i);
-      setMessages(prev => prev.map(m => m.id === msgId ? { ...m, content: currentChunk } : m));
-      await new Promise(r => setTimeout(r, 12));
-    }
-
-    // Finalize message
-    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, content: fullText, isStreaming: false } : m));
-  };
-
   const handleSend = async (customPrompt?: string) => {
     const promptToSend = customPrompt || input;
     if (!promptToSend.trim() || loading) return;
@@ -378,7 +460,6 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
       content: promptToSend.trim()
     };
 
-    // Instant thinking message placeholder
     const thinkingMsg: Message = {
       sender: 'assistant',
       content: '',
@@ -393,7 +474,8 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
     abortControllerRef.current = controller;
 
     try {
-      const res = await fetch('/api/ai/chat', {
+      // Try real streaming endpoint first
+      const res = await fetch('/api/ai/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: controller.signal,
@@ -401,49 +483,132 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
           message: promptToSend,
           conversationId: activeConvId,
           roleOverride: effectiveRole !== userRole ? effectiveRole : undefined,
-          attachments
+          history: messages.filter(m => !m.isThinking),
+          userData: currentUser,
+          pageContext,
+          model: selectedModel
         })
       });
 
-      if (!res.ok) {
-        throw new Error(`Server returned status ${res.status}`);
+      if (!res.ok || !res.body) {
+        throw new Error(`Streaming failed with status ${res.status}`);
       }
 
-      const data = await res.json();
-      if (data.success && data.reply) {
-        if (data.conversationId) {
-          setActiveConvId(data.conversationId);
-          fetchConversations();
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let accumulatedText = '';
+      const msgId = 'msg_' + Date.now();
+
+      // Replace thinking message with streaming message
+      setMessages(prev => {
+        const filtered = prev.filter(m => !m.isThinking);
+        return [
+          ...filtered,
+          { id: msgId, sender: 'assistant', content: '', isStreaming: true }
+        ];
+      });
+
+      let buffer = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data: ')) {
+            try {
+              const json = JSON.parse(trimmed.slice(6));
+              if (json.chunk) {
+                accumulatedText += json.chunk;
+                setMessages(prev => prev.map(m => m.id === msgId ? { ...m, content: accumulatedText } : m));
+              }
+              if (json.conversationId) {
+                setActiveConvId(json.conversationId);
+                fetchConversations();
+              }
+            } catch (e) {
+              // Ignore partial JSON parse errors
+            }
+          }
         }
-        setAttachments([]);
-        // Stream the received reply
-        await streamResponseText(data.reply, data.sources);
-      } else {
-        throw new Error(data.error || 'Unable to process request');
       }
+
+      setMessages(prev => prev.map(m => m.id === msgId ? { ...m, content: accumulatedText || 'No response produced.', isStreaming: false } : m));
+      setAttachments([]);
+
     } catch (err: any) {
       if (err.name === 'AbortError') {
-        return; // Stopped by user
+        return;
       }
 
-      // Fallback content on failure
-      const getFallbackContent = (msg: string) => {
-        const lower = msg.toLowerCase();
-        if (lower.includes('cac') || lower.includes('registration') || lower.includes('corporate') || lower.includes('rc')) {
-          return `### Executive Synthesis: CAC Corporate Registration Verification\n\n- **Corporate Name**: DS Tech & Digital Marketing Services Ltd\n- **RC Number**: **RC-1849204**\n- **Corporate Status**: Active & Fully Verified\n- **Tax Identification (TIN)**: 24892019-0001\n- **Regulatory Jurisdiction**: Corporate Affairs Commission (CAC) Federal Republic of Nigeria\n\nDS Tech is an officially registered enterprise operating under full Nigerian federal regulatory compliance.`;
-        }
-        if (lower.includes('application') || lower.includes('status') || lower.includes('interview')) {
-          return `### Executive Synthesis: DS Tech Career & Application Portal\n\n- **Workspace Role**: ${effectiveRole}\n- **Application Status**: Profile Verified & Active\n- **Next Stage**: Technical assessment screening & document verification.\n\nPlease check your **Candidate Dashboard** for real-time interview schedules and feedback.`;
-        }
-        if (lower.includes('service') || lower.includes('digital transformation') || lower.includes('software')) {
-          return `### Executive Synthesis: DS Tech Enterprise Solutions\n\nWe deliver enterprise solutions for modern businesses:\n- **Custom Web & Mobile Engineering**: Scalable, high-performance web systems.\n- **Digital Performance Marketing**: Strategic branding, conversion optimization & SEO.\n- **Tech Training Academy**: Certification programs in React, UI/UX, and Cloud Architecture.`;
-        }
-        return `### Executive Synthesis: DS Tech Enterprise AI Workspace\n\nI have received your request regarding: **"${msg}"**.\n\n- **Workspace Role**: ${effectiveRole}\n- **Status**: Verified Operational\n\nHow else can I assist with your project milestones, course enrollments, or account management?`;
-      };
+      // Non-streaming fallback attempt
+      try {
+        const res = await fetch('/api/ai/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            message: promptToSend,
+            conversationId: activeConvId,
+            roleOverride: effectiveRole !== userRole ? effectiveRole : undefined,
+            history: messages.filter(m => !m.isThinking),
+            userData: currentUser,
+            pageContext,
+            model: selectedModel
+          })
+        });
 
-      const fallbackText = getFallbackContent(promptToSend);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.reply) {
+            setMessages(prev => {
+              const filtered = prev.filter(m => !m.isThinking);
+              return [
+                ...filtered,
+                { sender: 'assistant', content: data.reply, sources: data.sources }
+              ];
+            });
+            if (data.conversationId) {
+              setActiveConvId(data.conversationId);
+              fetchConversations();
+            }
+            setAttachments([]);
+            return;
+          }
+        }
+      } catch (fallbackErr) {
+        console.warn("Fallback chat error:", fallbackErr);
+      }
+
+      // Final fallback
+      const lower = promptToSend.toLowerCase();
+      let fallbackText = '';
+      if (lower.includes('cac') || lower.includes('registration') || lower.includes('rc-1849204')) {
+        fallbackText = `**DS Tech & Digital Marketing Agency Limited** is officially registered with the Corporate Affairs Commission (CAC), Federal Republic of Nigeria, under RC Registration **RC-1849204** (TIN: 24892019-0001). Operational status is active and verified.`;
+      } else if (lower.includes('price') || lower.includes('pricing') || lower.includes('tuition')) {
+        fallbackText = `Here is the official **DS TECH Academy Pricing Matrix**:
+
+| Duration | Virtual | Physical | Hybrid |
+| :--- | :--- | :--- | :--- |
+| **1 Month** | ₦50,000 | ₦100,000 | ₦150,000 |
+| **3 Months** | ₦100,000 | ₦200,000 | ₦300,000 |
+| **6 Months** | ₦200,000 | ₦300,000 | ₦400,000 |`;
+      } else {
+        fallbackText = `I am **DS TECH AI**, your intelligent assistant for DS TECH services, Academy programmes, and general queries. How can I help you today?`;
+      }
+
+      setMessages(prev => {
+        const filtered = prev.filter(m => !m.isThinking);
+        return [
+          ...filtered,
+          { sender: 'assistant', content: fallbackText }
+        ];
+      });
       setAttachments([]);
-      await streamResponseText(fallbackText, [{ id: 'fallback', title: 'DS Tech Operational Knowledge Base', category: 'General' }]);
     } finally {
       setLoading(false);
       abortControllerRef.current = null;
@@ -451,7 +616,6 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
   };
 
   const handleRegenerate = () => {
-    // Find last user message
     const lastUserMsg = [...messages].reverse().find(m => m.sender === 'user');
     if (lastUserMsg) {
       handleSend(lastUserMsg.content);
@@ -484,104 +648,152 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
 
   if (!isOpen) return null;
 
-  const quickPrompts = QUICK_PROMPTS_BY_ROLE[effectiveRole] || QUICK_PROMPTS_BY_ROLE['Public'];
   const filteredConversations = conversations.filter(c => 
     c.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const isDark = themeMode === 'dark';
+  const { today, past7Days, earlier } = groupConversationsByDate(filteredConversations);
 
   return (
     <AnimatePresence>
-      <div className={`fixed inset-0 z-50 flex flex-col font-sans overflow-hidden transition-colors duration-200 ${
-        isDark ? 'bg-[#080d1a] text-slate-100' : 'bg-slate-50 text-slate-900'
+      <div className={`fixed inset-0 z-50 flex flex-col font-sans overflow-hidden transition-colors duration-150 ${
+        isDark ? 'bg-[#090d1a] text-slate-100' : 'bg-[#f8fafc] text-slate-900'
       }`}>
 
-        {/* TOP WORKSPACE NAVIGATION BAR */}
-        <header className={`relative z-30 flex items-center justify-between px-3 sm:px-5 py-2.5 border-b shrink-0 transition-colors ${
+        {/* WORKSPACE HEADER */}
+        <header className={`relative z-30 flex items-center justify-between px-3.5 sm:px-5 py-2.5 border-b shrink-0 transition-colors ${
           isDark 
-            ? 'bg-[#091024] border-slate-800/80 text-white shadow-md' 
-            : 'bg-white border-slate-200 text-slate-900 shadow-sm'
+            ? 'bg-[#070b16] border-slate-800/80 text-white' 
+            : 'bg-white border-slate-200/90 text-slate-900'
         }`}>
-          {/* Left Navigation & Brand */}
-          <div className="flex items-center gap-3">
-            {/* Sidebar Toggle Button */}
+          {/* Left Controls */}
+          <div className="flex items-center gap-2.5">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className={`p-2 rounded-xl transition-all cursor-pointer border ${
+              className={`p-2 rounded-lg transition-all cursor-pointer border ${
                 isDark 
-                  ? 'bg-slate-800/60 hover:bg-slate-800 text-slate-300 hover:text-white border-slate-700/60' 
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border-slate-200'
+                  ? 'bg-slate-800/60 hover:bg-slate-800 text-slate-300 border-slate-700/60' 
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
               }`}
-              title={sidebarOpen ? "Hide sidebar" : "Show sidebar"}
+              title={sidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
             >
               {sidebarOpen ? <PanelLeftClose className="w-4 h-4" /> : <PanelLeftOpen className="w-4 h-4" />}
             </button>
 
-            {/* Back Navigation Button */}
-            <button
-              onClick={onClose}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer shrink-0 ${
-                isDark
-                  ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border-amber-500/30'
-                  : 'bg-amber-50 hover:bg-amber-100 text-amber-700 border-amber-300/60'
-              }`}
-              title="Return to main portal"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Exit Workspace</span>
-            </button>
+            {/* Brand Title Dropdown & Online Badge */}
+            <div className="relative flex items-center gap-2">
+              <button
+                onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-bold tracking-tight cursor-pointer transition-colors ${
+                  isDark ? 'hover:bg-slate-800/60 text-white' : 'hover:bg-slate-100 text-slate-900'
+                }`}
+              >
+                <span>DS TECH AI</span>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
 
-            <div className={`h-4 w-px hidden sm:block ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 text-[11px] font-medium border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="hidden sm:inline">Online</span>
+              </div>
 
-            {/* Official DS TECH Brand Identity */}
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="relative p-1 bg-slate-950 rounded-xl border border-amber-500/40 shrink-0">
-                <Logo size="xs" showText={false} variant="light" />
-                <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full border border-slate-950 animate-pulse" />
-              </div>
-              <div className="min-w-0">
-                <h1 className={`text-xs sm:text-sm font-extrabold tracking-tight truncate ${
-                  isDark ? 'text-white' : 'text-slate-900'
-                }`}>
-                  DS TECH AI Workspace
-                </h1>
-                <p className="text-[10px] text-amber-500 font-medium flex items-center gap-1 truncate">
-                  <ShieldCheck className="w-3 h-3 text-amber-500 shrink-0" />
-                  <span>{effectiveRole} Mode</span>
-                </p>
-              </div>
+              {/* Role Dropdown Menu */}
+              <AnimatePresence>
+                {roleDropdownOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    className={`absolute left-0 top-full mt-1.5 w-48 rounded-xl border shadow-lg py-1.5 z-50 text-xs ${
+                      isDark ? 'bg-[#0f172a] border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
+                    }`}
+                  >
+                    <div className="px-3 py-1 text-[10px] uppercase font-bold text-slate-400">Switch Workspace Mode</div>
+                    {['Public', 'Applicant', 'Client', 'Student', 'Admin'].map(r => (
+                      <button
+                        key={r}
+                        onClick={() => {
+                          setEffectiveRole(r);
+                          setRoleDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-1.5 flex items-center justify-between hover:bg-blue-500/10 cursor-pointer ${
+                          effectiveRole === r ? 'font-bold text-blue-600 dark:text-blue-400' : ''
+                        }`}
+                      >
+                        <span>{r} Mode</span>
+                        {effectiveRole === r && <Check className="w-3.5 h-3.5" />}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
 
-          {/* Right Header Controls */}
-          <div className="flex items-center gap-2">
-            {/* Role Switcher for Admin */}
-            {userRole === 'Admin' && (
-              <select
-                value={effectiveRole}
-                onChange={(e) => setEffectiveRole(e.target.value)}
-                className={`text-xs font-semibold rounded-xl px-2.5 py-1.5 border focus:outline-none transition-colors cursor-pointer ${
-                  isDark
-                    ? 'bg-[#0f1a36] text-amber-400 border-amber-500/30 focus:border-amber-400'
-                    : 'bg-slate-100 text-amber-800 border-amber-300 focus:border-amber-500'
-                }`}
-                title="Switch role perspective"
-              >
-                <option value="Admin">Role: Admin</option>
-                <option value="Public">Role: Public</option>
-                <option value="Applicant">Role: Applicant</option>
-                <option value="Client">Role: Client</option>
-                <option value="Student">Role: Student</option>
-                <option value="Tutor">Role: Tutor</option>
-                <option value="Staff">Role: Staff</option>
-              </select>
-            )}
+          {/* Right Header Actions */}
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            
+            {/* Role Pill Button */}
+            <button
+              onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+              className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-blue-500/10 text-blue-400 border-blue-500/30 hover:bg-blue-500/20'
+                  : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>{effectiveRole} Mode</span>
+            </button>
 
-            {/* Theme Mode Toggle Button */}
+            {/* Notifications Bell */}
+            <div className="relative">
+              <button
+                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                className={`p-2 rounded-lg transition-all cursor-pointer border relative ${
+                  isDark 
+                    ? 'bg-slate-800/60 hover:bg-slate-800 text-slate-300 border-slate-700/60' 
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                }`}
+                title="Notifications"
+              >
+                <Bell className="w-4 h-4" />
+                <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-500 ring-2 ring-white dark:ring-slate-900" />
+              </button>
+
+              <AnimatePresence>
+                {notificationsOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    className={`absolute right-0 top-full mt-2 w-72 rounded-2xl border shadow-xl p-3 z-50 text-xs ${
+                      isDark ? 'bg-[#0f172a] border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-700/40 mb-2">
+                      <span className="font-bold text-xs">Workspace Alerts</span>
+                      <span className="text-[10px] bg-blue-500/20 text-blue-500 px-1.5 py-0.5 rounded-full font-bold">2 Live</span>
+                    </div>
+                    <div className="space-y-2 text-[11px]">
+                      <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        <p className="font-semibold">CAC Verification Active</p>
+                        <p className="text-[10px] opacity-80">RC-1849204 synchronized with live backend.</p>
+                      </div>
+                      <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <p className="font-semibold">Gemini 3.7 Online</p>
+                        <p className="text-[10px] opacity-80">Streaming agent context ready for queries.</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className={`p-2 rounded-xl transition-all cursor-pointer border ${
+              className={`p-2 rounded-lg transition-all cursor-pointer border ${
                 isDark 
                   ? 'bg-slate-800/80 hover:bg-slate-700 text-amber-400 border-slate-700' 
                   : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
@@ -591,49 +803,80 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
               {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-700" />}
             </button>
 
-            {/* New Chat Button */}
+            {/* Exit Workspace Button */}
             <button
-              onClick={handleStartNewChat}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-slate-950 shadow-sm transition-all cursor-pointer shrink-0"
-              title="Start a new chat session"
+              onClick={onClose}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all cursor-pointer ${
+                isDark
+                  ? 'bg-slate-800/80 hover:bg-slate-700 text-slate-200 border-slate-700'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border-slate-200'
+              }`}
+              title="Return to main portal"
             >
-              <Plus className="w-4 h-4" />
-              <span className="hidden md:inline">New Chat</span>
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Exit Workspace</span>
             </button>
+
+            {/* User Avatar Circle */}
+            <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xs shrink-0 shadow-xs">
+              {currentUser?.fullName?.[0] || 'U'}
+            </div>
           </div>
         </header>
 
-        {/* MAIN WORKSPACE BODY */}
+        {/* WORKSPACE BODY */}
         <div className="relative flex-1 flex overflow-hidden">
 
-          {/* CHATGPT-STYLE SIDEBAR */}
+          {/* COLLAPSIBLE SIDEBAR */}
           <aside
-            className={`${
-              sidebarOpen ? 'translate-x-0 w-72 sm:w-80' : '-translate-x-full w-0'
-            } transition-all duration-300 ease-in-out absolute md:relative z-20 inset-y-0 left-0 flex flex-col shrink-0 border-r ${
-              isDark 
-                ? 'bg-[#060b17] border-slate-800/80 text-slate-200' 
-                : 'bg-slate-100/95 border-slate-200 text-slate-800'
-            }`}
+            className={`
+              transition-all duration-300 ease-in-out
+              fixed md:relative inset-y-0 left-0 z-40 flex flex-col shrink-0 h-full
+              ${sidebarOpen 
+                ? 'translate-x-0 w-[280px] md:w-64 lg:w-72 border-r opacity-100 visible' 
+                : '-translate-x-full w-0 md:w-0 overflow-hidden border-r-0 opacity-0 invisible pointer-events-none'
+              }
+              ${isDark 
+                ? 'bg-[#070b16] border-slate-800/80 text-slate-200' 
+                : 'bg-[#f4f6fb] border-slate-200/80 text-slate-800'
+              }
+            `}
           >
-            {/* New Chat & Search Header */}
-            <div className="p-3.5 space-y-2 border-b border-slate-800/40">
+            {/* Sidebar Branding & Collapse Header */}
+            <div className="p-3 pb-2 flex items-center justify-between border-b border-slate-800/20">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-full bg-slate-950 flex items-center justify-center p-1 border border-blue-500/40 shrink-0">
+                  <Logo size="xs" showText={false} variant="light" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="text-xs font-bold tracking-tight text-slate-900 dark:text-white truncate">DS TECH AI</h2>
+                  <p className="text-[10px] text-slate-500 truncate">Smarter · Faster · Together</p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer md:hidden"
+              >
+                <PanelLeftClose className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* New Chat Button & Search Box */}
+            <div className="p-3 space-y-2 border-b border-slate-800/20">
               <button
                 onClick={handleStartNewChat}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                  isDark
-                    ? 'bg-[#0f182e] hover:bg-[#162345] text-amber-400 border-amber-500/30'
-                    : 'bg-white hover:bg-slate-50 text-amber-800 border-amber-300 shadow-sm'
-                }`}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-[#0a1128] hover:bg-[#152248] text-white shadow-xs transition-all cursor-pointer group"
               >
                 <div className="flex items-center gap-2">
-                  <Plus className="w-4 h-4 text-amber-500" />
+                  <Plus className="w-4 h-4 text-blue-400 group-hover:rotate-90 transition-transform" />
                   <span>New Chat</span>
                 </div>
-                <kbd className="hidden sm:inline-block text-[10px] px-1.5 py-0.5 rounded bg-slate-800/50 text-slate-400 font-mono">⌘N</kbd>
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] font-mono bg-white/15 text-white/90 rounded-md font-medium">
+                  Ctrl K
+                </kbd>
               </button>
 
-              {/* Conversation Search Input */}
               <div className="relative">
                 <Search className={`w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 ${
                   isDark ? 'text-slate-500' : 'text-slate-400'
@@ -642,197 +885,305 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search chats..."
-                  className={`w-full text-xs rounded-xl pl-8 pr-3 py-1.5 border focus:outline-none transition-colors ${
+                  placeholder="Search conversations..."
+                  className={`w-full text-xs rounded-xl pl-8 pr-3 py-2 border focus:outline-none transition-colors ${
                     isDark
-                      ? 'bg-[#0a1122] text-slate-200 border-slate-800 focus:border-amber-500/50 placeholder-slate-600'
-                      : 'bg-white text-slate-800 border-slate-200 focus:border-amber-500 placeholder-slate-400'
+                      ? 'bg-[#0f172a] text-slate-200 border-slate-800 placeholder-slate-500 focus:border-blue-500/50'
+                      : 'bg-white text-slate-800 border-slate-200/90 placeholder-slate-400 focus:border-blue-400'
                   }`}
                 />
               </div>
             </div>
 
-            {/* Conversation History List */}
-            <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-              <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
-                <span>Recent Conversations</span>
-                <span className="text-[9px] bg-slate-800/50 px-1.5 py-0.5 rounded">{filteredConversations.length}</span>
-              </div>
-
+            {/* Conversation History Grouped List */}
+            <div className="flex-1 overflow-y-auto p-2.5 space-y-3 scrollbar-thin">
+              
               {filteredConversations.length === 0 ? (
-                <div className="text-center py-10 px-4 space-y-2">
-                  <Clock className="w-6 h-6 mx-auto text-slate-500 opacity-50" />
-                  <p className="text-xs text-slate-500 font-medium">No saved chats found</p>
+                <div className="text-center py-8 px-4 space-y-2">
+                  <Clock className="w-5 h-5 mx-auto text-slate-400 opacity-60" />
+                  <p className="text-xs text-slate-500 font-medium">No recent chats</p>
                 </div>
               ) : (
-                filteredConversations.map(conv => {
-                  const isActive = activeConvId === conv.id;
-                  const isEditing = editingConvId === conv.id;
-
-                  return (
-                    <div
-                      key={conv.id}
-                      onClick={() => !isEditing && loadConversationHistory(conv.id)}
-                      className={`group relative flex items-center justify-between p-2.5 rounded-xl text-xs transition-all cursor-pointer border ${
-                        isActive
-                          ? isDark
-                            ? 'bg-[#101b38] text-white border-amber-500/40 shadow-sm'
-                            : 'bg-white text-slate-900 border-amber-400 shadow-sm font-semibold'
-                          : isDark
-                            ? 'bg-transparent text-slate-300 border-transparent hover:bg-slate-800/50 hover:text-white'
-                            : 'bg-transparent text-slate-700 border-transparent hover:bg-slate-200/60 hover:text-slate-900'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                        <MessageSquare className={`w-3.5 h-3.5 shrink-0 ${
-                          isActive ? 'text-amber-500' : 'text-slate-500'
-                        }`} />
-                        
-                        {isEditing ? (
-                          <form onSubmit={(e) => handleSaveRename(conv.id, e)} className="flex items-center gap-1 flex-1">
-                            <input
-                              type="text"
-                              autoFocus
-                              value={editingTitle}
-                              onChange={(e) => setEditingTitle(e.target.value)}
-                              className={`w-full text-xs px-1.5 py-0.5 rounded border focus:outline-none ${
-                                isDark ? 'bg-slate-900 text-white border-amber-500' : 'bg-white text-slate-900 border-amber-500'
-                              }`}
-                            />
-                            <button type="submit" className="text-emerald-400 p-0.5"><Check className="w-3.5 h-3.5" /></button>
-                          </form>
-                        ) : (
-                          <span className="truncate font-medium leading-tight">{conv.title}</span>
-                        )}
-                      </div>
-
-                      {/* Action buttons (Rename / Delete) */}
-                      {!isEditing && (
-                        <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1 transition-opacity">
-                          <button
-                            onClick={(e) => handleStartRename(conv, e)}
-                            className="p-1 text-slate-400 hover:text-amber-400 transition-colors"
-                            title="Rename chat"
-                          >
-                            <Edit2 className="w-3 h-3" />
-                          </button>
-                          <button
-                            onClick={(e) => handleDeleteConversation(conv.id, e)}
-                            className="p-1 text-slate-400 hover:text-red-400 transition-colors"
-                            title="Delete chat"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        </div>
-                      )}
+                <>
+                  {/* Today Group */}
+                  {today.length > 0 && (
+                    <div className="space-y-1">
+                      <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Today</div>
+                      {today.map(conv => (
+                        <ConversationItem
+                          key={conv.id}
+                          conv={conv}
+                          activeConvId={activeConvId}
+                          editingConvId={editingConvId}
+                          editingTitle={editingTitle}
+                          isDark={isDark}
+                          onLoad={loadConversationHistory}
+                          onStartRename={handleStartRename}
+                          onSaveRename={handleSaveRename}
+                          onDelete={handleDeleteConversation}
+                          setEditingTitle={setEditingTitle}
+                        />
+                      ))}
                     </div>
-                  );
-                })
+                  )}
+
+                  {/* Previous 7 Days Group */}
+                  {past7Days.length > 0 && (
+                    <div className="space-y-1">
+                      <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Previous 7 days</div>
+                      {past7Days.map(conv => (
+                        <ConversationItem
+                          key={conv.id}
+                          conv={conv}
+                          activeConvId={activeConvId}
+                          editingConvId={editingConvId}
+                          editingTitle={editingTitle}
+                          isDark={isDark}
+                          onLoad={loadConversationHistory}
+                          onStartRename={handleStartRename}
+                          onSaveRename={handleSaveRename}
+                          onDelete={handleDeleteConversation}
+                          setEditingTitle={setEditingTitle}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Earlier Group */}
+                  {earlier.length > 0 && (
+                    <div className="space-y-1">
+                      <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">Earlier</div>
+                      {earlier.map(conv => (
+                        <ConversationItem
+                          key={conv.id}
+                          conv={conv}
+                          activeConvId={activeConvId}
+                          editingConvId={editingConvId}
+                          editingTitle={editingTitle}
+                          isDark={isDark}
+                          onLoad={loadConversationHistory}
+                          onStartRename={handleStartRename}
+                          onSaveRename={handleSaveRename}
+                          onDelete={handleDeleteConversation}
+                          setEditingTitle={setEditingTitle}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
-            {/* Sidebar User Identity & Footer */}
+            {/* Bottom Nav Links */}
+            <div className="px-2 py-1.5 border-t border-slate-800/20 text-xs space-y-0.5">
+              <button
+                onClick={onClose}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+                  isDark ? 'hover:bg-slate-800/60 text-slate-300' : 'hover:bg-slate-200/60 text-slate-700'
+                }`}
+              >
+                <Home className="w-4 h-4 text-slate-500" />
+                <span>DS TECH Home</span>
+              </button>
+
+              <button
+                onClick={() => handleSend("Tell me about DS TECH Academy programmes and learning tracks")}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+                  isDark ? 'hover:bg-slate-800/60 text-slate-300' : 'hover:bg-slate-200/60 text-slate-700'
+                }`}
+              >
+                <GraduationCap className="w-4 h-4 text-slate-500" />
+                <span>Academy</span>
+              </button>
+
+              <button
+                onClick={() => handleSend("How can DS TECH AI support me with technical or corporate inquiries?")}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+                  isDark ? 'hover:bg-slate-800/60 text-slate-300' : 'hover:bg-slate-200/60 text-slate-700'
+                }`}
+              >
+                <HelpCircle className="w-4 h-4 text-slate-500" />
+                <span>Help & Support</span>
+              </button>
+            </div>
+
+            {/* Powered By Gemini Badge Card */}
+            <div className="p-2.5">
+              <div className={`p-3 rounded-2xl border ${
+                isDark 
+                  ? 'bg-gradient-to-r from-blue-950/40 to-slate-900 border-blue-500/20 text-slate-200' 
+                  : 'bg-gradient-to-r from-blue-50 to-indigo-50/60 border-blue-200/80 text-slate-800'
+              }`}>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-blue-600 dark:text-blue-400 mb-0.5">
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Powered by Gemini 3.7</span>
+                </div>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-tight">
+                  General AI + Live DS TECH Data
+                </p>
+              </div>
+            </div>
+
+            {/* Sidebar User Identity */}
             <div className={`p-3 border-t text-xs ${
-              isDark ? 'border-slate-800/80 bg-[#080d1b]' : 'border-slate-200 bg-white'
+              isDark ? 'border-slate-800/80 bg-[#050811]' : 'border-slate-200/80 bg-white'
             }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-500 border border-amber-500/30 flex items-center justify-center font-bold text-xs shrink-0">
+                  <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-xs">
                     {currentUser?.fullName?.[0] || 'U'}
                   </div>
                   <div className="min-w-0">
                     <p className={`font-bold truncate text-xs ${isDark ? 'text-white' : 'text-slate-900'}`}>
                       {currentUser?.fullName || 'Valued User'}
                     </p>
-                    <p className="text-[10px] text-slate-500 truncate">{effectiveRole} Account</p>
+                    <p className="text-[10px] text-slate-500 truncate">{effectiveRole}</p>
                   </div>
                 </div>
 
                 <button
-                  onClick={toggleTheme}
-                  className={`p-1.5 rounded-lg border transition-all ${
+                  onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+                  className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
                     isDark ? 'bg-slate-800 text-slate-300 border-slate-700' : 'bg-slate-100 text-slate-600 border-slate-200'
                   }`}
-                  title="Toggle theme"
+                  title="Switch Role"
                 >
-                  {isDark ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-slate-700" />}
+                  <MoreHorizontal className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           </aside>
 
-          {/* BACKDROP FOR MOBILE SIDEBAR */}
+          {/* MOBILE BACKDROP */}
           {sidebarOpen && (
             <div
               onClick={() => setSidebarOpen(false)}
-              className="md:hidden fixed inset-0 z-10 bg-black/50 backdrop-blur-xs"
+              className="md:hidden fixed inset-0 z-30 bg-black/40 backdrop-blur-sm"
             />
           )}
 
-          {/* MAIN CHAT CONSOLE */}
+          {/* MAIN CHAT AREA */}
           <main className="flex-1 flex flex-col h-full overflow-hidden relative">
             
-            {/* CHAT MESSAGES SCROLL AREA */}
+            {/* MESSAGES / WELCOME CONTAINER */}
             <div
               ref={chatContainerRef}
               onScroll={handleScroll}
-              className="flex-1 overflow-y-auto px-4 sm:px-6 md:px-8 py-6 space-y-6 custom-scrollbar"
+              className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 pb-28 custom-scrollbar"
             >
               <div className="max-w-3xl mx-auto space-y-6">
 
-                {/* STARTER HOME SCREEN (Shown if only welcome message exists or starting new chat) */}
-                {messages.length <= 1 && (
+                {/* EMPTY / WELCOME HERO SCREEN */}
+                {messages.length === 0 && (
                   <motion.div
-                    initial={{ opacity: 0, y: 15 }}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="py-6 sm:py-10 space-y-8 text-center"
+                    transition={{ duration: 0.2 }}
+                    className="py-6 sm:py-12 space-y-6 text-center"
                   >
-                    <div className="inline-flex p-3 bg-amber-500/10 rounded-2xl border border-amber-500/30 shadow-inner">
-                      <Logo size="md" showText={false} variant={isDark ? "light" : "dark"} />
+                    {/* Centered Glowing Logo Halo Badge */}
+                    <div className="relative inline-flex items-center justify-center">
+                      <div className={`absolute inset-0 rounded-full blur-xl ${isDark ? 'bg-blue-600/30' : 'bg-blue-400/20'}`} />
+                      <div className={`relative w-20 h-20 sm:w-24 sm:h-24 rounded-full border flex items-center justify-center shadow-lg transition-transform hover:scale-105 ${
+                        isDark ? 'bg-[#0b1021] border-blue-500/40' : 'bg-white border-blue-200'
+                      }`}>
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-slate-950 flex items-center justify-center p-2.5 border border-blue-500/60 shadow-inner">
+                          <Logo size="sm" showText={false} variant="light" />
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <h2 className={`text-xl sm:text-2xl font-black tracking-tight ${
+                    {/* Headline & Description */}
+                    <div className="space-y-2 max-w-xl mx-auto">
+                      <h1 className={`text-2xl sm:text-4xl font-extrabold tracking-tight ${
                         isDark ? 'text-white' : 'text-slate-900'
                       }`}>
-                        DS TECH AI Workspace
-                      </h2>
-                      <p className={`text-xs sm:text-sm max-w-md mx-auto ${
-                        isDark ? 'text-slate-400' : 'text-slate-600'
+                        Welcome to DS TECH AI
+                      </h1>
+                      <p className={`text-sm sm:text-base font-medium ${
+                        isDark ? 'text-slate-300' : 'text-slate-600'
                       }`}>
-                        Enterprise intelligence for DS Tech corporate verification, software engineering, digital marketing, and academy courses.
+                        Your intelligent assistant for DS TECH — and much more.
+                      </p>
+                      <p className={`text-xs sm:text-sm max-w-lg mx-auto leading-relaxed ${
+                        isDark ? 'text-slate-400' : 'text-slate-500'
+                      }`}>
+                        Ask about DS TECH services, Academy programmes, technology, business, education or anything you want. I can also get live information from the DS TECH backend when needed.
                       </p>
                     </div>
 
-                    {/* Quick Prompts Grid */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-2xl mx-auto pt-2 text-left">
-                      {quickPrompts.map((item, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => handleSend(item.prompt)}
-                          disabled={loading}
-                          className={`p-3.5 rounded-2xl text-xs border text-left transition-all cursor-pointer group shadow-xs ${
-                            isDark
-                              ? 'bg-[#0d162d]/80 hover:bg-[#142247] border-slate-800 hover:border-amber-500/50 text-slate-200'
-                              : 'bg-white hover:bg-slate-100/80 border-slate-200 hover:border-amber-400 text-slate-800'
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-1.5">
-                            <span className="font-extrabold text-amber-500 group-hover:text-amber-400">{item.title}</span>
-                            <ArrowRight className="w-3.5 h-3.5 text-slate-500 group-hover:translate-x-0.5 transition-transform" />
+                    {/* 4 Capability Badges Bar */}
+                    <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 pt-2">
+                      {CAPABILITY_PILLARS.map((pillar, pIdx) => {
+                        const IconComponent = pillar.icon;
+                        return (
+                          <div
+                            key={pIdx}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border ${
+                              isDark 
+                                ? 'bg-slate-900/80 border-slate-800 text-slate-300' 
+                                : 'bg-white border-slate-200/90 text-slate-700 shadow-2xs'
+                            }`}
+                          >
+                            <div className="relative flex items-center">
+                              <IconComponent className="w-3.5 h-3.5 text-blue-500" />
+                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500 -ml-1 -mt-1 bg-white dark:bg-slate-900 rounded-full" />
+                            </div>
+                            <span>{pillar.label}</span>
                           </div>
-                          <p className={`text-[11px] line-clamp-2 ${
-                            isDark ? 'text-slate-400' : 'text-slate-600'
-                          }`}>
-                            {item.prompt}
-                          </p>
-                        </button>
-                      ))}
+                        );
+                      })}
                     </div>
+
+                    {/* Suggestion Section Divider */}
+                    <div className="pt-4 text-center">
+                      <h2 className={`text-sm font-bold uppercase tracking-wider ${
+                        isDark ? 'text-slate-400' : 'text-slate-500'
+                      }`}>
+                        Try asking...
+                      </h2>
+                    </div>
+
+                    {/* 6 Interactive Suggestion Cards Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-w-3xl mx-auto text-left">
+                      {SUGGESTION_CARDS.map((card) => {
+                        const IconComp = card.icon;
+                        return (
+                          <button
+                            key={card.id}
+                            onClick={() => handleSend(card.prompt)}
+                            disabled={loading}
+                            className={`group relative p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+                              isDark
+                                ? 'bg-[#10172a] hover:bg-[#16203a] border-slate-800 hover:border-blue-500/50 text-slate-200'
+                                : 'bg-white hover:bg-slate-50/90 border-slate-200/90 hover:border-blue-300 text-slate-800 shadow-2xs hover:shadow-xs'
+                            }`}
+                          >
+                            <div>
+                              <div className="flex items-center justify-between mb-3">
+                                <div className={`p-2.5 rounded-xl ${card.iconBg}`}>
+                                  <IconComp className="w-4 h-4" />
+                                </div>
+                                <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-0.5 transition-all" />
+                              </div>
+                              <h3 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white mb-1">
+                                {card.title}
+                              </h3>
+                              <p className={`text-[11px] leading-relaxed line-clamp-2 ${
+                                isDark ? 'text-slate-400' : 'text-slate-500'
+                              }`}>
+                                {card.sub}
+                              </p>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
                   </motion.div>
                 )}
 
-                {/* MESSAGES LIST */}
+                {/* MESSAGES STREAM */}
                 {messages.map((msg, idx) => {
                   const isUser = msg.sender === 'user';
 
@@ -841,81 +1192,77 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
                       key={msg.id || idx}
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className={`flex gap-3 sm:gap-4 max-w-3xl ${isUser ? 'flex-row-reverse' : ''}`}
+                      transition={{ duration: 0.15 }}
+                      className={`flex gap-3.5 max-w-3xl ${isUser ? 'flex-row-reverse' : ''}`}
                     >
                       {/* Avatar */}
-                      <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold shadow-xs ${
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-xs font-bold shadow-xs ${
                         isUser
-                          ? 'bg-amber-500 text-slate-950 font-black border border-amber-400'
-                          : 'bg-slate-900 text-amber-400 border border-slate-700'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-slate-950 text-white border border-blue-500/40 p-1'
                       }`}>
                         {isUser ? (
                           currentUser?.fullName?.[0] || 'U'
                         ) : (
-                          <div className="scale-75">
-                            <Logo size="xs" showText={false} variant="light" />
-                          </div>
+                          <Logo size="xs" showText={false} variant="light" />
                         )}
                       </div>
 
-                      {/* Message Content Container */}
-                      <div className={`flex flex-col gap-1.5 min-w-0 flex-1 ${isUser ? 'items-end' : 'items-start'}`}>
-                        
-                        {/* Message Bubble */}
-                        <div className={`p-4 rounded-2xl text-xs sm:text-sm leading-relaxed max-w-2xl ${
+                      {/* Content Box */}
+                      <div className={`flex flex-col gap-1 min-w-0 flex-1 ${isUser ? 'items-end' : 'items-start'}`}>
+                        <div className={`text-sm leading-relaxed ${
                           isUser
-                            ? 'bg-amber-500 text-slate-950 rounded-tr-none font-medium shadow-sm'
-                            : isDark
-                              ? 'bg-[#0e172e] border border-slate-800 text-slate-100 rounded-tl-none shadow-sm'
-                              : 'bg-white border border-slate-200 text-slate-800 rounded-tl-none shadow-xs'
+                            ? isDark
+                              ? 'bg-blue-600 text-white px-4 py-2.5 rounded-2xl rounded-tr-xs max-w-[85%] shadow-xs font-medium'
+                              : 'bg-[#0a1128] text-white px-4 py-2.5 rounded-2xl rounded-tr-xs max-w-[85%] shadow-xs font-medium'
+                            : 'w-full text-slate-800 dark:text-slate-200 text-[15px]'
                         }`}>
                           {msg.isThinking ? (
-                            <div className="flex items-center gap-3 py-1 text-xs text-amber-500">
-                              <Sparkles className="w-4 h-4 text-amber-500 animate-spin" />
-                              <span className="animate-pulse font-semibold">DS Tech AI is synthesizing response...</span>
+                            <div className="flex items-center gap-2 py-1 text-xs text-blue-500">
+                              <span className="inline-block w-2 h-2 rounded-full bg-blue-500 animate-ping" />
+                              <span className="font-medium">DS TECH AI is processing...</span>
                             </div>
                           ) : isUser ? (
                             <div className="whitespace-pre-wrap">{msg.content}</div>
                           ) : (
-                            <div className="markdown-body space-y-3">
+                            <div className="markdown-body space-y-2.5">
                               <Markdown
                                 components={{
                                   code({ node, inline, className, children, ...props }: any) {
                                     const match = /language-(\w+)/.exec(className || '');
                                     const codeString = String(children).replace(/\n$/, '');
                                     if (!inline) {
-                                      return <CodeBlock language={match?.[1] || 'code'} code={codeString} />;
+                                      return <CodeBlock language={match?.[1] || 'code'} code={codeString} isDark={isDark} />;
                                     }
                                     return (
-                                      <code className={`px-1.5 py-0.5 rounded text-[11px] font-mono font-semibold ${
-                                        isDark ? 'bg-slate-800 text-amber-400 border border-slate-700' : 'bg-slate-100 text-amber-800 border border-slate-200'
+                                      <code className={`px-1.5 py-0.5 rounded text-xs font-mono ${
+                                        isDark ? 'bg-slate-800 text-blue-300' : 'bg-slate-200/80 text-blue-800'
                                       }`} {...props}>
                                         {children}
                                       </code>
                                     );
                                   },
                                   h1({ children }) {
-                                    return <h1 className="text-base sm:text-lg font-black text-amber-500 mt-2 mb-1 flex items-center gap-2">{children}</h1>;
+                                    return <h1 className="text-base font-bold mt-4 mb-1.5 text-slate-900 dark:text-slate-100">{children}</h1>;
                                   },
                                   h2({ children }) {
-                                    return <h2 className="text-sm sm:text-base font-bold text-amber-400 mt-2 mb-1">{children}</h2>;
+                                    return <h2 className="text-sm font-bold mt-3 mb-1 text-slate-900 dark:text-slate-100">{children}</h2>;
                                   },
                                   h3({ children }) {
-                                    return <h3 className="text-xs sm:text-sm font-bold text-amber-400 mt-2 mb-1">{children}</h3>;
+                                    return <h3 className="text-xs font-bold mt-2.5 mb-1 text-slate-900 dark:text-slate-100">{children}</h3>;
                                   },
                                   p({ children }) {
-                                    return <p className="leading-relaxed">{children}</p>;
+                                    return <p className="leading-relaxed mb-2 text-[15px]">{children}</p>;
                                   },
                                   ul({ children }) {
-                                    return <ul className="list-disc pl-5 space-y-1 my-2">{children}</ul>;
+                                    return <ul className="list-disc pl-5 space-y-1 mb-2.5">{children}</ul>;
                                   },
                                   ol({ children }) {
-                                    return <ol className="list-decimal pl-5 space-y-1 my-2">{children}</ol>;
+                                    return <ol className="list-decimal pl-5 space-y-1 mb-2.5">{children}</ol>;
                                   },
                                   blockquote({ children }) {
                                     return (
-                                      <blockquote className={`border-l-3 border-amber-500 pl-3 my-2 italic ${
+                                      <blockquote className={`border-l-2 border-blue-500 pl-3 my-2 italic ${
                                         isDark ? 'text-slate-400' : 'text-slate-600'
                                       }`}>
                                         {children}
@@ -924,37 +1271,35 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
                                   },
                                   table({ children }) {
                                     return (
-                                      <div className="overflow-x-auto my-3 border border-slate-800 rounded-xl">
-                                        <table className="min-w-full divide-y divide-slate-800 text-xs">{children}</table>
+                                      <div className="overflow-x-auto my-3 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xs">
+                                        <table className="min-w-full text-xs text-left border-collapse">{children}</table>
                                       </div>
                                     );
                                   },
                                   th({ children }) {
-                                    return <th className="px-3 py-2 text-left font-bold text-amber-400 bg-slate-900/50">{children}</th>;
+                                    return <th className="px-3.5 py-2.5 font-bold bg-slate-100 dark:bg-slate-800/80 text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">{children}</th>;
                                   },
                                   td({ children }) {
-                                    return <td className="px-3 py-2 border-t border-slate-800">{children}</td>;
+                                    return <td className="px-3.5 py-2.5 border-b border-slate-100 dark:border-slate-800/60">{children}</td>;
                                   }
                                 }}
                               >
                                 {msg.content}
                               </Markdown>
                               
-                              {/* Blinking cursor if streaming */}
                               {msg.isStreaming && (
-                                <span className="inline-block w-1.5 h-4 bg-amber-500 ml-1 animate-pulse" />
+                                <span className="inline-block w-2 h-4 bg-blue-500 ml-1 animate-pulse rounded-xs" />
                               )}
                             </div>
                           )}
 
-                          {/* Grounded Citation Sources */}
                           {msg.sources && msg.sources.length > 0 && (
-                            <div className="mt-3.5 pt-2.5 border-t border-slate-800/60 text-[11px] text-slate-400 flex flex-wrap gap-2 items-center">
-                              <span className="font-bold text-amber-400 flex items-center gap-1">
-                                <BookOpen className="w-3 h-3" /> Sources:
+                            <div className="mt-3 pt-2 border-t border-slate-200 dark:border-slate-800/80 text-[11px] text-slate-500 flex flex-wrap gap-1.5 items-center">
+                              <span className="font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+                                <BookOpen className="w-3 h-3" /> Grounded Context:
                               </span>
                               {msg.sources.map((src, sIdx) => (
-                                <span key={sIdx} className="px-2 py-0.5 bg-slate-900 border border-slate-700/60 rounded text-amber-200 font-medium text-[10px]">
+                                <span key={sIdx} className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded text-slate-700 dark:text-slate-300 font-medium text-[10px]">
                                   {src.title}
                                 </span>
                               ))}
@@ -962,28 +1307,27 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
                           )}
                         </div>
 
-                        {/* Action Buttons Toolbar under Assistant Message */}
+                        {/* Unobtrusive Actions under Assistant Message */}
                         {!isUser && !msg.isThinking && (
-                          <div className="flex items-center gap-3 px-1 text-[11px] text-slate-500 pt-1">
+                          <div className="flex items-center gap-3 px-0.5 text-xs text-slate-400 pt-1">
                             <button
                               onClick={() => copyToClipboard(msg.content, idx)}
-                              className="flex items-center gap-1 hover:text-amber-400 transition-colors cursor-pointer"
-                              title="Copy response text"
+                              className="flex items-center gap-1 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                              title="Copy message"
                             >
-                              {copiedIndex === idx ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                              <span>{copiedIndex === idx ? 'Copied' : 'Copy'}</span>
+                              {copiedIndex === idx ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                              <span className="text-[11px]">{copiedIndex === idx ? 'Copied' : 'Copy'}</span>
                             </button>
 
-                            {/* Regenerate Button */}
                             {idx === messages.length - 1 && (
                               <button
                                 onClick={handleRegenerate}
                                 disabled={loading}
-                                className="flex items-center gap-1 hover:text-amber-400 transition-colors cursor-pointer disabled:opacity-50"
+                                className="flex items-center gap-1 hover:text-slate-600 dark:hover:text-slate-200 transition-colors cursor-pointer disabled:opacity-50"
                                 title="Regenerate response"
                               >
                                 <RotateCcw className="w-3.5 h-3.5" />
-                                <span>Regenerate</span>
+                                <span className="text-[11px]">Retry</span>
                               </button>
                             )}
                           </div>
@@ -997,33 +1341,32 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
               </div>
             </div>
 
-            {/* FLOATING SCROLL TO BOTTOM BUTTON */}
+            {/* SCROLL TO BOTTOM BUTTON */}
             <AnimatePresence>
               {showScrollBottom && (
                 <motion.button
-                  initial={{ opacity: 0, scale: 0.8 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
                   onClick={() => scrollToBottom('smooth')}
-                  className="absolute bottom-24 right-6 z-20 p-2.5 rounded-full bg-amber-500 text-slate-950 shadow-lg hover:bg-amber-400 transition-all cursor-pointer border border-amber-300"
-                  title="Scroll to latest messages"
+                  className="absolute bottom-24 right-6 z-20 p-2 rounded-full bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-md hover:scale-105 transition-transform cursor-pointer"
                 >
                   <ArrowDown className="w-4 h-4" />
                 </motion.button>
               )}
             </AnimatePresence>
 
-            {/* ATTACHMENT PREVIEWS CHIPS BAR */}
+            {/* ATTACHMENT PREVIEW CHIPS */}
             {attachments.length > 0 && (
               <div className={`px-4 py-2 border-t flex items-center gap-2 overflow-x-auto shrink-0 ${
-                isDark ? 'bg-[#070c18] border-slate-800' : 'bg-slate-100 border-slate-200'
+                isDark ? 'bg-[#080d1b] border-slate-800' : 'bg-slate-100 border-slate-200'
               }`}>
-                <span className="text-xs text-amber-500 font-semibold">Attachments:</span>
+                <span className="text-xs text-blue-600 dark:text-blue-400 font-semibold">Attachments:</span>
                 {attachments.map((att, index) => (
-                  <div key={index} className={`px-2.5 py-1 rounded-lg text-xs flex items-center gap-1.5 border shadow-2xs ${
+                  <div key={index} className={`px-2.5 py-1 rounded-xl text-xs flex items-center gap-1.5 border ${
                     isDark ? 'bg-slate-800 text-slate-200 border-slate-700' : 'bg-white text-slate-800 border-slate-300'
                   }`}>
-                    <FileText className="w-3.5 h-3.5 text-amber-500" />
+                    <FileText className="w-3.5 h-3.5 text-blue-500" />
                     <span className="truncate max-w-[140px] font-medium">{att.name}</span>
                     <button
                       onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))}
@@ -1036,45 +1379,18 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
               </div>
             )}
 
-            {/* SUGGESTED PROMPT CHIPS */}
-            <div className={`px-4 py-2.5 border-t overflow-x-auto whitespace-nowrap scrollbar-none shrink-0 ${
-              isDark ? 'bg-[#090e1c]/90 border-slate-800/80' : 'bg-slate-100/90 border-slate-200'
+            {/* FLOATING COMPOSER INPUT BOX */}
+            <div className={`p-3 sm:p-5 shrink-0 ${
+              isDark ? 'bg-[#090d1a]' : 'bg-[#f8fafc]'
             }`}>
-              <div className="max-w-3xl mx-auto flex items-center gap-2">
-                <span className="text-[10px] uppercase font-bold text-amber-500 flex items-center gap-1 shrink-0">
-                  <Zap className="w-3 h-3 text-amber-500" /> Suggestions:
-                </span>
-                {quickPrompts.map((promptObj, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleSend(promptObj.prompt)}
-                    disabled={loading}
-                    className={`px-3 py-1 rounded-full text-xs font-medium border transition-all shrink-0 cursor-pointer disabled:opacity-50 flex items-center gap-1.5 ${
-                      isDark
-                        ? 'bg-[#0e1832] hover:bg-[#162650] text-slate-200 border-slate-700/80 hover:border-amber-500/50'
-                        : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300 hover:border-amber-400 shadow-2xs'
-                    }`}
-                  >
-                    <span>{promptObj.title}</span>
-                    <ArrowRight className="w-3 h-3 text-amber-500" />
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* CHAT COMPOSER FOOTER */}
-            <div className={`p-3 sm:p-4 border-t shrink-0 ${
-              isDark ? 'bg-[#090e1c] border-slate-800/80' : 'bg-white border-slate-200'
-            }`}>
-              <div className="max-w-3xl mx-auto space-y-2">
-                
-                {/* Text Input Container */}
-                <div className={`relative flex items-end gap-2 p-2 rounded-2xl border transition-all ${
+              <div className="max-w-3xl mx-auto">
+                <div className={`relative flex flex-col p-3 rounded-2xl border transition-all ${
                   isDark
-                    ? 'bg-[#0c1429] border-slate-700/80 focus-within:border-amber-500/80 shadow-inner'
-                    : 'bg-slate-50 border-slate-300 focus-within:border-amber-500 shadow-2xs'
+                    ? 'bg-[#10172a] border-slate-800 focus-within:border-blue-500/60 shadow-md'
+                    : 'bg-white border-slate-200/90 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100/60 shadow-2xs'
                 }`}>
                   
+                  {/* File Upload Hidden Inputs */}
                   <input
                     type="file"
                     ref={fileInputRef}
@@ -1082,34 +1398,16 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
                     multiple
                     className="hidden"
                   />
+                  <input
+                    type="file"
+                    ref={imageInputRef}
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    multiple
+                    className="hidden"
+                  />
 
-                  {/* Attachment File Button */}
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`p-2 rounded-xl transition-colors cursor-pointer shrink-0 ${
-                      isDark ? 'text-slate-400 hover:text-amber-400 hover:bg-slate-800' : 'text-slate-500 hover:text-amber-600 hover:bg-slate-200'
-                    }`}
-                    title="Attach files or documents"
-                  >
-                    <Paperclip className="w-4 h-4" />
-                  </button>
-
-                  {/* Voice Input Microphone Button */}
-                  <button
-                    type="button"
-                    onClick={toggleVoiceInput}
-                    className={`p-2 rounded-xl transition-colors cursor-pointer shrink-0 ${
-                      isListening 
-                        ? 'text-red-500 bg-red-500/10 animate-pulse' 
-                        : isDark ? 'text-slate-400 hover:text-amber-400 hover:bg-slate-800' : 'text-slate-500 hover:text-amber-600 hover:bg-slate-200'
-                    }`}
-                    title={isListening ? "Stop listening" : "Voice dictation"}
-                  >
-                    {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                  </button>
-
-                  {/* Dynamic Multiline Textarea */}
+                  {/* Textarea Input */}
                   <textarea
                     ref={textareaRef}
                     rows={1}
@@ -1121,41 +1419,143 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
                         handleSend();
                       }
                     }}
-                    placeholder={isListening ? "Listening to your voice..." : "Ask DS Tech AI Workspace..."}
+                    placeholder={isListening ? "Listening..." : "Message DS TECH AI..."}
                     disabled={loading}
-                    className={`flex-1 bg-transparent text-xs sm:text-sm p-1.5 focus:outline-none resize-none max-h-40 ${
+                    className={`w-full bg-transparent text-sm px-1 py-1 focus:outline-none resize-none max-h-40 font-normal leading-relaxed ${
                       isDark ? 'text-slate-100 placeholder-slate-500' : 'text-slate-900 placeholder-slate-400'
                     }`}
                   />
 
-                  {/* Send / Stop Generation Button */}
-                  {loading ? (
-                    <button
-                      type="button"
-                      onClick={handleStopGeneration}
-                      className="p-2.5 rounded-xl bg-red-500 hover:bg-red-600 text-white transition-all cursor-pointer shrink-0 shadow-sm"
-                      title="Stop generation"
-                    >
-                      <Square className="w-4 h-4 fill-current" />
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => handleSend()}
-                      disabled={!input.trim() && attachments.length === 0}
-                      className="p-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-slate-950 font-bold transition-all cursor-pointer shrink-0 shadow-sm disabled:cursor-not-allowed"
-                      title="Send message"
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
-                  )}
+                  {/* Bottom Controls Bar inside Composer */}
+                  <div className="flex items-center justify-between pt-2.5 mt-1 border-t border-slate-100 dark:border-slate-800/80">
+                    
+                    {/* Left Actions: Attach, Image, Voice */}
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`p-2 rounded-xl transition-colors cursor-pointer shrink-0 ${
+                          isDark ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                        }`}
+                        title="Attach document"
+                      >
+                        <Paperclip className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => imageInputRef.current?.click()}
+                        className={`p-2 rounded-xl transition-colors cursor-pointer shrink-0 ${
+                          isDark ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                        }`}
+                        title="Upload image"
+                      >
+                        <ImageIcon className="w-4 h-4" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={toggleVoiceInput}
+                        className={`p-2 rounded-xl transition-colors cursor-pointer shrink-0 ${
+                          isListening 
+                            ? 'text-red-500 bg-red-500/10 animate-pulse' 
+                            : isDark ? 'text-slate-400 hover:text-slate-200 hover:bg-slate-800' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+                        }`}
+                        title="Voice input"
+                      >
+                        {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                      </button>
+                    </div>
+
+                    {/* Right Group: Model Selector Badge & Send Button */}
+                    <div className="flex items-center gap-2">
+                      
+                      {/* Model Selector Dropdown */}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setModelDropdownOpen(!modelDropdownOpen)}
+                          className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                            isDark
+                              ? 'bg-slate-800/80 text-blue-400 border-slate-700 hover:bg-slate-700'
+                              : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
+                          }`}
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+                          <span>{selectedModel}</span>
+                          <ChevronDown className="w-3 h-3 text-slate-400" />
+                        </button>
+
+                        <AnimatePresence>
+                          {modelDropdownOpen && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: 4 }}
+                              className={`absolute right-0 bottom-full mb-1.5 w-40 rounded-xl border shadow-lg py-1 z-50 text-xs ${
+                                isDark ? 'bg-[#0f172a] border-slate-800 text-slate-200' : 'bg-white border-slate-200 text-slate-800'
+                              }`}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedModel('Gemini 3.7');
+                                  setModelDropdownOpen(false);
+                                }}
+                                className={`w-full text-left px-3 py-1.5 flex items-center justify-between hover:bg-blue-500/10 cursor-pointer ${
+                                  selectedModel === 'Gemini 3.7' ? 'font-bold text-blue-500' : ''
+                                }`}
+                              >
+                                <span>Gemini 3.7</span>
+                                {selectedModel === 'Gemini 3.7' && <Check className="w-3.5 h-3.5" />}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedModel('Gemini 3.5 Flash');
+                                  setModelDropdownOpen(false);
+                                }}
+                                className={`w-full text-left px-3 py-1.5 flex items-center justify-between hover:bg-blue-500/10 cursor-pointer ${
+                                  selectedModel === 'Gemini 3.5 Flash' ? 'font-bold text-blue-500' : ''
+                                }`}
+                              >
+                                <span>Gemini 3.5 Flash</span>
+                                {selectedModel === 'Gemini 3.5 Flash' && <Check className="w-3.5 h-3.5" />}
+                              </button>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+
+                      {/* Send / Stop Button */}
+                      {loading ? (
+                        <button
+                          type="button"
+                          onClick={handleStopGeneration}
+                          className="w-9 h-9 rounded-full bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 hover:opacity-90 flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-xs"
+                          title="Stop generating"
+                        >
+                          <Square className="w-3.5 h-3.5 fill-current" />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleSend()}
+                          disabled={!input.trim() && attachments.length === 0}
+                          className="w-9 h-9 rounded-full bg-[#0a1128] hover:bg-[#152248] dark:bg-blue-600 dark:hover:bg-blue-500 disabled:opacity-30 text-white flex items-center justify-center transition-all cursor-pointer shrink-0 disabled:cursor-not-allowed shadow-xs"
+                          title="Send message"
+                        >
+                          <ArrowDown className="w-4 h-4 rotate-180" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
                 </div>
 
-                {/* Footer Disclaimer */}
-                <p className="text-[10px] text-slate-500 text-center font-medium">
-                  DS Tech AI Workspace assists with CAC Verification (RC-1849204), Services, Recruitment & Courses.
+                <p className="text-[10px] text-slate-500 text-center font-medium mt-2">
+                  DS TECH AI can assist with general queries, CAC verification (RC-1849204), services, and academy programmes.
                 </p>
-
               </div>
             </div>
 
@@ -1164,5 +1564,100 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
 
       </div>
     </AnimatePresence>
+  );
+};
+
+// Subcomponent: Individual Conversation Item in Sidebar
+interface ConversationItemProps {
+  conv: Conversation;
+  activeConvId: string | null;
+  editingConvId: string | null;
+  editingTitle: string;
+  isDark: boolean;
+  onLoad: (id: string) => void;
+  onStartRename: (conv: Conversation, e: React.MouseEvent) => void;
+  onSaveRename: (id: string, e: React.FormEvent | React.MouseEvent) => void;
+  onDelete: (id: string, e: React.MouseEvent) => void;
+  setEditingTitle: (title: string) => void;
+}
+
+const ConversationItem: React.FC<ConversationItemProps> = ({
+  conv,
+  activeConvId,
+  editingConvId,
+  editingTitle,
+  isDark,
+  onLoad,
+  onStartRename,
+  onSaveRename,
+  onDelete,
+  setEditingTitle
+}) => {
+  const isActive = activeConvId === conv.id;
+  const isEditing = editingConvId === conv.id;
+  const timestampText = formatConvTimestamp(conv.updated_at);
+
+  return (
+    <div
+      onClick={() => !isEditing && onLoad(conv.id)}
+      className={`group relative flex items-center justify-between px-3 py-2 rounded-xl text-xs transition-all cursor-pointer border ${
+        isActive
+          ? isDark
+            ? 'bg-[#152042] text-white border-blue-500/40 font-medium'
+            : 'bg-white text-slate-900 border-slate-300 font-semibold shadow-2xs'
+          : isDark
+            ? 'bg-transparent text-slate-300 border-transparent hover:bg-slate-800/40 hover:text-white'
+            : 'bg-transparent text-slate-700 border-transparent hover:bg-slate-200/50 hover:text-slate-900'
+      }`}
+    >
+      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        <FileText className={`w-3.5 h-3.5 shrink-0 ${
+          isActive ? 'text-blue-500' : 'text-slate-400'
+        }`} />
+        
+        {isEditing ? (
+          <form onSubmit={(e) => onSaveRename(conv.id, e)} className="flex items-center gap-1 flex-1">
+            <input
+              type="text"
+              autoFocus
+              value={editingTitle}
+              onChange={(e) => setEditingTitle(e.target.value)}
+              className={`w-full text-xs px-1.5 py-0.5 rounded border focus:outline-none ${
+                isDark ? 'bg-slate-900 text-white border-blue-500' : 'bg-white text-slate-900 border-blue-500'
+              }`}
+            />
+            <button type="submit" className="text-emerald-400 p-0.5"><Check className="w-3.5 h-3.5" /></button>
+          </form>
+        ) : (
+          <span className="truncate font-medium leading-snug flex-1">{conv.title}</span>
+        )}
+      </div>
+
+      {!isEditing && (
+        <div className="flex items-center gap-1 shrink-0 ml-1">
+          {/* Timestamp text (hidden when hovering to show action buttons) */}
+          <span className="text-[10px] text-slate-400 group-hover:hidden transition-all">
+            {timestampText}
+          </span>
+
+          <div className="hidden group-hover:flex items-center gap-0.5 transition-all">
+            <button
+              onClick={(e) => onStartRename(conv, e)}
+              className="p-1 text-slate-400 hover:text-blue-500"
+              title="Rename chat"
+            >
+              <Edit2 className="w-3 h-3" />
+            </button>
+            <button
+              onClick={(e) => onDelete(conv.id, e)}
+              className="p-1 text-slate-400 hover:text-red-500"
+              title="Delete chat"
+            >
+              <Trash2 className="w-3 h-3" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };

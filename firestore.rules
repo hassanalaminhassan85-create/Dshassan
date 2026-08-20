@@ -76,8 +76,53 @@ service cloud.firestore {
     match /departments/{id} { allow read, write: if true; }
     match /cac_metadata/{id} { allow read, write: if true; }
 
-    // Applications
+    // Applications & Academy Data
     match /applications/{appId} {
+      allow read, write: if true;
+    }
+    match /student_registrations/{studentId} {
+      allow read, write: if true;
+    }
+    match /enrollments/{enrollmentId} {
+      allow read, write: if true;
+    }
+    match /tutor_applications/{tutorId} {
+      allow read, write: if true;
+    }
+    match /scholarship_applications/{id} {
+      allow read, write: if true;
+    }
+    match /internship_applications/{id} {
+      allow read, write: if true;
+    }
+    match /corporate_training_requests/{id} {
+      allow read, write: if true;
+    }
+    match /mentorship_applications/{id} {
+      allow read, write: if true;
+    }
+    match /course_progress/{progressId} {
+      allow read, write: if true;
+    }
+    match /academy_progress/{progressId} {
+      allow read, write: if true;
+    }
+    match /student_submissions/{submissionId} {
+      allow read, write: if true;
+    }
+    match /academy_submissions/{submissionId} {
+      allow read, write: if true;
+    }
+    match /academy_payments/{paymentId} {
+      allow read, write: if true;
+    }
+    match /tutor_payouts/{payoutId} {
+      allow read, write: if true;
+    }
+    match /academy_notifications/{notifId} {
+      allow read, write: if true;
+    }
+    match /live_attendance/{attendanceId} {
       allow read, write: if true;
     }
 

@@ -196,9 +196,46 @@
         "clientId": { "type": "string" }
       },
       "required": ["subject", "status", "priority"]
+    },
+    "AcademyEnrollment": {
+      "title": "Academy Enrollment",
+      "description": "Student course enrollment record.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "enrollmentNumber": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentEmail": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentPhone": { "type": "string" },
+        "courseId": { "type": "string" },
+        "courseCode": { "type": "string" },
+        "courseTitle": { "type": "string" },
+        "categoryName": { "type": "string" },
+        "duration": { "type": "string" },
+        "mode": { "type": "string" },
+        "lectureDays": { "type": "string" },
+        "language": { "type": "string" },
+        "location": { "type": "string" },
+        "amount": { "type": "number" },
+        "paymentMethod": { "type": "string" },
+        "paymentStatus": { "type": "string" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "studentEmail", "courseCode", "courseTitle", "amount", "status"]
     }
   },
   "firestore": {
+    "/enrollments/{enrollmentId}": {
+      "schema": "AcademyEnrollment",
+      "description": "Course enrollment records."
+    },
+    "/student_registrations/{studentId}": {
+      "schema": "StudentRegistrationApplication",
+      "description": "Student admission profiles."
+    },
     "/services/{serviceId}": {
       "schema": "ServiceItem",
       "description": "Agency services catalog."

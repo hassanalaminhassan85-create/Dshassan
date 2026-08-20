@@ -34,7 +34,9 @@ import { PaystackPaymentPage } from './components/PaystackPaymentPage';
 import { JobApplication } from './types';
 import { FileDown, Sparkles, Building2, ClipboardEdit, AlertCircle, Play, Heart, Send, Facebook, Instagram, Twitter, Linkedin, Youtube, Mail, Phone, MapPin, ArrowUp, ArrowLeft, ArrowRight, Globe, ShieldAlert, Cpu, Palette, Sun, Moon, ChevronDown, Check, Search, Filter, Fingerprint, Briefcase, FileCheck, UserCheck, CreditCard, Bot, GraduationCap, Award, BookOpen } from 'lucide-react';
 import { EnterpriseAiAssistantModal } from './components/AiAssistant/EnterpriseAiAssistantModal';
+import { FloatingAiLauncher, PageContext } from './components/FloatingAiLauncher';
 import { Logo } from './components/Logo';
+import { MainFooter } from './components/MainFooter';
 import { MobileNavigationDrawer } from './components/MobileNavigationDrawer';
 import { ProfessionalHamburgerButton } from './components/ProfessionalHamburgerButton';
 import { 
@@ -243,6 +245,158 @@ export default function App() {
   const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard'>('home');
 
   const [publishedCac, setPublishedCac] = useState<any>(null);
+
+  // Dynamic Context-Aware Page State for DS TECH AI Copilot
+  const currentPageContext: PageContext = React.useMemo(() => {
+    let pageTitle = 'DS TECH Home & Agency Portal';
+    let section = 'Main Overview';
+    let programmeOrCourse = '';
+    let pricing = '';
+    let workflowState = 'Browsing';
+
+    if (isAdminView) {
+      pageTitle = 'Admin Portal & Executive Control Center';
+      section = 'Administrative Control';
+      workflowState = 'Admin Management';
+    } else {
+      switch (activePage) {
+        case 'home':
+          pageTitle = 'DS TECH Home Page';
+          section = 'Agency Overview & Core Offerings';
+          workflowState = 'Browsing Home';
+          break;
+        case 'about':
+          pageTitle = 'About DS TECH & CAC Compliance';
+          section = 'Corporate Registration RC-1849204';
+          workflowState = 'Viewing Corporate Verification';
+          break;
+        case 'services':
+          pageTitle = 'Digital Services & Engineering Catalog';
+          section = 'Agency Solutions';
+          workflowState = 'Exploring Tech & Marketing Services';
+          break;
+        case 'portfolio':
+          pageTitle = 'DS TECH Engineering & Campaign Portfolio';
+          section = 'Case Studies';
+          workflowState = 'Viewing Case Studies';
+          break;
+        case 'team':
+          pageTitle = 'DS TECH Leadership & Technical Team';
+          section = 'Team Profiles';
+          workflowState = 'Viewing Team Roster';
+          break;
+        case 'blog':
+          pageTitle = 'DS TECH Industry Insights & Blog';
+          section = 'Articles & Technical Publications';
+          workflowState = 'Reading Articles';
+          break;
+        case 'academy-overview':
+        case 'training':
+          pageTitle = 'DS TECH Training Academy & Course Catalog';
+          section = 'Academy Programmes';
+          programmeOrCourse = 'Academy Programmes (1, 3, 6 Months Tracks)';
+          pricing = 'Virtual: ₦50k-₦200k | Physical: ₦100k-₦300k | Hybrid: ₦150k-₦400k';
+          workflowState = 'Exploring Academy Courses & Pricing';
+          break;
+        case 'student-registration':
+          pageTitle = 'Student Registration & Academy Enrollment';
+          section = 'Enrollment Form';
+          workflowState = 'Completing Student Application';
+          break;
+        case 'tutor-application':
+          pageTitle = 'Tutor & Instructor Faculty Application';
+          section = 'Faculty Recruitment';
+          workflowState = 'Applying for Tutor Role';
+          break;
+        case 'scholarship-application':
+          pageTitle = 'Scholarship & Financial Assistance Application';
+          section = 'Tuition Assistance';
+          workflowState = 'Applying for Scholarship';
+          break;
+        case 'internship-application':
+          pageTitle = 'Graduate Internship Application';
+          section = 'Industrial Placement';
+          workflowState = 'Applying for Internship';
+          break;
+        case 'corporate-training':
+          pageTitle = 'Corporate B2B Workforce Upskilling';
+          section = 'Enterprise Solutions';
+          workflowState = 'Requesting Corporate Proposal';
+          break;
+        case 'mentorship-application':
+          pageTitle = '1-on-1 Executive Mentorship Programme';
+          section = 'Advisory';
+          workflowState = 'Applying for Mentorship';
+          break;
+        case 'student-dashboard':
+          pageTitle = 'Student Learning Dashboard';
+          section = 'Active Student Workspace';
+          workflowState = 'In Student Dashboard';
+          break;
+        case 'tutor-dashboard':
+          pageTitle = 'Tutor & Faculty Dashboard';
+          section = 'Teaching Workspace';
+          workflowState = 'In Faculty Workspace';
+          break;
+        case 'staff-portal':
+          pageTitle = 'Staff Internal Portal';
+          section = 'Employee Workspace';
+          workflowState = 'In Staff Workspace';
+          break;
+        case 'clients':
+          pageTitle = 'Client Portal & Project Milestones';
+          section = 'Client Area';
+          workflowState = 'Viewing Client Milestones';
+          break;
+        case 'careers':
+          pageTitle = selectedRoleTitle ? `Career Opportunity: ${selectedRoleTitle}` : 'Careers at DS TECH';
+          section = 'Job Openings';
+          workflowState = 'Browsing Careers';
+          break;
+        case 'account':
+          pageTitle = 'User Account & Candidate Portal';
+          section = 'Account Settings';
+          workflowState = 'Managing Candidate Credentials';
+          break;
+        case 'recognition':
+          pageTitle = 'CAC Credentials & Industry Recognition';
+          section = 'Verification & Clearance';
+          workflowState = 'Viewing CAC Compliance';
+          break;
+      }
+    }
+
+    const role = isAdminView 
+      ? 'Admin' 
+      : activePage === 'staff-portal' 
+        ? 'Staff' 
+        : activePage === 'tutor-dashboard' 
+          ? 'Tutor' 
+          : activePage === 'student-dashboard' || activePage === 'training' 
+            ? 'Student' 
+            : activePage === 'clients' 
+              ? 'Client' 
+              : activePage === 'account' 
+                ? 'Applicant' 
+                : 'Public';
+
+    let userObj = null;
+    try {
+      const u = localStorage.getItem('currentUser');
+      if (u) userObj = JSON.parse(u);
+    } catch (e) {}
+
+    return {
+      route: activePage,
+      pageTitle,
+      section,
+      programmeOrCourse,
+      pricing,
+      userRole: role,
+      userData: userObj,
+      workflowState
+    };
+  }, [activePage, isAdminView, selectedRoleTitle]);
 
   useEffect(() => {
     async function loadCac() {
@@ -577,376 +731,125 @@ export default function App() {
     >
       <PWAPrompt />
       {/* Upper Navigation Header Bar */}
-      {!isAdminView && !isUserLoggedIn && !['student-registration', 'tutor-application', 'academy-overview', 'training', 'portfolio', 'recognition', 'about', 'blog'].includes(activePage) && (
-        <header className="no-print bg-white dark:bg-slate-900/85 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-50 shadow-sm px-4 py-3 sm:px-6 sm:py-3.5 flex flex-col lg:flex-row gap-3 lg:gap-4 justify-between items-center transition-colors duration-300 animate-fade-in">
-          
-          {/* Logo Container and Mobile Controls (Language + Theme + Menu Toggle) */}
-          <div className="flex items-center justify-between w-full lg:w-auto gap-2">
-            <div className="flex items-center gap-2 cursor-pointer max-w-[50%] xs:max-w-[60%] sm:max-w-[70%] overflow-hidden shrink" onClick={navigateToRoot}>
-              <Logo size="sm" showText={true} className="max-w-full" variant={theme === 'dark' ? 'light' : 'dark'} />
-            </div>
+      {!isAdminView && !isUserLoggedIn && activePage === 'home' && !currentAppId && !isApplying && (
+        <header className="no-print bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 sticky top-0 z-50 transition-colors duration-200">
+          <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-2 sm:gap-4">
             
-            {/* Mobile Buttons Group (Language Dropdown, Theme Toggle, Three Branded Dots) */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* Mobile Language Selector */}
-              <div className="relative lg:hidden" ref={mobileLangRef}>
-                <motion.button
-                  whileHover={{ scale: 1.1, rotate: [0, -3, 3, 0] }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
-                  className="px-2.5 py-1.5 bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/40 dark:border-slate-700/50 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm"
-                  type="button"
-                >
-                  <motion.div
-                    animate={isLangDropdownOpen ? { rotate: 360, scale: 1.2 } : { rotate: 0, scale: 1 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 10 }}
+            {/* Logo Container */}
+            <div 
+              className="flex items-center cursor-pointer select-none shrink-0 group" 
+              onClick={navigateToRoot}
+              title="DS TECH & Digital Marketing Agency"
+            >
+              <Logo size="sm" showText={true} variant={theme === 'dark' ? 'light' : 'dark'} />
+            </div>
+
+            {/* Desktop Navigation Links */}
+            <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5">
+              {navMenuTranslations[language as LanguageCode].map((item) => {
+                const isActive = activePage === item.value;
+                return (
+                  <button
+                    key={item.value}
+                    onClick={() => safeNavigate(item.value === 'home' ? '/' : `/${item.value}`)}
+                    className={`relative px-3 py-1.5 text-[13px] font-semibold rounded-lg transition-all duration-150 cursor-pointer select-none flex items-center gap-1.5 focus:outline-none ${
+                      isActive
+                        ? 'text-slate-950 dark:text-white font-bold bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/40'
+                    }`}
+                    type="button"
                   >
-                    <Globe size={13} className="text-indigo-500" />
-                  </motion.div>
-                  <span className="text-[10px] font-mono uppercase font-black">{language}</span>
-                  <ChevronDown size={9} className={`text-slate-400 transition-transform duration-300 ${isLangDropdownOpen ? 'rotate-180' : ''}`} />
-                </motion.button>
-                
+                    <span>{item.label}</span>
+                    {item.value === 'careers' && (
+                      <span className="relative flex h-1.5 w-1.5">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500"></span>
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Unified Control Suite (Language + Theme + Menu) */}
+            <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+              
+              {/* Language Selector Dropdown */}
+              <div className="relative" ref={desktopLangRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+                  className="h-9 sm:h-9.5 px-3 rounded-full border border-slate-200/90 dark:border-slate-800 bg-slate-50/90 hover:bg-slate-100 dark:bg-slate-900/90 dark:hover:bg-slate-800/90 text-slate-700 dark:text-slate-200 text-xs font-bold transition-all duration-150 flex items-center gap-1.5 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50"
+                  aria-label="Select language"
+                >
+                  <Globe className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                  <span className="uppercase tracking-wider text-[11px] font-bold">
+                    {language}
+                  </span>
+                  <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform duration-200 ${isLangDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
                 <AnimatePresence>
                   {isLangDropdownOpen && (
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.7, y: -25, rotateX: -30, rotateY: 15 }}
-                      animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0, rotateY: 0 }}
-                      exit={{ opacity: 0, scale: 0.75, y: -20, rotateX: -20, rotateY: 10 }}
-                      transition={{ type: "spring", stiffness: 450, damping: 14, mass: 0.8 }}
-                      className="absolute right-0 mt-2 w-44 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50 p-1.5 origin-top-right"
+                      initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -6 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="absolute right-0 mt-2 w-48 bg-white/98 dark:bg-slate-900/98 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xl z-50 p-1.5 overflow-hidden origin-top-right"
                     >
-                      {LANGUAGES.map((lang, idx) => (
-                        <motion.button
+                      <div className="text-[9px] uppercase tracking-wider font-extrabold text-slate-400 dark:text-slate-500 px-3 py-1.5 border-b border-slate-100 dark:border-slate-800 mb-1">
+                        Select Language
+                      </div>
+                      {LANGUAGES.map((lang) => (
+                        <button
                           key={lang.code}
-                          initial={{ opacity: 0, x: -30, scale: 0.8 }}
-                          animate={{ opacity: 1, x: 0, scale: 1 }}
-                          transition={{ delay: idx * 0.05, type: "spring", stiffness: 400, damping: 12 }}
-                          whileHover={{ x: 6, scale: 1.05, backgroundColor: 'rgba(249, 115, 22, 0.08)' }}
-                          whileTap={{ scale: 0.95 }}
                           onClick={() => {
                             setLanguage(lang.code);
                             setIsLangDropdownOpen(false);
                           }}
-                          className={`w-full text-left px-2.5 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center justify-between ${
+                          className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors flex items-center justify-between cursor-pointer ${
                             language === lang.code
-                              ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400'
-                              : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
+                              ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 font-bold'
+                              : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100/70 dark:hover:bg-slate-800/50'
                           }`}
                           type="button"
                         >
-                          <span className="flex items-center gap-1.5">
-                            <span className="text-xs">{lang.flag}</span>
-                            <span className="text-[11px]">{lang.label}</span>
+                          <span className="flex items-center gap-2">
+                            <span>{lang.flag}</span>
+                            <span>{lang.label}</span>
                           </span>
                           {language === lang.code && (
-                            <motion.span initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 600, damping: 10 }}>
-                              <Check size={11} className="text-orange-500" />
-                            </motion.span>
+                            <Check className="w-3.5 h-3.5 text-orange-500" />
                           )}
-                        </motion.button>
+                        </button>
                       ))}
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
 
-              {/* Mobile Theme Toggle Button with High Modern Motion */}
-              <motion.button
-                whileHover={{ scale: 1.1, rotate: 15 }}
-                whileTap={{ scale: 0.85, rotate: -30 }}
-                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-                className="lg:hidden relative p-2.5 overflow-hidden rounded-xl bg-gradient-to-br from-white to-white dark:from-slate-800 dark:to-slate-900 text-slate-700 dark:text-slate-200 border border-slate-200/50 dark:border-slate-700/60 shadow-md flex items-center justify-center cursor-pointer"
+              {/* Theme Toggle Button */}
+              <button
                 type="button"
+                onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                className="h-9 sm:h-9.5 w-9 sm:w-9.5 rounded-full border border-slate-200/90 dark:border-slate-800 bg-slate-50/90 hover:bg-slate-100 dark:bg-slate-900/90 dark:hover:bg-slate-800/90 text-slate-700 dark:text-slate-200 flex items-center justify-center transition-all duration-150 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/50"
                 title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
+                aria-label="Toggle theme"
               >
-                {/* Dynamic colored background flare */}
-                <motion.div 
-                  className="absolute inset-0 opacity-10 bg-gradient-to-tr from-amber-400 to-orange-500 dark:from-white0 dark:to-purple-600"
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                />
-                <AnimatePresence mode="wait" initial={false}>
-                  {theme === 'light' ? (
-                    <motion.div
-                      key="sun-mobile"
-                      initial={{ scale: 0, rotate: -180, opacity: 0 }}
-                      animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                      exit={{ scale: 0, rotate: 180, opacity: 0 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                    >
-                      <Sun size={14} className="text-amber-500 fill-amber-500 drop-shadow-md" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="moon-mobile"
-                      initial={{ scale: 0, rotate: -180, opacity: 0 }}
-                      animate={{ scale: 1, rotate: 0, opacity: 1 }}
-                      exit={{ scale: 0, rotate: 180, opacity: 0 }}
-                      transition={{ type: "spring", stiffness: 300, damping: 15 }}
-                    >
-                      <Moon size={14} className="text-indigo-400 fill-indigo-400 drop-shadow-md" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.button>
+                {theme === 'light' ? (
+                  <Sun className="w-4 h-4 text-amber-500 fill-amber-500/20 transition-transform duration-200 hover:rotate-45" />
+                ) : (
+                  <Moon className="w-4 h-4 text-indigo-400 fill-indigo-400/20 transition-transform duration-200 hover:-rotate-12" />
+                )}
+              </button>
 
-              {/* Professional Hamburger Menu Button */}
+              {/* Menu Button */}
               <ProfessionalHamburgerButton
                 isOpen={isMobileMenuOpen}
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="lg:hidden"
               />
             </div>
-          </div>
-
-          {/* Responsive Desktop Ecosystem Navigation Menu */}
-          <nav className="hidden lg:flex items-center lg:w-auto gap-2">
-            <div className="flex items-center gap-1 xl:gap-2">
-              {navMenuTranslations[language as LanguageCode].map((item, idx) => {
-                const isActive = activePage === item.value;
-                return (
-                  <motion.button
-                    key={item.value}
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.04, type: "spring", stiffness: 300, damping: 20 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => safeNavigate(item.value === 'home' ? '/' : `/${item.value}`)}
-                    className={`relative px-3 py-1.5 text-xs font-extrabold rounded-xl transition-colors duration-300 cursor-pointer select-none`}
-                    style={{ color: isActive ? '#FFFFFF' : 'inherit' }}
-                    type="button"
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeNavBackground"
-                        className="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-500 rounded-xl shadow-lg shadow-orange-500/20 z-0"
-                        transition={{ type: "spring", stiffness: 380, damping: 28 }}
-                      />
-                    )}
-                    <span className="relative z-10 flex items-center gap-1">
-                      {item.label}
-                      {item.value === 'careers' && (
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
-                        </span>
-                      )}
-                    </span>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </nav>
-
-          {/* Desktop-Only Action Widgets Row */}
-          <div className="hidden lg:flex items-center gap-2.5 sm:gap-3">
-            
-            {/* Animated Language Toggle with High Motion */}
-            <div className="relative" ref={desktopLangRef}>
-              <motion.button
-                whileHover={{ scale: 1.1, rotate: [0, -2, 2, 0] }}
-                whileTap={{ scale: 0.94 }}
-                onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
-                className="px-3 py-1.5 bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
-                type="button"
-              >
-                <motion.div
-                  animate={isLangDropdownOpen ? { rotate: 360, scale: 1.25 } : { rotate: 0, scale: 1 }}
-                  transition={{ type: "spring", stiffness: 350, damping: 10 }}
-                >
-                  <Globe size={13} className="text-indigo-500" />
-                </motion.div>
-                <span>{LANGUAGES.find(l => l.code === language)?.flag} {LANGUAGES.find(l => l.code === language)?.label}</span>
-                <ChevronDown size={12} className={`text-slate-400 transition-transform duration-300 ${isLangDropdownOpen ? 'rotate-180' : ''}`} />
-              </motion.button>
-
-              <AnimatePresence>
-                {isLangDropdownOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.7, y: -25, rotateX: -30, rotateY: 15 }}
-                    animate={{ opacity: 1, scale: 1, y: 0, rotateX: 0, rotateY: 0 }}
-                    exit={{ opacity: 0, scale: 0.75, y: -20, rotateX: -20, rotateY: 10 }}
-                    transition={{ type: "spring", stiffness: 450, damping: 14, mass: 0.8 }}
-                    className="absolute right-0 mt-2 w-48 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden z-50 p-1.5 origin-top-right"
-                  >
-                    <div className="text-[9px] uppercase tracking-wider font-black text-slate-400 dark:text-slate-500 px-3 py-1.5 border-b border-slate-100 dark:border-slate-700 mb-1">
-                      Select Language
-                    </div>
-                    {LANGUAGES.map((lang, idx) => (
-                      <motion.button
-                        key={lang.code}
-                        initial={{ opacity: 0, x: -30, scale: 0.8 }}
-                        animate={{ opacity: 1, x: 0, scale: 1 }}
-                        transition={{ delay: idx * 0.05, type: "spring", stiffness: 400, damping: 12 }}
-                        whileHover={{ x: 6, scale: 1.05, backgroundColor: 'rgba(249, 115, 22, 0.08)' }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => {
-                          setLanguage(lang.code);
-                          setIsLangDropdownOpen(false);
-                        }}
-                        className={`w-full text-left px-3 py-1.5 rounded-xl text-xs font-bold transition-colors flex items-center justify-between ${
-                          language === lang.code
-                            ? 'bg-orange-50 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400'
-                            : 'text-slate-700 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
-                        }`}
-                        type="button"
-                      >
-                        <span className="flex items-center gap-2">
-                          <span>{lang.flag}</span>
-                          <span>{lang.label}</span>
-                        </span>
-                        {language === lang.code && (
-                          <motion.span initial={{ scale: 0, rotate: -45 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 600, damping: 10 }}>
-                            <Check size={12} className="text-orange-500" />
-                          </motion.span>
-                        )}
-                      </motion.button>
-                    ))}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Animated Dark/Light Sliding Toggle with dynamic gradient background */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-              className="p-1 w-16 h-9 rounded-full flex items-center relative cursor-pointer shadow-lg overflow-hidden border border-slate-200/60 dark:border-slate-700/80 transition-colors duration-500"
-              type="button"
-              title={theme === 'light' ? 'Switch to Dark Mode' : 'Switch to Light Mode'}
-            >
-              {/* Dynamic Sliding Gradient Background */}
-              <motion.div 
-                className="absolute inset-0 w-[200%] h-full flex"
-                animate={{ x: theme === 'light' ? '0%' : '-50%' }}
-                transition={{ type: 'spring', stiffness: 120, damping: 20 }}
-              >
-                <div className="w-1/2 h-full bg-gradient-to-r from-amber-200 via-sky-200 to-sky-300" />
-                <div className="w-1/2 h-full bg-gradient-to-r from-indigo-950 via-slate-900 to-[#000E32]" />
-              </motion.div>
-
-              {/* Glowing orbs inside the toggle background */}
-              <div className="absolute inset-y-0 left-2.5 flex items-center opacity-60 pointer-events-none">
-                <Sun size={10} className="text-amber-600" />
-              </div>
-              <div className="absolute inset-y-0 right-2.5 flex items-center opacity-60 pointer-events-none">
-                <Moon size={10} className="text-indigo-300" />
-              </div>
-
-              {/* Elastic Slider Thumb */}
-              <motion.div
-                layout
-                transition={{ type: 'spring', stiffness: 350, damping: 22 }}
-                className="w-7 h-7 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-md border border-slate-200/20 z-10"
-                animate={{ x: theme === 'light' ? 0 : '26px' }}
-              >
-                <AnimatePresence mode="wait" initial={false}>
-                  {theme === 'light' ? (
-                    <motion.div
-                      key="sun-desk"
-                      initial={{ rotate: -180, scale: 0.5, opacity: 0 }}
-                      animate={{ rotate: 0, scale: 1, opacity: 1 }}
-                      exit={{ rotate: 180, scale: 0.5, opacity: 0 }}
-                      transition={{ duration: 0.25, ease: "easeOut" }}
-                    >
-                      <Sun size={13} className="text-amber-500 fill-amber-500" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="moon-desk"
-                      initial={{ rotate: -180, scale: 0.5, opacity: 0 }}
-                      animate={{ rotate: 0, scale: 1, opacity: 1 }}
-                      exit={{ rotate: 180, scale: 0.5, opacity: 0 }}
-                      transition={{ duration: 0.25, ease: "easeOut" }}
-                    >
-                      <Moon size={13} className="text-indigo-400 fill-indigo-400" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            </motion.button>
-
-            <div className="h-4 w-px bg-slate-200 dark:bg-slate-750 mx-0.5" />
-
-            {/* Quick Paystack Direct Deposit Button */}
-            <PaystackPayButton
-              amount={100000}
-              email="client@dstech.agency"
-              customerName="DS Tech Client"
-              title="DS Tech Instant Deposit / Settlement"
-              description="Direct deposit for retainer, project milestone or service settlement"
-              variant="orange"
-              className="px-3 py-1.5 text-xs font-bold"
-            >
-              <CreditCard size={13} className="text-white" />
-              <span className="hidden xl:inline">Pay via Paystack</span>
-              <span className="xl:hidden">Pay</span>
-            </PaystackPayButton>
-
-            {/* Admin Suite Toggle */}
-            {isAdminView ? (
-              <button
-                onClick={navigateToRoot}
-                type="button"
-                className="px-3.5 py-1.5 bg-white hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shadow-sm"
-              >
-                <ClipboardEdit size={12} className="text-orange-600" />
-                <span>{t.portalTitle}</span>
-              </button>
-            ) : (
-              <button
-                onClick={navigateToAdmin}
-                type="button"
-                className="px-3.5 py-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/40 dark:hover:bg-indigo-900/60 text-[#000E32] dark:text-indigo-300 border border-indigo-100 dark:border-indigo-900 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shadow-sm"
-              >
-                <ShieldAlert size={12} className="text-orange-600 animate-pulse" />
-                <span>{t.adminTitle}</span>
-              </button>
-            )}
-
-            <button
-              onClick={() => safeNavigate('/staff-portal')}
-              type="button"
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shadow-sm border ${
-                activePage === 'staff-portal'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-transparent'
-                  : 'bg-indigo-50/50 hover:bg-indigo-100/60 dark:bg-slate-800 dark:hover:bg-slate-700 border-indigo-100/50 dark:border-slate-800 text-slate-700 dark:text-slate-300'
-              }`}
-            >
-              <Briefcase size={12} className={activePage === 'staff-portal' ? 'text-white' : 'text-blue-500'} />
-              <span>Staff Cockpit</span>
-            </button>
-
-            {!currentAppId && !isAdminView && !isApplying && (
-              <button
-                onClick={() => setIsApplying(true)}
-                type="button"
-                className="px-3.5 py-1.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shadow-sm"
-              >
-                <ClipboardEdit size={12} />
-                <span>Apply Now</span>
-              </button>
-            )}
-
-            {currentAppId && !isAdminView && (
-              <button
-                onClick={navigateToRoot}
-                type="button"
-                className="px-3.5 py-1.5 bg-[#000E32] dark:bg-orange-600 dark:hover:bg-orange-500 hover:bg-blue-950 text-white rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5 shadow-md shadow-blue-900/10"
-              >
-                <ClipboardEdit size={12} />
-                {t.applyAccreditation}
-              </button>
-            )}
-
-            {/* Desktop Hamburger Menu Toggle */}
-            <ProfessionalHamburgerButton
-              isOpen={isMobileMenuOpen}
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            />
           </div>
 
           {/* Mobile Navigation Drawer Overlay */}
@@ -1881,191 +1784,22 @@ export default function App() {
 
       {/* Document bottom footer info */}
       {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'academy-overview', 'student-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'student-dashboard', 'tutor-dashboard', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog'].includes(activePage) && (
-        <footer className="no-print bg-slate-900 text-slate-400 border-t border-slate-800 mt-auto pt-16 pb-12 px-6 md:px-12 relative overflow-hidden font-sans">
-        {/* Decorative ambient background light */}
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-indigo-500/5 rounded-full filter blur-3xl pointer-events-none" />
-
-        <div className="max-w-6xl mx-auto relative z-10">
-          
-          {/* Main Footer Bento Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-slate-800">
-            
-            {/* Column 1: Agency Brand Card */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="md:col-span-5 space-y-5"
-            >
-              <div className="flex items-center gap-3">
-                <Logo size="md" showText={true} variant="light" className="bg-slate-800 p-1.5 rounded-xl border border-slate-700/50" />
-              </div>
-              <p className="text-slate-300 text-xs leading-relaxed max-w-sm font-medium">
-                Amplifying digital footprints and building next-generation digital products across West Africa and beyond. We combine high-performance marketing, creative brand storytelling, and modern React/Web engineering.
-              </p>
-              <div className="text-[11px] text-slate-400 font-bold space-y-1">
-                <div>RC Number: <motion.span key={publishedCac?.registration_number || publishedCac?.updated_at || '1845921'} initial={{ scale: 1.15, color: '#fb923c' }} animate={{ scale: 1, color: '#e2e8f0' }} transition={{ duration: 1.2, ease: 'easeOut' }} className="text-slate-200 font-mono inline-block">{publishedCac?.registration_number || '1845921'}</motion.span></div>
-                <div>Status: <span className="text-emerald-400">{publishedCac?.company_status || 'Incorporated & Active'}</span></div>
-              </div>
-            </motion.div>
-
-            {/* Column 2: Agency Service Verticals */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="md:col-span-4 space-y-4"
-            >
-              <h4 className="text-white text-xs font-extrabold uppercase tracking-widest border-l-2 border-orange-500 pl-3">
-                Agency Verticals
-              </h4>
-              <ul className="space-y-2.5 text-xs font-semibold text-slate-400">
-                <li className="flex items-center gap-2 hover:text-orange-400 transition-colors cursor-pointer group">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-orange-400 transition-all" />
-                  Website & Full-Stack Web Apps
-                </li>
-                <li className="flex items-center gap-2 hover:text-orange-400 transition-colors cursor-pointer group">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-orange-400 transition-all" />
-                  Mobile App Engineering & Prototyping
-                </li>
-                <li className="flex items-center gap-2 hover:text-orange-400 transition-colors cursor-pointer group">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-orange-400 transition-all" />
-                  Social Media Strategy & Ad Campaigns
-                </li>
-                <li className="flex items-center gap-2 hover:text-orange-400 transition-colors cursor-pointer group">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-orange-400 transition-all" />
-                  Content Presentation & Video Production
-                </li>
-                <li className="flex items-center gap-2 hover:text-orange-400 transition-colors cursor-pointer group">
-                  <div className="w-1.5 h-1.5 rounded-full bg-slate-700 group-hover:bg-orange-400 transition-all" />
-                  SEO & Search Engine Optimization
-                </li>
-              </ul>
-            </motion.div>
-
-            {/* Column 3: Contact & Connect Social Channels */}
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="md:col-span-3 space-y-4"
-            >
-              <h4 className="text-white text-xs font-extrabold uppercase tracking-widest border-l-2 border-orange-500 pl-3">
-                Connect & Follow
-              </h4>
-              <p className="text-slate-400 text-xs font-medium leading-relaxed">
-                Stay updated with our creative drives, tech innovations, and ongoing professional staff assessments.
-              </p>
-              
-              {/* Interactive Social Media Platforms Row */}
-              <div className="flex flex-wrap gap-2.5 pt-2">
-                {[
-                  { icon: FacebookIcon, href: 'https://www.facebook.com/share/1DUwq656cM/', label: 'Facebook', hoverClass: 'hover:bg-blue-600 hover:text-white hover:shadow-blue-600/30' },
-                  { icon: InstagramIcon, href: 'https://www.instagram.com/dstechltd3?igsh=Y2xmb3BhODk4eGF3&utm_source=qr', label: 'Instagram', hoverClass: 'hover:bg-gradient-to-tr hover:from-yellow-500 hover:to-purple-600 hover:text-white hover:shadow-purple-500/30' },
-                  { icon: TikTokIcon, href: 'https://www.tiktok.com/@dstechanddigitalltd?_r=1&_t=ZS-98f9P59z155', label: 'TikTok', hoverClass: 'hover:bg-black hover:text-white hover:shadow-white/20' },
-                  { icon: XIcon, href: 'https://x.com/DigitalDs18246', label: 'Twitter/X', hoverClass: 'hover:bg-slate-950 hover:text-white hover:shadow-white/10 border-slate-700' },
-                  { icon: LinkedInIcon, href: 'https://www.linkedin.com/company/dstechanddigitaltd', label: 'LinkedIn', hoverClass: 'hover:bg-blue-700 hover:text-white hover:shadow-blue-700/30' },
-                  { icon: YouTubeIcon, href: 'https://www.youtube.com/@DSTECHANDDIGITALMARKETINGLTD', label: 'YouTube', hoverClass: 'hover:bg-red-600 hover:text-white hover:shadow-red-600/30' },
-                ].map((social, index) => {
-                  const SocialIcon = social.icon;
-                  return (
-                    <motion.a
-                      key={index}
-                      href={social.href}
-                      target={social.href === '#' ? undefined : "_blank"}
-                      rel={social.href === '#' ? undefined : "noopener noreferrer"}
-                      title={social.label}
-                      whileHover={{ scale: 1.15, y: -4 }}
-                      whileTap={{ scale: 0.95 }}
-                      className={`w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/50 text-slate-300 flex items-center justify-center transition-all duration-300 shadow-lg ${social.hoverClass}`}
-                    >
-                      <SocialIcon size={20} />
-                    </motion.a>
-                  );
-                })}
-              </div>
-
-              {/* Fast Scroll to Top Button */}
-              <button
-                type="button"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'auto' })}
-                className="mt-4 text-[10px] uppercase font-extrabold tracking-widest text-orange-400 hover:text-orange-300 transition-colors flex items-center gap-1.5 group"
-              >
-                <ArrowUp size={12} className="group-hover:-translate-y-1 transition-transform duration-300" />
-                Back to View Top
-              </button>
-            </motion.div>
-
-          </div>
-
-          {/* Sub Footer Copyright & Ingress status */}
-          <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[12px] text-slate-300 font-medium border-t border-slate-800/80 mt-2">
-            <div className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-center sm:text-left">
-              <span className="text-slate-400">© 2026</span>
-              <span className="text-orange-400 font-extrabold">DS TECH & DIGITAL MARKETING AGENCY LIMITED</span>
-              <span className="hidden sm:inline text-slate-600">•</span>
-              <span className="text-slate-300">All Rights Reserved. Registered in Garki, Abuja, Nigeria.</span>
-            </div>
-          </div>
-
-        </div>
-      </footer>
+        <MainFooter publishedCac={publishedCac} />
       )}
-      {/* Floating AI Assistant Copilot Launcher Button */}
-      <motion.button
-        whileHover={{ scale: 1.06, y: -2 }}
-        whileTap={{ scale: 0.94 }}
-        onClick={() => setIsAiModalOpen(true)}
-        className="fixed bottom-6 right-6 z-40 p-3 sm:px-4 sm:py-3 bg-slate-950/90 text-white rounded-2xl shadow-2xl shadow-slate-950/60 flex items-center gap-3 border border-orange-500/40 hover:border-orange-500 hover:brightness-110 transition-all cursor-pointer group backdrop-blur-md"
-        title="Open DS Tech AI Assistant"
-      >
-        <div className="relative flex items-center justify-center p-0.5">
-          <Logo size="xs" showText={false} variant="light" />
-          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-slate-950 animate-pulse" />
-        </div>
-        <div className="hidden sm:flex flex-col text-left leading-none">
-          <span className="text-[11px] font-black uppercase tracking-wider text-white font-serif">
-            DS Tech AI
-          </span>
-          <span className="text-[9px] font-bold text-orange-400 uppercase tracking-widest mt-0.5">
-            Assistant
-          </span>
-        </div>
-      </motion.button>
+      {/* Premium Circular Floating AI Assistant Launcher */}
+      <FloatingAiLauncher
+        onClick={() => setIsAiModalOpen(!isAiModalOpen)}
+        isModalOpen={isAiModalOpen}
+        pageContext={currentPageContext}
+      />
 
-      {/* Enterprise AI Assistant Modal */}
+      {/* Enterprise AI Assistant Workspace Modal */}
       <EnterpriseAiAssistantModal
         isOpen={isAiModalOpen}
         onClose={() => setIsAiModalOpen(false)}
-        userRole={
-          isAdminView 
-            ? 'Admin' 
-            : activePage === 'staff-portal' 
-              ? 'Staff' 
-              : activePage === 'tutor-dashboard' 
-                ? 'Tutor' 
-                : activePage === 'clients' 
-                  ? 'Client' 
-                  : activePage === 'training' 
-                    ? 'Student' 
-                    : activePage === 'account' 
-                      ? 'Applicant' 
-                      : 'Public'
-        }
-        currentUser={
-          (() => {
-            try {
-              const u = localStorage.getItem('currentUser');
-              return u ? JSON.parse(u) : null;
-            } catch (e) {
-              return null;
-            }
-          })()
-        }
+        userRole={currentPageContext.userRole}
+        currentUser={currentPageContext.userData}
+        pageContext={currentPageContext}
       />
     </div>
   );

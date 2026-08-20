@@ -1,3 +1,5 @@
+import { MIN_ACADEMY_TUITION } from './pricing';
+
 // Master Academy Course Dataset with all 115 Courses & 22 Categories
 export interface AcademyCategory {
   id: string;
@@ -56,7 +58,7 @@ export const ACADEMY_CATEGORIES: AcademyCategory[] = [
   { id: 'fashion', name: 'Fashion & Beauty', shortName: 'Fashion & Beauty', courseCount: 5, iconName: 'Shirt', gradient: 'from-rose-500 to-pink-600', accentColor: '#E11D48', description: 'Fashion brand architecture, digital apparel marketing, e-commerce storefronts, and beauty content creation.' },
   { id: 'construction', name: 'Construction & Engineering', shortName: 'Construction & Eng.', courseCount: 5, iconName: 'HardHat', gradient: 'from-amber-600 to-orange-700', accentColor: '#C2410C', description: 'Construction project management, AutoCAD building design fundamentals, and structural commercial marketing.' },
   { id: 'energy', name: 'Oil, Gas & Energy', shortName: 'Oil & Energy', courseCount: 5, iconName: 'Flame', gradient: 'from-red-600 to-amber-600', accentColor: '#DC2626', description: 'Certified HSE environmental management, energy business administration, and oil & gas project pipelines.' },
-  { id: 'faith', name: 'Religious Organizations & Faith-Based', shortName: 'Faith & Ministry', courseCount: 4, iconName: 'Cross', gradient: 'from-violet-600 to-purple-800', accentColor: '#6D28D9', description: 'Church digital media production, live streaming operations, AI administration, and faith outreach funnels.' },
+  { id: 'faith', name: 'Religious Organizations & Faith-Based', shortName: 'Faith & Ministry', courseCount: 4, iconName: 'BookOpen', gradient: 'from-violet-600 to-purple-800', accentColor: '#6D28D9', description: 'Church digital media production, live streaming operations, AI administration, and faith outreach funnels.' },
   { id: 'manufacturing', name: 'Manufacturing & Production', shortName: 'Manufacturing', courseCount: 3, iconName: 'Factory', gradient: 'from-zinc-600 to-slate-700', accentColor: '#52525B', description: 'Lean manufacturing pipelines, total quality assurance (QA/QC), and automated inventory management.' },
   { id: 'entertainment', name: 'Media & Entertainment', shortName: 'Entertainment', courseCount: 5, iconName: 'Film', gradient: 'from-purple-600 to-rose-600', accentColor: '#9333EA', description: 'AI cinema production, television broadcasting, digital journalism, and comedy skit monetization.' },
   { id: 'remote', name: 'Freelancing & Remote Work', shortName: 'Remote & Freelance', courseCount: 5, iconName: 'Laptop', gradient: 'from-emerald-500 to-cyan-600', accentColor: '#10B981', description: 'Upwork top-rated blueprint, Fiverr gigs optimization, virtual assistant skills, and USD remote career scaling.' }
@@ -234,8 +236,8 @@ export const ACADEMY_COURSES: AcademyCourse[] = RAW_COURSES_METADATA.map((c, ind
     duration: c.dur,
     format: '70% Practical / 30% Theory',
     level: c.lvl,
-    price: c.price,
-    originalPrice: c.orig,
+    price: MIN_ACADEMY_TUITION,
+    originalPrice: 85000,
     description: c.desc,
     learningOutcomes: [
       `Master industry-grade tools and practical workflows for ${c.title}`,
@@ -433,3 +435,10 @@ export const CONTACT_DETAILS = {
   emails: ['info@dstechacademy.com', 'dstechanddigitalmarketingltd@gmail.com'],
   website: 'https://ds-techs.netlify.app/'
 };
+
+export function getCourseByCode(code: string): AcademyCourse | undefined {
+  if (!code) return undefined;
+  const normalized = code.trim().toLowerCase();
+  return ACADEMY_COURSES.find(c => c.code.toLowerCase() === normalized || c.id.toLowerCase() === normalized);
+}
+

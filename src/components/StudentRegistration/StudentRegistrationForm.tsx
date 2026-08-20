@@ -21,6 +21,13 @@ import {
   apiSaveStudentRegistration, 
   apiGetStudentRegistration 
 } from '../../lib/studentStorage';
+import { 
+  getPendingEnrollmentIntent, 
+  clearPendingEnrollmentIntent, 
+  apiSaveEnrollment, 
+  generateEnrollmentId 
+} from '../../lib/enrollmentStorage';
+import { AcademyEnrollment } from '../../types/enrollment';
 
 // Subcomponents
 import { Step1EntryModal } from './Step1EntryModal';
@@ -73,8 +80,13 @@ export const StudentRegistrationForm: React.FC<StudentRegistrationFormProps> = (
     }
   }, [currentStep, formViewMode]);
 
-  // Default course selection
-  const defaultCourse = ACADEMY_COURSES.find(c => c.id === initialCourseId) || ACADEMY_COURSES[0];
+  // Default or preserved course selection
+  const pendingIntent = getPendingEnrollmentIntent();
+  const defaultCourse = pendingIntent 
+    ? (ACADEMY_COURSES.find(c => c.id === pendingIntent.courseId) || ACADEMY_COURSES.find(c => c.id === initialCourseId) || ACADEMY_COURSES[0])
+    : (ACADEMY_COURSES.find(c => c.id === initialCourseId) || ACADEMY_COURSES[0]);
+
+  const initialTuition = pendingIntent?.price || defaultCourse.price;
 
   const [formData, setFormData] = useState<StudentRegistrationApplication>({
     id: generateStudentAppId(),
@@ -88,29 +100,29 @@ export const StudentRegistrationForm: React.FC<StudentRegistrationFormProps> = (
       courseCode: defaultCourse.code,
       courseTitle: defaultCourse.title,
       categoryName: defaultCourse.categoryName,
-      duration: '1 Month',
-      mode: 'Physical',
-      lectureDays: 'Mondays-Wednesdays',
-      language: 'English',
+      duration: (pendingIntent?.duration as DurationOption) || '1 Month',
+      mode: (pendingIntent?.mode as LearningMode) || 'Physical',
+      lectureDays: (pendingIntent?.lectureDays as LectureDays) || 'Mondays-Wednesdays',
+      language: (pendingIntent?.language as LanguagePreference) || 'English',
       basePrice: defaultCourse.price,
-      calculatedPrice: defaultCourse.price
+      calculatedPrice: initialTuition
     },
 
     // Step 3: Additional Courses
     additionalCourses: [],
-    totalTuitionFee: defaultCourse.price,
-    depositDue70Percent: Math.round(defaultCourse.price * 0.7),
-    balanceDue30Percent: Math.round(defaultCourse.price * 0.3),
+    totalTuitionFee: initialTuition,
+    depositDue70Percent: Math.round(initialTuition * 0.7),
+    balanceDue30Percent: Math.round(initialTuition * 0.3),
 
     // Step 4: Personal
     passportPhoto: '',
-    fullName: '',
+    fullName: pendingIntent?.fullName || '',
     dateOfBirth: '',
     gender: 'Female',
     countryCode: '+234',
-    phoneNumber: '',
-    whatsappNumber: '',
-    emailAddress: '',
+    phoneNumber: pendingIntent?.phone || '',
+    whatsappNumber: pendingIntent?.phone || '',
+    emailAddress: pendingIntent?.email || '',
     residentialAddress: '',
     idType: 'NIN',
     idNumber: '',
@@ -354,6 +366,39 @@ export const StudentRegistrationForm: React.FC<StudentRegistrationFormProps> = (
       };
 
       await apiSaveStudentRegistration(submissionData);
+
+      // Also automatically record initial course enrollment for the new student
+      try {
+        const enrollmentRecord: AcademyEnrollment = {
+          id: generateEnrollmentId(),
+          enrollmentNumber: generateEnrollmentId(),
+          studentId: submissionData.id,
+          studentEmail: submissionData.emailAddress,
+          studentName: submissionData.fullName,
+          studentPhone: submissionData.phoneNumber,
+          courseId: submissionData.primaryCourse.courseId,
+          courseCode: submissionData.primaryCourse.courseCode,
+          courseTitle: submissionData.primaryCourse.courseTitle,
+          categoryName: submissionData.primaryCourse.categoryName,
+          duration: submissionData.primaryCourse.duration,
+          mode: submissionData.primaryCourse.mode,
+          lectureDays: submissionData.primaryCourse.lectureDays,
+          language: submissionData.primaryCourse.language,
+          location: submissionData.primaryCourse.mode === 'Physical' ? 'Abuja Hub (Main Campus)' : 'Virtual Online Hub',
+          amount: submissionData.primaryCourse.calculatedPrice,
+          paymentMethod: 'paystack',
+          paymentStatus: 'pending',
+          status: 'enrolled',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          verifiedAt: new Date().toISOString()
+        };
+        await apiSaveEnrollment(enrollmentRecord);
+      } catch (enrErr) {
+        console.warn('Auto-enrollment creation on student reg notice:', enrErr);
+      }
+
+      clearPendingEnrollmentIntent();
       setFormData(submissionData);
       setCurrentStep(10);
     } catch (err) {
