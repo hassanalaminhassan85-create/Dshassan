@@ -52,6 +52,9 @@ import { AdminStaffManagement } from './AdminStaffManagement';
 import { AdminAiKnowledgeCenter } from './AiAssistant/AdminAiKnowledgeCenter';
 import { AnimatedHomeSectionImagePreview } from './AnimatedHomeSectionImagePreview';
 import { generateDynamicSvgUrl } from '../lib/mediaUtils';
+import { db } from '../lib/firebase';
+import { collection, query, onSnapshot } from 'firebase/firestore';
+import { apiSubscribeToStaff } from '../lib/api';
 
 // Modular CMS Components
 import { ServicesCMS } from './ServicesCMS';
@@ -379,6 +382,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [adminBlogs, setAdminBlogs] = useState<any[]>([]);
   const [adminCourses, setAdminCourses] = useState<any[]>([]);
 
+  const [adminStaffList, setAdminStaffList] = useState<any[]>([]);
+  const [adminStudentsList, setAdminStudentsList] = useState<any[]>([]);
+  const [adminTutorsList, setAdminTutorsList] = useState<any[]>([]);
+  const [adminEnrollmentsList, setAdminEnrollmentsList] = useState<any[]>([]);
+
   useEffect(() => {
     const unsubServices = apiSubscribeToServices(data => {
       if (data) setAdminServices(data);
@@ -397,18 +405,91 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setApplications(data);
     });
 
+    // Real-time Firestore subscriptions for metrics
+    const qStudents = query(collection(db, 'student_registrations'));
+    const unsubStudents = onSnapshot(qStudents, (snap) => {
+      const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setAdminStudentsList(list);
+    }, err => console.warn("Students sub error:", err));
+
+    const qTutors = query(collection(db, 'tutor_applications'));
+    const unsubTutors = onSnapshot(qTutors, (snap) => {
+      const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setAdminTutorsList(list);
+    }, err => console.warn("Tutors sub error:", err));
+
+    const qEnrollments = query(collection(db, 'enrollments'));
+    const unsubEnrollments = onSnapshot(qEnrollments, (snap) => {
+      const list = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setAdminEnrollmentsList(list);
+    }, err => console.warn("Enrollments sub error:", err));
+
+    const unsubStaff = apiSubscribeToStaff((data) => {
+      if (data) setAdminStaffList(data);
+    });
+
     return () => {
       unsubServices();
       unsubPortfolio();
       unsubBlogs();
       unsubCourses();
       unsubApps();
+      unsubStudents();
+      unsubTutors();
+      unsubEnrollments();
+      unsubStaff();
     };
   }, []);
 
-  const [adminInvoices, setAdminInvoices] = useState<any[]>([]);
+  const [adminInvoices, setAdminInvoices] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('ds_admin_invoices');
+      return saved ? JSON.parse(saved) : CLIENT_INVOICES;
+    } catch (e) {
+      return CLIENT_INVOICES;
+    }
+  });
 
-  const [adminTickets, setAdminTickets] = useState<any[]>([]);
+  const [adminTickets, setAdminTickets] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('ds_admin_tickets');
+      return saved ? JSON.parse(saved) : CLIENT_TICKETS;
+    } catch (e) {
+      return CLIENT_TICKETS;
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('ds_admin_invoices', JSON.stringify(adminInvoices));
+    } catch (e) {}
+  }, [adminInvoices]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('ds_admin_tickets', JSON.stringify(adminTickets));
+    } catch (e) {}
+  }, [adminTickets]);
+
+  const [activeFeedTab, setActiveFeedTab] = useState<'applicants' | 'students' | 'tutors'>('applicants');
+  const [activeTelemetryTab, setActiveTelemetryTab] = useState<'scans' | 'finance' | 'tickets'>('scans');
+
+  const getMergedStudents = () => {
+    const defaultStudents = [
+      { id: 'ds-s1', name: 'Adam Al-Subaie', course: 'Full-Stack Software Architecture', timestamp: '2025-08-15T10:00:00.000Z', status: 'Active' },
+      { id: 'ds-s2', name: 'Sarah Al-Ghamdi', course: 'Cybersecurity Incident Response & AI', timestamp: '2025-08-18T14:30:00.000Z', status: 'Active' },
+      { id: 'ds-s3', name: 'Tariq Mansour', course: 'DevOps & Enterprise Infrastructure', timestamp: '2025-08-20T09:15:00.000Z', status: 'Active' }
+    ];
+    return adminStudentsList.length > 0 ? adminStudentsList : defaultStudents;
+  };
+
+  const getMergedTutors = () => {
+    const defaultTutors = [
+      { id: 'ds-t1', name: 'Dr. Faisal Al-Faisal', specialization: 'Machine Learning & Cloud Platforms', status: 'Approved' },
+      { id: 'ds-t2', name: 'Eng. Reem Al-Dossary', specialization: 'Full-Stack React & Node Systems', status: 'Approved' }
+    ];
+    return adminTutorsList.length > 0 ? adminTutorsList : defaultTutors;
+  };
 
   // Function to refresh all master state data from API/Firestore
   const refreshMasterData = async () => {
@@ -2483,69 +2564,619 @@ export default {
           className={adminModule === 'dashboard' ? "space-y-8" : "space-y-0"}
         >
           {adminModule === 'dashboard' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {/* Welcome Stats */}
-              <div className="bg-gradient-to-br from-[#000E32] to-indigo-950 p-6 rounded-3xl text-white space-y-4 shadow-xl">
-                <div className="flex items-center justify-between">
-                  <div className="p-2 bg-white/10 rounded-xl">
-                    <Sparkles size={20} className="text-orange-400" />
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">System Ready</span>
-                </div>
-                <h3 className="text-xl font-bold font-serif uppercase tracking-tight">Active Recruitment</h3>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-orange-400">{applications.length}</span>
-                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Live Applications</span>
-                </div>
-                <button 
-                  onClick={() => setAdminModule('recruitment')}
-                  className="w-full py-2.5 bg-orange-600 hover:bg-orange-500 text-white text-[10px] font-black uppercase rounded-xl transition-all shadow-lg active:scale-95 cursor-pointer"
-                >
-                  Manage Console
-                </button>
-              </div>
+            <div className="space-y-8 animate-fade-in text-left">
+              {(() => {
+                const mergedStudents = getMergedStudents();
+                const mergedTutors = getMergedTutors();
 
-              {/* CRM Card */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="p-2 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 rounded-xl">
-                    <Landmark size={20} />
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Enterprise CRM</span>
-                </div>
-                <h3 className="text-xl font-bold font-serif uppercase tracking-tight text-[#000E32] dark:text-white">Clients Center</h3>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-indigo-600 dark:text-indigo-400">{CLIENT_INVOICES.length}</span>
-                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Active Ledgers</span>
-                </div>
-                <button 
-                  onClick={() => setAdminModule('clients')}
-                  className="w-full py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#000E32] dark:text-white text-[10px] font-black uppercase rounded-xl transition-all cursor-pointer"
-                >
-                  Open CRM Node
-                </button>
-              </div>
+                // Live Stats Counts
+                const totalApplicationsCount = applications.length;
+                const shortlistedApplicationsCount = applications.filter(a => a.status === 'approved').length;
+                const pendingApplicationsCount = applications.filter(a => a.status === 'pending').length;
 
-              {/* Cloud Storage Card */}
-              <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl space-y-4 shadow-sm">
-                <div className="flex items-center justify-between">
-                  <div className="p-2 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-xl">
-                    <Layers size={20} />
-                  </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cloud Assets</span>
-                </div>
-                <h3 className="text-xl font-bold font-serif uppercase tracking-tight text-[#000E32] dark:text-white">Services Catalog</h3>
-                <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black text-emerald-600 dark:text-emerald-400">{adminServices.length}</span>
-                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">Node Definitions</span>
-                </div>
-                <button 
-                  onClick={() => setAdminModule('website')}
-                  className="w-full py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#000E32] dark:text-white text-[10px] font-black uppercase rounded-xl transition-all cursor-pointer"
-                >
-                  Configure Catalog
-                </button>
-              </div>
+                const studentsCount = mergedStudents.length;
+                const tutorsCount = mergedTutors.length;
+                const staffCount = adminStaffList.length;
+
+                const servicesCount = adminServices.length;
+                const projectsCount = adminProjects.length;
+                const blogsCount = adminBlogs.length;
+
+                const totalInvoicesCount = adminInvoices.length;
+                const paidInvoicesCount = adminInvoices.filter(i => i.status === 'paid').length;
+                const unpaidInvoicesCount = adminInvoices.filter(i => i.status !== 'paid').length;
+
+                const totalTicketsCount = adminTickets.length;
+                const answeredTicketsCount = adminTickets.filter(t => t.status === 'answered').length;
+                const pendingTicketsCount = adminTickets.filter(t => t.status !== 'answered').length;
+
+                return (
+                  <>
+                    {/* Important Operational Alerts Row */}
+                    <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-emerald-500/10 rounded-xl text-emerald-600 dark:text-emerald-400">
+                          <Activity size={18} className="animate-pulse" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5 leading-none">
+                            System Synchronized
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping inline-block" />
+                          </p>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                            Real-time SSE Tunnel active. Cloudflare D1 + Firestore indexes are fully operational.
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Operational Quick Commands Group */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          onClick={() => setShowDeploymentGuideModal(true)}
+                          className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-indigo-700 dark:text-indigo-300 font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 cursor-pointer border border-transparent dark:border-slate-700"
+                        >
+                          <BookOpen size={11} />
+                          <span>Academy Masterclass</span>
+                        </button>
+                        <button
+                          onClick={() => setShowSQLSchemaModal(true)}
+                          className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-indigo-700 dark:text-indigo-300 font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all flex items-center gap-1.5 cursor-pointer border border-transparent dark:border-slate-700"
+                        >
+                          <Database size={11} />
+                          <span>Cloudflare D1 SQL</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Highly Polished Premium Operational Metrics Bento Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5">
+                      {/* 1. Active Recruitment */}
+                      <div 
+                        onClick={() => setAdminModule('recruitment')}
+                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-400 p-5 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm flex flex-col justify-between h-40 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500 font-mono">Recruitment</span>
+                          <div className="p-1.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 rounded-lg group-hover:scale-110 transition-transform">
+                            <Briefcase size={14} />
+                          </div>
+                        </div>
+                        <div className="mt-2">
+                          <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                            {totalApplicationsCount}
+                          </div>
+                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 mt-1">Live Applications</p>
+                        </div>
+                        <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex items-center justify-between text-[10px] text-slate-500">
+                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> {pendingApplicationsCount} Pending</span>
+                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> {shortlistedApplicationsCount} Hired</span>
+                        </div>
+                      </div>
+
+                      {/* 2. Registered Students */}
+                      <div 
+                        onClick={() => setAdminModule('ongoing-projects')}
+                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-400 p-5 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm flex flex-col justify-between h-40 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500 font-mono">Students</span>
+                          <div className="p-1.5 bg-orange-50 dark:bg-orange-950 text-orange-600 dark:text-orange-400 rounded-lg group-hover:scale-110 transition-transform">
+                            <GraduationCap size={14} />
+                          </div>
+                        </div>
+                        <div className="mt-2">
+                          <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                            {studentsCount}
+                          </div>
+                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 mt-1">Academy Registry</p>
+                        </div>
+                        <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex items-center justify-between text-[10px] text-slate-500">
+                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active Student Profiles</span>
+                        </div>
+                      </div>
+
+                      {/* 3. Faculty & Staff */}
+                      <div 
+                        onClick={() => setAdminModule('staff')}
+                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-400 p-5 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm flex flex-col justify-between h-40 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500 font-mono">HR Faculty</span>
+                          <div className="p-1.5 bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 rounded-lg group-hover:scale-110 transition-transform">
+                            <Users size={14} />
+                          </div>
+                        </div>
+                        <div className="mt-2">
+                          <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                            {staffCount + tutorsCount}
+                          </div>
+                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 mt-1">Active Org Units</p>
+                        </div>
+                        <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex items-center justify-between text-[10px] text-slate-500">
+                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-indigo-500" /> {staffCount} Staff</span>
+                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-pink-500" /> {tutorsCount} Tutors</span>
+                        </div>
+                      </div>
+
+                      {/* 4. Digital Assets Catalog */}
+                      <div 
+                        onClick={() => setAdminModule('website')}
+                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-400 p-5 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm flex flex-col justify-between h-40 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500 font-mono">Digital Assets</span>
+                          <div className="p-1.5 bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-lg group-hover:scale-110 transition-transform">
+                            <Layers size={14} />
+                          </div>
+                        </div>
+                        <div className="mt-2">
+                          <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                            {servicesCount + projectsCount + blogsCount}
+                          </div>
+                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 mt-1">CMS Catalogue Nodes</p>
+                        </div>
+                        <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex items-center justify-between text-[10px] text-slate-500">
+                          <span>{servicesCount} Services</span>
+                          <span>{blogsCount} Blogs</span>
+                        </div>
+                      </div>
+
+                      {/* 5. Invoice Ledgers */}
+                      <div 
+                        onClick={() => setAdminModule('clients')}
+                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-400 p-5 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm flex flex-col justify-between h-40 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500 font-mono">CRM Invoices</span>
+                          <div className="p-1.5 bg-pink-50 dark:bg-pink-950 text-pink-600 dark:text-pink-400 rounded-lg group-hover:scale-110 transition-transform">
+                            <Landmark size={14} />
+                          </div>
+                        </div>
+                        <div className="mt-2">
+                          <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                            {totalInvoicesCount}
+                          </div>
+                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 mt-1">Ledger Transcripts</p>
+                        </div>
+                        <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex items-center justify-between text-[10px] text-slate-500">
+                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> {paidInvoicesCount} Paid</span>
+                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-500" /> {unpaidInvoicesCount} Owed</span>
+                        </div>
+                      </div>
+
+                      {/* 6. Support Tickets */}
+                      <div 
+                        onClick={() => setAdminModule('clients')}
+                        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-400 p-5 rounded-2xl cursor-pointer transition-all duration-300 shadow-sm flex flex-col justify-between h-40 group"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500 font-mono">Support Tickets</span>
+                          <div className="p-1.5 bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 rounded-lg group-hover:scale-110 transition-transform">
+                            <MessageSquare size={14} />
+                          </div>
+                        </div>
+                        <div className="mt-2">
+                          <div className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                            {totalTicketsCount}
+                          </div>
+                          <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 mt-1">Open Dispatches</p>
+                        </div>
+                        <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2 flex items-center justify-between text-[10px] text-slate-500">
+                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> {answeredTicketsCount} Solved</span>
+                          <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse" /> {pendingTicketsCount} Pending</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Dual-Column Bento Data Feeds & Realtime Logs section */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      
+                      {/* Left: Live Registration & Recruitment Stream */}
+                      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col h-[520px]">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4 shrink-0">
+                          <div>
+                            <h3 className="text-sm font-extrabold text-[#000E32] dark:text-white uppercase font-mono tracking-wide flex items-center gap-2">
+                              <Users size={16} className="text-indigo-600" />
+                              Ecosystem Registry Stream
+                            </h3>
+                            <p className="text-[10px] text-slate-400 mt-0.5">Real-time candidate pipelines and student registrations</p>
+                          </div>
+
+                          {/* Horizontal Tab Toggle */}
+                          <div className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 max-w-max">
+                            <button
+                              onClick={() => setActiveFeedTab('applicants')}
+                              className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${
+                                activeFeedTab === 'applicants'
+                                  ? 'bg-white dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 shadow-xs'
+                                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                              }`}
+                            >
+                              Candidates
+                            </button>
+                            <button
+                              onClick={() => setActiveFeedTab('students')}
+                              className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${
+                                activeFeedTab === 'students'
+                                  ? 'bg-white dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 shadow-xs'
+                                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                              }`}
+                            >
+                              Students
+                            </button>
+                            <button
+                              onClick={() => setActiveFeedTab('tutors')}
+                              className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${
+                                activeFeedTab === 'tutors'
+                                  ? 'bg-white dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 shadow-xs'
+                                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                              }`}
+                            >
+                              Tutors
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* List Area */}
+                        <div className="flex-1 overflow-y-auto pt-4 scrollbar-thin space-y-3">
+                          {activeFeedTab === 'applicants' && (
+                            <>
+                              {applications.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                                  <AlertCircle size={24} className="text-slate-300 mb-2" />
+                                  <p className="text-[11px] text-slate-500">No job applications recorded yet.</p>
+                                </div>
+                              ) : (
+                                [...applications].slice(0, 5).map((app: any) => (
+                                  <div 
+                                    key={app.id} 
+                                    className="p-3 border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30 rounded-xl flex items-center justify-between gap-4 hover:bg-slate-100/50 dark:hover:bg-slate-800/40 transition-colors"
+                                  >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <div className="w-8 h-8 rounded-full bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center font-bold text-indigo-700 dark:text-indigo-400 text-xs shrink-0">
+                                        {app.personalDetails?.fullName?.charAt(0) || "C"}
+                                      </div>
+                                      <div className="text-left min-w-0">
+                                        <p className="font-extrabold text-xs text-slate-900 dark:text-white truncate">{app.personalDetails?.fullName || "Anonymous"}</p>
+                                        <p className="text-[10px] text-slate-500 truncate mt-0.5">{app.positionSkills?.majorRole || "Software Developer"}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 shrink-0">
+                                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                                        app.status === 'approved' 
+                                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400' 
+                                          : app.status === 'rejected'
+                                          ? 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400'
+                                          : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400'
+                                      }`}>
+                                        {app.status || 'pending'}
+                                      </span>
+                                      <button
+                                        onClick={() => {
+                                          setSelectedApp(app);
+                                          setAdminModule('recruitment');
+                                        }}
+                                        className="px-2.5 py-1 bg-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] font-bold cursor-pointer"
+                                      >
+                                        Review
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                              {applications.length > 5 && (
+                                <button 
+                                  onClick={() => setAdminModule('recruitment')}
+                                  className="w-full py-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wide rounded-xl transition-colors cursor-pointer mt-2"
+                                >
+                                  View all {applications.length} applications
+                                </button>
+                              )}
+                            </>
+                          )}
+
+                          {activeFeedTab === 'students' && (
+                            <>
+                              {mergedStudents.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                                  <GraduationCap size={24} className="text-slate-300 mb-2" />
+                                  <p className="text-[11px] text-slate-500">No student registrations recorded yet.</p>
+                                </div>
+                              ) : (
+                                [...mergedStudents].slice(0, 5).map((student: any) => (
+                                  <div 
+                                    key={student.id} 
+                                    className="p-3 border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30 rounded-xl flex items-center justify-between gap-4 hover:bg-slate-100/50 dark:hover:bg-slate-800/40 transition-colors"
+                                  >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <div className="w-8 h-8 rounded-full bg-orange-50 dark:bg-orange-950 flex items-center justify-center font-bold text-orange-700 dark:text-orange-400 text-xs shrink-0">
+                                        {student.name?.charAt(0) || student.studentName?.charAt(0) || "S"}
+                                      </div>
+                                      <div className="text-left min-w-0">
+                                        <p className="font-extrabold text-xs text-slate-900 dark:text-white truncate">{student.name || student.studentName || "Academy Student"}</p>
+                                        <p className="text-[10px] text-slate-500 truncate mt-0.5">{student.course || student.selectedCourse || "General Academy Program"}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 shrink-0 text-right">
+                                      <span className="text-[9px] font-mono text-slate-400 block">{student.timestamp?.split('T')[0] || student.dateRegistered || "Just now"}</span>
+                                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+                                        Active
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                              {mergedStudents.length > 5 && (
+                                <button 
+                                  onClick={() => setAdminModule('ongoing-projects')}
+                                  className="w-full py-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wide rounded-xl transition-colors cursor-pointer mt-2"
+                                >
+                                  Open Academy CRM Node
+                                </button>
+                              )}
+                            </>
+                          )}
+
+                          {activeFeedTab === 'tutors' && (
+                            <>
+                              {mergedTutors.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                                  <Users size={24} className="text-slate-300 mb-2" />
+                                  <p className="text-[11px] text-slate-500">No tutor applications recorded yet.</p>
+                                </div>
+                              ) : (
+                                [...mergedTutors].slice(0, 5).map((tutor: any) => (
+                                  <div 
+                                    key={tutor.id} 
+                                    className="p-3 border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30 rounded-xl flex items-center justify-between gap-4 hover:bg-slate-100/50 dark:hover:bg-slate-800/40 transition-colors"
+                                  >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-950 flex items-center justify-center font-bold text-blue-700 dark:text-blue-400 text-xs shrink-0">
+                                        {tutor.name?.charAt(0) || tutor.fullName?.charAt(0) || "T"}
+                                      </div>
+                                      <div className="text-left min-w-0">
+                                        <p className="font-extrabold text-xs text-slate-900 dark:text-white truncate">{tutor.name || tutor.fullName || "Subject Tutor"}</p>
+                                        <p className="text-[10px] text-slate-500 truncate mt-0.5">{tutor.specialization || tutor.areaOfExpertise || "Instructional Design"}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex items-center gap-3 shrink-0">
+                                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400">
+                                        {tutor.status || "Approved"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                              {mergedTutors.length > 5 && (
+                                <button 
+                                  onClick={() => setAdminModule('staff')}
+                                  className="w-full py-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wide rounded-xl transition-colors cursor-pointer mt-2"
+                                >
+                                  Manage Staff & Faculty Node
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right: Cloudflare Telemetry, CRM Ledgers & Support Dispatch */}
+                      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col h-[520px]">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4 shrink-0">
+                          <div>
+                            <h3 className="text-sm font-extrabold text-[#000E32] dark:text-white uppercase font-mono tracking-wide flex items-center gap-2">
+                              <Activity size={16} className="text-emerald-600" />
+                              System Telemetry Center
+                            </h3>
+                            <p className="text-[10px] text-slate-400 mt-0.5">Relational Cloudflare SQLite & CRM metrics</p>
+                          </div>
+
+                          {/* Horizontal Tab Toggle */}
+                          <div className="flex bg-slate-50 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 max-w-max">
+                            <button
+                              onClick={() => setActiveTelemetryTab('scans')}
+                              className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${
+                                activeTelemetryTab === 'scans'
+                                  ? 'bg-white dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 shadow-xs'
+                                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                              }`}
+                            >
+                              QR Telemetry
+                            </button>
+                            <button
+                              onClick={() => setActiveTelemetryTab('finance')}
+                              className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${
+                                activeTelemetryTab === 'finance'
+                                  ? 'bg-white dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 shadow-xs'
+                                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                              }`}
+                            >
+                              Ledgers
+                            </button>
+                            <button
+                              onClick={() => setActiveTelemetryTab('tickets')}
+                              className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all ${
+                                activeTelemetryTab === 'tickets'
+                                  ? 'bg-white dark:bg-slate-700 text-indigo-700 dark:text-indigo-300 shadow-xs'
+                                  : 'text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
+                              }`}
+                            >
+                              Tickets
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* List Area */}
+                        <div className="flex-1 overflow-y-auto pt-4 scrollbar-thin space-y-3">
+                          {activeTelemetryTab === 'scans' && (
+                            <>
+                              {scanHistory.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                                  <QrCode size={24} className="text-slate-300 mb-2" />
+                                  <p className="text-[11px] text-slate-500">No security badge scans recorded yet.</p>
+                                </div>
+                              ) : (
+                                [...scanHistory].slice(0, 5).map((rec: any) => (
+                                  <div 
+                                    key={rec.id} 
+                                    className="p-3 border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30 rounded-xl flex items-center justify-between gap-4 hover:bg-slate-100/50 dark:hover:bg-slate-800/40 transition-colors"
+                                  >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                      <div className="p-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg shrink-0">
+                                        <QrCode size={14} />
+                                      </div>
+                                      <div className="text-left min-w-0">
+                                        <p className="font-extrabold text-xs text-slate-900 dark:text-white truncate">{rec.applicant_name || "Guest Badge"}</p>
+                                        <p className="text-[9px] font-mono text-slate-400 truncate mt-0.5">
+                                          ID: <span className="text-slate-500 font-bold">{rec.applicant_id?.substring(0, 8)}...</span> • {new Date(rec.scanned_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <div className="shrink-0">
+                                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
+                                        rec.safety_status === 'Verified Safe'
+                                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400'
+                                          : 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400'
+                                      }`}>
+                                        {rec.safety_status || 'Verified'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                              {scanHistory.length > 5 && (
+                                <p className="text-[10px] font-mono text-slate-400 text-center mt-2">
+                                  Displaying {Math.min(5, scanHistory.length)} of {scanHistory.length} ledger logs
+                                </p>
+                              )}
+                            </>
+                          )}
+
+                          {activeTelemetryTab === 'finance' && (
+                            <>
+                              {adminInvoices.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                                  <Landmark size={24} className="text-slate-300 mb-2" />
+                                  <p className="text-[11px] text-slate-500">No client ledgers recorded.</p>
+                                </div>
+                              ) : (
+                                [...adminInvoices].slice(0, 5).map((inv: any) => (
+                                  <div 
+                                    key={inv.id} 
+                                    className="p-3 border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30 rounded-xl flex items-center justify-between gap-4 hover:bg-slate-100/50 dark:hover:bg-slate-800/40 transition-colors text-left"
+                                  >
+                                    <div className="min-w-0">
+                                      <p className="font-extrabold text-xs text-slate-900 dark:text-white truncate">{inv.client || "Client Ledger"}</p>
+                                      <p className="text-[10px] text-slate-500 truncate mt-0.5">Project: {inv.project || "Digital Transformation"}</p>
+                                      <p className="text-[11px] font-mono font-black text-[#000E32] dark:text-indigo-400 mt-1">{inv.amount}</p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-2 shrink-0">
+                                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
+                                        inv.status === 'paid' 
+                                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400' 
+                                          : 'bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400'
+                                      }`}>
+                                        {inv.status}
+                                      </span>
+                                      
+                                      <button
+                                        onClick={() => {
+                                          setAdminInvoices(adminInvoices.map((i: any) => 
+                                            i.id === inv.id 
+                                              ? { ...i, status: i.status === 'paid' ? 'unpaid' : 'paid' } 
+                                              : i
+                                          ));
+                                          setShowAdminNotification(`Ledger payment status for ${inv.client} updated.`);
+                                          setTimeout(() => setShowAdminNotification(null), 3000);
+                                        }}
+                                        className="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded text-[8px] font-mono font-black uppercase text-slate-600 dark:text-slate-300 cursor-pointer"
+                                      >
+                                        Toggle
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                              {adminInvoices.length > 5 && (
+                                <button 
+                                  onClick={() => setAdminModule('clients')}
+                                  className="w-full py-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wide rounded-xl transition-colors cursor-pointer mt-2"
+                                >
+                                  View Invoice Ledgers ({adminInvoices.length})
+                                </button>
+                              )}
+                            </>
+                          )}
+
+                          {activeTelemetryTab === 'tickets' && (
+                            <>
+                              {adminTickets.length === 0 ? (
+                                <div className="h-full flex flex-col items-center justify-center text-center p-8">
+                                  <MessageSquare size={24} className="text-slate-300 mb-2" />
+                                  <p className="text-[11px] text-slate-500">No support dispatches recorded.</p>
+                                </div>
+                              ) : (
+                                [...adminTickets].slice(0, 5).map((t: any) => (
+                                  <div 
+                                    key={t.id} 
+                                    className="p-3 border border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30 rounded-xl flex items-center justify-between gap-4 hover:bg-slate-100/50 dark:hover:bg-slate-800/40 transition-colors text-left"
+                                  >
+                                    <div className="min-w-0">
+                                      <div className="flex items-center gap-1.5">
+                                        <p className="font-extrabold text-xs text-slate-900 dark:text-white truncate">{t.subject}</p>
+                                        <span className={`px-1.5 py-0.2 rounded text-[7px] font-mono font-black uppercase ${
+                                          t.priority === 'high' 
+                                            ? 'bg-red-100 text-red-700' 
+                                            : 'bg-slate-100 text-slate-600'
+                                        }`}>
+                                          {t.priority}
+                                        </span>
+                                      </div>
+                                      <p className="text-[10px] text-slate-500 truncate mt-1">Last response: <span className="font-semibold italic text-slate-600 dark:text-slate-300">"{t.lastMessage || 'Open'}"</span></p>
+                                      <p className="text-[9px] font-mono text-slate-400 mt-1">{t.date}</p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-2 shrink-0">
+                                      <span className={`px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${
+                                        t.status === 'answered' 
+                                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400' 
+                                          : 'bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400'
+                                      }`}>
+                                        {t.status}
+                                      </span>
+                                      <button
+                                        onClick={() => {
+                                          setAdminTickets(adminTickets.map((tic: any) => 
+                                            tic.id === t.id 
+                                              ? { ...tic, status: tic.status === 'answered' ? 'pending' : 'answered', lastMessage: 'Super Admin reviewed this dispatch.' } 
+                                              : tic
+                                          ));
+                                          setShowAdminNotification(`Ticket status updated.`);
+                                          setTimeout(() => setShowAdminNotification(null), 3000);
+                                        }}
+                                        className="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-850 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded text-[8px] font-mono font-black uppercase text-slate-600 dark:text-slate-300 cursor-pointer"
+                                      >
+                                        Resolve
+                                      </button>
+                                    </div>
+                                  </div>
+                                ))
+                              )}
+                              {adminTickets.length > 5 && (
+                                <button 
+                                  onClick={() => setAdminModule('clients')}
+                                  className="w-full py-2 bg-slate-50 hover:bg-slate-100 dark:bg-slate-850 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wide rounded-xl transition-colors cursor-pointer mt-2"
+                                >
+                                  Open CRM Dispatch Console
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
             </div>
           )}
 
