@@ -224,11 +224,11 @@ export const Logo: React.FC<LogoProps> = ({
       </svg>
 
       {showText && (
-        <div className="hidden min-[450px]:flex flex-col text-left justify-center leading-tight min-w-0 shrink">
-          <span className={`font-black uppercase tracking-[0.05em] font-serif ${currentSize.title} ${textColor}`}>
+        <div className="flex flex-col text-left justify-center leading-tight min-w-0 shrink">
+          <span className={`font-black uppercase tracking-[0.05em] font-serif truncate ${currentSize.title} ${textColor}`}>
             DS TECH
           </span>
-          <span className={`font-bold uppercase tracking-[0.14em] font-sans ${currentSize.sub} ${subTextColor} mt-0.5 whitespace-nowrap hidden sm:inline-block`}>
+          <span className={`font-bold uppercase tracking-[0.08em] sm:tracking-[0.14em] font-sans truncate ${currentSize.sub} ${subTextColor} mt-[1px] sm:mt-0.5`}>
             &amp; Digital Marketing Agency
           </span>
         </div>

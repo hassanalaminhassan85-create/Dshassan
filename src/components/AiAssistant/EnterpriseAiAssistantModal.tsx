@@ -646,7 +646,7 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
 
   return (
     <AnimatePresence>
-      <div className={`fixed inset-0 z-50 flex flex-col font-sans overflow-hidden transition-colors duration-150 ${
+      <div className={`fixed inset-0 z-[10000] flex flex-col font-sans overflow-hidden transition-colors duration-150 ${
         isDark ? 'bg-[#090d1a] text-slate-100' : 'bg-[#f8fafc] text-slate-900'
       }`}>
 

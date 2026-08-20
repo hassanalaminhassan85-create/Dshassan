@@ -737,11 +737,11 @@ export default function App() {
             
             {/* Logo Container */}
             <div 
-              className="flex items-center cursor-pointer select-none shrink-0 group" 
+              className="flex items-center cursor-pointer select-none shrink min-w-0 group" 
               onClick={navigateToRoot}
               title="DS TECH & Digital Marketing Agency"
             >
-              <Logo size="sm" showText={true} variant={theme === 'dark' ? 'light' : 'dark'} />
+              <Logo size="sm" showText={true} variant={theme === 'dark' ? 'light' : 'dark'} className="shrink min-w-0" />
             </div>
 
             {/* Desktop Navigation Links */}

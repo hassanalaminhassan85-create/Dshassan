@@ -205,11 +205,11 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
             {/* PANEL HEADER */}
             <div className="px-4 sm:px-5 py-3 sm:py-3.5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/60 shrink-0">
               <div 
-                className="flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-85"
+                className="flex items-center gap-2 cursor-pointer transition-opacity hover:opacity-85 shrink min-w-0"
                 onClick={() => handleLinkClick('/')}
               >
-                <Logo size="sm" showText={true} variant={theme === 'dark' ? 'light' : 'dark'} />
-                <span className="hidden sm:inline-block text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-2 border-l border-slate-200 dark:border-slate-800">
+                <Logo size="sm" showText={true} variant={theme === 'dark' ? 'light' : 'dark'} className="shrink min-w-0" />
+                <span className="hidden sm:inline-block text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-2 border-l border-slate-200 dark:border-slate-800 shrink-0">
                   Menu
                 </span>
               </div>

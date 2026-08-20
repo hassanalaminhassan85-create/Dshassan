@@ -414,16 +414,16 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
       {/* DEDICATED STANDALONE ACADEMY HEADER & NAVIGATION */}
       {/* ========================================================================= */}
       <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-3 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-3 sm:gap-4">
           
           {/* Brand Logo & Dedicated Academy Tag */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink min-w-0">
             <div 
               onClick={() => onNavigate?.('/academy-overview')} 
-              className="flex items-center gap-2.5 cursor-pointer group"
+              className="flex items-center gap-2.5 cursor-pointer group shrink min-w-0"
               title="DS Tech Academy Home"
             >
-              <Logo size="sm" showText={true} variant={isDarkMode ? 'light' : 'dark'} />
+              <Logo size="sm" showText={true} variant={isDarkMode ? 'light' : 'dark'} className="shrink min-w-0" />
               <div className="hidden min-[540px]:flex items-center gap-1.5 pl-3 border-l border-slate-200 dark:border-slate-800">
                 <span className="px-2.5 py-1 rounded-full bg-gradient-to-r from-orange-500/10 to-amber-500/10 dark:from-orange-500/20 dark:to-amber-500/20 text-orange-600 dark:text-orange-400 font-extrabold text-[10px] tracking-wider uppercase border border-orange-500/30 flex items-center gap-1 shadow-2xs">
                   <BadgeCheck className="w-3 h-3 text-orange-500" />
@@ -512,41 +512,41 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
       {/* ========================================================================= */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <div className="fixed inset-0 z-[100] flex justify-end sm:items-center sm:justify-center sm:p-6">
+          <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-6 pb-0">
             {/* Minimalist Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
               onClick={() => setMobileMenuOpen(false)}
-              className="absolute inset-0 bg-slate-900/40 dark:bg-slate-950/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-slate-900/20 dark:bg-slate-950/60 backdrop-blur-md"
             />
 
-            {/* Elegant Mobile Drawer (full-height right-side on mobile, centered modal on desktop) */}
+            {/* Polished Floating Navigation Panel */}
             <motion.div
-              initial={{ x: "100%", opacity: 0.5 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: "100%", opacity: 0.5 }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative z-10 w-full sm:w-[500px] md:w-[550px] h-full sm:h-auto sm:max-h-[85vh] sm:rounded-2xl bg-white dark:bg-slate-900 border-l sm:border border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col overflow-hidden"
+              initial={{ opacity: 0, scale: 0.96, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 20 }}
+              transition={{ type: "spring", damping: 28, stiffness: 250 }}
+              className="relative z-10 w-full sm:w-[85vw] md:w-[75vw] lg:w-[900px] xl:w-[1000px] h-[90vh] sm:h-[70vh] lg:h-[60vh] max-h-[800px] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl sm:rounded-2xl rounded-t-2xl border border-slate-200/60 dark:border-slate-800/60 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] dark:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden"
             >
-              {/* Refined Header */}
-              <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between shrink-0 bg-white dark:bg-slate-900">
+              {/* Premium Header */}
+              <div className="px-6 py-5 border-b border-slate-200/50 dark:border-slate-800/50 flex items-center justify-between shrink-0 bg-white/50 dark:bg-slate-900/50">
                 <div className="flex items-center gap-3">
                   <Logo size="sm" showText={true} variant={isDarkMode ? 'light' : 'dark'} />
-                  <div className="hidden min-[450px]:flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-800">
-                    <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-400">
-                      Navigation
+                  <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-slate-300/50 dark:border-slate-700/50">
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                      Academy Navigation
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={toggleTheme}
-                    className="p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className="p-2.5 rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
                     title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
                   >
                     {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
@@ -555,100 +555,104 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
                   <button
                     type="button"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="p-2 rounded-lg text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className="p-2.5 rounded-full text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
                     aria-label="Close Navigation"
                   >
-                    <X className="w-5 h-5" />
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               </div>
 
               {/* Clean Navigation Grid */}
-              <div className="flex-1 overflow-y-auto p-6 sm:p-8 bg-slate-50/50 dark:bg-slate-900/50">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
+              <div className="flex-1 overflow-y-auto p-6 sm:p-10 bg-transparent custom-scrollbar">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-12">
                   
                   {/* Group 1: Portals & Account */}
-                  <div className="space-y-4">
-                    <h3 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <div className="space-y-5">
+                    <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2.5 mb-6">
                       <LayoutDashboard className="w-3.5 h-3.5" />
-                      <span>Portals</span>
+                      <span>Portals & Access</span>
                     </h3>
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                       <button
                         onClick={() => { setMobileMenuOpen(false); onNavigate?.('/student-dashboard'); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 -mx-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors group text-left"
+                        className="w-full flex items-center gap-3.5 p-3 -mx-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all group text-left border border-transparent hover:border-slate-200 dark:hover:border-slate-700/50"
                       >
-                        <BookCheck className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
+                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-orange-50 dark:group-hover:bg-orange-500/10 transition-colors">
+                          <BookCheck className="w-4 h-4 text-slate-500 group-hover:text-orange-500 transition-colors" />
+                        </div>
                         <span className="text-sm font-medium">Student Portal</span>
                       </button>
                       <button
                         onClick={() => { setMobileMenuOpen(false); onNavigate?.('/tutor-dashboard'); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 -mx-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors group text-left"
+                        className="w-full flex items-center gap-3.5 p-3 -mx-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-all group text-left border border-transparent hover:border-slate-200 dark:hover:border-slate-700/50"
                       >
-                        <UserCheck className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
+                        <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-blue-50 dark:group-hover:bg-blue-500/10 transition-colors">
+                          <UserCheck className="w-4 h-4 text-slate-500 group-hover:text-blue-500 transition-colors" />
+                        </div>
                         <span className="text-sm font-medium">Tutor Dashboard</span>
                       </button>
                     </div>
                   </div>
 
                   {/* Group 2: Applications & Forms */}
-                  <div className="space-y-4">
-                    <h3 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <div className="space-y-5">
+                    <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2.5 mb-6">
                       <FileCheck2 className="w-3.5 h-3.5" />
                       <span>Applications</span>
                     </h3>
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                       <button
                         onClick={() => { setMobileMenuOpen(false); onNavigate?.('/student-registration'); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 -mx-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors group text-left"
+                        className="w-full flex items-center gap-3.5 p-2.5 -mx-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all group text-left"
                       >
                         <GraduationCap className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
                         <span className="text-sm font-medium">Student Registration</span>
                       </button>
                       <button
                         onClick={() => { setMobileMenuOpen(false); onNavigate?.('/tutor-application'); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 -mx-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors group text-left"
+                        className="w-full flex items-center gap-3.5 p-2.5 -mx-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all group text-left"
                       >
                         <Users className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
                         <span className="text-sm font-medium">Faculty Application</span>
                       </button>
                       <button
                         onClick={() => { setMobileMenuOpen(false); onNavigate?.('/scholarship-application'); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 -mx-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors group text-left"
+                        className="w-full flex items-center gap-3.5 p-2.5 -mx-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all group text-left"
                       >
-                        <Award className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
+                        <Award className="w-4 h-4 text-slate-400 group-hover:text-amber-500 transition-colors" />
                         <span className="text-sm font-medium">CSR Scholarship</span>
                       </button>
                       <button
                         onClick={() => { setMobileMenuOpen(false); onNavigate?.('/corporate-training'); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 -mx-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors group text-left"
+                        className="w-full flex items-center gap-3.5 p-2.5 -mx-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all group text-left"
                       >
-                        <Building2 className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
+                        <Building2 className="w-4 h-4 text-slate-400 group-hover:text-indigo-500 transition-colors" />
                         <span className="text-sm font-medium">Corporate Upskilling</span>
                       </button>
                       <button
                         onClick={() => { setMobileMenuOpen(false); onNavigate?.('/internship-application'); }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 -mx-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors group text-left"
+                        className="w-full flex items-center gap-3.5 p-2.5 -mx-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all group text-left"
                       >
-                        <Briefcase className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
+                        <Briefcase className="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" />
                         <span className="text-sm font-medium">Graduate Internship</span>
                       </button>
                     </div>
                   </div>
 
                   {/* Group 3: Explore Academy */}
-                  <div className="space-y-4">
-                    <h3 className="text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <div className="space-y-5">
+                    <h3 className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2.5 mb-6">
                       <Compass className="w-3.5 h-3.5" />
                       <span>Explore</span>
                     </h3>
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                       <button
                         onClick={() => {
                           setMobileMenuOpen(false);
                           document.getElementById('courses-catalog')?.scrollIntoView({ behavior: 'smooth' });
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 -mx-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors group text-left"
+                        className="w-full flex items-center gap-3.5 p-2.5 -mx-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all group text-left"
                       >
                         <BookOpen className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
                         <span className="text-sm font-medium">Courses Catalog</span>
@@ -658,9 +662,9 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
                           setMobileMenuOpen(false);
                           document.getElementById('pathways')?.scrollIntoView({ behavior: 'smooth' });
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 -mx-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors group text-left"
+                        className="w-full flex items-center gap-3.5 p-2.5 -mx-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all group text-left"
                       >
-                        <Layers className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
+                        <Layers className="w-4 h-4 text-slate-400 group-hover:text-blue-500 transition-colors" />
                         <span className="text-sm font-medium">Special Pathways</span>
                       </button>
                       <button
@@ -668,9 +672,9 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
                           setMobileMenuOpen(false);
                           document.getElementById('faculty')?.scrollIntoView({ behavior: 'smooth' });
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 -mx-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors group text-left"
+                        className="w-full flex items-center gap-3.5 p-2.5 -mx-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all group text-left"
                       >
-                        <Users className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
+                        <Users className="w-4 h-4 text-slate-400 group-hover:text-purple-500 transition-colors" />
                         <span className="text-sm font-medium">Faculty Directory</span>
                       </button>
                       <button
@@ -678,9 +682,9 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
                           setMobileMenuOpen(false);
                           document.getElementById('campuses')?.scrollIntoView({ behavior: 'smooth' });
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 -mx-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors group text-left"
+                        className="w-full flex items-center gap-3.5 p-2.5 -mx-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all group text-left"
                       >
-                        <MapPin className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
+                        <MapPin className="w-4 h-4 text-slate-400 group-hover:text-emerald-500 transition-colors" />
                         <span className="text-sm font-medium">Physical Hubs</span>
                       </button>
                       <button
@@ -688,9 +692,9 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
                           setMobileMenuOpen(false);
                           document.getElementById('why-us')?.scrollIntoView({ behavior: 'smooth' });
                         }}
-                        className="w-full flex items-center gap-3 px-3 py-2.5 -mx-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-colors group text-left"
+                        className="w-full flex items-center gap-3.5 p-2.5 -mx-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all group text-left"
                       >
-                        <Award className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
+                        <Award className="w-4 h-4 text-slate-400 group-hover:text-amber-500 transition-colors" />
                         <span className="text-sm font-medium">Why Choose Us</span>
                       </button>
                     </div>
@@ -700,17 +704,18 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
               </div>
 
               {/* Minimalist Footer Action */}
-              <div className="px-6 py-5 border-t border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900 shrink-0 flex items-center justify-between sm:justify-end gap-4">
+              <div className="px-8 py-5 border-t border-slate-200/50 dark:border-slate-800/50 bg-slate-50/50 dark:bg-slate-900/50 shrink-0 flex items-center justify-between gap-4">
+                <span className="text-xs text-slate-400 font-medium hidden sm:inline-block">DS Tech Academy Navigation</span>
                 <button
                   type="button"
                   onClick={() => {
                     setMobileMenuOpen(false);
                     onNavigate?.('/');
                   }}
-                  className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors flex items-center gap-2"
+                  className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors flex items-center gap-2 ml-auto group"
                 >
-                  <ArrowLeft className="w-4 h-4" />
-                  <span>Main Website</span>
+                  <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                  <span>Return to Main Website</span>
                 </button>
               </div>
 
