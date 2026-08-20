@@ -414,7 +414,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
       {/* DEDICATED STANDALONE ACADEMY HEADER & NAVIGATION */}
       {/* ========================================================================= */}
       <header className="sticky top-0 z-40 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-3 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-18 flex items-center justify-between gap-3 sm:gap-4">
           
           {/* Brand Logo & Dedicated Academy Tag */}
           <div className="flex items-center gap-3">

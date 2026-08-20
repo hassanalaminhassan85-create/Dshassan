@@ -129,7 +129,7 @@ export const FloatingAiLauncher: React.FC<FloatingAiLauncherProps> = ({
       />
 
       <div 
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-3 select-none touch-none"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-3 select-none pointer-events-none touch-none"
         style={{ touchAction: 'none' }}
       >
         {/* Contextual Floating Tooltip on Hover or Initial Hint */}
@@ -175,10 +175,10 @@ export const FloatingAiLauncher: React.FC<FloatingAiLauncherProps> = ({
           tabIndex={0}
           aria-label={isModalOpen ? "Close AI Assistant" : "Open DS TECH AI Assistant"}
           title={isModalOpen ? "Close AI Workspace" : `Open DS TECH AI Assistant (${displayContext})`}
-          className={`relative group cursor-grab active:cursor-grabbing flex items-center justify-center transition-all duration-300 ${
+          className={`relative group cursor-grab active:cursor-grabbing flex items-center justify-center transition-all duration-300 pointer-events-auto ${
             isModalOpen
-              ? 'w-12 h-12 rounded-full bg-slate-900 dark:bg-slate-950 text-white border border-orange-500/60 shadow-2xl shadow-orange-500/20'
-              : 'w-14 h-14 rounded-full bg-slate-950/95 dark:bg-slate-900/95 text-white border border-orange-500/50 hover:border-orange-400 shadow-xl shadow-slate-950/50 hover:shadow-2xl hover:shadow-orange-500/30'
+              ? 'w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-slate-900 dark:bg-slate-950 text-white border border-orange-500/60 shadow-2xl shadow-orange-500/20'
+              : 'w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-slate-950/95 dark:bg-slate-900/95 text-white border border-orange-500/50 hover:border-orange-400 shadow-xl shadow-slate-950/50 hover:shadow-2xl hover:shadow-orange-500/30'
           }`}
         >
           {/* Subtle Ambient Idle Breathing Aura Glow */}
