@@ -36,6 +36,12 @@
   }
 }
 
+body, html {
+  overflow-x: clip;
+  width: 100%;
+  position: relative;
+}
+
 @media print {
   body {
     background-color: white !important;

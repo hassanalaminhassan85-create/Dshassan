@@ -727,7 +727,7 @@ export default function App() {
   return (
     <div 
       dir={language === 'ar' ? 'rtl' : 'ltr'}
-      className="min-h-screen bg-white dark:bg-slate-950 flex flex-col font-sans selection:bg-orange-500 selection:text-white transition-colors duration-300"
+      className="min-h-screen w-full bg-white dark:bg-slate-950 flex flex-col font-sans selection:bg-orange-500 selection:text-white transition-colors duration-300"
     >
       <PWAPrompt />
       {/* Upper Navigation Header Bar */}
