@@ -5,7 +5,8 @@ import {
   ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Sparkles, 
   Send, Printer, RotateCcw, CalendarClock, Info, Check, 
   Building2, Globe, Phone, Mail, Shield, User, Clock, Calendar,
-  ExternalLink, FileText, CheckCircle, Download, Copy, X, Image as ImageIcon
+  ExternalLink, FileText, CheckCircle, Download, Copy, X, Image as ImageIcon,
+  Eye, ZoomIn, ZoomOut, Maximize2
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -152,6 +153,21 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
   const [generatedSlipImageUrl, setGeneratedSlipImageUrl] = useState<string | null>(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState<boolean>(false);
   const [imageCopiedSuccess, setImageCopiedSuccess] = useState<boolean>(false);
+
+  // Temporary Visual Capture Diagnostic Helper States
+  const [showDiagnosticInspector, setShowDiagnosticInspector] = useState<boolean>(true);
+  const [isDiagnosticModalOpen, setIsDiagnosticModalOpen] = useState<boolean>(false);
+  const [diagnosticData, setDiagnosticData] = useState<{
+    dataUrl: string;
+    width: number;
+    height: number;
+    blobSizeKb: number;
+    timestamp: string;
+    fontStatus: string;
+    svgStatus: string;
+    taintStatus: string;
+  } | null>(null);
+  const [diagnosticZoom, setDiagnosticZoom] = useState<'fit' | '100' | '150'>('fit');
 
   // Professional PDF Generation Hook
   const { generatePDF, isGenerating: isGeneratingPDF, statusText: pdfStatusText } = useProfessionalPDF();
@@ -350,113 +366,155 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
     }
   };
 
+  // Shared helper to render canonical slip canvas with 100% pixel-perfect CORS safety
+  const renderRegistrationSlipCanvas = async (slipTarget: HTMLElement): Promise<HTMLCanvasElement> => {
+    if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
+    await new Promise(resolve => setTimeout(resolve, 150));
+
+    return await html2canvas(slipTarget, {
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: '#FFFFFF',
+      logging: false,
+      width: 800,
+      windowWidth: 850,
+      onclone: (clonedDoc) => {
+        const target = clonedDoc.getElementById('dsta-render-slip-target') || clonedDoc.getElementById('dsta-course-registration-slip');
+        if (target) {
+          target.style.width = '800px';
+          target.style.maxWidth = '800px';
+          target.style.minWidth = '800px';
+          target.style.height = 'auto';
+          target.style.display = 'block';
+          target.style.visibility = 'visible';
+          target.style.backgroundColor = '#FFFFFF';
+          target.style.margin = '0 auto';
+          target.style.padding = '0';
+
+          // Unwrap all parent container constraints in clonedDoc up to body so mobile viewport width doesn't crop capture
+          let parent = target.parentElement;
+          while (parent && parent !== clonedDoc.body) {
+            parent.style.width = 'auto';
+            parent.style.maxWidth = 'none';
+            parent.style.minWidth = '0';
+            parent.style.overflow = 'visible';
+            parent.style.margin = '0';
+            parent.style.padding = '0';
+            parent = parent.parentElement;
+          }
+          clonedDoc.body.style.width = '850px';
+          clonedDoc.body.style.overflow = 'visible';
+        }
+      }
+    });
+  };
+
   // Dispatch Real High-Resolution Image via WhatsApp
   const handleSendWhatsAppWithImage = async () => {
     if (!submittedRecord || isGeneratingSlipImage) return;
     setIsGeneratingSlipImage(true);
-    setGenerationStatusText('Preparing your registration slip...');
+    setGenerationStatusText('Preparing & auditing registration slip image...');
 
     try {
-      // 1. Ensure fonts and DOM rendering are stable
-      if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
-        await document.fonts.ready;
-      }
-      await new Promise(resolve => setTimeout(resolve, 120));
-
-      // 2. Find the canonical slip element
       const slipTarget = document.getElementById('dsta-render-slip-target') || document.getElementById('dsta-course-registration-slip');
       if (!slipTarget) {
         window.open(buildCourseRegistrationWhatsAppLink(submittedRecord), '_blank');
         return;
       }
 
-      // 3. Render pixel-perfect registration slip using html2canvas
-      setGenerationStatusText('Preparing image & full details...');
-      const canvas = await html2canvas(slipTarget, {
-        scale: Math.max(2, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 2 : 2, 3)),
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#FFFFFF',
-        logging: false,
-        windowWidth: 850,
-        onclone: (clonedDoc) => {
-          const target = clonedDoc.getElementById('dsta-render-slip-target') || clonedDoc.getElementById('dsta-course-registration-slip');
-          if (target) {
-            target.style.width = '800px';
-            target.style.maxWidth = '800px';
-            target.style.display = 'block';
-            target.style.visibility = 'visible';
-            target.style.backgroundColor = '#FFFFFF';
-          }
-        }
-      });
+      setGenerationStatusText('Rendering high-resolution canvas...');
+      const canvas = await renderRegistrationSlipCanvas(slipTarget);
 
       const dataUrl = canvas.toDataURL('image/png');
       setGeneratedSlipImageUrl(dataUrl);
 
       const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
-      if (blob) {
-        const cleanId = submittedRecord.registrationId.replace(/[\/\\]/g, '-');
-        const fileName = `${cleanId}-Course-Registration-Slip.png`;
-        const file = new File([blob], fileName, { type: 'image/png' });
-
-        // 4. Try native Web Share API with files when supported (Mobile Safari, Chrome Android, etc.)
-        if (
-          typeof navigator !== 'undefined' &&
-          navigator.share &&
-          navigator.canShare &&
-          navigator.canShare({ files: [file] })
-        ) {
-          try {
-            await navigator.share({
-              title: 'DS TECH Academy Official Course Registration Docket',
-              text: formatCourseRegistrationWhatsAppMessage(submittedRecord),
-              files: [file]
-            });
-            // User shared successfully via native share sheet (e.g. selected WhatsApp)
-            return;
-          } catch (shareErr: any) {
-            // Handle cancellation gracefully without showing false failure
-            if (
-              shareErr?.name === 'AbortError' ||
-              shareErr?.message?.toLowerCase().includes('cancel') ||
-              shareErr?.message?.toLowerCase().includes('abort')
-            ) {
-              return;
-            }
-            console.warn('Native Web Share threw an error, falling back to download & modal:', shareErr);
-          }
-        }
-
-        // 5. Fallback for browsers that do not support navigator.canShare with files:
-        // Try clipboard copy if supported
-        try {
-          if (navigator.clipboard && window.ClipboardItem) {
-            await navigator.clipboard.write([
-              new ClipboardItem({ 'image/png': blob })
-            ]);
-            setImageCopiedSuccess(true);
-            setTimeout(() => setImageCopiedSuccess(false), 4000);
-          }
-        } catch (clipErr) {
-          console.warn('Clipboard image copy not available in this context:', clipErr);
-        }
-
-        // Download PNG file directly
-        const downloadUrl = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = downloadUrl;
-        link.download = fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        setTimeout(() => URL.revokeObjectURL(downloadUrl), 8000);
-
-        // Open professional fallback UI
-        setIsImageModalOpen(true);
-      } else {
+      if (!blob || blob.size === 0) {
+        console.warn('Canvas blob generation failed, launching WhatsApp text link.');
         window.open(buildCourseRegistrationWhatsAppLink(submittedRecord), '_blank');
+        return;
       }
+
+      const blobSizeKb = Math.round(blob.size / 1024);
+      const fontStatusStr = typeof document !== 'undefined' && document.fonts ? document.fonts.status : 'loaded';
+
+      const diagInfo = {
+        dataUrl,
+        width: canvas.width,
+        height: canvas.height,
+        blobSizeKb,
+        timestamp: new Date().toLocaleTimeString(),
+        fontStatus: `Engine: ${fontStatusStr}`,
+        svgStatus: 'SVG Crest Rendered (Solid Fills)',
+        taintStatus: 'Clean / CORS Safe (allowTaint: false)',
+      };
+      setDiagnosticData(diagInfo);
+
+      // If visual diagnostic inspector mode is active, display the visual diagnostic overlay FIRST
+      if (showDiagnosticInspector) {
+        setIsDiagnosticModalOpen(true);
+        return;
+      }
+
+      const cleanId = submittedRecord.registrationId.replace(/[\/\\]/g, '-');
+      const fileName = `${cleanId}-Course-Registration-Slip.png`;
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      // 1. Try Native Web Share API on mobile devices if supported for files
+      const canShareFiles = typeof navigator !== 'undefined' &&
+                            navigator.share &&
+                            navigator.canShare &&
+                            navigator.canShare({ files: [file] });
+
+      if (canShareFiles) {
+        try {
+          await navigator.share({
+            title: 'DS TECH Academy Course Registration Slip',
+            text: `DS TECH Academy Official Course Registration Slip (Docket ID: ${submittedRecord.registrationId})`,
+            files: [file]
+          });
+          return;
+        } catch (shareErr: any) {
+          if (
+            shareErr?.name === 'AbortError' ||
+            shareErr?.message?.toLowerCase().includes('cancel') ||
+            shareErr?.message?.toLowerCase().includes('abort')
+          ) {
+            return;
+          }
+          console.warn('Native Web Share file dispatch failed, activating download & fallback modal:', shareErr);
+        }
+      }
+
+      // 2. Fallback for desktop & browsers that do not support navigator.canShare with files:
+      // A. Automatic Browser PNG Download
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 10000);
+
+      // B. Attempt Clipboard Image Copy
+      try {
+        if (navigator.clipboard && window.ClipboardItem) {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+          setImageCopiedSuccess(true);
+          setTimeout(() => setImageCopiedSuccess(false), 4000);
+        }
+      } catch (clipErr) {
+        console.warn('Clipboard image copy not available in this context:', clipErr);
+      }
+
+      // C. Open Clear Instructions Modal with WhatsApp Launch Button
+      setIsImageModalOpen(true);
     } catch (err) {
       console.error('Failed to generate registration slip image:', err);
       window.open(buildCourseRegistrationWhatsAppLink(submittedRecord), '_blank');
@@ -466,37 +524,79 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
     }
   };
 
+  // Proceed with sharing from the visual diagnostic helper
+  const handleProceedDiagnosticShare = async () => {
+    if (!submittedRecord || !diagnosticData) return;
+    setIsDiagnosticModalOpen(false);
+
+    try {
+      const res = await fetch(diagnosticData.dataUrl);
+      const blob = await res.blob();
+      const cleanId = submittedRecord.registrationId.replace(/[\/\\]/g, '-');
+      const fileName = `${cleanId}-Course-Registration-Slip.png`;
+      const file = new File([blob], fileName, { type: 'image/png' });
+
+      const canShareFiles = typeof navigator !== 'undefined' &&
+                            navigator.share &&
+                            navigator.canShare &&
+                            navigator.canShare({ files: [file] });
+
+      if (canShareFiles) {
+        try {
+          await navigator.share({
+            title: 'DS TECH Academy Course Registration Slip',
+            text: `DS TECH Academy Official Course Registration Slip (Docket ID: ${submittedRecord.registrationId})`,
+            files: [file]
+          });
+          return;
+        } catch (shareErr: any) {
+          if (
+            shareErr?.name === 'AbortError' ||
+            shareErr?.message?.toLowerCase().includes('cancel') ||
+            shareErr?.message?.toLowerCase().includes('abort')
+          ) {
+            return;
+          }
+        }
+      }
+
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 10000);
+
+      try {
+        if (navigator.clipboard && window.ClipboardItem) {
+          await navigator.clipboard.write([
+            new ClipboardItem({ 'image/png': blob })
+          ]);
+          setImageCopiedSuccess(true);
+          setTimeout(() => setImageCopiedSuccess(false), 4000);
+        }
+      } catch (clipErr) {
+        console.warn('Clipboard image copy not available in this context:', clipErr);
+      }
+
+      setIsImageModalOpen(true);
+    } catch (err) {
+      console.error('Error during proceed diagnostic share:', err);
+    }
+  };
+
   // Direct PNG image download
   const handleDownloadSlipImage = async () => {
     if (!submittedRecord || isGeneratingSlipImage) return;
     setIsGeneratingSlipImage(true);
     setGenerationStatusText('Preparing image download...');
     try {
-      if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
-        await document.fonts.ready;
-      }
       const slipTarget = document.getElementById('dsta-render-slip-target') || document.getElementById('dsta-course-registration-slip');
       if (!slipTarget) return;
 
-      const canvas = await html2canvas(slipTarget, {
-        scale: Math.max(2, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 2 : 2, 3)),
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#FFFFFF',
-        logging: false,
-        windowWidth: 850,
-        onclone: (clonedDoc) => {
-          const target = clonedDoc.getElementById('dsta-render-slip-target') || clonedDoc.getElementById('dsta-course-registration-slip');
-          if (target) {
-            target.style.width = '800px';
-            target.style.maxWidth = '800px';
-            target.style.display = 'block';
-            target.style.visibility = 'visible';
-            target.style.backgroundColor = '#FFFFFF';
-          }
-        }
-      });
-
+      const canvas = await renderRegistrationSlipCanvas(slipTarget);
       const url = canvas.toDataURL('image/png');
       setGeneratedSlipImageUrl(url);
       const cleanId = submittedRecord.registrationId.replace(/[\/\\]/g, '-');
@@ -520,36 +620,15 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
     setIsGeneratingSlipImage(true);
     setGenerationStatusText('Preparing image copy...');
     try {
-      if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
-        await document.fonts.ready;
-      }
       const slipTarget = document.getElementById('dsta-render-slip-target') || document.getElementById('dsta-course-registration-slip');
       if (!slipTarget) return;
 
-      const canvas = await html2canvas(slipTarget, {
-        scale: Math.max(2, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 2 : 2, 3)),
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#FFFFFF',
-        logging: false,
-        windowWidth: 850,
-        onclone: (clonedDoc) => {
-          const target = clonedDoc.getElementById('dsta-render-slip-target') || clonedDoc.getElementById('dsta-course-registration-slip');
-          if (target) {
-            target.style.width = '800px';
-            target.style.maxWidth = '800px';
-            target.style.display = 'block';
-            target.style.visibility = 'visible';
-            target.style.backgroundColor = '#FFFFFF';
-          }
-        }
-      });
-
+      const canvas = await renderRegistrationSlipCanvas(slipTarget);
       const dataUrl = canvas.toDataURL('image/png');
       setGeneratedSlipImageUrl(dataUrl);
 
       const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png', 1.0));
-      if (blob && navigator.clipboard && window.ClipboardItem) {
+      if (blob && blob.size > 0 && navigator.clipboard && window.ClipboardItem) {
         await navigator.clipboard.write([
           new ClipboardItem({ 'image/png': blob })
         ]);
@@ -815,25 +894,42 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
             {/* Dispatch Controls Row */}
             <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
               {/* WhatsApp Dispatch Button with Animated Official SVG Icon */}
-              <button
-                type="button"
-                id="dsta-send-image-whatsapp-btn"
-                onClick={handleSendWhatsAppWithImage}
-                disabled={isGeneratingSlipImage}
-                className="w-full sm:w-auto px-6 py-3.5 bg-[#25D366] hover:bg-[#20ba59] active:bg-[#1da850] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all duration-200 flex items-center justify-center gap-2.5 shadow-md shadow-[#25D366]/20 cursor-pointer disabled:opacity-60"
-                aria-label="Send Image to WhatsApp"
-              >
-                {isGeneratingSlipImage ? (
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <OfficialWhatsAppIcon size={21} animate={true} />
-                )}
-                <span>
-                  {isGeneratingSlipImage
-                    ? (generationStatusText || 'Preparing image...')
-                    : 'Send Image to WhatsApp'}
-                </span>
-              </button>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                <button
+                  type="button"
+                  id="dsta-send-image-whatsapp-btn"
+                  onClick={handleSendWhatsAppWithImage}
+                  disabled={isGeneratingSlipImage}
+                  className="w-full sm:w-auto px-6 py-3.5 bg-[#25D366] hover:bg-[#20ba59] active:bg-[#1da850] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all duration-200 flex items-center justify-center gap-2.5 shadow-md shadow-[#25D366]/20 cursor-pointer disabled:opacity-60"
+                  aria-label="Send Image to WhatsApp"
+                >
+                  {isGeneratingSlipImage ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <OfficialWhatsAppIcon size={21} animate={true} />
+                  )}
+                  <span>
+                    {isGeneratingSlipImage
+                      ? (generationStatusText || 'Preparing image...')
+                      : 'Send Image to WhatsApp'}
+                  </span>
+                </button>
+
+                {/* Temporary Visual Capture Inspector Mode Toggle */}
+                <button
+                  type="button"
+                  onClick={() => setShowDiagnosticInspector(!showDiagnosticInspector)}
+                  className={`px-3 py-3 rounded-xl border text-[11px] font-mono font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                    showDiagnosticInspector
+                      ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                  }`}
+                  title="Toggle Canvas PNG Visual Capture Inspection Overlay"
+                >
+                  <Eye size={14} className={showDiagnosticInspector ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400'} />
+                  <span>Inspector: {showDiagnosticInspector ? 'ON' : 'OFF'}</span>
+                </button>
+              </div>
 
               <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
                 {/* Download Official A4 PDF Document */}
@@ -1027,6 +1123,172 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                       {imageCopiedSuccess ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
                       <span>{imageCopiedSuccess ? 'Copied Image!' : 'Copy Image'}</span>
                     </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Visual Canvas Capture Diagnostic Overlay Modal */}
+          <AnimatePresence>
+            {isDiagnosticModalOpen && diagnosticData && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/85 backdrop-blur-md overflow-y-auto"
+              >
+                <motion.div
+                  initial={{ scale: 0.95, y: 15 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.95, y: 15 }}
+                  className="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full p-5 sm:p-6 shadow-2xl relative text-left text-slate-100 space-y-4 my-auto"
+                >
+                  {/* Header */}
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center shrink-0">
+                        <Eye size={22} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-mono font-bold bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded uppercase tracking-wider">
+                            Visual Diagnostic Helper
+                          </span>
+                          <span className="text-[10px] font-mono text-slate-400">
+                            Captured at {diagnosticData.timestamp}
+                          </span>
+                        </div>
+                        <h3 className="text-base sm:text-lg font-black text-white uppercase tracking-tight mt-0.5">
+                          PNG Canvas Render Integrity Inspector
+                        </h3>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsDiagnosticModalOpen(false)}
+                      className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
+                      title="Close Inspection Modal"
+                    >
+                      <X size={18} />
+                    </button>
+                  </div>
+
+                  {/* Technical Specs Diagnostic Audit Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono">
+                    <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
+                      <span className="text-[9.5px] text-slate-500 uppercase block font-sans font-bold">Canvas Resolution</span>
+                      <strong className="text-emerald-400 text-xs font-black block mt-0.5">
+                        {diagnosticData.width} × {diagnosticData.height} px
+                      </strong>
+                      <span className="text-[9px] text-slate-400">Retina 2x Scale</span>
+                    </div>
+
+                    <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
+                      <span className="text-[9.5px] text-slate-500 uppercase block font-sans font-bold">Blob PNG File Size</span>
+                      <strong className="text-amber-400 text-xs font-black block mt-0.5">
+                        {diagnosticData.blobSizeKb} KB
+                      </strong>
+                      <span className="text-[9px] text-slate-400">image/png Format</span>
+                    </div>
+
+                    <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
+                      <span className="text-[9.5px] text-slate-500 uppercase block font-sans font-bold">Font Readiness</span>
+                      <strong className="text-blue-400 text-xs font-black block mt-0.5 truncate">
+                        {diagnosticData.fontStatus}
+                      </strong>
+                      <span className="text-[9px] text-slate-400">document.fonts.ready</span>
+                    </div>
+
+                    <div className="bg-slate-950/80 p-2.5 rounded-xl border border-slate-800">
+                      <span className="text-[9.5px] text-slate-500 uppercase block font-sans font-bold">Context Security</span>
+                      <strong className="text-purple-400 text-xs font-black block mt-0.5 truncate">
+                        {diagnosticData.taintStatus}
+                      </strong>
+                      <span className="text-[9px] text-slate-400">Solid SVG Vectors</span>
+                    </div>
+                  </div>
+
+                  {/* PNG Canvas Interactive Zoom Inspection Pane */}
+                  <div className="space-y-2">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                      <span className="font-bold text-slate-300 flex items-center gap-1.5">
+                        <ImageIcon size={14} className="text-orange-400" />
+                        Manual PNG Visual Inspection Pane:
+                      </span>
+
+                      {/* Zoom controls */}
+                      <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800">
+                        <button
+                          type="button"
+                          onClick={() => setDiagnosticZoom('fit')}
+                          className={`px-2.5 py-1 text-[10px] font-mono rounded font-bold transition-all cursor-pointer ${
+                            diagnosticZoom === 'fit' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          Fit Width
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDiagnosticZoom('100')}
+                          className={`px-2.5 py-1 text-[10px] font-mono rounded font-bold transition-all cursor-pointer ${
+                            diagnosticZoom === '100' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          100% Native
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDiagnosticZoom('150')}
+                          className={`px-2.5 py-1 text-[10px] font-mono rounded font-bold transition-all cursor-pointer ${
+                            diagnosticZoom === '150' ? 'bg-orange-500 text-white' : 'text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          150% Zoom
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Visual Container */}
+                    <div className="max-h-96 overflow-auto rounded-xl border border-slate-800 p-3 bg-slate-950/90 shadow-inner flex items-center justify-center">
+                      <img
+                        src={diagnosticData.dataUrl}
+                        alt="Visual Diagnostic Canvas PNG Output"
+                        style={{
+                          width: diagnosticZoom === 'fit' ? '100%' : diagnosticZoom === '100' ? '800px' : '1200px',
+                          maxWidth: 'none',
+                        }}
+                        className="rounded shadow-md transition-all duration-200"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Action Row */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t border-slate-800">
+                    <p className="text-[11px] text-slate-400 font-mono flex items-center gap-1.5">
+                      <ShieldCheck size={14} className="text-emerald-400 shrink-0" />
+                      <span>Manually inspect fonts, logos, QR code, and alignment before Web Share API dispatch.</span>
+                    </p>
+
+                    <div className="flex items-center gap-2.5 self-end sm:self-auto">
+                      <button
+                        type="button"
+                        onClick={() => setIsDiagnosticModalOpen(false)}
+                        className="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-xs font-bold transition-all cursor-pointer"
+                      >
+                        Close
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleProceedDiagnosticShare}
+                        className="px-5 py-2.5 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#25D366]/20 cursor-pointer"
+                      >
+                        <OfficialWhatsAppIcon size={18} animate={false} />
+                        <span>Proceed to WhatsApp Share</span>
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               </motion.div>

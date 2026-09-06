@@ -86,7 +86,10 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
           className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 overflow-hidden"
           style={{ opacity: 0.07 }}
         >
-          <div className="transform -rotate-45 text-center border-4 border-[#000E32] rounded-3xl p-8 max-w-lg">
+          <div 
+            className="text-center border-4 border-[#000E32] rounded-3xl p-8 max-w-lg"
+            style={{ transform: 'rotate(-45deg)', WebkitTransform: 'rotate(-45deg)' }}
+          >
             <span className="text-5xl font-black tracking-widest text-[#000E32] uppercase block whitespace-nowrap">
               OFFICIAL - DS TECH
             </span>
@@ -103,7 +106,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
             {/* Official Crest & Institutional Identification */}
             <div className="flex items-center gap-3.5">
               {/* Authentic DS TECH Official Circular Vector Crest */}
-              <div className="shrink-0 w-16 h-16 bg-white rounded-full flex items-center justify-center p-0.5 border border-slate-200 shadow-xs">
+              <div className="shrink-0 w-16 h-16 bg-white rounded-full flex items-center justify-center p-0.5 border border-slate-200">
                 <svg
                   width="100%"
                   height="100%"
@@ -112,22 +115,10 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
                   xmlns="http://www.w3.org/2000/svg"
                   shapeRendering="geometricPrecision"
                 >
-                  <defs>
-                    <radialGradient id="slipBlueGloss" cx="50%" cy="40%" r="50%" fx="50%" fy="30%">
-                      <stop offset="0%" stopColor="#1E40AF" />
-                      <stop offset="60%" stopColor="#0B3C9B" />
-                      <stop offset="100%" stopColor="#000E32" />
-                    </radialGradient>
-                    <linearGradient id="slipGold" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stopColor="#FBBF24" />
-                      <stop offset="100%" stopColor="#EA580C" />
-                    </linearGradient>
-                  </defs>
-
                   {/* Outer Ring */}
                   <circle cx="50" cy="50" r="48" fill="none" stroke="#000E32" strokeWidth="1.5" opacity="0.3" />
-                  <circle cx="50" cy="50" r="46" fill="url(#slipBlueGloss)" />
-                  <circle cx="50" cy="50" r="44" fill="none" stroke="url(#slipGold)" strokeWidth="1.2" />
+                  <circle cx="50" cy="50" r="46" fill="#000E32" />
+                  <circle cx="50" cy="50" r="44" fill="none" stroke="#FBBF24" strokeWidth="1.2" />
 
                   {/* Stars */}
                   <polygon points="50,11 51.5,15 55.5,15 52.5,17.5 53.5,21.5 50,19 46.5,21.5 47.5,17.5 44.5,15 48.5,15" fill="#FBBF24" />
@@ -135,7 +126,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
                   <polygon points="74,20 75,23 78,23 75.5,25 76.5,28 74,26 71.5,28 72.5,25 70,23 73,23" fill="#FBBF24" />
 
                   {/* Diamond Crown */}
-                  <path d="M42 22 L46 17 L50 20 L54 17 L58 22 L56 25 L44 25 Z" fill="url(#slipGold)" />
+                  <path d="M42 22 L46 17 L50 20 L54 17 L58 22 L56 25 L44 25 Z" fill="#FBBF24" />
                   <circle cx="50" cy="20" r="1.2" fill="#FFFFFF" />
 
                   {/* Orange Arcs */}
@@ -175,7 +166,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
                     fontFamily="'Segoe UI', Roboto, sans-serif"
                     fontWeight="900"
                     fontSize="4.2"
-                    fill="url(#slipGold)"
+                    fill="#FBBF24"
                     textAnchor="middle"
                     letterSpacing="0.3"
                   >

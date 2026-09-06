@@ -139,7 +139,7 @@ export function useProfessionalPDF() {
       const canvas = await html2canvas(targetEl, {
         scale: scaleFactor,
         useCORS: true,
-        allowTaint: true,
+        allowTaint: false,
         backgroundColor: '#FFFFFF',
         logging: false,
         windowWidth: targetWidthPx + 50,
@@ -166,6 +166,20 @@ export function useProfessionalPDF() {
             targetInClone.style.margin = '0 auto';
             targetInClone.style.boxSizing = 'border-box';
             targetInClone.style.overflow = 'visible';
+
+            // Unwrap parent element constraints in clonedDoc up to body so mobile viewport bounds don't crop PDF canvas
+            let parent = targetInClone.parentElement;
+            while (parent && parent !== clonedDoc.body) {
+              parent.style.width = 'auto';
+              parent.style.maxWidth = 'none';
+              parent.style.minWidth = '0';
+              parent.style.overflow = 'visible';
+              parent.style.margin = '0';
+              parent.style.padding = '0';
+              parent = parent.parentElement;
+            }
+            clonedDoc.body.style.width = `${targetWidthPx + 50}px`;
+            clonedDoc.body.style.overflow = 'visible';
 
             // Ensure all sections/cards marked for page-break-avoid are enforced
             const breakAvoidEls = targetInClone.querySelectorAll(
