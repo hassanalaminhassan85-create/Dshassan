@@ -5,9 +5,12 @@ import {
   ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Sparkles, 
   Send, Printer, RotateCcw, CalendarClock, Info, Check, 
   Building2, Globe, Phone, Mail, Shield, User, Clock, Calendar,
-  ExternalLink, FileText, CheckCircle
+  ExternalLink, FileText, CheckCircle, Download, Copy
 } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import { Logo } from './Logo';
+import { OfficialWhatsAppIcon } from './OfficialWhatsAppIcon';
+import { CourseRegistrationPDFSlip } from './CourseRegistrationPDFSlip';
 import { ACADEMY_COURSES } from '../lib/academyCoursesData';
 import { 
   CourseRegistrationRecord, 
@@ -36,16 +39,6 @@ const NIGERIAN_STATES = [
   'Taraba', 'Yobe', 'Zamfara', 'Non-Nigerian / International'
 ];
 
-const FACULTY_SUGGESTIONS = [
-  'Engr. David Alao (Senior Full Stack & AI Lead)',
-  'Dr. Amina Bello (Data Science & ML Faculty)',
-  'Prof. Hassan Alamin (Cloud & Cybersecurity)',
-  'Engr. Chidi Okeke (DevOps & Distributed Systems)',
-  'Maryam Lawal (UI/UX & Product Design)',
-  'Ibrahim Danladi (Digital Marketing & Growth)',
-  'Assigned Faculty Member (Per Official Timetable)'
-];
-
 const LECTURE_DAYS_OPTIONS = [
   'Mon, Wed, Fri',
   'Tue, Thu, Sat',
@@ -70,6 +63,8 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
   const [submittedRecord, setSubmittedRecord] = useState<CourseRegistrationRecord | null>(null);
   const [formViewMode, setFormViewMode] = useState<'edit' | 'preview'>('edit');
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isGeneratingSlipImage, setIsGeneratingSlipImage] = useState<boolean>(false);
+  const [copiedId, setCopiedId] = useState<boolean>(false);
 
   // Form State
   const [formData, setFormData] = useState<CourseRegistrationRecord>({
@@ -224,9 +219,8 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
     setActiveTab(stepNumber);
   };
 
-  // Quick autofill for demonstration & testing
+  // Quick autofill for demonstration & testing (strictly neutral, manual-style course entry)
   const handleQuickAutofill = () => {
-    const sampleCourse = ACADEMY_COURSES[0] || { title: 'Artificial Intelligence for Business & Productivity' };
     setFormData(prev => ({
       ...prev,
       fullName: 'Muhammad Al-Mansur',
@@ -243,16 +237,122 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
       trainingMode: 'Hybrid Classes',
       teachingLanguage: 'English',
       course1: {
-        courseName: sampleCourse.title,
-        lecturer: 'Engr. David Alao (Senior Full Stack & AI Lead)',
+        courseName: 'Full Stack Software Engineering & Cloud Computing',
+        lecturer: 'Assigned Course Lecturer (Per Timetable)',
         weeklyLectureDays: 'Mon, Wed, Fri',
-        lectureTime: '10:00 AM – 12:00 PM (Morning)',
+        lectureTime: '09:00 AM – 11:00 AM',
       },
       amountPaid: '200000',
       paymentIsNA: false,
       agreeConfirmation: true,
     }));
     setValidationErrors({});
+  };
+
+  const handleCopyRegId = async () => {
+    if (!submittedRecord) return;
+    try {
+      await navigator.clipboard.writeText(submittedRecord.registrationId);
+      setCopiedId(true);
+      setTimeout(() => setCopiedId(false), 2000);
+    } catch (e) {
+      console.error('Failed to copy ID', e);
+    }
+  };
+
+  // Dispatch Real High-Resolution Image via WhatsApp
+  const handleSendWhatsAppWithImage = async () => {
+    if (!submittedRecord) return;
+    setIsGeneratingSlipImage(true);
+
+    try {
+      // Find the slip element
+      const slipTarget = document.getElementById('dsta-render-slip-target') || document.getElementById('dsta-course-registration-slip');
+      if (!slipTarget) {
+        window.open(buildCourseRegistrationWhatsAppLink(submittedRecord), '_blank');
+        return;
+      }
+
+      const canvas = await html2canvas(slipTarget, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#FFFFFF',
+        logging: false,
+      });
+
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (blob) {
+        const cleanId = submittedRecord.registrationId.replace(/[\/\\]/g, '_');
+        const fileName = `${cleanId}_Registration_Slip.png`;
+        const file = new File([blob], fileName, { type: 'image/png' });
+
+        // 1. If Web Share with files is supported (mobile browsers like Samsung Internet, Chrome Android, Safari):
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: `DS TECH Academy Registration - ${submittedRecord.fullName}`,
+              text: `Official Course Registration Slip (${submittedRecord.registrationId}) for ${submittedRecord.fullName}.\nAdmissions Desk WhatsApp: +234 902 348 9111`,
+            });
+            return;
+          } catch (shareErr: any) {
+            if (shareErr?.name === 'AbortError') {
+              return;
+            }
+          }
+        }
+
+        // 2. Automatic backup: Download the real PNG image directly
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 5000);
+
+        // 3. Open WhatsApp to the official Academy desk
+        window.open(buildCourseRegistrationWhatsAppLink(submittedRecord), '_blank');
+      } else {
+        window.open(buildCourseRegistrationWhatsAppLink(submittedRecord), '_blank');
+      }
+    } catch (err) {
+      console.error('Failed to generate or share slip image:', err);
+      window.open(buildCourseRegistrationWhatsAppLink(submittedRecord), '_blank');
+    } finally {
+      setIsGeneratingSlipImage(false);
+    }
+  };
+
+  // Direct PNG image download
+  const handleDownloadSlipImage = async () => {
+    if (!submittedRecord) return;
+    setIsGeneratingSlipImage(true);
+    try {
+      const slipTarget = document.getElementById('dsta-render-slip-target') || document.getElementById('dsta-course-registration-slip');
+      if (!slipTarget) return;
+
+      const canvas = await html2canvas(slipTarget, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#FFFFFF',
+        logging: false,
+      });
+
+      const url = canvas.toDataURL('image/png');
+      const cleanId = submittedRecord.registrationId.replace(/[\/\\]/g, '_');
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${cleanId}_Registration_Slip.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Error downloading slip image:', err);
+    } finally {
+      setIsGeneratingSlipImage(false);
+    }
   };
 
   // Handle Form Submission
@@ -338,8 +438,9 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
 
   return (
     <div id="course-registration-root" className="w-full max-w-6xl mx-auto px-4 py-6 md:py-10 selection:bg-orange-500 selection:text-white">
-      {/* Top Banner / Progress Header matching CareersForm.tsx */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden mb-6 md:mb-10 transition-colors duration-200">
+      <div className="cr-web-ui">
+        {/* Top Banner / Progress Header matching CareersForm.tsx */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl md:rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden mb-6 md:mb-10 transition-colors duration-200">
         <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-[#000E32] h-1.5 w-full animate-gradient" />
 
         <div className="p-4 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800">
@@ -431,162 +532,126 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
       {/* SUCCESS STATE MODAL / VIEW */}
       {submissionSuccess && submittedRecord ? (
         <motion.div
-          initial={{ opacity: 0, scale: 0.96 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.35 }}
-          className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200/90 dark:border-slate-800 overflow-hidden text-left"
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-6 text-left"
         >
-          <div className="bg-gradient-to-r from-emerald-600 via-emerald-500 to-[#000E32] p-8 text-white text-center relative overflow-hidden">
-            <div className="inline-flex p-3 bg-white/10 rounded-2xl mb-4 backdrop-blur-xs border border-white/20">
-              <CheckCircle2 size={44} className="text-white animate-bounce-slow" />
-            </div>
-            <span className="text-xs font-black uppercase tracking-widest text-emerald-200 block mb-1">
-              Submission Prepared Successfully
-            </span>
-            <h2 className="text-2xl md:text-3xl font-black tracking-tight text-white uppercase">
-              Registration Details Ready
-            </h2>
-            <p className="text-sm text-emerald-100 max-w-xl mx-auto mt-2 font-medium leading-relaxed">
-              Your DS TECH Academy course registration has been successfully prepared. You can now dispatch your complete profile to the Admissions Desk via official WhatsApp.
-            </p>
+          {/* Executive Control & Dispatch Hub Card */}
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-5 sm:p-7 space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20">
+                  <CheckCircle2 size={26} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">
+                      Enrolment Docket Ready
+                    </span>
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  </div>
+                  <h2 className="text-lg sm:text-xl font-black text-[#000E32] dark:text-white uppercase tracking-tight">
+                    Official Registration Slip Prepared
+                  </h2>
+                </div>
+              </div>
 
-            <div className="mt-4 inline-flex items-center gap-2 bg-black/25 px-4 py-1.5 rounded-full text-xs font-mono font-bold tracking-wider text-emerald-100 border border-white/10">
-              <span>Registration ID:</span>
-              <strong className="text-white">{submittedRecord.registrationId}</strong>
+              {/* Reg ID Badge with Copy button */}
+              <div className="flex items-center gap-2 bg-slate-50 dark:bg-slate-800 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 self-start sm:self-auto">
+                <span className="text-[10px] font-bold text-slate-400 uppercase">Docket ID:</span>
+                <strong className="font-mono text-xs font-black text-[#000E32] dark:text-white">
+                  {submittedRecord.registrationId}
+                </strong>
+                <button
+                  type="button"
+                  onClick={handleCopyRegId}
+                  className="p-1 text-slate-400 hover:text-orange-600 rounded transition-colors ml-1 cursor-pointer"
+                  title="Copy Registration ID"
+                >
+                  {copiedId ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                </button>
+              </div>
             </div>
+
+            {/* Dispatch Controls Row */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+              {/* WhatsApp Dispatch Button with Animated Official SVG Icon */}
+              <button
+                type="button"
+                onClick={handleSendWhatsAppWithImage}
+                disabled={isGeneratingSlipImage}
+                className="w-full sm:w-auto px-6 py-3.5 bg-[#25D366] hover:bg-[#20ba59] active:bg-[#1da850] text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all duration-200 flex items-center justify-center gap-2.5 shadow-md shadow-[#25D366]/20 cursor-pointer disabled:opacity-60"
+              >
+                {isGeneratingSlipImage ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <OfficialWhatsAppIcon size={21} animate={true} />
+                )}
+                <span>
+                  {isGeneratingSlipImage ? 'Generating High-Res Image...' : 'Send Image via WhatsApp'}
+                </span>
+              </button>
+
+              <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                {/* Print / Save PDF Slip */}
+                <button
+                  type="button"
+                  onClick={handlePrintSlip}
+                  className="flex-1 sm:flex-initial px-4 py-3 bg-[#000E32] hover:bg-blue-950 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                >
+                  <Printer size={15} />
+                  <span>Print / Save PDF</span>
+                </button>
+
+                {/* Download Image (PNG) */}
+                <button
+                  type="button"
+                  onClick={handleDownloadSlipImage}
+                  disabled={isGeneratingSlipImage}
+                  className="flex-1 sm:flex-initial px-4 py-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-[#000E32] dark:text-white font-extrabold text-xs uppercase tracking-wider rounded-xl border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                >
+                  <Download size={15} />
+                  <span>Download PNG</span>
+                </button>
+
+                {/* Reset / Register Another */}
+                <button
+                  type="button"
+                  onClick={handleResetForm}
+                  className="px-3.5 py-3 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  title="Fill another registration"
+                >
+                  <RotateCcw size={14} />
+                  <span className="hidden md:inline">New Registration</span>
+                </button>
+              </div>
+            </div>
+
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+              * <strong>Official WhatsApp Integration:</strong> Generates a high-resolution authentic registration slip image and dispatches it directly to the Academy admissions desk (+234 902 348 9111).
+            </p>
           </div>
 
-          <div className="p-6 md:p-8 space-y-6">
-            {/* WhatsApp Dispatch Card */}
-            <div className="bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6">
-              <div className="space-y-1.5 text-center md:text-left">
-                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-400 block">
-                  Official Communication Channel
-                </span>
-                <h3 className="text-lg font-extrabold text-[#000E32] dark:text-white">
-                  Send Registration via WhatsApp
-                </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-300 max-w-lg leading-relaxed">
-                  Click the button below to launch WhatsApp with your pre-formatted course registration details addressed to the official Academy desk (+234 902 348 9111).
-                </p>
-              </div>
-
-              <a
-                href={buildCourseRegistrationWhatsAppLink(submittedRecord)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm uppercase tracking-wider rounded-xl transition-all duration-200 flex items-center gap-2 shadow-lg shadow-emerald-600/20 shrink-0 hover:scale-102"
-              >
-                <Send size={18} />
-                <span>Send Registration via WhatsApp</span>
-                <ExternalLink size={14} className="opacity-70" />
-              </a>
+          {/* Live Official Registration Slip Preview (World-Class Rendering) */}
+          <div className="bg-slate-100 dark:bg-slate-950/80 p-3 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between pb-3 px-1 text-slate-600 dark:text-slate-300">
+              <span className="text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                <FileText size={14} className="text-orange-500" />
+                Official Course Registration Slip Preview
+              </span>
+              <span className="text-[10px] font-mono text-slate-400 uppercase">
+                Scale: 100% • Standard Institutional A4 Slip
+              </span>
             </div>
 
-            {/* Summary Information Grid */}
-            <div className="border border-slate-200 dark:border-slate-800 rounded-2xl p-6 space-y-4 bg-slate-50/50 dark:bg-slate-950/40">
-              <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 pb-2 border-b border-slate-200 dark:border-slate-800">
-                Prepared Registration Profile
-              </h4>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-                <div>
-                  <span className="text-slate-400 dark:text-slate-500 font-bold uppercase block text-[10px]">Applicant Name</span>
-                  <span className="font-extrabold text-[#000E32] dark:text-white text-sm">{submittedRecord.fullName}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 dark:text-slate-500 font-bold uppercase block text-[10px]">WhatsApp Contact</span>
-                  <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{submittedRecord.whatsappNumber}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 dark:text-slate-500 font-bold uppercase block text-[10px]">Email Address</span>
-                  <span className="font-mono font-semibold text-slate-800 dark:text-slate-200">{submittedRecord.emailAddress}</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 dark:text-slate-500 font-bold uppercase block text-[10px]">Programme Type & Duration</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">
-                    {submittedRecord.programmeType} • {submittedRecord.programmeDuration}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 dark:text-slate-500 font-bold uppercase block text-[10px]">Training Mode & Language</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">
-                    {submittedRecord.trainingMode} ({submittedRecord.teachingLanguage})
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-400 dark:text-slate-500 font-bold uppercase block text-[10px]">Payment Record</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">
-                    {submittedRecord.paymentIsNA ? 'Non-Applicable' : `₦${Number(submittedRecord.amountPaid || 0).toLocaleString()} (Unverified)`}
-                  </span>
-                </div>
-              </div>
-
-              {/* Course Allocation Section */}
-              <div className="pt-3 border-t border-slate-200 dark:border-slate-800">
-                <span className="text-[10px] font-extrabold uppercase text-slate-400 dark:text-slate-500 block mb-2">
-                  Requested Course Allocation
-                </span>
-                <div className="space-y-2">
-                  <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <span className="text-[10px] font-black text-orange-600 uppercase tracking-wider block">Course 1</span>
-                      <span className="font-bold text-slate-900 dark:text-white text-xs">{submittedRecord.course1.courseName}</span>
-                    </div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 text-left sm:text-right">
-                      <p><strong className="text-slate-700 dark:text-slate-200">Lecturer:</strong> {submittedRecord.course1.lecturer}</p>
-                      <p>{submittedRecord.course1.weeklyLectureDays} • {submittedRecord.course1.lectureTime}</p>
-                    </div>
-                  </div>
-
-                  {submittedRecord.course2 && submittedRecord.course2.courseName && (
-                    <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
-                        <span className="text-[10px] font-black text-orange-600 uppercase tracking-wider block">Course 2</span>
-                        <span className="font-bold text-slate-900 dark:text-white text-xs">{submittedRecord.course2.courseName}</span>
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 text-left sm:text-right">
-                        <p><strong className="text-slate-700 dark:text-slate-200">Lecturer:</strong> {submittedRecord.course2.lecturer}</p>
-                        <p>{submittedRecord.course2.weeklyLectureDays} • {submittedRecord.course2.lectureTime}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {submittedRecord.course3 && submittedRecord.course3.courseName && (
-                    <div className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                      <div>
-                        <span className="text-[10px] font-black text-orange-600 uppercase tracking-wider block">Course 3</span>
-                        <span className="font-bold text-slate-900 dark:text-white text-xs">{submittedRecord.course3.courseName}</span>
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 text-left sm:text-right">
-                        <p><strong className="text-slate-700 dark:text-slate-200">Lecturer:</strong> {submittedRecord.course3.lecturer}</p>
-                        <p>{submittedRecord.course3.weeklyLectureDays} • {submittedRecord.course3.lectureTime}</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Actions: Print and Reset */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
-              <button
-                type="button"
-                onClick={handlePrintSlip}
-                className="w-full sm:w-auto px-5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-[#000E32] dark:text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Printer size={15} />
-                <span>Print Registration Slip</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleResetForm}
-                className="w-full sm:w-auto px-5 py-2.5 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 font-extrabold text-xs uppercase tracking-wider rounded-xl border border-slate-200 dark:border-slate-700 transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <RotateCcw size={15} />
-                <span>Submit Another Registration</span>
-              </button>
+            {/* The Printable / Image Render Target */}
+            <div className="overflow-x-auto rounded-xl shadow-md border border-slate-300 bg-white">
+              <CourseRegistrationPDFSlip
+                record={submittedRecord}
+                id="dsta-render-slip-target"
+                isPrintOnly={false}
+              />
             </div>
           </div>
         </motion.div>
@@ -1215,13 +1280,12 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                                 <input
                                   type="text"
                                   required
-                                  list="courseSuggestionsList"
                                   value={formData.course1.courseName}
                                   onChange={e => setFormData({
                                     ...formData,
                                     course1: { ...formData.course1, courseName: e.target.value }
                                   })}
-                                  placeholder="Type or select course title (e.g. Artificial Intelligence for Business & Productivity)"
+                                  placeholder="Enter course title (from your official timetable)"
                                   className={`w-full px-4 py-2.5 rounded-xl border ${
                                     validationErrors.course1Name ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-700'
                                   } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm`}
@@ -1240,13 +1304,12 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                                 <input
                                   type="text"
                                   required
-                                  list="lecturerSuggestionsList"
                                   value={formData.course1.lecturer}
                                   onChange={e => setFormData({
                                     ...formData,
                                     course1: { ...formData.course1, lecturer: e.target.value }
                                   })}
-                                  placeholder="Enter assigned course lecturer (e.g. Engr. David Alao)"
+                                  placeholder="Enter lecturer name (from your official timetable)"
                                   className={`w-full px-4 py-2.5 rounded-xl border ${
                                     validationErrors.course1Lecturer ? 'border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-700'
                                   } bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm`}
@@ -1368,13 +1431,12 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                                   </label>
                                   <input
                                     type="text"
-                                    list="courseSuggestionsList"
                                     value={formData.course2?.courseName || ''}
                                     onChange={e => setFormData({
                                       ...formData,
                                       course2: { ...(formData.course2 || { lecturer: '', weeklyLectureDays: '', lectureTime: '' }), courseName: e.target.value }
                                     })}
-                                    placeholder="Course 2 Title"
+                                    placeholder="Enter course 2 title (from your official timetable)"
                                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm"
                                   />
                                 </div>
@@ -1385,13 +1447,12 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                                   </label>
                                   <input
                                     type="text"
-                                    list="lecturerSuggestionsList"
                                     value={formData.course2?.lecturer || ''}
                                     onChange={e => setFormData({
                                       ...formData,
                                       course2: { ...(formData.course2 || { courseName: '', weeklyLectureDays: '', lectureTime: '' }), lecturer: e.target.value }
                                     })}
-                                    placeholder="Course 2 Lecturer"
+                                    placeholder="Enter course 2 lecturer (from your official timetable)"
                                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm"
                                   />
                                 </div>
@@ -1461,13 +1522,12 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                                   </label>
                                   <input
                                     type="text"
-                                    list="courseSuggestionsList"
                                     value={formData.course3?.courseName || ''}
                                     onChange={e => setFormData({
                                       ...formData,
                                       course3: { ...(formData.course3 || { lecturer: '', weeklyLectureDays: '', lectureTime: '' }), courseName: e.target.value }
                                     })}
-                                    placeholder="Course 3 Title"
+                                    placeholder="Enter course 3 title (from your official timetable)"
                                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm"
                                   />
                                 </div>
@@ -1478,13 +1538,12 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                                   </label>
                                   <input
                                     type="text"
-                                    list="lecturerSuggestionsList"
                                     value={formData.course3?.lecturer || ''}
                                     onChange={e => setFormData({
                                       ...formData,
                                       course3: { ...(formData.course3 || { courseName: '', weeklyLectureDays: '', lectureTime: '' }), lecturer: e.target.value }
                                     })}
-                                    placeholder="Course 3 Lecturer"
+                                    placeholder="Enter course 3 lecturer (from your official timetable)"
                                     className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 text-sm"
                                   />
                                 </div>
@@ -1528,17 +1587,7 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                             )}
                           </div>
 
-                          {/* Data Lists for suggestions */}
-                          <datalist id="courseSuggestionsList">
-                            {ACADEMY_COURSES.map(c => (
-                              <option key={c.code} value={c.title}>{c.code}</option>
-                            ))}
-                          </datalist>
-                          <datalist id="lecturerSuggestionsList">
-                            {FACULTY_SUGGESTIONS.map(l => (
-                              <option key={l} value={l} />
-                            ))}
-                          </datalist>
+                          {/* Data Lists for days and times */}
                           <datalist id="lectureDaysList">
                             {LECTURE_DAYS_OPTIONS.map(d => (
                               <option key={d} value={d} />
@@ -1780,6 +1829,14 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
           </div>
         </div>
       )}
+      </div>
+
+      {/* Single-Page Clean Institutional Print Docket (Isolated for window.print()) */}
+      <CourseRegistrationPDFSlip
+        record={submittedRecord || formData}
+        id="dsta-course-registration-slip"
+        isPrintOnly={true}
+      />
     </div>
   );
 };

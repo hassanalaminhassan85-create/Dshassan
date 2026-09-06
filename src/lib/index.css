@@ -88,6 +88,28 @@ body, html {
     page-break-after: always !important;
     break-after: page !important;
   }
+
+  /* Specific rules for Course Registration PDF Slip to produce a world-class single page */
+  .cr-web-ui {
+    display: none !important;
+  }
+
+  #dsta-course-registration-slip {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
 }
 
 .animate-pulse-slow {
