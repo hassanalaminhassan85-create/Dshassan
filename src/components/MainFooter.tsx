@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ShieldCheck, Mail, Phone, MapPin, ArrowUp, Building2 } from 'lucide-react';
+import { ShieldCheck, Mail, Phone, MapPin, ArrowUp, Building2, ExternalLink } from 'lucide-react';
 import { Logo } from './Logo';
 import { 
   FacebookIcon, 
@@ -10,6 +10,7 @@ import {
   YouTubeIcon, 
   TikTokIcon 
 } from './SocialIcons';
+import { apiGetCacMetadata, apiSubscribeToCacMetadata, apiSubscribeToRealtimeSync } from '../lib/api';
 
 interface MainFooterProps {
   onNavigate?: (path: string) => void;
@@ -17,10 +18,61 @@ interface MainFooterProps {
     registration_number?: string;
     company_status?: string;
     updated_at?: string;
+    company_name?: string;
   } | null;
 }
 
-export const MainFooter: React.FC<MainFooterProps> = ({ onNavigate, publishedCac }) => {
+export const MainFooter: React.FC<MainFooterProps> = ({ onNavigate, publishedCac: initialPublishedCac }) => {
+  const [liveCac, setLiveCac] = useState<any>(initialPublishedCac || null);
+
+  useEffect(() => {
+    if (initialPublishedCac) {
+      setLiveCac(initialPublishedCac);
+    }
+  }, [initialPublishedCac]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadCac = async () => {
+      try {
+        const data = await apiGetCacMetadata(false);
+        if (data && data.length > 0 && isMounted) {
+          const published = data.find((c: any) => c.is_published === 1) || data[0];
+          if (published) {
+            setLiveCac(published);
+          }
+        }
+      } catch (e) {
+        // Fallback remains active
+      }
+    };
+
+    if (!initialPublishedCac) {
+      loadCac();
+    }
+
+    const unsubCac = apiSubscribeToCacMetadata((cacData) => {
+      if (cacData && cacData.length > 0 && isMounted) {
+        const published = cacData.find((c: any) => c.is_published === 1) || cacData[0];
+        if (published) {
+          setLiveCac(published);
+        }
+      }
+    });
+
+    const unsubSSE = apiSubscribeToRealtimeSync((event) => {
+      if (event?.type?.startsWith('CAC_')) {
+        loadCac();
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubCac();
+      unsubSSE();
+    };
+  }, [initialPublishedCac]);
+
   const handleNavigate = (path: string) => {
     if (onNavigate) {
       onNavigate(path);
@@ -39,8 +91,9 @@ export const MainFooter: React.FC<MainFooterProps> = ({ onNavigate, publishedCac
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const rcNumber = publishedCac?.registration_number || '1845921';
-  const companyStatus = publishedCac?.company_status || 'Incorporated & Active';
+  const cleanRawRc = liveCac?.registration_number || initialPublishedCac?.registration_number || '1845921';
+  const rcNumber = cleanRawRc.replace(/^RC[:\s-]*/i, '');
+  const companyStatus = liveCac?.company_status || initialPublishedCac?.company_status || 'Incorporated & Active';
 
   const socialLinks = [
     { 

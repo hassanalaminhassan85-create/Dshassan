@@ -1,0 +1,50 @@
+{
+  "applications": [
+    {
+      "id": "seed-hassan-demo",
+      "data_json": "{\"id\":\"seed-hassan-demo\",\"createdAt\":\"2026-09-06T15:16:52.502Z\",\"status\":\"approved\",\"personalInfo\":{\"fullName\":\"David Alao Chibuzor\",\"maritalStatus\":\"Single\",\"gender\":\"Male\",\"dateOfBirth\":\"1998-04-12\",\"nationality\":\"Nigerian\",\"stateOfOrigin\":\"Anambra\",\"lgaTownOfOrigin\":\"Onitsha North\",\"stateOfResidence\":\"FCT Abuja\",\"residentialAddress\":\"Suite B12, Garki Mall, Area 11 Abuja\",\"emailAddress\":\"david.alao.chibuzor@example.com\",\"phoneNumbers\":\"+2348032485921\",\"passportPhoto\":\"https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&auto=format&fit=crop&q=60\"},\"guarantorInfo\":{\"fullName\":\"Dr. Yusuf Ibrahim Garki\",\"hometown\":\"Kano\",\"currentAddress\":\"No. 14 Close C, Gwarinpa Estate, Abuja\",\"phoneNumber\":\"+2349098485295\",\"relationship\":\"Academic Mentor\"},\"educationalBg\":{\"highestQualification\":\"Bachelor of Science (First Class)\",\"schoolInstitution\":\"University of Nigeria, Nsukka\",\"fieldOfStudy\":\"Computer Science & Web Engineering\",\"isStudentOrGraduate\":\"graduate\"},\"experiences\":{\"exp1\":\"Freelance Frontend Developer - Designed 12 commercial Webflow landing pages (2024-2025)\",\"exp2\":\"Junior UI/UX Architect at TechHub Abuja (6 months internship)\",\"exp3\":\"Figma Design Coordinator - Managed asset design layouts for 4 startup apps\"},\"positionSkills\":{\"majorRole\":\"Lead Frontend Developer\",\"skillRole1\":\"React.js, NextJS, TypeScript, Tailwind CSS, Framer Motion\",\"skillRole2\":\"Figma Prototyping, Wireframing, Vectors, Component Design\",\"skillRole3\":\"REST APIs, Git Versioning, Node/Express Backend, SQLite\"},\"specialization\":{\"interests\":[\"Website Design\",\"App Development\",\"Services\"],\"otherDetails\":\"Specialize in creating highly micro-animated React components with luxury custom layouts.\"},\"workMode\":{\"monthlySalaryJob\":\"hybrid\",\"contractFreelanceJob\":\"remote\",\"availableForAnyOpportunity\":true},\"languageProficiency\":\"English (Native), French (Conversational/Intermediate)\",\"personalStatement\":\"Highly driven to contribute modern, responsive, and micro-interactive interfaces for DS Tech to position them as the premier digital marketing agency in West Africa.\",\"applicantSignature\":\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='150' height='50' viewBox='0 0 150 50'><path d='M10,35 Q30,10 60,30 T110,20 T140,40' fill='none' stroke='%23000E32' stroke-width='3'/></svg>\",\"applicantSignatureType\":\"draw\",\"declarationDate\":\"2026-06-23\"}"
+    }
+  ],
+  "scan_history": [
+    {
+      "id": "scan_init_demo",
+      "user_id": "anonymous",
+      "applicant_id": "seed-hassan-demo",
+      "applicant_name": "David Alao Chibuzor",
+      "scanned_at": "2026-09-06T14:16:52.502Z",
+      "secure_r2_url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=192&h=192&fit=crop&auto=format",
+      "safety_status": "safe"
+    }
+  ],
+  "services": [],
+  "portfolio": [],
+  "blogs": [],
+  "courses": [],
+  "users": [],
+  "passkeys": [],
+  "biometric_logs": [],
+  "cac_metadata": [
+    {
+      "id": "cac-default-2026",
+      "company_name": "DS TECH AND DIGITAL MARKETING AGENCY LIMITED",
+      "registration_number": "9550925",
+      "business_type": "Private Company Limited by Shares",
+      "registration_date": "2026-05-15",
+      "company_status": "Active",
+      "registered_address": "Abuja, Federal Republic of Nigeria",
+      "description": "DS Tech and Digital Marketing Agency Limited is officially incorporated under the Companies and Allied Matters Act 2020 as a private company limited by shares, authorized to deliver advanced software engineering and digital marketing systems globally.",
+      "verification_url": "https://search.cac.gov.ng/",
+      "r2_object_key": "cac_certificate_default.png",
+      "file_name": "cac_certificate.png",
+      "file_size": 485120,
+      "mime_type": "image/png",
+      "is_published": 1,
+      "display_order": 1,
+      "created_at": "2026-09-06T15:16:52.505Z",
+      "updated_at": "2026-09-06T15:16:52.505Z"
+    }
+  ],
+  "recognition_certificates": [],
+  "ongoing_projects": [],
+  "uploaded_files": []
+}

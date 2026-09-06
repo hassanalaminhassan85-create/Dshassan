@@ -5,7 +5,7 @@ import {
   ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Sparkles, 
   Send, Printer, RotateCcw, CalendarClock, Info, Check, 
   Building2, Globe, Phone, Mail, Shield, User, Clock, Calendar,
-  ExternalLink, FileText, CheckCircle, Download, Copy
+  ExternalLink, FileText, CheckCircle, Download, Copy, X, Image as ImageIcon
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { Logo } from './Logo';
@@ -65,6 +65,9 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isGeneratingSlipImage, setIsGeneratingSlipImage] = useState<boolean>(false);
   const [copiedId, setCopiedId] = useState<boolean>(false);
+  const [generatedSlipImageUrl, setGeneratedSlipImageUrl] = useState<string | null>(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState<boolean>(false);
+  const [imageCopiedSuccess, setImageCopiedSuccess] = useState<boolean>(false);
 
   // Form State
   const [formData, setFormData] = useState<CourseRegistrationRecord>({
@@ -269,16 +272,30 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
       // Find the slip element
       const slipTarget = document.getElementById('dsta-render-slip-target') || document.getElementById('dsta-course-registration-slip');
       if (!slipTarget) {
-        window.open(buildCourseRegistrationWhatsAppLink(submittedRecord), '_blank');
+        window.open(`https://wa.me/2349023489111?text=${encodeURIComponent(`*DS TECH ACADEMY — OFFICIAL REGISTRATION DOCKET*\nDocket ID: ${submittedRecord.registrationId}\nApplicant: ${submittedRecord.fullName}`)}`, '_blank');
         return;
       }
 
       const canvas = await html2canvas(slipTarget, {
-        scale: 2,
+        scale: 3,
         useCORS: true,
+        allowTaint: true,
         backgroundColor: '#FFFFFF',
         logging: false,
+        windowWidth: 850,
+        onclone: (clonedDoc) => {
+          const target = clonedDoc.getElementById('dsta-render-slip-target') || clonedDoc.getElementById('dsta-course-registration-slip');
+          if (target) {
+            target.style.width = '800px';
+            target.style.maxWidth = '800px';
+            target.style.display = 'block';
+            target.style.visibility = 'visible';
+          }
+        }
       });
+
+      const dataUrl = canvas.toDataURL('image/png');
+      setGeneratedSlipImageUrl(dataUrl);
 
       const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
       if (blob) {
@@ -286,23 +303,20 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
         const fileName = `${cleanId}_Registration_Slip.png`;
         const file = new File([blob], fileName, { type: 'image/png' });
 
-        // 1. If Web Share with files is supported (mobile browsers like Samsung Internet, Chrome Android, Safari):
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({
-              files: [file],
-              title: `DS TECH Academy Registration - ${submittedRecord.fullName}`,
-              text: `Official Course Registration Slip (${submittedRecord.registrationId}) for ${submittedRecord.fullName}.\nAdmissions Desk WhatsApp: +234 902 348 9111`,
-            });
-            return;
-          } catch (shareErr: any) {
-            if (shareErr?.name === 'AbortError') {
-              return;
-            }
+        // 1. Copy image directly to user clipboard for instant paste (Ctrl+V) in WhatsApp
+        try {
+          if (navigator.clipboard && window.ClipboardItem) {
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]);
+            setImageCopiedSuccess(true);
+            setTimeout(() => setImageCopiedSuccess(false), 4000);
           }
+        } catch (clipErr) {
+          console.warn('Clipboard image write not permitted or supported:', clipErr);
         }
 
-        // 2. Automatic backup: Download the real PNG image directly
+        // 2. Download the high-res PNG image file
         const downloadUrl = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = downloadUrl;
@@ -310,16 +324,38 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        setTimeout(() => URL.revokeObjectURL(downloadUrl), 5000);
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 6000);
 
-        // 3. Open WhatsApp to the official Academy desk
-        window.open(buildCourseRegistrationWhatsAppLink(submittedRecord), '_blank');
+        // 3. If Web Share with files is supported (mobile browsers):
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: `DS TECH Academy Registration - ${submittedRecord.fullName}`,
+              text: `Official Registration Slip (${submittedRecord.registrationId}) for ${submittedRecord.fullName}.`,
+            });
+            setIsImageModalOpen(true);
+            return;
+          } catch (shareErr: any) {
+            if (shareErr?.name === 'AbortError') {
+              setIsImageModalOpen(true);
+              return;
+            }
+          }
+        }
+
+        // 4. Open WhatsApp to Admissions Desk with clean docket reference (NO raw form data dump)
+        const cleanMsg = encodeURIComponent(
+          `*DS TECH ACADEMY — OFFICIAL COURSE REGISTRATION SLIP*\nDocket ID: ${submittedRecord.registrationId}\nApplicant: ${submittedRecord.fullName}\nProgramme: ${submittedRecord.programmeType} (${submittedRecord.trainingMode})\n\n[Official Registration Slip Image Generated from Portal]`
+        );
+        window.open(`https://wa.me/2349023489111?text=${cleanMsg}`, '_blank');
+        setIsImageModalOpen(true);
       } else {
-        window.open(buildCourseRegistrationWhatsAppLink(submittedRecord), '_blank');
+        window.open(`https://wa.me/2349023489111?text=${encodeURIComponent(`*DS TECH ACADEMY — REGISTRATION DOCKET*\nDocket ID: ${submittedRecord.registrationId}\nApplicant: ${submittedRecord.fullName}`)}`, '_blank');
       }
     } catch (err) {
       console.error('Failed to generate or share slip image:', err);
-      window.open(buildCourseRegistrationWhatsAppLink(submittedRecord), '_blank');
+      window.open(`https://wa.me/2349023489111?text=${encodeURIComponent(`*DS TECH ACADEMY — REGISTRATION DOCKET*\nDocket ID: ${submittedRecord.registrationId}\nApplicant: ${submittedRecord.fullName}`)}`, '_blank');
     } finally {
       setIsGeneratingSlipImage(false);
     }
@@ -334,13 +370,25 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
       if (!slipTarget) return;
 
       const canvas = await html2canvas(slipTarget, {
-        scale: 2,
+        scale: 3,
         useCORS: true,
+        allowTaint: true,
         backgroundColor: '#FFFFFF',
         logging: false,
+        windowWidth: 850,
+        onclone: (clonedDoc) => {
+          const target = clonedDoc.getElementById('dsta-render-slip-target') || clonedDoc.getElementById('dsta-course-registration-slip');
+          if (target) {
+            target.style.width = '800px';
+            target.style.maxWidth = '800px';
+            target.style.display = 'block';
+            target.style.visibility = 'visible';
+          }
+        }
       });
 
       const url = canvas.toDataURL('image/png');
+      setGeneratedSlipImageUrl(url);
       const cleanId = submittedRecord.registrationId.replace(/[\/\\]/g, '_');
       const a = document.createElement('a');
       a.href = url;
@@ -350,6 +398,50 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
       document.body.removeChild(a);
     } catch (err) {
       console.error('Error downloading slip image:', err);
+    } finally {
+      setIsGeneratingSlipImage(false);
+    }
+  };
+
+  // Direct Copy Slip Image to Clipboard
+  const handleCopySlipImage = async () => {
+    if (!submittedRecord) return;
+    setIsGeneratingSlipImage(true);
+    try {
+      const slipTarget = document.getElementById('dsta-render-slip-target') || document.getElementById('dsta-course-registration-slip');
+      if (!slipTarget) return;
+
+      const canvas = await html2canvas(slipTarget, {
+        scale: 3,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#FFFFFF',
+        logging: false,
+        windowWidth: 850,
+        onclone: (clonedDoc) => {
+          const target = clonedDoc.getElementById('dsta-render-slip-target') || clonedDoc.getElementById('dsta-course-registration-slip');
+          if (target) {
+            target.style.width = '800px';
+            target.style.maxWidth = '800px';
+            target.style.display = 'block';
+            target.style.visibility = 'visible';
+          }
+        }
+      });
+
+      const dataUrl = canvas.toDataURL('image/png');
+      setGeneratedSlipImageUrl(dataUrl);
+
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (blob && navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+        setImageCopiedSuccess(true);
+        setTimeout(() => setImageCopiedSuccess(false), 4000);
+      }
+    } catch (e) {
+      console.error('Failed to copy image to clipboard:', e);
     } finally {
       setIsGeneratingSlipImage(false);
     }
@@ -458,9 +550,14 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
             <Logo size="sm" variant="dark" />
             <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 hidden sm:block" />
             <div className="text-left hidden sm:block">
-              <span className="text-[10px] font-black tracking-widest text-orange-600 dark:text-orange-400 uppercase block">
-                DS TECH ACADEMY
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[10px] font-black tracking-widest text-orange-600 dark:text-orange-400 uppercase block">
+                  DS TECH ACADEMY
+                </span>
+                <span className="text-[9px] font-mono font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 px-1.5 py-0.5 rounded">
+                  RC: 9550925
+                </span>
+              </div>
               <p className="text-xs font-extrabold text-[#000E32] dark:text-white uppercase tracking-tight">
                 COURSE REGISTRATION FORM
               </p>
@@ -494,9 +591,14 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
           <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
             Please provide accurate and verifiable information for official Academy enrolment, lecture allocation, and academic records administration.
           </p>
-          <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 shrink-0 bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-            {formData.registrationId}
-          </span>
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <span className="text-[9.5px] font-mono font-extrabold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+              ACCREDITED RC: 9550925
+            </span>
+            <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 shrink-0 bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
+              {formData.registrationId}
+            </span>
+          </div>
         </div>
 
         {/* Mobile Horizontal Progress Scrollbar */}
@@ -615,6 +717,18 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                   <span>Download PNG</span>
                 </button>
 
+                {/* Copy Slip Image to Clipboard */}
+                <button
+                  type="button"
+                  onClick={handleCopySlipImage}
+                  disabled={isGeneratingSlipImage}
+                  className="flex-1 sm:flex-initial px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                  title="Copy slip image to clipboard (paste into WhatsApp)"
+                >
+                  {imageCopiedSuccess ? <Check size={15} className="text-emerald-600" /> : <Copy size={15} />}
+                  <span>{imageCopiedSuccess ? 'Image Copied!' : 'Copy Image'}</span>
+                </button>
+
                 {/* Reset / Register Another */}
                 <button
                   type="button"
@@ -654,6 +768,104 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
               />
             </div>
           </div>
+
+          {/* Real High-Resolution Slip Image Dispatch Confirmation Modal */}
+          <AnimatePresence>
+            {isImageModalOpen && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs"
+              >
+                <motion.div
+                  initial={{ scale: 0.95, y: 10 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.95, y: 10 }}
+                  className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-xl w-full p-5 sm:p-6 shadow-2xl overflow-hidden relative text-left"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setIsImageModalOpen(false)}
+                    className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  >
+                    <X size={18} />
+                  </button>
+
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                      <CheckCircle2 size={22} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                        Slip Image Dispatched &amp; Ready
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        High-resolution registration docket generated via html2canvas
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Slip Preview Thumbnail */}
+                  {generatedSlipImageUrl && (
+                    <div className="mb-4 max-h-52 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 p-2 bg-slate-50 dark:bg-slate-950 shadow-inner">
+                      <img
+                        src={generatedSlipImageUrl}
+                        alt="Generated Official Course Registration Slip"
+                        className="w-full rounded shadow-xs"
+                      />
+                    </div>
+                  )}
+
+                  {/* Practical WhatsApp Guide Banner */}
+                  <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-xl mb-4 text-xs text-emerald-950 dark:text-emerald-200">
+                    <p className="font-bold flex items-center gap-1.5 mb-1.5">
+                      <Sparkles size={14} className="text-emerald-600" />
+                      In WhatsApp chat:
+                    </p>
+                    <ol className="list-decimal list-inside space-y-1 text-[11.5px] leading-relaxed">
+                      <li>
+                        <strong>Press Ctrl+V (or Paste):</strong> The slip image has been copied to your clipboard.
+                      </li>
+                      <li>
+                        <strong>Or attach file:</strong> The slip image has also been saved to your downloads folder.
+                      </li>
+                    </ol>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center gap-2.5">
+                    <a
+                      href="https://wa.me/2349023489111"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full sm:flex-1 py-3 px-4 bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-[#25D366]/20 cursor-pointer text-center"
+                    >
+                      <OfficialWhatsAppIcon size={18} />
+                      <span>Open WhatsApp Chat</span>
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={handleCopySlipImage}
+                      className="w-full sm:w-auto py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      {imageCopiedSuccess ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                      <span>{imageCopiedSuccess ? 'Copied!' : 'Copy Image'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleDownloadSlipImage}
+                      className="w-full sm:w-auto py-3 px-4 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Download size={14} />
+                      <span>Download PNG</span>
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </motion.div>
       ) : (
         /* MAIN FORM: Responsive Left Rail & Right Form Split */

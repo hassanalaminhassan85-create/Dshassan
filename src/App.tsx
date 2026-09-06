@@ -230,20 +230,161 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
   ]
 };
 
+export type ActivePageType = 'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard';
+
+export function resolvePathToState(rawPath: string): {
+  path: string;
+  activePage: ActivePageType;
+  isAdminView: boolean;
+  appId: string | null;
+} {
+  let path = '/';
+  try {
+    path = decodeURIComponent(rawPath || '').trim();
+  } catch (e) {
+    path = rawPath || '/';
+  }
+
+  // Strip query strings and hash anchors if present
+  const queryIdx = path.indexOf('?');
+  if (queryIdx !== -1) path = path.substring(0, queryIdx);
+  const hashIdx = path.indexOf('#');
+  if (hashIdx !== -1) path = path.substring(0, hashIdx);
+
+  // Normalize trailing slash if not root (e.g. "/courseregistration/" -> "/courseregistration")
+  if (path.length > 1 && path.endsWith('/')) {
+    path = path.slice(0, -1);
+  }
+
+  const lowerPath = path.toLowerCase();
+
+  // Admin route
+  if (lowerPath === '/admin') {
+    return { path, activePage: 'home', isAdminView: true, appId: null };
+  }
+
+  // Application :id route
+  const appMatch = path.match(/^\/application\/([\w\-]+)/i);
+  if (appMatch && appMatch[1]) {
+    return { path, activePage: 'home', isAdminView: false, appId: appMatch[1] };
+  }
+
+  // Course Registration route (DIRECT & PRIORITY RESOLUTION - ZERO FLASH)
+  if (
+    lowerPath === '/courseregistration' ||
+    lowerPath === '/course-registration' ||
+    lowerPath === '/course_registration' ||
+    lowerPath.startsWith('/courseregistration') ||
+    lowerPath.startsWith('/course-registration')
+  ) {
+    return { path, activePage: 'course-registration', isAdminView: false, appId: null };
+  }
+
+  // Sub-pages matching
+  if (lowerPath === '' || lowerPath === '/' || lowerPath === '/home') {
+    return { path: '/', activePage: 'home', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/about') {
+    return { path, activePage: 'about', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/services') {
+    return { path, activePage: 'services', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/portfolio') {
+    return { path, activePage: 'portfolio', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/team' || lowerPath === '/our-team' || lowerPath === '/our team') {
+    return { path, activePage: 'team', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/blog') {
+    return { path, activePage: 'blog', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/academy-overview' || lowerPath === '/academy' || lowerPath === '/training' || lowerPath === '/courses') {
+    return { path, activePage: 'academy-overview', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/student-registration' || lowerPath === '/student-apply' || lowerPath === '/register-student' || lowerPath === '/student-register' || lowerPath === '/enroll') {
+    return { path, activePage: 'student-registration', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/tutor-application' || lowerPath === '/tutor-apply' || lowerPath === '/apply-tutor' || lowerPath === '/become-a-tutor' || lowerPath === '/instructor-apply' || lowerPath === '/faculty-apply') {
+    return { path, activePage: 'tutor-application', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/scholarship-application' || lowerPath === '/scholarship' || lowerPath === '/apply-scholarship' || lowerPath === '/scholarships') {
+    return { path, activePage: 'scholarship-application', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/internship-application' || lowerPath === '/internship' || lowerPath === '/apply-internship' || lowerPath === '/internships' || lowerPath === '/placement') {
+    return { path, activePage: 'internship-application', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/corporate-training' || lowerPath === '/corporate' || lowerPath === '/corporate-request' || lowerPath === '/rfp' || lowerPath === '/enterprise-training') {
+    return { path, activePage: 'corporate-training', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/mentorship-application' || lowerPath === '/mentorship' || lowerPath === '/apply-mentorship' || lowerPath === '/1-on-1-mentorship' || lowerPath === '/advisory') {
+    return { path, activePage: 'mentorship-application', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/student-dashboard' || lowerPath === '/student' || lowerPath === '/student-portal' || lowerPath === '/my-courses') {
+    return { path, activePage: 'student-dashboard', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/tutor-dashboard' || lowerPath === '/tutor' || lowerPath === '/tutor-portal' || lowerPath === '/instructor-dashboard' || lowerPath === '/faculty') {
+    return { path, activePage: 'tutor-dashboard', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/clients' || lowerPath === '/client') {
+    return { path, activePage: 'clients', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/careers') {
+    return { path, activePage: 'careers', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/recognition') {
+    return { path, activePage: 'recognition', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/account') {
+    return { path, activePage: 'account', isAdminView: false, appId: null };
+  }
+  if (lowerPath === '/staff-portal' || lowerPath === '/staff') {
+    return { path, activePage: 'staff-portal', isAdminView: false, appId: null };
+  }
+
+  return { path, activePage: 'home', isAdminView: false, appId: null };
+}
+
 export default function App() {
-  const [currentPath, setCurrentPath] = useState<string>('/');
-  const [currentAppId, setCurrentAppId] = useState<string | null>(null);
+  // Synchronous route resolution on first render - eliminates any visual layout flash
+  const [currentPath, setCurrentPath] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.pathname || '/';
+    }
+    return '/';
+  });
+  const [currentAppId, setCurrentAppId] = useState<string | null>(() => {
+    if (typeof window !== 'undefined') {
+      return resolvePathToState(window.location.pathname || '/').appId;
+    }
+    return null;
+  });
   const [application, setApplication] = useState<JobApplication | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return !!resolvePathToState(window.location.pathname || '/').appId;
+    }
+    return false;
+  });
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState<boolean>(false);
-  const [isAdminView, setIsAdminView] = useState<boolean>(false);
+  const [isAdminView, setIsAdminView] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return resolvePathToState(window.location.pathname || '/').isAdminView;
+    }
+    return false;
+  });
   const [isApplying, setIsApplying] = useState<boolean>(false);
   const [isAiModalOpen, setIsAiModalOpen] = useState<boolean>(false);
   const [selectedRoleTitle, setSelectedRoleTitle] = useState<string>('');
 
-  // Active website ecosystem page routing state
-  const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard'>('home');
+  // Active website ecosystem page routing state (Synchronously initialized)
+  const [activePage, setActivePage] = useState<ActivePageType>(() => {
+    if (typeof window !== 'undefined') {
+      return resolvePathToState(window.location.pathname || '/').activePage;
+    }
+    return 'home';
+  });
 
   const [publishedCac, setPublishedCac] = useState<any>(null);
 
@@ -531,15 +672,6 @@ export default function App() {
 
   const t = TRANSLATIONS[language];
 
-  // Initialize path from window.location
-  useEffect(() => {
-    try {
-      setCurrentPath(window.location.pathname || '/');
-    } catch (e) {
-      setCurrentPath('/');
-    }
-  }, []);
-
   // Instant snap scroll to top to prevent dizziness on navigation transitions
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -547,18 +679,13 @@ export default function App() {
     document.body.scrollTo({ top: 0, behavior: 'auto' });
   }, [currentPath, activePage, currentAppId, isAdminView, isApplying]);
 
-  // Dynamic Routing Handler
+  // Dynamic Routing Handler (handles application :id loading and path changes)
   useEffect(() => {
     const handleRoute = async () => {
-      const rawPath = currentPath || window.location.pathname || '/';
-      let path = '/';
-      try {
-        path = decodeURIComponent(rawPath).trim();
-      } catch (e) {
-        path = rawPath;
-      }
+      const rawPath = currentPath || (typeof window !== 'undefined' ? window.location.pathname : '/');
+      const resolved = resolvePathToState(rawPath);
 
-      if (path === '/admin') {
+      if (resolved.isAdminView) {
         setIsAdminView(true);
         setCurrentAppId(null);
         setApplication(null);
@@ -568,15 +695,12 @@ export default function App() {
         setIsAdminView(false);
       }
 
-      // Check for /application/:id pattern
-      const appMatch = path.match(/^\/application\/([\w\-]+)/);
-      if (appMatch && appMatch[1]) {
-        const id = appMatch[1];
-        setCurrentAppId(id);
+      if (resolved.appId) {
+        setCurrentAppId(resolved.appId);
         setLoading(true);
         setErrorMsg(null);
         try {
-          const data = await apiGetApplication(id);
+          const data = await apiGetApplication(resolved.appId);
           setApplication(data);
           setIsApplying(false);
         } catch (err: any) {
@@ -585,54 +709,9 @@ export default function App() {
           setLoading(false);
         }
       } else {
-        // Root page and other custom pages - resets application view
         setCurrentAppId(null);
         setApplication(null);
-
-        // Sub-pages matching path to activePage state
-        if (path === '/' || path === '/home') {
-          setActivePage('home');
-        } else if (path === '/about') {
-          setActivePage('about');
-        } else if (path === '/services') {
-          setActivePage('services');
-        } else if (path === '/portfolio') {
-          setActivePage('portfolio');
-        } else if (path === '/team' || path === '/our-team' || path === '/our team') {
-          setActivePage('team');
-        } else if (path === '/blog') {
-          setActivePage('blog');
-        } else if (path === '/academy-overview' || path === '/academy' || path === '/training' || path === '/courses') {
-          setActivePage('academy-overview');
-        } else if (path === '/student-registration' || path === '/student-apply' || path === '/register-student' || path === '/student-register' || path === '/enroll') {
-          setActivePage('student-registration');
-        } else if (path === '/courseregistration' || path === '/course-registration' || path.toLowerCase() === '/courseregistration') {
-          setActivePage('course-registration');
-        } else if (path === '/tutor-application' || path === '/tutor-apply' || path === '/apply-tutor' || path === '/become-a-tutor' || path === '/instructor-apply' || path === '/faculty-apply') {
-          setActivePage('tutor-application');
-        } else if (path === '/scholarship-application' || path === '/scholarship' || path === '/apply-scholarship' || path === '/scholarships') {
-          setActivePage('scholarship-application');
-        } else if (path === '/internship-application' || path === '/internship' || path === '/apply-internship' || path === '/internships' || path === '/placement') {
-          setActivePage('internship-application');
-        } else if (path === '/corporate-training' || path === '/corporate' || path === '/corporate-request' || path === '/rfp' || path === '/enterprise-training') {
-          setActivePage('corporate-training');
-        } else if (path === '/mentorship-application' || path === '/mentorship' || path === '/apply-mentorship' || path === '/1-on-1-mentorship' || path === '/advisory') {
-          setActivePage('mentorship-application');
-        } else if (path === '/student-dashboard' || path === '/student' || path === '/student-portal' || path === '/my-courses') {
-          setActivePage('student-dashboard');
-        } else if (path === '/tutor-dashboard' || path === '/tutor' || path === '/tutor-portal' || path === '/instructor-dashboard' || path === '/faculty') {
-          setActivePage('tutor-dashboard');
-        } else if (path === '/clients' || path === '/client') {
-          setActivePage('clients');
-        } else if (path === '/careers') {
-          setActivePage('careers');
-        } else if (path === '/recognition') {
-          setActivePage('recognition');
-        } else if (path === '/account') {
-          setActivePage('account');
-        } else if (path === '/staff-portal' || path === '/staff') {
-          setActivePage('staff-portal');
-        }
+        setActivePage(resolved.activePage);
       }
     };
 
@@ -643,7 +722,12 @@ export default function App() {
   useEffect(() => {
     const handlePopState = () => {
       try {
-        setCurrentPath(window.location.pathname || '/');
+        const path = window.location.pathname || '/';
+        const resolved = resolvePathToState(path);
+        setCurrentPath(path);
+        setActivePage(resolved.activePage);
+        setIsAdminView(resolved.isAdminView);
+        setCurrentAppId(resolved.appId);
       } catch (e) {
         // ignore
       }
@@ -652,14 +736,18 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Sandbox-safe pushState wrapper
+  // Sandbox-safe pushState wrapper with synchronous state batching
   const safeNavigate = (path: string) => {
     try {
       window.history.pushState(null, '', path);
     } catch (e) {
       console.warn('History pushState is disabled or restricted in this environment:', e);
     }
+    const resolved = resolvePathToState(path);
     setCurrentPath(path);
+    setActivePage(resolved.activePage);
+    setIsAdminView(resolved.isAdminView);
+    setCurrentAppId(resolved.appId);
   };
 
   // Submit Application Form Action handler
@@ -1099,7 +1187,7 @@ export default function App() {
              ) : activePage === 'course-registration' ? (
               <motion.div
                 key="course-registration-section"
-                initial={{ opacity: 0 }}
+                initial={false}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="w-full min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
@@ -1809,21 +1897,25 @@ export default function App() {
       {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'student-dashboard', 'tutor-dashboard', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog'].includes(activePage) && (
         <MainFooter publishedCac={publishedCac} />
       )}
-      {/* Premium Circular Floating AI Assistant Launcher */}
-      <FloatingAiLauncher
-        onClick={() => setIsAiModalOpen(!isAiModalOpen)}
-        isModalOpen={isAiModalOpen}
-        pageContext={currentPageContext}
-      />
+      {/* Premium Circular Floating AI Assistant Launcher (Hidden on course-registration page per user specification) */}
+      {activePage !== 'course-registration' && (
+        <FloatingAiLauncher
+          onClick={() => setIsAiModalOpen(!isAiModalOpen)}
+          isModalOpen={isAiModalOpen}
+          pageContext={currentPageContext}
+        />
+      )}
 
       {/* Enterprise AI Assistant Workspace Modal */}
-      <EnterpriseAiAssistantModal
-        isOpen={isAiModalOpen}
-        onClose={() => setIsAiModalOpen(false)}
-        userRole={currentPageContext.userRole}
-        currentUser={currentPageContext.userData}
-        pageContext={currentPageContext}
-      />
+      {activePage !== 'course-registration' && (
+        <EnterpriseAiAssistantModal
+          isOpen={isAiModalOpen}
+          onClose={() => setIsAiModalOpen(false)}
+          userRole={currentPageContext.userRole}
+          currentUser={currentPageContext.userData}
+          pageContext={currentPageContext}
+        />
+      )}
     </div>
   );
 }

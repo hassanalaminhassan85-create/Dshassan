@@ -133,6 +133,15 @@ Confirmed`;
 
 // Generate the WhatsApp web link
 export function buildCourseRegistrationWhatsAppLink(reg: CourseRegistrationRecord): string {
-  const message = formatCourseRegistrationWhatsAppMessage(reg);
-  return `https://wa.me/${ACADEMY_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  const docketMsg = `*DS TECH ACADEMY — OFFICIAL COURSE REGISTRATION DOCKET*
+*DS TECH & DIGITAL MARKETING AGENCY LTD*
+CAC Nigeria Accredited • RC: 1845921 | Academy Directorate: RC: 9550925
+
+Registration ID: ${reg.registrationId}
+Applicant: ${reg.fullName}
+Programme: ${reg.programmeType || 'Professional Training'} (${reg.trainingMode || 'Virtual'})
+Course: ${reg.course1?.courseName || 'Enrolment'}
+
+[Official Registration Slip Image Generated — Please paste (Ctrl+V) or attach below]`;
+  return `https://wa.me/${ACADEMY_WHATSAPP_NUMBER}?text=${encodeURIComponent(docketMsg)}`;
 }

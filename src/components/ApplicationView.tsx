@@ -4,10 +4,12 @@ import { Logo } from './Logo';
 import { JobApplication } from '../types';
 import {
   Share2, Copy, FileText, CheckCircle2, Award, ExternalLink, RefreshCw, Printer,
-  FileDown, Building2, Send, MessageSquare, Cpu, ShieldCheck, Lock, Clock,
+  FileDown, Download, Building2, Send, MessageSquare, Cpu, ShieldCheck, Lock, Clock,
   ShieldAlert, AlertTriangle, ArrowRight, Check, Sparkles, XCircle, UserCheck,
   Menu, X, LayoutDashboard, Bot, QrCode, ChevronRight, Fingerprint, Landmark
 } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import { OfficialWhatsAppIcon } from './OfficialWhatsAppIcon';
 import { AppointmentLetter } from './AppointmentLetter';
 import { ApplicationQRCode } from './ApplicationQRCode';
 import { CareersFormPDFView } from './CareersFormPDFView';
@@ -38,6 +40,10 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
   const [copied, setCopied] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [isGeneratingSlipImage, setIsGeneratingSlipImage] = useState<boolean>(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState<boolean>(false);
+  const [generatedSlipImageUrl, setGeneratedSlipImageUrl] = useState<string | null>(null);
+  const [imageCopiedSuccess, setImageCopiedSuccess] = useState<boolean>(false);
   const isInIframe = typeof window !== 'undefined' && window.self !== window.top;
 
   // Sync external props changes
@@ -154,14 +160,129 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
     window.open(`mailto:${companyEmail}?subject=${mailSubject}&body=${mailBody}`, '_blank');
   };
 
-  const handleRedirectWhatsApp = () => {
+  // High-Resolution Image Dispatch via WhatsApp for Careers Application
+  const handleRedirectWhatsApp = async () => {
     const companyPhone = '2349023489111';
     const candidateName = appData.personalInfo?.fullName || 'Candidate';
     const role = appData.positionSkills?.majorRole || 'Staff Member';
-    const portalUrl = getShareableUrl();
-    const text = `Hi DS Tech, I have successfully filled the Careers Application Form for the role of ${role}. You can access my official signed document here: ${portalUrl}`;
-    
-    window.open(`https://wa.me/${companyPhone}?text=${encodeURIComponent(text)}`, '_blank');
+
+    if (activeTab !== 'application_record') {
+      setActiveTab('application_record');
+    }
+
+    setIsGeneratingSlipImage(true);
+
+    try {
+      // Allow DOM to settle
+      await new Promise(r => setTimeout(r, 120));
+
+      const target = document.getElementById('careers-pdf-document') || document.querySelector('.print-page');
+      if (!target) {
+        const portalUrl = getShareableUrl();
+        window.open(`https://wa.me/${companyPhone}?text=${encodeURIComponent(`*DS TECH & DIGITAL MARKETING AGENCY LTD*\n*OFFICIAL CAREERS APPLICATION DOCKET*\nApplicant: ${candidateName}\nRole: ${role}\nCAC RC: 1845921\nPortal: ${portalUrl}`)}`, '_blank');
+        return;
+      }
+
+      const canvas = await html2canvas(target as HTMLElement, {
+        scale: 2.5,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#FFFFFF',
+        logging: false,
+        windowWidth: 950,
+      });
+
+      const dataUrl = canvas.toDataURL('image/png');
+      setGeneratedSlipImageUrl(dataUrl);
+
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (blob) {
+        const cleanName = candidateName.replace(/[^a-zA-Z0-9]/g, '_');
+        const fileName = `${cleanName}_Signed_Application.png`;
+        const file = new File([blob], fileName, { type: 'image/png' });
+
+        // 1. Copy image directly to user clipboard for instant paste (Ctrl+V) in WhatsApp
+        try {
+          if (navigator.clipboard && window.ClipboardItem) {
+            await navigator.clipboard.write([
+              new ClipboardItem({ 'image/png': blob })
+            ]);
+            setImageCopiedSuccess(true);
+            setTimeout(() => setImageCopiedSuccess(false), 4000);
+          }
+        } catch (clipErr) {
+          console.warn('Clipboard write failed:', clipErr);
+        }
+
+        // 2. Download image
+        const downloadUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(downloadUrl), 6000);
+
+        // 3. Web Share API on mobile
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: `DS TECH Job Application - ${candidateName}`,
+              text: `Official Signed Job Application for ${candidateName} (${role}).`,
+            });
+            setIsImageModalOpen(true);
+            return;
+          } catch (shareErr: any) {
+            if (shareErr?.name === 'AbortError') {
+              setIsImageModalOpen(true);
+              return;
+            }
+          }
+        }
+
+        // 4. WhatsApp open with clean official reference (NO raw form data dump)
+        const text = `*DS TECH & DIGITAL MARKETING AGENCY LTD*\n*OFFICIAL CAREERS APPLICATION DOCKET*\nApplicant: ${candidateName}\nPosition: ${role}\nCAC Nigeria RC: 1845921\n\n[Official Signed Document Image Generated — Please paste (Ctrl+V) or attach file below]`;
+        window.open(`https://wa.me/${companyPhone}?text=${encodeURIComponent(text)}`, '_blank');
+        setIsImageModalOpen(true);
+      }
+    } catch (err) {
+      console.error('Error generating application image:', err);
+      const portalUrl = getShareableUrl();
+      window.open(`https://wa.me/${companyPhone}?text=${encodeURIComponent(`*DS TECH & DIGITAL MARKETING AGENCY LTD*\nApplicant: ${candidateName}\nRole: ${role}\nPortal: ${portalUrl}`)}`, '_blank');
+    } finally {
+      setIsGeneratingSlipImage(false);
+    }
+  };
+
+  const handleDownloadApplicationImage = () => {
+    if (!generatedSlipImageUrl) return;
+    const candidateName = appData.personalInfo?.fullName || 'Candidate';
+    const cleanName = candidateName.replace(/[^a-zA-Z0-9]/g, '_');
+    const a = document.createElement('a');
+    a.href = generatedSlipImageUrl;
+    a.download = `${cleanName}_Signed_Application.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
+  const handleCopyApplicationImage = async () => {
+    if (!generatedSlipImageUrl) return;
+    try {
+      const res = await fetch(generatedSlipImageUrl);
+      const blob = await res.blob();
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([
+          new ClipboardItem({ 'image/png': blob })
+        ]);
+        setImageCopiedSuccess(true);
+        setTimeout(() => setImageCopiedSuccess(false), 4000);
+      }
+    } catch (e) {
+      console.error('Failed to copy application image:', e);
+    }
   };
 
   const navigationItems = [
@@ -872,10 +993,15 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
                 <button
                   type="button"
                   onClick={handleRedirectWhatsApp}
-                  className="w-full sm:w-auto py-3 px-5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:scale-[1.02]"
+                  disabled={isGeneratingSlipImage}
+                  className="w-full sm:w-auto py-3 px-5 bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-black uppercase tracking-wider rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-md hover:scale-[1.02] cursor-pointer disabled:opacity-60"
                 >
-                  <MessageSquare size={14} />
-                  <span>3. Send via WhatsApp</span>
+                  {isGeneratingSlipImage ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <OfficialWhatsAppIcon size={16} animate={true} />
+                  )}
+                  <span>{isGeneratingSlipImage ? 'Generating Image...' : '3. Send Image via WhatsApp'}</span>
                 </button>
               </div>
             </div>
@@ -883,6 +1009,99 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
             <div className="print-page w-full">
               <CareersFormPDFView application={appData} />
             </div>
+
+            {/* High-Resolution Document Image Dispatch Modal */}
+            <AnimatePresence>
+              {isImageModalOpen && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs"
+                >
+                  <motion.div
+                    initial={{ scale: 0.95, y: 10 }}
+                    animate={{ scale: 1, y: 0 }}
+                    exit={{ scale: 0.95, y: 10 }}
+                    className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-xl w-full p-5 sm:p-6 shadow-2xl overflow-hidden relative text-left"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setIsImageModalOpen(false)}
+                      className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    >
+                      <X size={18} />
+                    </button>
+
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
+                        <CheckCircle2 size={22} />
+                      </div>
+                      <div>
+                        <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                          Signed Application Image Dispatched
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Captured via html2canvas with official DS Tech corporate branding
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Preview Thumbnail */}
+                    {generatedSlipImageUrl && (
+                      <div className="mb-4 max-h-56 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 p-2 bg-slate-50 dark:bg-slate-950 shadow-inner">
+                        <img
+                          src={generatedSlipImageUrl}
+                          alt="Signed Job Application Slip"
+                          className="w-full rounded shadow-xs"
+                        />
+                      </div>
+                    )}
+
+                    <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-xl mb-4 text-xs text-emerald-950 dark:text-emerald-200">
+                      <p className="font-bold flex items-center gap-1.5 mb-1">
+                        <Sparkles size={14} className="text-emerald-600" />
+                        In WhatsApp chat:
+                      </p>
+                      <p className="text-[11.5px] leading-relaxed">
+                        • <strong>Press Ctrl+V (or Paste):</strong> The document image is copied directly to your clipboard.<br />
+                        • <strong>Or attach file:</strong> The PNG image has also been saved to your downloads folder.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-center gap-2.5">
+                      <a
+                        href="https://wa.me/2349023489111"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full sm:flex-1 py-3 px-4 bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-[#25D366]/20 cursor-pointer text-center"
+                      >
+                        <OfficialWhatsAppIcon size={18} />
+                        <span>Open WhatsApp Chat</span>
+                      </a>
+
+                      <button
+                        type="button"
+                        onClick={handleCopyApplicationImage}
+                        className="w-full sm:w-auto py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        {imageCopiedSuccess ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
+                        <span>{imageCopiedSuccess ? 'Copied!' : 'Copy Image'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleDownloadApplicationImage}
+                        className="w-full sm:w-auto py-3 px-4 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Download size={14} />
+                        <span>Download PNG</span>
+                      </button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         )}
 
