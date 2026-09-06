@@ -369,9 +369,13 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
   // Shared helper to render canonical slip canvas with 100% pixel-perfect CORS safety
   const renderRegistrationSlipCanvas = async (slipTarget: HTMLElement): Promise<HTMLCanvasElement> => {
     if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
-      await document.fonts.ready;
+      try {
+        await document.fonts.ready;
+      } catch (e) {
+        console.warn('Font loading check skipped:', e);
+      }
     }
-    await new Promise(resolve => setTimeout(resolve, 150));
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     return await html2canvas(slipTarget, {
       scale: 2,
@@ -379,9 +383,32 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
       allowTaint: false,
       backgroundColor: '#FFFFFF',
       logging: false,
+      scrollX: 0,
+      scrollY: 0,
+      x: 0,
+      y: 0,
       width: 800,
       windowWidth: 850,
+      ignoreElements: (element) => {
+        const tag = element.tagName ? element.tagName.toUpperCase() : '';
+        return tag === 'SCRIPT' || tag === 'IFRAME' || element.classList?.contains('cf-analytics');
+      },
       onclone: (clonedDoc) => {
+        // Strip dark mode classes on html/body in cloned DOM so Tailwind dark mode doesn't render white-on-white text
+        clonedDoc.documentElement.classList.remove('dark');
+        clonedDoc.body.classList.remove('dark');
+        clonedDoc.documentElement.style.backgroundColor = '#FFFFFF';
+        clonedDoc.body.style.backgroundColor = '#FFFFFF';
+        clonedDoc.documentElement.style.color = '#0F172A';
+        clonedDoc.body.style.color = '#0F172A';
+
+        // Enforce crossOrigin="anonymous" on ALL images in cloned document to prevent tainted canvas errors
+        const allImages = clonedDoc.querySelectorAll('img');
+        allImages.forEach((img) => {
+          img.setAttribute('crossorigin', 'anonymous');
+          img.crossOrigin = 'anonymous';
+        });
+
         const target = clonedDoc.getElementById('dsta-render-slip-target') || clonedDoc.getElementById('dsta-course-registration-slip');
         if (target) {
           target.style.width = '800px';
@@ -391,8 +418,16 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
           target.style.display = 'block';
           target.style.visibility = 'visible';
           target.style.backgroundColor = '#FFFFFF';
+          target.style.color = '#0F172A';
           target.style.margin = '0 auto';
           target.style.padding = '0';
+          target.style.transform = 'none';
+
+          // Remove any dark mode classes from all descendant elements in cloned target
+          const allElements = target.querySelectorAll('*');
+          allElements.forEach((el) => {
+            el.classList?.remove('dark');
+          });
 
           // Unwrap all parent container constraints in clonedDoc up to body so mobile viewport width doesn't crop capture
           let parent = target.parentElement;
@@ -403,6 +438,7 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
             parent.style.overflow = 'visible';
             parent.style.margin = '0';
             parent.style.padding = '0';
+            parent.style.backgroundColor = '#FFFFFF';
             parent = parent.parentElement;
           }
           clonedDoc.body.style.width = '850px';

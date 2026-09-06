@@ -77,23 +77,32 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
       >
         {/* Top Corporate Ribbon Bar */}
         <div 
-          className="absolute top-0 left-0 right-0 h-2"
-          style={{ background: 'linear-gradient(90deg, #EA580C 0%, #000E32 50%, #000E32 100%)' }}
+          className="absolute top-0 left-0 right-0 h-2 bg-[#000E32]"
+          style={{ backgroundColor: '#000E32', borderBottom: '2px solid #EA580C' }}
         />
 
         {/* Centered High-Security 'OFFICIAL - DS TECH' Watermark */}
         <div 
           className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 overflow-hidden"
-          style={{ opacity: 0.07 }}
         >
           <div 
-            className="text-center border-4 border-[#000E32] rounded-3xl p-8 max-w-lg"
-            style={{ transform: 'rotate(-45deg)', WebkitTransform: 'rotate(-45deg)' }}
+            className="text-center border-4 rounded-3xl p-8 max-w-lg"
+            style={{ 
+              borderColor: 'rgba(0, 14, 50, 0.08)',
+              transform: 'rotate(-45deg)', 
+              WebkitTransform: 'rotate(-45deg)' 
+            }}
           >
-            <span className="text-5xl font-black tracking-widest text-[#000E32] uppercase block whitespace-nowrap">
+            <span 
+              className="text-5xl font-black tracking-widest uppercase block whitespace-nowrap"
+              style={{ color: 'rgba(0, 14, 50, 0.07)' }}
+            >
               OFFICIAL - DS TECH
             </span>
-            <span className="text-xs font-black tracking-[0.25em] text-orange-600 uppercase block mt-2">
+            <span 
+              className="text-xs font-black tracking-[0.25em] uppercase block mt-2"
+              style={{ color: 'rgba(234, 88, 12, 0.12)' }}
+            >
               AUTHENTIC ACADEMY DOCKET • CAC RC 9550925
             </span>
           </div>
@@ -210,6 +219,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
               {qrCodeUrl ? (
                 <img
                   src={qrCodeUrl}
+                  crossOrigin="anonymous"
                   alt="Registration Verification QR"
                   className="w-16 h-16 border border-slate-300 rounded p-0.5 bg-white shadow-2xs"
                 />

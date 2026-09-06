@@ -142,8 +142,31 @@ export function useProfessionalPDF() {
         allowTaint: false,
         backgroundColor: '#FFFFFF',
         logging: false,
+        scrollX: 0,
+        scrollY: 0,
+        x: 0,
+        y: 0,
         windowWidth: targetWidthPx + 50,
+        ignoreElements: (element) => {
+          const tag = element.tagName ? element.tagName.toUpperCase() : '';
+          return tag === 'SCRIPT' || tag === 'IFRAME' || element.classList?.contains('cf-analytics');
+        },
         onclone: (clonedDoc) => {
+          // Strip dark mode classes on html/body in cloned DOM so Tailwind dark mode doesn't render white-on-white text
+          clonedDoc.documentElement.classList.remove('dark');
+          clonedDoc.body.classList.remove('dark');
+          clonedDoc.documentElement.style.backgroundColor = '#FFFFFF';
+          clonedDoc.body.style.backgroundColor = '#FFFFFF';
+          clonedDoc.documentElement.style.color = '#0F172A';
+          clonedDoc.body.style.color = '#0F172A';
+
+          // Enforce crossOrigin="anonymous" on ALL images in cloned document to prevent tainted canvas errors
+          const allImages = clonedDoc.querySelectorAll('img');
+          allImages.forEach((img) => {
+            img.setAttribute('crossorigin', 'anonymous');
+            img.crossOrigin = 'anonymous';
+          });
+
           const targetInClone =
             (elementId ? clonedDoc.getElementById(elementId) : null) ||
             clonedDoc.getElementById('dsta-render-slip-target') ||
@@ -163,9 +186,17 @@ export function useProfessionalPDF() {
             targetInClone.style.justifyContent = 'space-between';
             targetInClone.style.visibility = 'visible';
             targetInClone.style.backgroundColor = '#FFFFFF';
+            targetInClone.style.color = '#0F172A';
             targetInClone.style.margin = '0 auto';
             targetInClone.style.boxSizing = 'border-box';
             targetInClone.style.overflow = 'visible';
+            targetInClone.style.transform = 'none';
+
+            // Remove any dark mode classes from all descendant elements in cloned target
+            const allElements = targetInClone.querySelectorAll('*');
+            allElements.forEach((el) => {
+              el.classList?.remove('dark');
+            });
 
             // Unwrap parent element constraints in clonedDoc up to body so mobile viewport bounds don't crop PDF canvas
             let parent = targetInClone.parentElement;
@@ -176,6 +207,7 @@ export function useProfessionalPDF() {
               parent.style.overflow = 'visible';
               parent.style.margin = '0';
               parent.style.padding = '0';
+              parent.style.backgroundColor = '#FFFFFF';
               parent = parent.parentElement;
             }
             clonedDoc.body.style.width = `${targetWidthPx + 50}px`;
