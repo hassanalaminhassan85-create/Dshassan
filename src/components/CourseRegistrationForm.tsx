@@ -26,6 +26,7 @@ import {
   generateCourseRegId, 
   apiSaveCourseRegistration, 
   buildCourseRegistrationWhatsAppLink, 
+  formatCourseRegistrationWhatsAppMessage,
   ACADEMY_WHATSAPP_NUMBER 
 } from '../lib/courseRegistrationStorage';
 
@@ -57,6 +58,86 @@ const LECTURE_TIME_OPTIONS = [
   '05:00 PM – 07:00 PM (Evening)',
   '07:00 PM – 09:00 PM (Night / Executive)'
 ];
+
+const WhatsAppDetailsMotionWriter: React.FC<{ record: CourseRegistrationRecord }> = ({ record }) => {
+  const fullText = formatCourseRegistrationWhatsAppMessage(record);
+  const [copiedText, setCopiedText] = useState(false);
+
+  const handleCopyText = () => {
+    navigator.clipboard.writeText(fullText);
+    setCopiedText(true);
+    setTimeout(() => setCopiedText(false), 2500);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', damping: 20, stiffness: 180 }}
+      className="my-4 rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-emerald-950/90 via-slate-900 to-slate-950 p-4 text-left shadow-xl shadow-emerald-950/20 text-white relative overflow-hidden"
+    >
+      {/* Animated Motion Shimmer */}
+      <motion.div
+        animate={{ x: ['-100%', '200%'] }}
+        transition={{ repeat: Infinity, duration: 3.5, ease: 'linear' }}
+        className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-transparent via-emerald-400/10 to-transparent pointer-events-none transform -skew-x-12"
+      />
+
+      {/* Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-emerald-800/50 mb-3">
+        <div className="flex items-center gap-2">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+          </span>
+          <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+            <OfficialWhatsAppIcon size={16} animate={true} />
+            Exact Details Formatted for WhatsApp Dispatch
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleCopyText}
+          className="px-2.5 py-1 rounded-lg bg-emerald-900/60 hover:bg-emerald-800 text-emerald-200 text-[10px] font-bold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer border border-emerald-700/50"
+        >
+          {copiedText ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+          <span>{copiedText ? 'Copied Full Details!' : 'Copy Text'}</span>
+        </button>
+      </div>
+
+      {/* Live High Motion Animated Text Container */}
+      <div className="bg-slate-950/90 rounded-xl p-3 border border-slate-800/80 max-h-64 overflow-y-auto font-mono text-[11.5px] leading-relaxed text-slate-200 space-y-1 selection:bg-emerald-500 selection:text-black shadow-inner">
+        {fullText.split('\n').map((line, idx) => (
+          <motion.div
+            key={idx}
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: idx * 0.02, duration: 0.15 }}
+            className={
+              line.startsWith('*')
+                ? 'font-bold text-emerald-300 pt-1'
+                : line.startsWith('•')
+                ? 'pl-2 text-slate-100'
+                : line.startsWith('  ▫')
+                ? 'pl-5 text-slate-400 text-[11px]'
+                : line.startsWith('---')
+                ? 'text-slate-700 py-1'
+                : 'text-slate-300'
+            }
+          >
+            {line}
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="pt-2 text-[10px] text-emerald-400/90 font-medium flex items-center justify-between">
+        <span>✨ Includes 100% of applicant's filled registration fields</span>
+        <span className="font-mono text-slate-400">RC: 1845921</span>
+      </div>
+    </motion.div>
+  );
+};
 
 export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ onNavigateHome }) => {
   const [activeTab, setActiveTab] = useState<number>(1);
@@ -285,12 +366,12 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
       // 2. Find the canonical slip element
       const slipTarget = document.getElementById('dsta-render-slip-target') || document.getElementById('dsta-course-registration-slip');
       if (!slipTarget) {
-        window.open(`https://wa.me/2349023489111?text=${encodeURIComponent(`*DS TECH ACADEMY — OFFICIAL REGISTRATION DOCKET*\nDocket ID: ${submittedRecord.registrationId}\nApplicant: ${submittedRecord.fullName}`)}`, '_blank');
+        window.open(buildCourseRegistrationWhatsAppLink(submittedRecord), '_blank');
         return;
       }
 
       // 3. Render pixel-perfect registration slip using html2canvas
-      setGenerationStatusText('Preparing image...');
+      setGenerationStatusText('Preparing image & full details...');
       const canvas = await html2canvas(slipTarget, {
         scale: Math.max(2, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 2 : 2, 3)),
         useCORS: true,
@@ -328,8 +409,8 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
         ) {
           try {
             await navigator.share({
-              title: 'DS TECH Academy Course Registration',
-              text: `DS TECH Academy Course Registration Slip — ${submittedRecord.fullName} (${submittedRecord.registrationId})`,
+              title: 'DS TECH Academy Official Course Registration Docket',
+              text: formatCourseRegistrationWhatsAppMessage(submittedRecord),
               files: [file]
             });
             // User shared successfully via native share sheet (e.g. selected WhatsApp)
@@ -374,11 +455,11 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
         // Open professional fallback UI
         setIsImageModalOpen(true);
       } else {
-        window.open(`https://wa.me/2349023489111?text=${encodeURIComponent(`*DS TECH ACADEMY — REGISTRATION DOCKET*\nDocket ID: ${submittedRecord.registrationId}\nApplicant: ${submittedRecord.fullName}`)}`, '_blank');
+        window.open(buildCourseRegistrationWhatsAppLink(submittedRecord), '_blank');
       }
     } catch (err) {
       console.error('Failed to generate registration slip image:', err);
-      window.open(`https://wa.me/2349023489111?text=${encodeURIComponent(`*DS TECH ACADEMY — REGISTRATION DOCKET*\nDocket ID: ${submittedRecord.registrationId}\nApplicant: ${submittedRecord.fullName}`)}`, '_blank');
+      window.open(buildCourseRegistrationWhatsAppLink(submittedRecord), '_blank');
     } finally {
       setIsGeneratingSlipImage(false);
       setGenerationStatusText('');
@@ -823,6 +904,9 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
             </p>
           </div>
 
+          {/* High Motion Live WhatsApp Details Writer & Preview */}
+          <WhatsAppDetailsMotionWriter record={submittedRecord} />
+
           {/* Live Official Registration Slip Preview (World-Class Rendering) */}
           <div className="bg-slate-100 dark:bg-slate-950/80 p-3 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between pb-3 px-1 text-slate-600 dark:text-slate-300">
@@ -874,17 +958,17 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                     </div>
                     <div>
                       <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                        Your Registration Slip Image is Ready
+                        Registration Slip Image & Details Ready
                       </h3>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Please save the image and attach it in WhatsApp.
+                        Exact filled details and PNG registration slip generated for WhatsApp.
                       </p>
                     </div>
                   </div>
 
                   {/* Slip Preview Thumbnail */}
                   {generatedSlipImageUrl && (
-                    <div className="mb-4 max-h-52 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 p-2 bg-slate-50 dark:bg-slate-950 shadow-inner">
+                    <div className="mb-3 max-h-48 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 p-2 bg-slate-50 dark:bg-slate-950 shadow-inner">
                       <img
                         src={generatedSlipImageUrl}
                         alt="Generated Official Course Registration Slip"
@@ -892,6 +976,9 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                       />
                     </div>
                   )}
+
+                  {/* WhatsApp Message Live Motion Writer inside Modal */}
+                  <WhatsAppDetailsMotionWriter record={submittedRecord} />
 
                   {/* Practical WhatsApp Guide Banner */}
                   <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/60 rounded-xl mb-4 text-xs text-emerald-950 dark:text-emerald-200">
@@ -904,7 +991,7 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                         <strong>Download or copy image:</strong> The official PNG registration slip has been saved to your downloads (and copied to clipboard).
                       </li>
                       <li>
-                        <strong>Open WhatsApp:</strong> Click the button below to message the Admissions Desk (+234 902 348 9111).
+                        <strong>Open WhatsApp:</strong> Click below to open WhatsApp pre-filled with all exact registration details.
                       </li>
                       <li>
                         <strong>Attach &amp; Send:</strong> In WhatsApp, attach the downloaded image (or press Ctrl+V) and send.
@@ -914,13 +1001,13 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
 
                   <div className="flex flex-col sm:flex-row items-center gap-2.5">
                     <a
-                      href={`https://wa.me/2349023489111?text=${encodeURIComponent(`*DS TECH ACADEMY — OFFICIAL COURSE REGISTRATION SLIP*\nDocket ID: ${submittedRecord.registrationId}\nApplicant: ${submittedRecord.fullName}\nProgramme: ${submittedRecord.programmeType} (${submittedRecord.trainingMode})\n\n[Please find attached my official Course Registration Slip image.]`)}`}
+                      href={buildCourseRegistrationWhatsAppLink(submittedRecord)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="w-full sm:flex-1 py-3 px-4 bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 shadow-md shadow-[#25D366]/20 cursor-pointer text-center"
                     >
-                      <OfficialWhatsAppIcon size={18} />
-                      <span>Open WhatsApp</span>
+                      <OfficialWhatsAppIcon size={18} animate={true} />
+                      <span>Open WhatsApp with Details</span>
                     </a>
 
                     <button
@@ -938,7 +1025,7 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                       className="w-full sm:w-auto py-3 px-4 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-bold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       {imageCopiedSuccess ? <Check size={14} className="text-emerald-600" /> : <Copy size={14} />}
-                      <span>{imageCopiedSuccess ? 'Copied!' : 'Copy Image'}</span>
+                      <span>{imageCopiedSuccess ? 'Copied Image!' : 'Copy Image'}</span>
                     </button>
                   </div>
                 </motion.div>
