@@ -72,7 +72,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
     >
       {/* Outer Card Container with Crisp Corporate Border */}
       <div 
-        className="border border-slate-300 print:border-slate-800 p-4 sm:p-5 relative overflow-hidden bg-white shadow-sm print:shadow-none"
+        className="border border-slate-300 print:border-slate-800 p-5 relative overflow-hidden bg-white shadow-sm print:shadow-none"
         style={{ borderRadius: '8px' }}
       >
         {/* Top Corporate Ribbon Bar */}
@@ -86,7 +86,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
           {/* Official Crest & Institutional Identification */}
           <div className="flex items-center gap-3">
             {/* Authentic DS TECH Official Circular Vector Crest */}
-            <div className="shrink-0 w-13 h-13 sm:w-14 sm:h-14 bg-white rounded-full flex items-center justify-center p-0.5 border border-slate-200 shadow-xs">
+            <div className="shrink-0 w-14 h-14 bg-white rounded-full flex items-center justify-center p-0.5 border border-slate-200 shadow-xs">
               <svg
                 width="100%"
                 height="100%"
@@ -185,7 +185,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
 
             <div>
               <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="text-base sm:text-lg font-black text-[#000E32] tracking-tight">
+                <span className="text-lg font-black text-[#000E32] tracking-tight">
                   DS TECH ACADEMY
                 </span>
                 <span className="text-[9.5px] font-bold text-orange-600 tracking-wider">
@@ -207,10 +207,10 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
               <img
                 src={qrCodeUrl}
                 alt="Registration Verification QR"
-                className="w-13 h-13 sm:w-14 sm:h-14 border border-slate-300 rounded p-0.5 bg-white shadow-2xs"
+                className="w-14 h-14 border border-slate-300 rounded p-0.5 bg-white shadow-2xs"
               />
             ) : (
-              <div className="w-13 h-13 sm:w-14 sm:h-14 border border-dashed border-slate-300 rounded flex items-center justify-center text-[8px] font-mono text-slate-400">
+              <div className="w-14 h-14 border border-dashed border-slate-300 rounded flex items-center justify-center text-[8px] font-mono text-slate-400">
                 VERIFIED
               </div>
             )}
@@ -226,7 +226,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
             <span className="text-[8.5px] font-extrabold text-orange-600 uppercase tracking-widest block">
               Official Institutional Enrolment Docket
             </span>
-            <h1 className="text-xs sm:text-sm font-black text-[#000E32] tracking-tight uppercase">
+            <h1 className="text-sm font-black text-[#000E32] tracking-tight uppercase">
               STUDENT COURSE REGISTRATION SLIP
             </h1>
           </div>
@@ -299,7 +299,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
             <span>2. Enrolment &amp; Programme Structure</span>
             <span className="text-[8px] font-mono text-orange-300">Curriculum Model</span>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-slate-200 text-center bg-white text-[10.5px]">
+          <div className="grid grid-cols-4 divide-x divide-slate-200 text-center bg-white text-[10.5px]">
             <div className="p-1.5">
               <span className="text-[8px] font-bold text-slate-400 uppercase block">
                 Programme Type
@@ -424,7 +424,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
             <span>4. Tuition &amp; Bursary Financial Clearance</span>
             <span className="text-[8px] font-mono text-emerald-300">Audit Status</span>
           </div>
-          <div className="px-3 py-1.5 bg-slate-50 text-[10px] flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+          <div className="px-3 py-1.5 bg-slate-50 text-[10px] flex flex-row items-center justify-between gap-1.5">
             <div>
               <span className="text-[8px] font-bold text-slate-500 uppercase block">
                 Tuition Fee Reporting:
@@ -437,7 +437,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
                   : 'Pending Clearance / Desk Confirmation'}
               </span>
             </div>
-            <div className="text-left sm:text-right">
+            <div className="text-right">
               <span className="text-[8px] font-bold text-slate-500 uppercase block">
                 Bursary Audit Status:
               </span>
@@ -454,7 +454,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
             <strong>Student Declaration:</strong> I solemnly declare that all personal and academic details supplied in this course registration form are authentic, accurate, and in strict adherence to the official Academy timetable. I agree to conform to the academic guidelines and lecture schedules of DS TECH Academy.
           </p>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1.5 border-t border-slate-100 items-end">
+          <div className="grid grid-cols-3 gap-3 pt-1.5 border-t border-slate-100 items-end">
             {/* Applicant Signature */}
             <div>
               <span className="text-[7.5px] font-bold text-slate-400 uppercase block mb-0.5">
@@ -478,7 +478,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
             </div>
 
             {/* Official Registrar Seal */}
-            <div className="col-span-2 sm:col-span-1 text-left sm:text-right">
+            <div className="col-span-1 text-right">
               <div className="inline-block border-2 border-dashed border-emerald-700 rounded p-1 bg-emerald-50/60 text-center">
                 <span className="text-[7px] font-black uppercase text-emerald-800 block tracking-wider">
                   DS TECH ACADEMY
@@ -495,11 +495,11 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
         </div>
 
         {/* 8. STATUTORY FOOTER */}
-        <div className="pt-1.5 border-t border-slate-200 text-[7.5px] text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-1">
-          <p className="text-center sm:text-left">
+        <div className="pt-1.5 border-t border-slate-200 text-[7.5px] text-slate-500 flex flex-row items-center justify-between gap-1">
+          <p className="text-left">
             <strong>Headquarters:</strong> Ext A-73 Efab Mall Second Floor, Area 11 Garki, Abuja, Nigeria.
           </p>
-          <p className="text-center sm:text-right font-mono">
+          <p className="text-right font-mono">
             Support WhatsApp: +234 902 348 9111 | admissions@dstech.agency
           </p>
         </div>

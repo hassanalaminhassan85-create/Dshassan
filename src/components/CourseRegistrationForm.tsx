@@ -8,9 +8,11 @@ import {
   ExternalLink, FileText, CheckCircle, Download, Copy, X, Image as ImageIcon
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { Logo } from './Logo';
 import { OfficialWhatsAppIcon } from './OfficialWhatsAppIcon';
 import { CourseRegistrationPDFSlip } from './CourseRegistrationPDFSlip';
+import { useProfessionalPDF } from '../hooks/useProfessionalPDF';
 import { ACADEMY_COURSES } from '../lib/academyCoursesData';
 import { 
   CourseRegistrationRecord, 
@@ -69,6 +71,9 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
   const [generatedSlipImageUrl, setGeneratedSlipImageUrl] = useState<string | null>(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState<boolean>(false);
   const [imageCopiedSuccess, setImageCopiedSuccess] = useState<boolean>(false);
+
+  // Professional PDF Generation Hook
+  const { generatePDF, isGenerating: isGeneratingPDF, statusText: pdfStatusText } = useProfessionalPDF();
 
   // Form State
   const [formData, setFormData] = useState<CourseRegistrationRecord>({
@@ -517,6 +522,25 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
     }
   };
 
+  // Generate Official A4 PDF Document (210mm x 297mm) using useProfessionalPDF
+  const handleDownloadA4PDF = async () => {
+    const recordToUse = submittedRecord || formData;
+    if (!recordToUse || isGeneratingSlipImage || isGeneratingPDF) return;
+
+    await generatePDF({
+      elementId: 'dsta-render-slip-target',
+      applicantName: recordToUse.fullName || 'Student',
+      documentTitle: 'DS-TECH-Academy-Course-Registration',
+      marginMm: 10,
+      targetWidthPx: 800,
+      onError: (err) => {
+        console.error('Failed to generate official A4 PDF document:', err);
+        alert('Notice: Automated PDF export experienced a browser issue. Falling back to native print window.');
+        window.print();
+      },
+    });
+  };
+
   // Printable slip trigger
   const handlePrintSlip = () => {
     window.print();
@@ -731,14 +755,31 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
               </button>
 
               <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-                {/* Print / Save PDF Slip */}
+                {/* Download Official A4 PDF Document */}
+                <button
+                  type="button"
+                  onClick={handleDownloadA4PDF}
+                  disabled={isGeneratingSlipImage || isGeneratingPDF}
+                  className="flex-1 sm:flex-initial px-4 py-3 bg-[#000E32] hover:bg-blue-950 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs disabled:opacity-60"
+                  title="Download Official A4 PDF Document"
+                >
+                  {isGeneratingPDF ? (
+                    <div className="w-3.5 h-3.5 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <FileText size={15} className="text-orange-400" />
+                  )}
+                  <span>{isGeneratingPDF ? (pdfStatusText || 'Generating A4 PDF...') : 'Download A4 PDF'}</span>
+                </button>
+
+                {/* Print Slip (Native Print Window) */}
                 <button
                   type="button"
                   onClick={handlePrintSlip}
-                  className="flex-1 sm:flex-initial px-4 py-3 bg-[#000E32] hover:bg-blue-950 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                  className="flex-1 sm:flex-initial px-4 py-3 bg-slate-800 hover:bg-slate-900 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                  title="Print Slip via Browser Window"
                 >
                   <Printer size={15} />
-                  <span>Print / Save PDF</span>
+                  <span>Print Slip</span>
                 </button>
 
                 {/* Download Image (PNG) */}
