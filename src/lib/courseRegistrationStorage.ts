@@ -87,7 +87,7 @@ export function formatCourseRegistrationWhatsAppMessage(reg: CourseRegistrationR
 
   return `*DS TECH ACADEMY — OFFICIAL COURSE REGISTRATION DOCKET*
 *DS TECH & DIGITAL MARKETING AGENCY LTD*
-CAC Accredited • RC: 1845921 | Academy Directorate: RC: 9550925
+CAC RC 9550925
 
 --------------------------------------------
 *REGISTRATION DOCKET SUMMARY*

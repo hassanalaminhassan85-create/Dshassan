@@ -133,7 +133,7 @@ const WhatsAppDetailsMotionWriter: React.FC<{ record: CourseRegistrationRecord }
 
       <div className="pt-2 text-[10px] text-emerald-400/90 font-medium flex items-center justify-between">
         <span>✨ Includes 100% of applicant's filled registration fields</span>
-        <span className="font-mono text-slate-400">RC: 1845921</span>
+        <span className="font-mono text-slate-400">CAC RC 9550925</span>
       </div>
     </motion.div>
   );
@@ -691,7 +691,7 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                   DS TECH ACADEMY
                 </span>
                 <span className="text-[9px] font-mono font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 px-1.5 py-0.5 rounded">
-                  RC: 9550925
+                  CAC RC 9550925
                 </span>
               </div>
               <p className="text-xs font-extrabold text-[#000E32] dark:text-white uppercase tracking-tight">
@@ -729,7 +729,7 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
           </p>
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <span className="text-[9.5px] font-mono font-extrabold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-              ACCREDITED RC: 9550925
+              CAC RC 9550925
             </span>
             <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 shrink-0 bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
               {formData.registrationId}

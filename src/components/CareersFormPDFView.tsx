@@ -64,6 +64,21 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
         {/* Curvy visual pattern headers */}
         <div className="absolute top-4 left-0 right-0 h-1.5 bg-orange-500" />
 
+        {/* Centered High-Security 'OFFICIAL - DS TECH' Watermark */}
+        <div 
+          className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 overflow-hidden"
+          style={{ opacity: 0.07 }}
+        >
+          <div className="transform -rotate-45 text-center border-4 border-[#000E32] rounded-3xl p-8 max-w-lg">
+            <span className="text-5xl font-black tracking-widest text-[#000E32] uppercase block whitespace-nowrap">
+              OFFICIAL - DS TECH
+            </span>
+            <span className="text-xs font-black tracking-[0.25em] text-orange-600 uppercase block mt-2">
+              AUTHENTIC CAREERS DOCKET • CAC RC 9550925
+            </span>
+          </div>
+        </div>
+
         {/* 1. Header Section */}
         <div className="pt-6 pb-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-200">
           {/* Left: Logo */}
@@ -455,6 +470,21 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
         
         {/* Curvy visual pattern headers */}
         <div className="absolute top-4 left-0 right-0 h-1.5 bg-orange-500" />
+
+        {/* Centered High-Security 'OFFICIAL - DS TECH' Watermark */}
+        <div 
+          className="absolute inset-0 flex items-center justify-center pointer-events-none select-none z-0 overflow-hidden"
+          style={{ opacity: 0.07 }}
+        >
+          <div className="transform -rotate-45 text-center border-4 border-[#000E32] rounded-3xl p-8 max-w-lg">
+            <span className="text-5xl font-black tracking-widest text-[#000E32] uppercase block whitespace-nowrap">
+              OFFICIAL - DS TECH
+            </span>
+            <span className="text-xs font-black tracking-[0.25em] text-orange-600 uppercase block mt-2">
+              AUTHENTIC CAREERS DOCKET • CAC RC 9550925
+            </span>
+          </div>
+        </div>
 
         {/* Standard Page 2 Header matching style but compact */}
         <div className="pt-6 pb-4 flex justify-between items-center border-b border-slate-200">

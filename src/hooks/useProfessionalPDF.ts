@@ -17,6 +17,10 @@ export interface GeneratePDFOptions {
   marginMm?: number;
   /** Fixed width in pixels forced during html2canvas render (default: 800) */
   targetWidthPx?: number;
+  /** Security watermark text injected across the center of every page (default: "OFFICIAL - DS TECH") */
+  watermarkText?: string;
+  /** Enable security watermark injection across pages (default: true) */
+  enableWatermark?: boolean;
   /** Optional callback fired upon successful PDF generation */
   onSuccess?: () => void;
   /** Optional callback fired if generation fails */
@@ -29,6 +33,51 @@ export function sanitizeFilename(name: string): string {
     .replace(/[^a-zA-Z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-');
+}
+
+export function drawSecurityWatermark(
+  pdf: jsPDF,
+  pageWidthMm: number = 210,
+  pageHeightMm: number = 297,
+  watermarkText: string = 'OFFICIAL - DS TECH'
+) {
+  try {
+    pdf.saveGraphicsState();
+
+    // Set delicate transparent opacity for high-security watermark
+    const gState = new (pdf as any).GState({ opacity: 0.12 });
+    pdf.setGState(gState);
+
+    // Center coordinates
+    const centerX = pageWidthMm / 2;
+    const centerY = pageHeightMm / 2;
+
+    // Draw Primary Diagonally Rotated Watermark Title
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(26);
+    pdf.setTextColor(0, 14, 50); // Official DS TECH Navy Blue (#000E32)
+
+    pdf.text(watermarkText, centerX, centerY - 2, {
+      align: 'center',
+      angle: 42,
+      baseline: 'middle',
+    });
+
+    // Draw Secondary Security Certification Subtitle
+    pdf.setFont('helvetica', 'bold');
+    pdf.setFontSize(9);
+    pdf.setTextColor(234, 88, 12); // DS TECH Orange Accent (#EA580C)
+
+    pdf.text('AUTHENTIC DOCUMENT • CAC RC 9550925', centerX, centerY + 10, {
+      align: 'center',
+      angle: 42,
+      baseline: 'middle',
+    });
+
+    pdf.restoreGraphicsState();
+  } catch (err) {
+    console.warn('Watermark rendering fallback applied:', err);
+  }
 }
 
 export function useProfessionalPDF() {
@@ -45,6 +94,8 @@ export function useProfessionalPDF() {
       documentTitle = 'DS-TECH-Academy-Course-Registration',
       marginMm = 10,
       targetWidthPx = 800,
+      watermarkText = 'OFFICIAL - DS TECH',
+      enableWatermark = true,
       onSuccess,
       onError,
     } = options;
@@ -96,15 +147,44 @@ export function useProfessionalPDF() {
           const targetInClone =
             (elementId ? clonedDoc.getElementById(elementId) : null) ||
             clonedDoc.getElementById('dsta-render-slip-target') ||
-            clonedDoc.getElementById('dsta-course-registration-slip');
+            clonedDoc.getElementById('dsta-course-registration-slip') ||
+            clonedDoc.getElementById('careers-pdf-document');
 
           if (targetInClone) {
+            // Calculate standard A4 height ratio for targetWidthPx
+            const a4Ratio = 297 / 210; // ~1.41428
+            const calculatedA4HeightPx = Math.round(targetWidthPx * a4Ratio); // e.g., 800 * 1.414 = 1131px
+
             targetInClone.style.width = `${targetWidthPx}px`;
             targetInClone.style.maxWidth = `${targetWidthPx}px`;
-            targetInClone.style.display = 'block';
+            targetInClone.style.minHeight = `${calculatedA4HeightPx}px`;
+            targetInClone.style.display = 'flex';
+            targetInClone.style.flexDirection = 'column';
+            targetInClone.style.justifyContent = 'space-between';
             targetInClone.style.visibility = 'visible';
             targetInClone.style.backgroundColor = '#FFFFFF';
             targetInClone.style.margin = '0 auto';
+            targetInClone.style.boxSizing = 'border-box';
+            targetInClone.style.overflow = 'visible';
+
+            // Ensure all sections/cards marked for page-break-avoid are enforced
+            const breakAvoidEls = targetInClone.querySelectorAll(
+              '.pdf-page-break-avoid, [data-pdf-section], table, tr, .card, .pdf-footer, [data-pdf-footer]'
+            );
+            breakAvoidEls.forEach((el) => {
+              const htmlEl = el as HTMLElement;
+              htmlEl.style.breakInside = 'avoid';
+              htmlEl.style.pageBreakInside = 'avoid';
+            });
+
+            // Ensure footer elements are anchored firmly to the bottom of the A4 page container
+            const footerEls = targetInClone.querySelectorAll('.pdf-footer, [data-pdf-footer]');
+            footerEls.forEach((el) => {
+              const htmlEl = el as HTMLElement;
+              htmlEl.style.marginTop = 'auto';
+              htmlEl.style.breakInside = 'avoid';
+              htmlEl.style.pageBreakInside = 'avoid';
+            });
           }
         },
       });
@@ -130,24 +210,41 @@ export function useProfessionalPDF() {
       const pdfImgWidth = printableWidth;
       const pdfImgHeight = (canvasHeight * pdfImgWidth) / canvasWidth;
 
-      if (pdfImgHeight <= printableHeight) {
-        // Single Page A4 PDF
+      if (pdfImgHeight <= printableHeight + 5) {
+        // Single Page A4 PDF: Expand image to span printable height cleanly
         const imgData = canvas.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', marginMm, marginMm, pdfImgWidth, pdfImgHeight, undefined, 'FAST');
-      } else {
-        // Multi-Page A4 Pagination Engine
-        const sliceHeightPx = (printableHeight * canvasWidth) / printableWidth;
-        const totalPages = Math.ceil(canvasHeight / sliceHeightPx);
+        const renderHeight = Math.max(pdfImgHeight, printableHeight);
+        pdf.addImage(imgData, 'PNG', marginMm, marginMm, pdfImgWidth, renderHeight, undefined, 'FAST');
 
-        for (let page = 0; page < totalPages; page++) {
-          if (page > 0) {
+        // Security Watermark Injection across Page 1 Center
+        if (enableWatermark) {
+          drawSecurityWatermark(pdf, a4WidthMm, a4HeightMm, watermarkText);
+        }
+      } else {
+        // Multi-Page A4 Dynamic Page-Break Pagination Engine
+        const nominalSliceHeightPx = (printableHeight * canvasWidth) / printableWidth;
+
+        // Intelligent Page Break Slicing Logic
+        let sourceY = 0;
+        let pageIndex = 0;
+
+        while (sourceY < canvasHeight) {
+          if (pageIndex > 0) {
             pdf.addPage('a4', 'portrait');
+          }
+
+          let currentSliceHeightPx = Math.min(nominalSliceHeightPx, canvasHeight - sourceY);
+
+          // If remaining height is slightly more than a single page, fit gracefully
+          if (
+            currentSliceHeightPx < nominalSliceHeightPx &&
+            currentSliceHeightPx > nominalSliceHeightPx * 0.8
+          ) {
+            currentSliceHeightPx = canvasHeight - sourceY;
           }
 
           const pageCanvas = document.createElement('canvas');
           const ctx = pageCanvas.getContext('2d');
-          const sourceY = page * sliceHeightPx;
-          const currentSliceHeightPx = Math.min(sliceHeightPx, canvasHeight - sourceY);
 
           pageCanvas.width = canvasWidth;
           pageCanvas.height = currentSliceHeightPx;
@@ -170,7 +267,29 @@ export function useProfessionalPDF() {
 
           const sliceDataUrl = pageCanvas.toDataURL('image/png');
           const slicePdfHeight = (currentSliceHeightPx * pdfImgWidth) / canvasWidth;
-          pdf.addImage(sliceDataUrl, 'PNG', marginMm, marginMm, pdfImgWidth, slicePdfHeight, undefined, 'FAST');
+
+          // Render slice scaled to printable width & height
+          const renderSlicePdfHeight =
+            currentSliceHeightPx === nominalSliceHeightPx ? printableHeight : slicePdfHeight;
+
+          pdf.addImage(
+            sliceDataUrl,
+            'PNG',
+            marginMm,
+            marginMm,
+            pdfImgWidth,
+            renderSlicePdfHeight,
+            undefined,
+            'FAST'
+          );
+
+          // Security Watermark Injection across center of every A4 page
+          if (enableWatermark) {
+            drawSecurityWatermark(pdf, a4WidthMm, a4HeightMm, watermarkText);
+          }
+
+          sourceY += currentSliceHeightPx;
+          pageIndex++;
         }
       }
 
