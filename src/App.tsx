@@ -22,6 +22,7 @@ import { RecognitionSection } from './components/RecognitionSection';
 import { TrainingAcademySection } from './components/TrainingAcademySection';
 import { AcademyOverview } from './components/AcademyOverview';
 import { StudentRegistrationForm } from './components/StudentRegistration/StudentRegistrationForm';
+import { CourseRegistrationForm } from './components/CourseRegistrationForm';
 import { TutorRegistrationForm } from './components/TutorRegistration/TutorRegistrationForm';
 import { ScholarshipApplicationForm } from './components/ScholarshipApplication/ScholarshipApplicationForm';
 import { InternshipApplicationForm } from './components/InternshipApplication/InternshipApplicationForm';
@@ -242,7 +243,7 @@ export default function App() {
   const [selectedRoleTitle, setSelectedRoleTitle] = useState<string>('');
 
   // Active website ecosystem page routing state
-  const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard'>('home');
+  const [activePage, setActivePage] = useState<'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard'>('home');
 
   const [publishedCac, setPublishedCac] = useState<any>(null);
 
@@ -302,6 +303,12 @@ export default function App() {
           pageTitle = 'Student Registration & Academy Enrollment';
           section = 'Enrollment Form';
           workflowState = 'Completing Student Application';
+          break;
+        case 'course-registration':
+          pageTitle = 'DS TECH Academy Course Registration Form';
+          section = 'Course Registration';
+          workflowState = 'Private Course Registration';
+          programmeOrCourse = 'Course Registration Form';
           break;
         case 'tutor-application':
           pageTitle = 'Tutor & Instructor Faculty Application';
@@ -599,6 +606,8 @@ export default function App() {
           setActivePage('academy-overview');
         } else if (path === '/student-registration' || path === '/student-apply' || path === '/register-student' || path === '/student-register' || path === '/enroll') {
           setActivePage('student-registration');
+        } else if (path === '/courseregistration' || path === '/course-registration' || path.toLowerCase() === '/courseregistration') {
+          setActivePage('course-registration');
         } else if (path === '/tutor-application' || path === '/tutor-apply' || path === '/apply-tutor' || path === '/become-a-tutor' || path === '/instructor-apply' || path === '/faculty-apply') {
           setActivePage('tutor-application');
         } else if (path === '/scholarship-application' || path === '/scholarship' || path === '/apply-scholarship' || path === '/scholarships') {
@@ -1084,6 +1093,20 @@ export default function App() {
                   onNavigateCourses={() => {
                     setActivePage('academy-overview');
                     window.scrollTo(0, 0);
+                  }}
+                />
+              </motion.div>
+             ) : activePage === 'course-registration' ? (
+              <motion.div
+                key="course-registration-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100"
+              >
+                <CourseRegistrationForm
+                  onNavigateHome={() => {
+                    safeNavigate('/');
                   }}
                 />
               </motion.div>
@@ -1783,7 +1806,7 @@ export default function App() {
       </main>
 
       {/* Document bottom footer info */}
-      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'academy-overview', 'student-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'student-dashboard', 'tutor-dashboard', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog'].includes(activePage) && (
+      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'student-dashboard', 'tutor-dashboard', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog'].includes(activePage) && (
         <MainFooter publishedCac={publishedCac} />
       )}
       {/* Premium Circular Floating AI Assistant Launcher */}

@@ -789,6 +789,16 @@ async function ensureDatabaseTables(db: any) {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );`,
+    `CREATE TABLE IF NOT EXISTS academy_course_registrations (
+      id TEXT PRIMARY KEY,
+      registration_id TEXT UNIQUE NOT NULL,
+      full_name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      whatsapp_number TEXT NOT NULL,
+      data_json TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );`,
     `CREATE TABLE IF NOT EXISTS academy_tutors (
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
@@ -3404,6 +3414,60 @@ export async function onRequest(context: { request: Request; env: any; params: a
           const res = await env.DB.prepare('SELECT * FROM academy_tutors').all();
           return new Response(JSON.stringify(res.results || []), { headers });
         }
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    // Academy Course Registrations
+    if (path === '/api/academy/course-registrations' && method === 'POST') {
+      try {
+        const body = await request.json();
+        if (!body || !body.fullName || !body.emailAddress || !body.whatsappNumber) {
+          return new Response(JSON.stringify({ error: 'Missing required applicant registration fields.' }), { status: 400, headers });
+        }
+
+        const id = body.id || ('cr_' + Math.random().toString(36).substring(2, 11));
+        const registration_id = body.registrationId || ('DSTA-CR/2026/' + Math.floor(100000 + Math.random() * 900000));
+        const full_name = body.fullName;
+        const email = body.emailAddress;
+        const whatsapp_number = body.whatsappNumber;
+        const now = new Date().toISOString();
+        const data_json = JSON.stringify({ ...body, id, registrationId: registration_id, createdAt: body.createdAt || now, updatedAt: now });
+
+        if (env.DB) {
+          await env.DB.prepare(`
+            INSERT OR REPLACE INTO academy_course_registrations (id, registration_id, full_name, email, whatsapp_number, data_json, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+          `).bind(id, registration_id, full_name, email, whatsapp_number, data_json, now, now).run();
+
+          broadcastSyncEvent({
+            type: 'COURSE_REGISTRATION_SUBMITTED',
+            data: { id, registrationId: registration_id, full_name, email },
+            message: `New Academy Course Registration: ${full_name} (${registration_id})`
+          });
+        }
+
+        return new Response(JSON.stringify({ success: true, record: JSON.parse(data_json) }), { headers });
+      } catch (e: any) {
+        return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+      }
+    }
+
+    if (path === '/api/academy/course-registrations' && method === 'GET') {
+      try {
+        if (env.DB) {
+          const res = await env.DB.prepare('SELECT * FROM academy_course_registrations ORDER BY created_at DESC').all();
+          const rows = (res.results || []).map((r: any) => {
+            try {
+              return JSON.parse(r.data_json);
+            } catch {
+              return r;
+            }
+          });
+          return new Response(JSON.stringify({ success: true, count: rows.length, records: rows }), { headers });
+        }
+        return new Response(JSON.stringify({ success: true, count: 0, records: [] }), { headers });
       } catch (e: any) {
         return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
       }

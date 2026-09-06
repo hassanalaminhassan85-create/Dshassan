@@ -13,6 +13,8 @@ async function startServer() {
 
   // In-memory conversation store for threads
   const conversationsStore = new Map<string, { id: string; title: string; user_role: string; updated_at: string; messages: Array<any> }>();
+  // In-memory course registrations store
+  const courseRegistrationsStore = new Map<string, any>();
 
   // Live DS Tech Backend Knowledge Base Helper
   function getLiveDsTechContext(message: string, userRole?: string, userData?: any, pageContext?: any): string {
@@ -424,6 +426,40 @@ ${liveContext ? liveContext : ''}`;
       conversationsStore.set(req.params.id, conv);
     }
     return res.json({ success: true, conversation: conv });
+  });
+
+  // Course Registration Endpoints
+  app.post('/api/academy/course-registrations', (req, res) => {
+    try {
+      const body = req.body;
+      if (!body || !body.fullName || !body.emailAddress || !body.whatsappNumber) {
+        return res.status(400).json({ success: false, error: 'Missing required applicant fields.' });
+      }
+
+      const id = body.id || `reg_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      const registrationId = body.registrationId || `DSTA-CR/2026/${Math.floor(100000 + Math.random() * 900000)}`;
+      const now = new Date().toISOString();
+
+      const record = {
+        ...body,
+        id,
+        registrationId,
+        createdAt: body.createdAt || now,
+        updatedAt: now,
+      };
+
+      courseRegistrationsStore.set(registrationId, record);
+      return res.json({ success: true, record });
+    } catch (err: any) {
+      console.error('Error saving course registration in server:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Internal server error' });
+    }
+  });
+
+  app.get('/api/academy/course-registrations', (req, res) => {
+    const list = Array.from(courseRegistrationsStore.values())
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return res.json({ success: true, count: list.length, records: list });
   });
 
   // Always use Vite middleware to support both React client and serverless /api routes in the local server
