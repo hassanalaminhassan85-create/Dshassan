@@ -21,16 +21,37 @@ async function generateIcons() {
   console.log('Generated pwa-192x192.png');
 
   // 2. Standard 512x512 PNG with solid dark background for OpenGraph / WhatsApp preview
-  const ogImageSvg = `<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
-    <rect width="512" height="512" fill="#090d16"/>
-    <circle cx="256" cy="256" r="236" fill="#000E32" opacity="0.6"/>
-    <image href="data:image/svg+xml;base64,${fs.readFileSync(svgPath).toString('base64')}" x="32" y="32" width="448" height="448"/>
-  </svg>`;
-  await sharp(Buffer.from(ogImageSvg))
-    .resize(512, 512)
+  const iconRasterized = await sharp(svgPath)
+    .resize(432, 432)
+    .png()
+    .toBuffer();
+
+  await sharp({
+    create: {
+      width: 512,
+      height: 512,
+      channels: 4,
+      background: { r: 15, g: 23, b: 42, alpha: 1 } // #0f172a (Slate 900)
+    }
+  })
+    .composite([{ input: iconRasterized, top: 40, left: 40 }])
     .png()
     .toFile(path.join(publicDir, 'og-image.png'));
   console.log('Generated og-image.png');
+
+  // Generate og-image.jpg for WhatsApp scrapers that prefer JPEG format
+  await sharp({
+    create: {
+      width: 512,
+      height: 512,
+      channels: 3,
+      background: { r: 15, g: 23, b: 42 }
+    }
+  })
+    .composite([{ input: iconRasterized, top: 40, left: 40 }])
+    .jpeg({ quality: 95 })
+    .toFile(path.join(publicDir, 'og-image.jpg'));
+  console.log('Generated og-image.jpg');
 
   await sharp(svgPath)
     .resize(512, 512)
