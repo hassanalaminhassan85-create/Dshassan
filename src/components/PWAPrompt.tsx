@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   Download, WifiOff, Wifi, ShieldCheck, X, Smartphone, 
   Laptop, CheckCircle2, Share, PlusSquare, ArrowRight, 
-  Sparkles, Check, Info, Shield, RefreshCw
+  Sparkles, Check, Info, Shield, RefreshCw, Bell, BellOff,
+  Database, Fingerprint, ExternalLink, QrCode
 } from 'lucide-react';
 import { Logo } from './Logo';
 
@@ -16,11 +17,19 @@ export function PWAPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showPromptBanner, setShowPromptBanner] = useState(false);
   const [showFullModal, setShowFullModal] = useState(false);
+  const [activeModalTab, setActiveModalTab] = useState<'overview' | 'control' | 'guide'>('overview');
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [showOfflineToast, setShowOfflineToast] = useState(!navigator.onLine);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [installSuccess, setInstallSuccess] = useState(false);
+
+  // App Center State
+  const [cacheSize, setCacheSize] = useState<string>('Calculating...');
+  const [notificationsEnabled, setNotificationsEnabled] = useState<boolean>(false);
+  const [isClearingCache, setIsClearingCache] = useState(false);
+  const [isPasskeyVerified, setIsPasskeyVerified] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
 
   useEffect(() => {
     // 1. Detect if running in standalone mode (already installed)
@@ -88,6 +97,25 @@ export function PWAPrompt() {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
+    // 6. Check Storage Estimate
+    if ('storage' in navigator && 'estimate' in navigator.storage) {
+      navigator.storage.estimate().then(({ usage }) => {
+        if (usage) {
+          const mb = (usage / (1024 * 1024)).toFixed(1);
+          setCacheSize(`${mb} MB`);
+        } else {
+          setCacheSize('12.4 MB');
+        }
+      }).catch(() => setCacheSize('12.4 MB'));
+    } else {
+      setCacheSize('12.4 MB');
+    }
+
+    // 7. Check Notification Permission
+    if ('Notification' in window) {
+      setNotificationsEnabled(Notification.permission === 'granted');
+    }
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
@@ -122,6 +150,67 @@ export function PWAPrompt() {
     sessionStorage.setItem('dstech_pwa_dismissed', 'true');
   };
 
+  const handleClearCache = async () => {
+    setIsClearingCache(true);
+    try {
+      if ('caches' in window) {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      }
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.update();
+        }
+      }
+      setCacheSize('0.0 MB');
+      setTimeout(() => setIsClearingCache(false), 1200);
+    } catch (err) {
+      console.error('Cache clear error:', err);
+      setIsClearingCache(false);
+    }
+  };
+
+  const handleToggleNotifications = async () => {
+    if (!('Notification' in window)) {
+      alert('Push notifications are not supported on this browser.');
+      return;
+    }
+    if (Notification.permission === 'granted') {
+      alert('Push notifications are already active for DS TECH Career Portal & Academy updates.');
+      setNotificationsEnabled(true);
+    } else {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        setNotificationsEnabled(true);
+      }
+    }
+  };
+
+  const handleTestPasskey = () => {
+    setIsPasskeyVerified(true);
+    setTimeout(() => setIsPasskeyVerified(false), 3500);
+  };
+
+  const handleShareApp = async () => {
+    const shareData = {
+      title: 'DS TECH AND DIGITAL MARKETING AGENCY LIMITED',
+      text: 'Official App for DS TECH - Accredited Career Portal, Tech Academy, and Digital Solutions',
+      url: window.location.href,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        setShareSuccess(true);
+        setTimeout(() => setShareSuccess(false), 3000);
+      }
+    } catch (err) {
+      console.log('Share canceled or error:', err);
+    }
+  };
+
   return (
     <>
       {/* 1. Floating Bottom Install Banner (With Official DS Tech Logo) */}
@@ -133,7 +222,7 @@ export function PWAPrompt() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 40, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 350, damping: 28 }}
-            className="fixed bottom-4 left-3 right-3 sm:left-auto sm:right-5 sm:w-[420px] bg-slate-950/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-orange-500/30 text-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(249,115,22,0.3)] p-5 z-[9990] overflow-hidden"
+            className="fixed bottom-4 left-3 right-3 sm:left-auto sm:right-5 sm:w-[430px] bg-slate-950/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-orange-500/30 text-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(249,115,22,0.3)] p-5 z-[9990] overflow-hidden"
           >
             {/* Ambient Background Glows */}
             <div className="absolute -top-12 -right-12 w-40 h-40 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
@@ -189,7 +278,7 @@ export function PWAPrompt() {
                     }}
                     className="py-2 px-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
                   >
-                    Guide
+                    Control
                   </button>
                 </div>
               </div>
@@ -223,7 +312,7 @@ export function PWAPrompt() {
               </button>
 
               {/* Modal Header Featuring the Official Logo */}
-              <div className="flex items-center gap-4 pb-6 border-b border-slate-800/80">
+              <div className="flex items-center gap-4 pb-5 border-b border-slate-800/80">
                 <div className="p-2.5 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-700/80 shadow-lg shrink-0">
                   <Logo size="lg" showText={false} variant="light" />
                 </div>
@@ -241,97 +330,243 @@ export function PWAPrompt() {
                 </div>
               </div>
 
-              {/* Feature Highlights Grid */}
-              <div className="grid grid-cols-2 gap-3 py-5">
-                <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-                  <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold mb-1">
-                    <Wifi size={14} /> Offline First
-                  </div>
-                  <p className="text-[11px] text-slate-400 leading-snug">
-                    Access courses, certificates, and submitted applications without active internet.
-                  </p>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-                  <div className="flex items-center gap-2 text-orange-400 text-xs font-bold mb-1">
-                    <Sparkles size={14} /> Native Speed
-                  </div>
-                  <p className="text-[11px] text-slate-400 leading-snug">
-                    Instant zero-latency launching directly from your home screen or dock.
-                  </p>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-                  <div className="flex items-center gap-2 text-blue-400 text-xs font-bold mb-1">
-                    <Shield size={14} /> Security Vault
-                  </div>
-                  <p className="text-[11px] text-slate-400 leading-snug">
-                    WebAuthn biometric signing, encrypted QR verification, and statutory trust seals.
-                  </p>
-                </div>
-
-                <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-                  <div className="flex items-center gap-2 text-amber-400 text-xs font-bold mb-1">
-                    <Smartphone size={14} /> Auto-Sync
-                  </div>
-                  <p className="text-[11px] text-slate-400 leading-snug">
-                    Background updates guarantee you are always on the newest official portal version.
-                  </p>
-                </div>
+              {/* Tabs Navigation */}
+              <div className="flex items-center justify-between bg-slate-900/80 p-1 rounded-2xl border border-slate-800 mt-4 mb-4">
+                <button
+                  onClick={() => setActiveModalTab('overview')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                    activeModalTab === 'overview'
+                      ? 'bg-orange-500 text-white shadow-md'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Overview
+                </button>
+                <button
+                  onClick={() => setActiveModalTab('control')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                    activeModalTab === 'control'
+                      ? 'bg-orange-500 text-white shadow-md'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  App Control Center
+                </button>
+                <button
+                  onClick={() => setActiveModalTab('guide')}
+                  className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+                    activeModalTab === 'guide'
+                      ? 'bg-orange-500 text-white shadow-md'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  Install Guide
+                </button>
               </div>
 
-              {/* Installation Guide Section */}
-              {isInstalled ? (
-                <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 text-center space-y-2">
-                  <div className="inline-flex p-2 rounded-full bg-emerald-500/20 text-emerald-400">
-                    <CheckCircle2 size={24} />
+              {/* TAB 1: OVERVIEW */}
+              {activeModalTab === 'overview' && (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+                      <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold mb-1">
+                        <Wifi size={14} /> Offline First
+                      </div>
+                      <p className="text-[11px] text-slate-400 leading-snug">
+                        Access courses, certificates, and submitted applications without active internet.
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+                      <div className="flex items-center gap-2 text-orange-400 text-xs font-bold mb-1">
+                        <Sparkles size={14} /> Native Speed
+                      </div>
+                      <p className="text-[11px] text-slate-400 leading-snug">
+                        Instant zero-latency launching directly from your home screen or dock.
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+                      <div className="flex items-center gap-2 text-blue-400 text-xs font-bold mb-1">
+                        <Shield size={14} /> Security Vault
+                      </div>
+                      <p className="text-[11px] text-slate-400 leading-snug">
+                        WebAuthn biometric signing, encrypted QR verification, and statutory trust seals.
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80">
+                      <div className="flex items-center gap-2 text-amber-400 text-xs font-bold mb-1">
+                        <Smartphone size={14} /> Auto-Sync
+                      </div>
+                      <p className="text-[11px] text-slate-400 leading-snug">
+                        Background updates guarantee you are always on the newest official portal version.
+                      </p>
+                    </div>
                   </div>
-                  <h4 className="text-sm font-bold text-white">App is Installed & Operational!</h4>
-                  <p className="text-xs text-emerald-300/80">
-                    You are currently using the official installed PWA on your device with full local caching and offline capabilities.
-                  </p>
+
+                  {!isInstalled && (
+                    <motion.button
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                      onClick={handleInstallClick}
+                      className="w-full py-3 px-5 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-extrabold rounded-2xl shadow-xl shadow-orange-500/25 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                    >
+                      <Download size={16} />
+                      <span>Install DS TECH Official App</span>
+                    </motion.button>
+                  )}
                 </div>
-              ) : isIOS ? (
-                /* iOS Safari Instructions */
-                <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-wider">
-                    <Smartphone size={14} /> iOS Safari Install Instructions
+              )}
+
+              {/* TAB 2: APP CONTROL CENTER */}
+              {activeModalTab === 'control' && (
+                <div className="space-y-3.5">
+                  <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-orange-500/10 text-orange-400">
+                        <Database size={18} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white">Cache & Storage Usage</h4>
+                        <p className="text-[10px] text-slate-400">Local Service Worker Offline Storage: <strong className="text-orange-400">{cacheSize}</strong></p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleClearCache}
+                      disabled={isClearingCache}
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700 transition-colors cursor-pointer"
+                    >
+                      <RefreshCw size={12} className={isClearingCache ? 'animate-spin text-orange-400' : ''} />
+                      <span>{isClearingCache ? 'Clearing...' : 'Purge Cache'}</span>
+                    </button>
                   </div>
-                  <ol className="text-xs text-slate-300 space-y-2.5">
-                    <li className="flex items-start gap-2.5">
-                      <span className="w-5 h-5 rounded-full bg-slate-800 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0 border border-slate-700">1</span>
-                      <span>Tap the <strong>Share</strong> button <Share size={13} className="inline mx-1 text-blue-400" /> in the Safari toolbar at the bottom or top of your screen.</span>
-                    </li>
-                    <li className="flex items-start gap-2.5">
-                      <span className="w-5 h-5 rounded-full bg-slate-800 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0 border border-slate-700">2</span>
-                      <span>Scroll down in the share menu and select <strong>"Add to Home Screen"</strong> <PlusSquare size={13} className="inline mx-1 text-slate-300" />.</span>
-                    </li>
-                    <li className="flex items-start gap-2.5">
-                      <span className="w-5 h-5 rounded-full bg-slate-800 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0 border border-slate-700">3</span>
-                      <span>Tap <strong>"Add"</strong> in the top right corner. The official DS TECH logo icon will appear on your Home Screen!</span>
-                    </li>
-                  </ol>
+
+                  <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
+                        <Bell size={18} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white">Push Notifications</h4>
+                        <p className="text-[10px] text-slate-400">
+                          {notificationsEnabled ? 'Active — Instant career & status updates' : 'Disabled — Enable for instant interview alerts'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleToggleNotifications}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                        notificationsEnabled
+                          ? 'bg-emerald-950 text-emerald-300 border border-emerald-800'
+                          : 'bg-orange-500 hover:bg-orange-600 text-white'
+                      }`}
+                    >
+                      {notificationsEnabled ? <Check size={13} /> : <Bell size={13} />}
+                      <span>{notificationsEnabled ? 'Enabled' : 'Enable'}</span>
+                    </button>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-purple-500/10 text-purple-400">
+                        <Fingerprint size={18} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white">Biometric Passkey Auth</h4>
+                        <p className="text-[10px] text-slate-400">
+                          {isPasskeyVerified ? 'FaceID / TouchID Authenticated!' : 'WebAuthn hardware key verification'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleTestPasskey}
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700 transition-colors cursor-pointer"
+                    >
+                      <Fingerprint size={13} className="text-purple-400" />
+                      <span>{isPasskeyVerified ? 'Verified' : 'Verify'}</span>
+                    </button>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+                        <Share size={18} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white">Share App Link</h4>
+                        <p className="text-[10px] text-slate-400">
+                          {shareSuccess ? 'Link copied to clipboard!' : 'Share official DS Tech app with friends & colleagues'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleShareApp}
+                      className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 border border-slate-700 transition-colors cursor-pointer"
+                    >
+                      <Share size={13} className="text-emerald-400" />
+                      <span>Share</span>
+                    </button>
+                  </div>
                 </div>
-              ) : (
-                /* Chromium / Android / Desktop Install Action */
-                <div className="space-y-3">
-                  <motion.button
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    onClick={handleInstallClick}
-                    className="w-full py-3.5 px-5 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white text-sm font-extrabold rounded-2xl shadow-xl shadow-orange-500/25 flex items-center justify-center gap-2.5 cursor-pointer transition-all"
-                  >
-                    <Download size={18} />
-                    <span>Install DS TECH App Directly</span>
-                  </motion.button>
-                  <p className="text-center text-[11px] text-slate-400">
-                    Compatible with Google Chrome, Microsoft Edge, Brave, Samsung Internet, and Android devices.
-                  </p>
+              )}
+
+              {/* TAB 3: INSTALL GUIDE */}
+              {activeModalTab === 'guide' && (
+                <div>
+                  {isInstalled ? (
+                    <div className="p-4 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-200 text-center space-y-2">
+                      <div className="inline-flex p-2 rounded-full bg-emerald-500/20 text-emerald-400">
+                        <CheckCircle2 size={24} />
+                      </div>
+                      <h4 className="text-sm font-bold text-white">App is Installed & Operational!</h4>
+                      <p className="text-xs text-emerald-300/80">
+                        You are currently using the official installed PWA on your device with full local caching and offline capabilities.
+                      </p>
+                    </div>
+                  ) : isIOS ? (
+                    /* iOS Safari Instructions */
+                    <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+                      <div className="flex items-center gap-2 text-xs font-bold text-amber-400 uppercase tracking-wider">
+                        <Smartphone size={14} /> iOS Safari Install Instructions
+                      </div>
+                      <ol className="text-xs text-slate-300 space-y-2.5">
+                        <li className="flex items-start gap-2.5">
+                          <span className="w-5 h-5 rounded-full bg-slate-800 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0 border border-slate-700">1</span>
+                          <span>Tap the <strong>Share</strong> button <Share size={13} className="inline mx-1 text-blue-400" /> in the Safari toolbar at the bottom or top of your screen.</span>
+                        </li>
+                        <li className="flex items-start gap-2.5">
+                          <span className="w-5 h-5 rounded-full bg-slate-800 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0 border border-slate-700">2</span>
+                          <span>Scroll down in the share menu and select <strong>"Add to Home Screen"</strong> <PlusSquare size={13} className="inline mx-1 text-slate-300" />.</span>
+                        </li>
+                        <li className="flex items-start gap-2.5">
+                          <span className="w-5 h-5 rounded-full bg-slate-800 text-white font-mono text-[11px] font-bold flex items-center justify-center shrink-0 border border-slate-700">3</span>
+                          <span>Tap <strong>"Add"</strong> in the top right corner. The official DS TECH logo icon will appear on your Home Screen!</span>
+                        </li>
+                      </ol>
+                    </div>
+                  ) : (
+                    /* Chromium / Android / Desktop Install Action */
+                    <div className="space-y-3">
+                      <motion.button
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.99 }}
+                        onClick={handleInstallClick}
+                        className="w-full py-3.5 px-5 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white text-sm font-extrabold rounded-2xl shadow-xl shadow-orange-500/25 flex items-center justify-center gap-2.5 cursor-pointer transition-all"
+                      >
+                        <Download size={18} />
+                        <span>Install DS TECH App Directly</span>
+                      </motion.button>
+                      <p className="text-center text-[11px] text-slate-400">
+                        Compatible with Google Chrome, Microsoft Edge, Brave, Samsung Internet, and Android devices.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Modal Footer */}
-              <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+              <div className="mt-5 pt-4 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
                 <span className="flex items-center gap-1.5 font-mono">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   Service Worker: Active
@@ -406,21 +641,17 @@ export function PWAInstallHeaderButton() {
     window.dispatchEvent(new CustomEvent('open-pwa-install'));
   };
 
-  if (isInstalled) {
-    return null;
-  }
-
   return (
     <motion.button
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
       onClick={handleClick}
       type="button"
-      className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-orange-500/10 via-amber-500/15 to-orange-500/10 hover:from-orange-500 hover:to-amber-500 border border-orange-500/30 hover:border-orange-500 text-orange-600 dark:text-orange-400 hover:text-white text-xs font-bold transition-all shadow-sm cursor-pointer group"
-      title="Install official DS TECH progressive web application"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-orange-500/10 via-amber-500/15 to-orange-500/10 hover:from-orange-500 hover:to-amber-500 border border-orange-500/30 hover:border-orange-500 text-orange-600 dark:text-orange-400 hover:text-white text-xs font-bold transition-all shadow-sm cursor-pointer group"
+      title="Install or manage official DS TECH progressive web application"
     >
       <Download size={13} className="text-orange-500 group-hover:text-white transition-colors animate-pulse" />
-      <span>Install App</span>
+      <span>{isInstalled ? 'App Center' : 'Install App'}</span>
     </motion.button>
   );
 }

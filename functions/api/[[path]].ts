@@ -1570,7 +1570,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
       const options = await generateRegistrationOptions({
         rpName: 'Al Ihsan Security Portal',
         rpID: rpId,
-        userID: new TextEncoder().encode(userId),
+        userID: new Uint8Array(new TextEncoder().encode(userId)) as any,
         userName: username,
         userDisplayName: username.split('@')[0],
         attestationType: 'none',
