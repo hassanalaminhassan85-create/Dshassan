@@ -2,11 +2,18 @@
 importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js');
 importScripts('https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js');
 
-const CACHE_NAME = 'dstech-pwa-v1';
+const CACHE_NAME = 'dstech-pwa-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/icon.svg',
+  '/pwa-192x192.png',
+  '/pwa-512x512.png',
+  '/pwa-maskable-512x512.png',
+  '/apple-touch-icon.png',
+  '/favicon-32x32.png',
+  '/favicon-16x16.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -77,8 +84,8 @@ messaging.setBackgroundMessageHandler(function(payload) {
   const notificationTitle = payload.notification?.title || payload.data?.title || 'DS Tech Alert';
   const notificationOptions = {
     body: payload.notification?.body || payload.data?.body || 'You have a new update from DS Tech.',
-    icon: payload.notification?.image || payload.data?.icon || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=192&h=192&fit=crop&auto=format',
-    badge: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=192&h=192&fit=crop&auto=format',
+    icon: payload.notification?.image || payload.data?.icon || '/pwa-192x192.png',
+    badge: '/pwa-192x192.png',
     data: payload.data
   };
 

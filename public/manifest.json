@@ -1,26 +1,61 @@
 {
-  "short_name": "DS Tech PWA",
-  "name": "DS Tech Career Portal & Digital Agency",
-  "icons": [
-    {
-      "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=192&h=192&fit=crop&auto=format",
-      "type": "image/jpeg",
-      "sizes": "192x192",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=512&h=512&fit=crop&auto=format",
-      "type": "image/jpeg",
-      "sizes": "512x512",
-      "purpose": "any maskable"
-    }
-  ],
+  "id": "/",
+  "name": "DS TECH AND DIGITAL MARKETING AGENCY LIMITED",
+  "short_name": "DS TECH",
+  "description": "Official Progressive Web Application for DS TECH AND DIGITAL MARKETING AGENCY LIMITED - Enterprise Career Portal, Academy, and Digital Solutions.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#090d16",
   "theme_color": "#f59e0b",
-  "description": "DS Tech Official Career Portal, HR Admin Academy, and secure offline-first Progressive Web Application."
+  "categories": ["business", "education", "productivity"],
+  "icons": [
+    {
+      "src": "/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Career Portal",
+      "short_name": "Careers",
+      "description": "Explore career roles and submit your application",
+      "url": "/#careers",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "DS Tech Academy",
+      "short_name": "Academy",
+      "description": "Enroll in professional tech courses and certifications",
+      "url": "/#academy",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Corporate CAC Verification",
+      "short_name": "CAC Trust",
+      "description": "Verify official corporate accreditation and statutory filings",
+      "url": "/recognition",
+      "icons": [{ "src": "/pwa-192x192.png", "sizes": "192x192" }]
+    }
+  ]
 }
-

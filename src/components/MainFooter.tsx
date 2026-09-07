@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ShieldCheck, Mail, Phone, MapPin, ArrowUp, Building2, ExternalLink } from 'lucide-react';
+import { ShieldCheck, Mail, Phone, MapPin, ArrowUp, Building2, ExternalLink, Download } from 'lucide-react';
 import { Logo } from './Logo';
 import { 
   FacebookIcon, 
@@ -165,6 +165,16 @@ export const MainFooter: React.FC<MainFooterProps> = ({ onNavigate, publishedCac
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 <span>{companyStatus}</span>
               </div>
+
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new CustomEvent('open-pwa-install'))}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-[11px] font-medium text-orange-400 hover:text-orange-300 transition-colors cursor-pointer"
+                title="Install DS TECH Official Progressive Web App"
+              >
+                <Download size={13} className="shrink-0 text-orange-400" />
+                <span>Install Official PWA</span>
+              </button>
             </div>
           </div>
 

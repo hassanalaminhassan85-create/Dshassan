@@ -1,6 +1,6 @@
 {
   "name": "DS Tech Career Application Portal",
-  "description": "Interactive enterprise career application portal, official appointment signing engine, and standalone DS Tech Academy Student and Tutor learning ecosystems with 70/30 practical curriculum, live classrooms, and payment verification.",
+  "description": "Official Progressive Web App (PWA) for DS TECH AND DIGITAL MARKETING AGENCY LIMITED - Interactive career portal, appointment signing engine, and DS Tech Academy ecosystems.",
   "requestFramePermissions": ["camera", "microphone", "geolocation", "publickey-credentials-create", "publickey-credentials-get"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

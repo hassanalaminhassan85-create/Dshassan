@@ -4,7 +4,7 @@ import {
   X, Home, Info, Briefcase, Image as ImageIcon, Users, Star, FileText, 
   GraduationCap, Award, UserCheck, Building2, ChevronRight, CreditCard, 
   ShieldAlert, BookOpen, Globe, Sun, Moon, Check, Search, 
-  Sparkles, Layers, UserPlus, ArrowUpRight
+  Sparkles, Layers, UserPlus, ArrowUpRight, Download
 } from 'lucide-react';
 import { Logo } from './Logo';
 import { PaystackPayButton } from './PaystackMotionCheckout';
@@ -645,6 +645,24 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
             {/* PANEL UTILITY FOOTER */}
             <div className="p-3 sm:p-4 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/80 dark:bg-slate-900/80 space-y-2 shrink-0">
               
+              {/* Official DS TECH PWA Install Action */}
+              <button
+                onClick={() => {
+                  onClose();
+                  window.dispatchEvent(new CustomEvent('open-pwa-install'));
+                }}
+                type="button"
+                className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-orange-500/10 via-amber-500/15 to-orange-500/10 hover:from-orange-500/20 hover:to-amber-500/20 border border-orange-500/30 text-orange-600 dark:text-orange-400 flex items-center justify-between text-xs font-bold transition-all cursor-pointer group shadow-sm"
+              >
+                <span className="flex items-center gap-2">
+                  <Download size={14} className="text-orange-500 group-hover:scale-110 transition-transform" />
+                  <span>Install Official DS TECH App</span>
+                </span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-600 dark:text-orange-300 font-mono">
+                  PWA
+                </span>
+              </button>
+
               <div className="flex items-center justify-between gap-2">
                 {/* Language Selector Dropdown */}
                 <div className="relative flex-1">

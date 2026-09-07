@@ -1,0 +1,64 @@
+<svg width="512" height="512" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="blueGlossyGradient" cx="50%" cy="40%" r="50%" fx="50%" fy="30%">
+      <stop offset="0%" stop-color="#1E40AF" />
+      <stop offset="60%" stop-color="#0B3C9B" />
+      <stop offset="100%" stop-color="#000E32" />
+    </radialGradient>
+    <linearGradient id="goldGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#FBBF24" />
+      <stop offset="100%" stop-color="#EA580C" />
+    </linearGradient>
+    <linearGradient id="silverGradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#94A3B8" />
+    </linearGradient>
+    <linearGradient id="orangeGradient" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#FB923C" />
+      <stop offset="100%" stop-color="#EA580C" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Circular Shield (Glossy Royal Blue) -->
+  <circle cx="50" cy="50" r="47" fill="url(#blueGlossyGradient)" stroke="url(#silverGradient)" stroke-width="2.2" />
+
+  <!-- Outer Highlight Ring -->
+  <circle cx="50" cy="50" r="44" stroke="#FFFFFF" stroke-width="0.5" stroke-dasharray="2 2" opacity="0.5" />
+
+  <!-- Stylized Diamond Crown at the Top -->
+  <g id="diamond-crown" opacity="0.95">
+    <path d="M 50 8 L 59 13.5 L 50 19 L 41 13.5 Z" fill="#FFFFFF" stroke="#EA580C" stroke-width="0.75" stroke-linejoin="round" />
+    <path d="M 41 13.5 L 59 13.5" stroke="#EA580C" stroke-width="0.75" />
+    <path d="M 50 8 L 50 19" stroke="#EA580C" stroke-width="0.5" />
+    <path d="M 45 11 L 50 13.5 L 55 11" stroke="#EA580C" stroke-width="0.5" fill="none" />
+    <path d="M 45 11 L 41 13.5" stroke="#EA580C" stroke-width="0.5" />
+    <path d="M 55 11 L 59 13.5" stroke="#EA580C" stroke-width="0.5" />
+    <path d="M 45 16 L 50 13.5 L 55 16" stroke="#EA580C" stroke-width="0.5" fill="none" />
+  </g>
+
+  <!-- Orange Accent Arcs (Left & Right) -->
+  <g>
+    <path d="M 23 28 A 29 29 0 0 0 23 72" stroke="url(#orangeGradient)" stroke-width="3.2" stroke-linecap="round" fill="none" />
+    <path d="M 77 28 A 29 29 0 0 1 77 72" stroke="url(#orangeGradient)" stroke-width="3.2" stroke-linecap="round" fill="none" />
+  </g>
+
+  <!-- Thin Silver/White Accent Rings inside -->
+  <circle cx="50" cy="50" r="38" stroke="#FFFFFF" stroke-width="0.75" stroke-dasharray="4 6" fill="none" opacity="0.3" />
+  <circle cx="50" cy="50" r="34" stroke="#FFFFFF" stroke-width="0.5" stroke-dasharray="6 4" fill="none" opacity="0.2" />
+
+  <!-- Main 'DS' Text -->
+  <text x="50" y="48" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-weight="900" font-size="25" fill="#FFFFFF" text-anchor="middle" letter-spacing="-1">DS</text>
+
+  <!-- Inner Official Text Block -->
+  <g id="agency-name-badge">
+    <text x="50" y="57" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-weight="900" font-size="4.2" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.6">TECH AND DIGITAL</text>
+    <text x="50" y="63" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-weight="900" font-size="4.2" fill="url(#goldGradient)" text-anchor="middle" letter-spacing="0.4">MARKETING AGENCY LTD</text>
+  </g>
+
+  <!-- Slogan Badge Lines -->
+  <g id="excellence-slogan">
+    <line x1="32" y1="68" x2="68" y2="68" stroke="#FFFFFF" stroke-width="0.5" opacity="0.3" />
+    <text x="50" y="73" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-weight="600" font-size="2.7" fill="#CBD5E1" text-anchor="middle" letter-spacing="0.2">EMPOWERING BRANDS WITH</text>
+    <text x="50" y="77" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-weight="900" font-size="3" fill="#FFFFFF" text-anchor="middle" letter-spacing="0.2">TECH &amp; DIGITAL EXCELLENCE</text>
+  </g>
+</svg>
