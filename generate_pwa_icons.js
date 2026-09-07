@@ -20,7 +20,18 @@ async function generateIcons() {
     .toFile(path.join(publicDir, 'pwa-192x192.png'));
   console.log('Generated pwa-192x192.png');
 
-  // 2. Standard 512x512 PNG
+  // 2. Standard 512x512 PNG with solid dark background for OpenGraph / WhatsApp preview
+  const ogImageSvg = `<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+    <rect width="512" height="512" fill="#090d16"/>
+    <circle cx="256" cy="256" r="236" fill="#000E32" opacity="0.6"/>
+    <image href="data:image/svg+xml;base64,${fs.readFileSync(svgPath).toString('base64')}" x="32" y="32" width="448" height="448"/>
+  </svg>`;
+  await sharp(Buffer.from(ogImageSvg))
+    .resize(512, 512)
+    .png()
+    .toFile(path.join(publicDir, 'og-image.png'));
+  console.log('Generated og-image.png');
+
   await sharp(svgPath)
     .resize(512, 512)
     .png()

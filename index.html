@@ -31,19 +31,57 @@
     <meta name="keywords" content="DS Tech, DS TECH AND DIGITAL, recruitment, career portal, academy, QR code, smart recruitment" />
     <meta name="author" content="DS TECH AND DIGITAL MARKETING AGENCY LIMITED" />
 
-    <!-- OpenGraph Meta Tags -->
+    <!-- OpenGraph & WhatsApp Link Preview Meta Tags -->
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="DS TECH AND DIGITAL MARKETING AGENCY LIMITED" />
     <meta property="og:title" content="DS TECH AND DIGITAL MARKETING AGENCY LIMITED" />
     <meta property="og:description" content="Official Progressive Web App for DS TECH AND DIGITAL MARKETING AGENCY LIMITED. Enterprise career portal, live applicant tracking, and professional tech training." />
-    <meta property="og:image" content="/pwa-512x512.png" />
-    <meta property="og:url" content="https://dstech-career-portal.pages.dev" />
-    <meta property="og:site_name" content="DS TECH AND DIGITAL MARKETING AGENCY LIMITED" />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:secure_url" content="/og-image.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="DS TECH Official Logo" />
+    <link rel="image_src" href="/og-image.png" />
 
     <!-- Twitter Card Meta Tags -->
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="DS TECH AND DIGITAL MARKETING AGENCY LIMITED" />
-    <meta name="twitter:description" content="Official Progressive Web App for DS TECH AND DIGITAL MARKETING AGENCY LIMITED." />
-    <meta name="twitter:image" content="/pwa-512x512.png" />
+    <meta name="twitter:description" content="Official Progressive Web App for DS TECH AND DIGITAL MARKETING AGENCY LIMITED. Enterprise career portal, live applicant tracking, and professional tech training." />
+    <meta name="twitter:image" content="/og-image.png" />
+    <meta name="twitter:image:alt" content="DS TECH Official Logo" />
+
+    <!-- Inline script for client-side absolute URL normalization for social scrapers & canonical URLs -->
+    <script>
+      (function() {
+        try {
+          var origin = window.location.origin;
+          var ogImg = document.querySelector('meta[property="og:image"]');
+          if (ogImg && ogImg.content.startsWith('/')) {
+            ogImg.content = origin + ogImg.content;
+          }
+          var ogImgSec = document.querySelector('meta[property="og:image:secure_url"]');
+          if (ogImgSec && ogImgSec.content.startsWith('/')) {
+            ogImgSec.content = origin + ogImgSec.content;
+          }
+          var twImg = document.querySelector('meta[name="twitter:image"]');
+          if (twImg && twImg.content.startsWith('/')) {
+            twImg.content = origin + twImg.content;
+          }
+          var imgSrc = document.querySelector('link[rel="image_src"]');
+          if (imgSrc && imgSrc.getAttribute('href').startsWith('/')) {
+            imgSrc.setAttribute('href', origin + imgSrc.getAttribute('href'));
+          }
+          var canonical = document.querySelector('link[rel="canonical"]');
+          if (!canonical) {
+            canonical = document.createElement('link');
+            canonical.setAttribute('rel', 'canonical');
+            document.head.appendChild(canonical);
+          }
+          canonical.setAttribute('href', window.location.href.split('#')[0]);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body class="bg-slate-950 text-slate-100 antialiased overflow-x-hidden">
     <div id="root"></div>

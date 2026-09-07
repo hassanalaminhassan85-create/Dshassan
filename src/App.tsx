@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ApplicationView } from './components/ApplicationView';
 import { PremiumContactSection } from './components/PremiumContactSection';
-import { PWAPrompt, PWAInstallHeaderButton } from './components/PWAPrompt';
+import { PWAPrompt } from './components/PWAPrompt';
 
 import { CareersForm } from './components/CareersForm';
 import { AdminDashboard } from './components/AdminDashboard';
@@ -938,9 +938,6 @@ export default function App() {
                   )}
                 </AnimatePresence>
               </div>
-
-              {/* PWA Install Header Button */}
-              <PWAInstallHeaderButton />
 
               {/* Theme Toggle Button */}
               <button
