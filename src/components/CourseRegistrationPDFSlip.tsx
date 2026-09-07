@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
-import { CourseRegistrationRecord } from '../types/courseRegistration';
+import { CourseRegistrationRecord, ProgrammeType, TeachingLanguage } from '../types/courseRegistration';
+import { 
+  getProgrammeTypes,
+  formatProgrammeTypes, 
+  getTeachingLanguages,
+  formatTeachingLanguages, 
+  getCourseLearningMode 
+} from '../lib/courseRegistrationStorage';
 
 interface CourseRegistrationPDFSlipProps {
   record: CourseRegistrationRecord;
@@ -15,14 +22,30 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
 }) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
 
+  const pTypesArray: ProgrammeType[] = Array.isArray(record.programmeTypes) && record.programmeTypes.length > 0
+    ? record.programmeTypes
+    : getProgrammeTypes(record);
+
+  const teachLangsArray: TeachingLanguage[] = Array.isArray(record.teachingLanguages) && record.teachingLanguages.length > 0
+    ? record.teachingLanguages
+    : getTeachingLanguages(record);
+
+  const displayProgrammeType = formatProgrammeTypes(record);
+  const displayTeachingLanguages = formatTeachingLanguages(record);
+  const c1Mode = getCourseLearningMode(record.course1, record.trainingMode);
+  const c2Mode = getCourseLearningMode(record.course2, record.trainingMode);
+  const c3Mode = getCourseLearningMode(record.course3, record.trainingMode);
+
   useEffect(() => {
     const generateQR = async () => {
       try {
         const payload = JSON.stringify({
           docket: record.registrationId,
           name: record.fullName,
-          program: record.programmeType,
+          program_types: pTypesArray,
+          languages: teachLangsArray,
           course: record.course1?.courseName || '',
+          c1_mode: c1Mode,
           cac_rc: '9550925',
           verified: true,
           date: record.createdAt,
@@ -42,7 +65,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
       }
     };
     generateQR();
-  }, [record.registrationId, record.fullName, record.programmeType, record.course1?.courseName, record.createdAt]);
+  }, [record.registrationId, record.fullName, pTypesArray, record.course1?.courseName, teachLangsArray, c1Mode, record.createdAt]);
 
   const formattedDate = record.createdAt
     ? new Date(record.createdAt).toLocaleDateString('en-GB', {
@@ -315,18 +338,29 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
             </div>
             <div className="grid grid-cols-4 divide-x divide-slate-200 text-center bg-white text-xs">
               <div className="p-2.5">
-                <span className="text-[8.5px] font-bold text-slate-400 uppercase block">
+                <span className="text-[8.5px] font-bold text-slate-400 uppercase block mb-1">
                   Programme Type
                 </span>
-                <span className="font-black text-[#000E32] uppercase text-sm mt-0.5 block">
-                  {record.programmeType || 'Scholarship'}
-                </span>
+                <div className="flex flex-wrap items-center justify-center gap-1">
+                  {pTypesArray.map(pt => (
+                    <span
+                      key={pt}
+                      className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wide leading-tight ${
+                        pt === 'Scholarship' 
+                          ? 'bg-amber-100 text-amber-900 border border-amber-300' 
+                          : 'bg-orange-100 text-orange-900 border border-orange-300'
+                      }`}
+                    >
+                      {pt}
+                    </span>
+                  ))}
+                </div>
               </div>
               <div className="p-2.5">
                 <span className="text-[8.5px] font-bold text-slate-400 uppercase block">
                   Duration
                 </span>
-                <span className="font-black text-[#000E32] text-sm mt-0.5 block">
+                <span className="font-black text-[#000E32] text-xs sm:text-sm mt-0.5 block">
                   {record.programmeDuration || 'Two Weeks'}
                 </span>
               </div>
@@ -334,17 +368,24 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
                 <span className="text-[8.5px] font-bold text-slate-400 uppercase block">
                   Delivery Mode
                 </span>
-                <span className="font-black text-[#000E32] text-sm mt-0.5 block">
-                  {record.trainingMode || 'Virtual Classes'}
+                <span className="font-black text-[#000E32] text-xs sm:text-sm mt-0.5 block leading-tight">
+                  {record.trainingMode || 'Configured Per-Course'}
                 </span>
               </div>
               <div className="p-2.5">
-                <span className="text-[8.5px] font-bold text-slate-400 uppercase block">
-                  Language
+                <span className="text-[8.5px] font-bold text-slate-400 uppercase block mb-1">
+                  Language(s)
                 </span>
-                <span className="font-black text-[#000E32] text-sm mt-0.5 block">
-                  {record.teachingLanguage || 'English'}
-                </span>
+                <div className="flex flex-wrap items-center justify-center gap-1">
+                  {teachLangsArray.map(lang => (
+                    <span
+                      key={lang}
+                      className="inline-block px-1.5 py-0.5 rounded text-[10px] font-black text-[#000E32] uppercase tracking-wide leading-tight bg-slate-100 border border-slate-300"
+                    >
+                      {lang}
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -361,7 +402,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
               <thead>
                 <tr className="bg-slate-50 text-[9px] font-black uppercase text-slate-600 border-b border-slate-200">
                   <th className="px-2.5 py-1.5 text-center w-10 border-r border-slate-200">#</th>
-                  <th className="px-3 py-1.5 text-left border-r border-slate-200">Course Title</th>
+                  <th className="px-3 py-1.5 text-left border-r border-slate-200">Course Title &amp; Delivery Mode</th>
                   <th className="px-3 py-1.5 text-left border-r border-slate-200">Assigned Lecturer</th>
                   <th className="px-3 py-1.5 text-left border-r border-slate-200">Weekly Days</th>
                   <th className="px-3 py-1.5 text-left">Lecture Time</th>
@@ -374,7 +415,12 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
                     C1
                   </td>
                   <td className="px-3 py-2 font-bold text-slate-900 border-r border-slate-100 text-sm">
-                    {record.course1.courseName || '—'}
+                    <div>{record.course1.courseName || '—'}</div>
+                    <div className="mt-1">
+                      <span className="inline-block px-2 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider bg-orange-100 text-orange-800 border border-orange-200">
+                        Mode: {c1Mode}
+                      </span>
+                    </div>
                   </td>
                   <td className="px-3 py-2 font-semibold text-slate-800 border-r border-slate-100">
                     {record.course1.lecturer || '—'}
@@ -394,7 +440,12 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
                       C2
                     </td>
                     <td className="px-3 py-2 font-bold text-slate-900 border-r border-slate-100 text-sm">
-                      {record.course2.courseName}
+                      <div>{record.course2.courseName}</div>
+                      <div className="mt-1">
+                        <span className="inline-block px-2 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider bg-orange-100 text-orange-800 border border-orange-200">
+                          Mode: {c2Mode}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-3 py-2 font-semibold text-slate-800 border-r border-slate-100">
                       {record.course2.lecturer || '—'}
@@ -415,7 +466,12 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
                       C3
                     </td>
                     <td className="px-3 py-2 font-bold text-slate-900 border-r border-slate-100 text-sm">
-                      {record.course3.courseName}
+                      <div>{record.course3.courseName}</div>
+                      <div className="mt-1">
+                        <span className="inline-block px-2 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider bg-orange-100 text-orange-800 border border-orange-200">
+                          Mode: {c3Mode}
+                        </span>
+                      </div>
                     </td>
                     <td className="px-3 py-2 font-semibold text-slate-800 border-r border-slate-100">
                       {record.course3.lecturer || '—'}
@@ -476,7 +532,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
                 <strong>• Credential Verification:</strong> This document serves as official provisional proof of enrolment at DS TECH Academy (CAC RC 9550925).
               </p>
               <p>
-                <strong>• Admissions Desk Contact:</strong> For schedule modifications or bursary receipts, contact admissions at <strong>+234 902 348 9111</strong> or <strong>admissions@dstech.agency</strong>.
+                <strong>• Admissions Desk Contact:</strong> For schedule modifications or bursary receipts, contact admissions at <strong>+234 902 348 9111</strong> or <strong>dstechanddigitalmarketingltd@gmail.com</strong>.
               </p>
             </div>
           </div>
@@ -536,7 +592,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
               <strong>Headquarters:</strong> Ext A-73 Efab Mall Second Floor, Area 11 Garki, Abuja, Nigeria.
             </p>
             <p className="text-right font-mono font-semibold">
-              Support WhatsApp: +234 902 348 9111 | admissions@dstech.agency
+              Support WhatsApp: +234 902 348 9111 | dstechanddigitalmarketingltd@gmail.com
             </p>
           </div>
         </div>

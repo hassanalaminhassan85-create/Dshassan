@@ -225,9 +225,46 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "studentEmail", "courseCode", "courseTitle", "amount", "status"]
+    },
+    "CourseRegistration": {
+      "title": "Course Registration Record",
+      "description": "Multi-course official registration docket with array-based programme types and teaching languages.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "registrationId": { "type": "string" },
+        "fullName": { "type": "string" },
+        "emailAddress": { "type": "string" },
+        "whatsappNumber": { "type": "string" },
+        "programmeTypes": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["Scholarship", "Paid Programme"] },
+          "description": "Selected programme tracks as an array"
+        },
+        "programmeType": { "type": "string" },
+        "programmeDuration": { "type": "string" },
+        "trainingMode": { "type": "string" },
+        "teachingLanguages": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["English", "Hausa", "Yoruba", "Igbo"] },
+          "description": "Selected teaching languages as an array"
+        },
+        "teachingLanguage": { "type": "string" },
+        "amountPaid": { "type": "string" },
+        "paymentIsNA": { "type": "boolean" },
+        "paymentStatus": { "type": "string" },
+        "agreeConfirmation": { "type": "boolean" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["registrationId", "fullName", "emailAddress", "whatsappNumber", "programmeTypes", "teachingLanguages"]
     }
   },
   "firestore": {
+    "/course_registrations/{registrationId}": {
+      "schema": "CourseRegistration",
+      "description": "Official course registration dockets collection."
+    },
     "/enrollments/{enrollmentId}": {
       "schema": "AcademyEnrollment",
       "description": "Course enrollment records."

@@ -605,6 +605,16 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
                     </h3>
                     <div className="space-y-1">
                       <button
+                        onClick={() => { setMobileMenuOpen(false); onNavigate?.('/course-registration'); }}
+                        className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white dark:hover:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all group border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:shadow-sm"
+                      >
+                        <div className="flex items-center gap-3">
+                          <BookOpen className="w-4 h-4 text-slate-400 group-hover:text-orange-500 transition-colors" />
+                          <span className="text-sm font-medium">Course Registration Form</span>
+                        </div>
+                        <ArrowRight className="w-3.5 h-3.5 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-orange-500" />
+                      </button>
+                      <button
                         onClick={() => { setMobileMenuOpen(false); onNavigate?.('/student-registration'); }}
                         className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-white dark:hover:bg-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-all group border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:shadow-sm"
                       >

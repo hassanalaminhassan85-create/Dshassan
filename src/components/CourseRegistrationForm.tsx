@@ -28,7 +28,13 @@ import {
   apiSaveCourseRegistration, 
   buildCourseRegistrationWhatsAppLink, 
   formatCourseRegistrationWhatsAppMessage,
-  ACADEMY_WHATSAPP_NUMBER 
+  formatProgrammeTypes,
+  formatTeachingLanguages,
+  getProgrammeTypes,
+  getTeachingLanguages,
+  getCourseLearningMode,
+  ACADEMY_WHATSAPP_NUMBER,
+  OFFICIAL_ADMISSIONS_EMAIL 
 } from '../lib/courseRegistrationStorage';
 
 interface CourseRegistrationFormProps {
@@ -190,28 +196,36 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
     whatsappNumber: '',
     alternativePhone: '',
 
-    // Section 2: Programme Information
-    programmeType: '',
+    // Section 2: Programme Information (multi-select defaults with 100% backward compatibility)
+    programmeTypes: ['Scholarship'],
+    programmeType: 'Scholarship',
     programmeDuration: '',
-    trainingMode: '',
-    teachingLanguage: '',
+    trainingMode: 'Virtual Classes',
+    teachingLanguages: ['English'],
+    teachingLanguage: 'English',
 
-    // Section 3: Course Applications
+    // Section 3: Course Applications (each with independent learningMode)
     course1: {
       courseName: '',
       lecturer: '',
+      learningMode: 'Virtual Classes',
+      trainingMode: 'Virtual Classes',
       weeklyLectureDays: '',
       lectureTime: '',
     },
     course2: {
       courseName: '',
       lecturer: '',
+      learningMode: 'Physical Classes',
+      trainingMode: 'Physical Classes',
       weeklyLectureDays: '',
       lectureTime: '',
     },
     course3: {
       courseName: '',
       lecturer: '',
+      learningMode: 'Hybrid Classes',
+      trainingMode: 'Hybrid Classes',
       weeklyLectureDays: '',
       lectureTime: '',
     },
@@ -228,6 +242,60 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
   // Enable optional course 2 and course 3 slots
   const [showCourse2, setShowCourse2] = useState<boolean>(false);
   const [showCourse3, setShowCourse3] = useState<boolean>(false);
+
+  // Multi-select Checkbox Handler for Programme Type (stored as array in formData.programmeTypes)
+  const handleProgrammeTypeCheckboxChange = (type: ProgrammeType, checked: boolean) => {
+    setFormData(prev => {
+      const current = Array.isArray(prev.programmeTypes) ? prev.programmeTypes : [];
+      const updated = checked
+        ? (current.includes(type) ? current : [...current, type])
+        : current.filter(t => t !== type);
+      return {
+        ...prev,
+        programmeTypes: updated,
+        programmeType: updated.length === 2 ? 'Scholarship & Paid Programme' : (updated[0] || ''),
+      };
+    });
+    if (validationErrors.programmeType) {
+      setValidationErrors(prev => {
+        const next = { ...prev };
+        delete next.programmeType;
+        return next;
+      });
+    }
+  };
+
+  const toggleProgrammeType = (type: ProgrammeType) => {
+    const isCurrentlySelected = Array.isArray(formData.programmeTypes) && formData.programmeTypes.includes(type);
+    handleProgrammeTypeCheckboxChange(type, !isCurrentlySelected);
+  };
+
+  // Multi-select Checkbox Handler for Teaching Language (stored as array in formData.teachingLanguages)
+  const handleTeachingLanguageCheckboxChange = (lang: TeachingLanguage, checked: boolean) => {
+    setFormData(prev => {
+      const current = Array.isArray(prev.teachingLanguages) ? prev.teachingLanguages : [];
+      const updated = checked
+        ? (current.includes(lang) ? current : [...current, lang])
+        : current.filter(l => l !== lang);
+      return {
+        ...prev,
+        teachingLanguages: updated,
+        teachingLanguage: updated.join(', '),
+      };
+    });
+    if (validationErrors.teachingLanguage) {
+      setValidationErrors(prev => {
+        const next = { ...prev };
+        delete next.teachingLanguage;
+        return next;
+      });
+    }
+  };
+
+  const toggleTeachingLanguage = (lang: TeachingLanguage) => {
+    const isCurrentlySelected = Array.isArray(formData.teachingLanguages) && formData.teachingLanguages.includes(lang);
+    handleTeachingLanguageCheckboxChange(lang, !isCurrentlySelected);
+  };
 
   // Scroll to top on step change
   useEffect(() => {
@@ -270,10 +338,16 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
     }
 
     if (stepId === 2) {
-      if (!formData.programmeType) errors.programmeType = 'Please select a Programme Type';
+      const pTypes = formData.programmeTypes && formData.programmeTypes.length > 0
+        ? formData.programmeTypes
+        : formData.programmeType ? [formData.programmeType as ProgrammeType] : [];
+      if (pTypes.length === 0) errors.programmeType = 'Please select at least one Programme Type (Scholarship or Paid Programme)';
       if (!formData.programmeDuration) errors.programmeDuration = 'Please select a Programme Duration';
-      if (!formData.trainingMode) errors.trainingMode = 'Please select a Training Mode';
-      if (!formData.teachingLanguage) errors.teachingLanguage = 'Please select a Preferred Teaching Language';
+      if (!formData.trainingMode) errors.trainingMode = 'Please select a Delivery Preference';
+      const tLangs = formData.teachingLanguages && formData.teachingLanguages.length > 0
+        ? formData.teachingLanguages
+        : formData.teachingLanguage ? [formData.teachingLanguage as TeachingLanguage] : [];
+      if (tLangs.length === 0) errors.teachingLanguage = 'Please select at least one Preferred Teaching Language';
     }
 
     if (stepId === 3) {
@@ -281,10 +355,26 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
       if (!formData.course1.lecturer.trim()) errors.course1Lecturer = 'Course 1 Lecturer name is required';
       if (!formData.course1.weeklyLectureDays.trim()) errors.course1Days = 'Course 1 Lecture Days are required';
       if (!formData.course1.lectureTime.trim()) errors.course1Time = 'Course 1 Lecture Time is required';
+      if (!formData.course1.learningMode) errors.course1Mode = 'Course 1 Learning Mode is required';
+
+      if (showCourse2 && formData.course2?.courseName?.trim()) {
+        if (!formData.course2.lecturer?.trim()) errors.course2Lecturer = 'Course 2 Lecturer is required';
+        if (!formData.course2.weeklyLectureDays?.trim()) errors.course2Days = 'Course 2 Lecture Days are required';
+        if (!formData.course2.lectureTime?.trim()) errors.course2Time = 'Course 2 Lecture Time is required';
+      }
+
+      if (showCourse3 && formData.course3?.courseName?.trim()) {
+        if (!formData.course3.lecturer?.trim()) errors.course3Lecturer = 'Course 3 Lecturer is required';
+        if (!formData.course3.weeklyLectureDays?.trim()) errors.course3Days = 'Course 3 Lecture Days are required';
+        if (!formData.course3.lectureTime?.trim()) errors.course3Time = 'Course 3 Lecture Time is required';
+      }
     }
 
     if (stepId === 4) {
-      if (!formData.paymentIsNA) {
+      const pTypes = getProgrammeTypes(formData);
+      const isOnlyScholarship = pTypes.length === 1 && pTypes[0] === 'Scholarship';
+
+      if (!formData.paymentIsNA && !isOnlyScholarship) {
         if (formData.amountPaid === '' || formData.amountPaid === null || formData.amountPaid === undefined) {
           errors.amountPaid = 'Please enter amount paid or select Non-Applicable';
         } else {
@@ -325,7 +415,7 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
     setActiveTab(stepNumber);
   };
 
-  // Quick autofill for demonstration & testing (strictly neutral, manual-style course entry)
+  // Quick autofill for demonstration & testing (featuring multi-select & per-course configurations)
   const handleQuickAutofill = () => {
     setFormData(prev => ({
       ...prev,
@@ -338,20 +428,48 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
       emailAddress: 'm.almansur@dstech.example.com',
       whatsappNumber: '+234 813 900 1234',
       alternativePhone: '+234 802 334 5566',
-      programmeType: 'Paid Programme',
+      // Multi-select demonstration: Both Scholarship AND Paid Programme selected!
+      programmeTypes: ['Scholarship', 'Paid Programme'],
+      programmeType: 'Scholarship & Paid Programme',
       programmeDuration: 'Three Months',
       trainingMode: 'Hybrid Classes',
-      teachingLanguage: 'English',
+      // Multi-select demonstration: English + Hausa selected!
+      teachingLanguages: ['English', 'Hausa'],
+      teachingLanguage: 'English, Hausa',
+      // Per-course demonstration:
+      // Course 1 -> Virtual Classes
       course1: {
         courseName: 'Full Stack Software Engineering & Cloud Computing',
-        lecturer: 'Assigned Course Lecturer (Per Timetable)',
+        lecturer: 'Engr. Aliyu Sanusi (Director of Software)',
+        learningMode: 'Virtual Classes',
+        trainingMode: 'Virtual Classes',
         weeklyLectureDays: 'Mon, Wed, Fri',
         lectureTime: '09:00 AM – 11:00 AM',
+      },
+      // Course 2 -> Physical Classes
+      course2: {
+        courseName: 'Cybersecurity & Ethical Hacking Mastery',
+        lecturer: 'Dr. Kabir Danfulani (Lead Security Fellow)',
+        learningMode: 'Physical Classes',
+        trainingMode: 'Physical Classes',
+        weeklyLectureDays: 'Tue, Thu, Sat',
+        lectureTime: '02:00 PM – 04:00 PM',
+      },
+      // Course 3 -> Hybrid Classes
+      course3: {
+        courseName: 'Advanced Data Science & AI Systems',
+        lecturer: 'Prof. Fatima Bello (Faculty Chair)',
+        learningMode: 'Hybrid Classes',
+        trainingMode: 'Hybrid Classes',
+        weeklyLectureDays: 'Weekends (Sat & Sun)',
+        lectureTime: '05:00 PM – 07:00 PM',
       },
       amountPaid: '200000',
       paymentIsNA: false,
       agreeConfirmation: true,
     }));
+    setShowCourse2(true);
+    setShowCourse3(true);
     setValidationErrors({});
   };
 
@@ -699,8 +817,33 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
 
     setIsSubmitting(true);
     try {
+      const finalProgTypes = getProgrammeTypes(formData);
+      const finalTeachLangs = getTeachingLanguages(formData);
+      const c1Mode = getCourseLearningMode(formData.course1, formData.trainingMode);
+      const c2Mode = getCourseLearningMode(formData.course2, formData.trainingMode);
+      const c3Mode = getCourseLearningMode(formData.course3, formData.trainingMode);
+
       const finalRecord: CourseRegistrationRecord = {
         ...formData,
+        programmeTypes: finalProgTypes,
+        programmeType: formatProgrammeTypes(formData),
+        teachingLanguages: finalTeachLangs,
+        teachingLanguage: formatTeachingLanguages(formData),
+        course1: {
+          ...formData.course1,
+          learningMode: c1Mode,
+          trainingMode: c1Mode,
+        },
+        course2: showCourse2 && formData.course2?.courseName?.trim() ? {
+          ...formData.course2,
+          learningMode: c2Mode,
+          trainingMode: c2Mode,
+        } : undefined,
+        course3: showCourse3 && formData.course3?.courseName?.trim() ? {
+          ...formData.course3,
+          learningMode: c3Mode,
+          trainingMode: c3Mode,
+        } : undefined,
         updatedAt: new Date().toISOString(),
         paymentStatus: formData.paymentIsNA 
           ? 'Non-Applicable' 
@@ -758,10 +901,12 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
       emailAddress: '',
       whatsappNumber: '',
       alternativePhone: '',
-      programmeType: '',
+      programmeTypes: ['Scholarship'],
+      programmeType: 'Scholarship',
       programmeDuration: '',
-      trainingMode: '',
-      teachingLanguage: '',
+      trainingMode: 'Virtual Classes',
+      teachingLanguages: ['English'],
+      teachingLanguage: 'English',
       course1: { courseName: '', lecturer: '', weeklyLectureDays: '', lectureTime: '' },
       course2: { courseName: '', lecturer: '', weeklyLectureDays: '', lectureTime: '' },
       course3: { courseName: '', lecturer: '', weeklyLectureDays: '', lectureTime: '' },
@@ -838,11 +983,19 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
         </div>
 
         {/* Informative Sub-header Notice */}
-        <div className="px-4 py-3 bg-slate-50/70 dark:bg-slate-950/40 border-b border-slate-150/40 dark:border-slate-800 text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div className="px-4 py-3 bg-slate-50/70 dark:bg-slate-950/40 border-b border-slate-150/40 dark:border-slate-800 text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
           <p className="text-xs text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
             Please provide accurate and verifiable information for official Academy enrolment, lecture allocation, and academic records administration.
           </p>
           <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            <a
+              href={`mailto:${OFFICIAL_ADMISSIONS_EMAIL}`}
+              className="inline-flex items-center gap-1.5 text-[10.5px] font-bold text-orange-700 dark:text-orange-400 hover:text-orange-800 bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100 dark:hover:bg-orange-900/50 px-2.5 py-1 rounded-md border border-orange-200 dark:border-orange-900/40 transition-colors shadow-2xs"
+              title="Official Academy Admissions Email"
+            >
+              <Mail size={12} className="text-orange-500" />
+              <span className="font-mono">{OFFICIAL_ADMISSIONS_EMAIL}</span>
+            </a>
             <span className="text-[9.5px] font-mono font-extrabold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
               CAC RC 9550925
             </span>
@@ -1031,9 +1184,18 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
               </div>
             </div>
 
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-              * <strong>Official WhatsApp Integration:</strong> Generates the official course registration slip image and dispatches it directly to the Academy admissions desk (+234 902 348 9111).
-            </p>
+            <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[11px] text-slate-600 dark:text-slate-300">
+              <p className="leading-relaxed font-medium">
+                * <strong>Official Admissions Desk:</strong> Inquiries, bursary receipts, and docket verification are handled via WhatsApp (+234 902 348 9111) and official email.
+              </p>
+              <a
+                href={`mailto:${OFFICIAL_ADMISSIONS_EMAIL}`}
+                className="inline-flex items-center gap-1.5 font-mono font-bold text-orange-600 dark:text-orange-400 hover:underline shrink-0"
+              >
+                <Mail size={12} />
+                <span>{OFFICIAL_ADMISSIONS_EMAIL}</span>
+              </a>
+            </div>
           </div>
 
           {/* High Motion Live WhatsApp Details Writer & Preview */}
@@ -1457,10 +1619,28 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                         </button>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                        <div><span className="text-slate-400 font-medium">Programme Type:</span> <strong className="text-slate-800 dark:text-slate-200 ml-1">{formData.programmeType || 'Pending'}</strong></div>
+                        <div>
+                          <span className="text-slate-400 font-medium">Programme Type:</span>{' '}
+                          <span className="inline-flex flex-wrap gap-1 ml-1 align-middle">
+                            {getProgrammeTypes(formData).map(pt => (
+                              <span key={pt} className="px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/60">
+                                {pt}
+                              </span>
+                            ))}
+                          </span>
+                        </div>
                         <div><span className="text-slate-400 font-medium">Duration:</span> <strong className="text-slate-800 dark:text-slate-200 ml-1">{formData.programmeDuration || 'Pending'}</strong></div>
-                        <div><span className="text-slate-400 font-medium">Training Mode:</span> <strong className="text-slate-800 dark:text-slate-200 ml-1">{formData.trainingMode || 'Pending'}</strong></div>
-                        <div><span className="text-slate-400 font-medium">Language:</span> <strong className="text-slate-800 dark:text-slate-200 ml-1">{formData.teachingLanguage || 'Pending'}</strong></div>
+                        <div><span className="text-slate-400 font-medium">Default Mode:</span> <strong className="text-slate-800 dark:text-slate-200 ml-1">{formData.trainingMode || 'Pending'}</strong></div>
+                        <div>
+                          <span className="text-slate-400 font-medium">Languages:</span>{' '}
+                          <span className="inline-flex flex-wrap gap-1 ml-1 align-middle">
+                            {getTeachingLanguages(formData).map(tl => (
+                              <span key={tl} className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200">
+                                {tl}
+                              </span>
+                            ))}
+                          </span>
+                        </div>
                       </div>
                     </div>
 
@@ -1469,7 +1649,7 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                       <div className="flex items-center justify-between pb-2 border-b border-slate-200/80 dark:border-slate-800">
                         <h4 className="text-xs font-black uppercase text-[#000E32] dark:text-white flex items-center gap-2">
                           <BookOpen size={14} className="text-orange-500" />
-                          3. Course Selection
+                          3. Course Selection & Delivery
                         </h4>
                         <button
                           type="button"
@@ -1481,21 +1661,36 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                       </div>
                       <div className="space-y-2 text-xs">
                         <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
-                          <span className="text-[10px] font-extrabold text-orange-600 block">Course 1 (Primary)</span>
-                          <p className="font-bold text-slate-800 dark:text-slate-200">{formData.course1.courseName || 'Pending'}</p>
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-extrabold text-orange-600 block">Course 1 (Primary)</span>
+                            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+                              {getCourseLearningMode(formData.course1, formData.trainingMode)}
+                            </span>
+                          </div>
+                          <p className="font-bold text-slate-800 dark:text-slate-200 mt-1">{formData.course1.courseName || 'Pending'}</p>
                           <p className="text-slate-500 text-[11px] mt-0.5">Lecturer: {formData.course1.lecturer || 'Pending'} • {formData.course1.weeklyLectureDays || 'Days pending'} ({formData.course1.lectureTime || 'Time pending'})</p>
                         </div>
                         {formData.course2?.courseName && (
                           <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
-                            <span className="text-[10px] font-extrabold text-orange-600 block">Course 2 (Additional)</span>
-                            <p className="font-bold text-slate-800 dark:text-slate-200">{formData.course2.courseName}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-extrabold text-orange-600 block">Course 2 (Additional)</span>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+                                {getCourseLearningMode(formData.course2, formData.trainingMode)}
+                              </span>
+                            </div>
+                            <p className="font-bold text-slate-800 dark:text-slate-200 mt-1">{formData.course2.courseName}</p>
                             <p className="text-slate-500 text-[11px] mt-0.5">Lecturer: {formData.course2.lecturer} • {formData.course2.weeklyLectureDays} ({formData.course2.lectureTime})</p>
                           </div>
                         )}
                         {formData.course3?.courseName && (
                           <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
-                            <span className="text-[10px] font-extrabold text-orange-600 block">Course 3 (Additional)</span>
-                            <p className="font-bold text-slate-800 dark:text-slate-200">{formData.course3.courseName}</p>
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-extrabold text-orange-600 block">Course 3 (Additional)</span>
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+                                {getCourseLearningMode(formData.course3, formData.trainingMode)}
+                              </span>
+                            </div>
+                            <p className="font-bold text-slate-800 dark:text-slate-200 mt-1">{formData.course3.courseName}</p>
                             <p className="text-slate-500 text-[11px] mt-0.5">Lecturer: {formData.course3.lecturer} • {formData.course3.weeklyLectureDays} ({formData.course3.lectureTime})</p>
                           </div>
                         )}
@@ -1769,43 +1964,102 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                       {/* ========================================================================= */}
                       {activeTab === 2 && (
                         <div className="space-y-6">
-                          {/* Programme Type */}
+                          {/* Programme Type (Multi-Select Checkbox Implementation: Scholarship, Paid Programme, or BOTH) */}
                           <div>
-                            <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide block mb-2">
-                              Programme Type *
-                            </label>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                              {(['Scholarship', 'Paid Programme'] as ProgrammeType[]).map(type => (
-                                <button
-                                  key={type}
-                                  type="button"
-                                  onClick={() => setFormData({ ...formData, programmeType: type })}
-                                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
-                                    formData.programmeType === type
-                                      ? 'border-orange-500 bg-orange-50/50 dark:bg-orange-950/20 shadow-xs'
-                                      : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
-                                  }`}
-                                >
-                                  <div>
-                                    <span className="text-xs font-extrabold text-[#000E32] dark:text-white uppercase tracking-wider block">
-                                      {type}
-                                    </span>
-                                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                                      {type === 'Scholarship' ? 'Merit/sponsored academic admissions' : 'Standard tuition self-sponsored enrollment'}
-                                    </p>
-                                  </div>
-                                  <div className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                                    formData.programmeType === type
-                                      ? 'border-orange-500 bg-orange-500 text-white'
-                                      : 'border-slate-300 dark:border-slate-600'
-                                  }`}>
-                                    {formData.programmeType === type && <Check size={12} strokeWidth={3} />}
-                                  </div>
-                                </button>
-                              ))}
+                            <div className="flex items-center justify-between mb-1.5">
+                              <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide block">
+                                Programme Track Type * (Multi-Select Checkbox)
+                              </label>
+                              <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                                {getProgrammeTypes(formData).map(pt => (
+                                  <span
+                                    key={pt}
+                                    className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                      pt === 'Scholarship'
+                                        ? 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800'
+                                        : 'bg-orange-100 text-orange-900 dark:bg-orange-950/60 dark:text-orange-300 border border-orange-200 dark:border-orange-800'
+                                    }`}
+                                  >
+                                    {pt}
+                                  </span>
+                                ))}
+                              </div>
                             </div>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2.5">
+                              Select <strong>Scholarship</strong>, <strong>Paid Programme</strong>, or <strong>BOTH</strong> using the checkboxes below. Applicants may combine scholarship courses with specialized paid tracks.
+                            </p>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {(['Scholarship', 'Paid Programme'] as ProgrammeType[]).map(type => {
+                                const isSelected = getProgrammeTypes(formData).includes(type);
+                                const inputId = `checkbox-prog-type-${type.replace(/\s+/g, '-').toLowerCase()}`;
+                                return (
+                                  <label
+                                    key={type}
+                                    htmlFor={inputId}
+                                    className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between select-none ${
+                                      isSelected
+                                        ? 'border-orange-500 bg-orange-50/70 dark:bg-orange-950/30 ring-2 ring-orange-500/40 shadow-xs'
+                                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50/50'
+                                    }`}
+                                  >
+                                    <div className="flex items-start gap-3">
+                                      <div className="pt-0.5">
+                                        <input
+                                          type="checkbox"
+                                          id={inputId}
+                                          name="programmeTypes"
+                                          value={type}
+                                          checked={isSelected}
+                                          onChange={(e) => handleProgrammeTypeCheckboxChange(type, e.target.checked)}
+                                          className="sr-only"
+                                        />
+                                        <div
+                                          className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${
+                                            isSelected
+                                              ? 'border-orange-500 bg-orange-500 text-white shadow-xs'
+                                              : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
+                                          }`}
+                                          aria-hidden="true"
+                                        >
+                                          {isSelected && <Check size={13} strokeWidth={3} />}
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <span className="text-xs font-extrabold text-[#000E32] dark:text-white uppercase tracking-wider block">
+                                          {type}
+                                        </span>
+                                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                                          {type === 'Scholarship' ? 'Merit/sponsored academic admissions' : 'Standard tuition self-sponsored enrollment'}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    {isSelected && (
+                                      <span className="text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400 bg-orange-100/70 dark:bg-orange-950/60 px-1.5 py-0.5 rounded shrink-0 ml-2">
+                                        Active
+                                      </span>
+                                    )}
+                                  </label>
+                                );
+                              })}
+                            </div>
+
+                            {/* Dual Track Banner */}
+                            {getProgrammeTypes(formData).length === 2 && (
+                              <motion.div
+                                initial={{ opacity: 0, y: 5 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="mt-3 p-3 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-800 dark:text-orange-200 text-xs flex items-center gap-2.5"
+                              >
+                                <Sparkles size={16} className="text-orange-500 shrink-0" />
+                                <span>
+                                  <strong>Dual-Track Enrolment Active:</strong> You have selected both <strong>Scholarship</strong> and <strong>Paid Programme</strong>. Your admission record will register both tracks.
+                                </span>
+                              </motion.div>
+                            )}
+
                             {validationErrors.programmeType && (
-                              <p className="text-[11px] text-red-500 mt-1 font-semibold flex items-center gap-1">
+                              <p className="text-[11px] text-red-500 mt-1.5 font-semibold flex items-center gap-1">
                                 <AlertCircle size={12} /> {validationErrors.programmeType}
                               </p>
                             )}
@@ -1824,7 +2078,7 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                                   onClick={() => setFormData({ ...formData, programmeDuration: dur })}
                                   className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
                                     formData.programmeDuration === dur
-                                      ? 'border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400 font-extrabold'
+                                      ? 'border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400 font-extrabold ring-1 ring-orange-500/50'
                                       : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold hover:border-slate-300'
                                   }`}
                                 >
@@ -1839,11 +2093,20 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                             )}
                           </div>
 
-                          {/* Training Mode */}
+                          {/* Training Mode (Default/Global) */}
                           <div>
-                            <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide block mb-2">
-                              Training Mode *
-                            </label>
+                            <div className="flex items-center justify-between mb-1">
+                              <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide block">
+                                Primary Delivery Preference *
+                              </label>
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                Per-course modes configurable in Step 3
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2.5">
+                              Select your global attendance baseline. You can customize the specific learning mode for each course individually in the next step.
+                            </p>
+
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                               {(['Virtual Classes', 'Physical Classes', 'Hybrid Classes'] as TrainingMode[]).map(mode => (
                                 <button
@@ -1852,7 +2115,7 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                                   onClick={() => setFormData({ ...formData, trainingMode: mode })}
                                   className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex items-center justify-between ${
                                     formData.trainingMode === mode
-                                      ? 'border-orange-500 bg-orange-50/50 dark:bg-orange-950/20 shadow-xs'
+                                      ? 'border-orange-500 bg-orange-50/50 dark:bg-orange-950/20 shadow-xs ring-1 ring-orange-500/50'
                                       : 'border-slate-200 dark:border-slate-700 hover:border-slate-300'
                                   }`}
                                 >
@@ -1881,26 +2144,66 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                             )}
                           </div>
 
-                          {/* Preferred Teaching Language */}
+                          {/* Preferred Teaching Language (Multi-Select Checkbox: English, Hausa, Yoruba, Igbo) */}
                           <div>
-                            <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide block mb-2">
-                              Preferred Teaching Language *
-                            </label>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide block">
+                                Preferred Teaching Language * (Multi-Select Checkboxes)
+                              </label>
+                              <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                                {getTeachingLanguages(formData).map(lang => (
+                                  <span
+                                    key={lang}
+                                    className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
+                                  >
+                                    {lang}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 mb-2.5">
+                              Choose all languages you prefer for instruction and lecturer communication using the checkboxes below.
+                            </p>
+
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                              {(['English', 'Hausa', 'Yoruba', 'Igbo'] as TeachingLanguage[]).map(lang => (
-                                <button
-                                  key={lang}
-                                  type="button"
-                                  onClick={() => setFormData({ ...formData, teachingLanguage: lang })}
-                                  className={`p-3 rounded-xl border text-center transition-all cursor-pointer ${
-                                    formData.teachingLanguage === lang
-                                      ? 'border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400 font-extrabold'
-                                      : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold hover:border-slate-300'
-                                  }`}
-                                >
-                                  <span className="text-xs uppercase tracking-wider block">{lang}</span>
-                                </button>
-                              ))}
+                              {(['English', 'Hausa', 'Yoruba', 'Igbo'] as TeachingLanguage[]).map(lang => {
+                                const isSelected = getTeachingLanguages(formData).includes(lang);
+                                const inputId = `checkbox-teach-lang-${lang.toLowerCase()}`;
+                                return (
+                                  <label
+                                    key={lang}
+                                    htmlFor={inputId}
+                                    className={`p-3 rounded-xl border text-center transition-all cursor-pointer flex items-center justify-between gap-2 select-none ${
+                                      isSelected
+                                        ? 'border-orange-500 bg-orange-50/70 dark:bg-orange-950/30 text-orange-600 dark:text-orange-400 font-extrabold ring-2 ring-orange-500/40 shadow-xs'
+                                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900/60 text-slate-600 dark:text-slate-400 font-bold hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50/50'
+                                    }`}
+                                  >
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="checkbox"
+                                        id={inputId}
+                                        name="teachingLanguages"
+                                        value={lang}
+                                        checked={isSelected}
+                                        onChange={(e) => handleTeachingLanguageCheckboxChange(lang, e.target.checked)}
+                                        className="sr-only"
+                                      />
+                                      <div
+                                        className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 transition-all ${
+                                          isSelected
+                                            ? 'border-orange-500 bg-orange-500 text-white shadow-xs'
+                                            : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'
+                                        }`}
+                                        aria-hidden="true"
+                                      >
+                                        {isSelected && <Check size={11} strokeWidth={3} />}
+                                      </div>
+                                      <span className="text-xs uppercase tracking-wider">{lang}</span>
+                                    </div>
+                                  </label>
+                                );
+                              })}
                             </div>
                             {validationErrors.teachingLanguage && (
                               <p className="text-[11px] text-red-500 mt-1 font-semibold flex items-center gap-1">
@@ -1995,6 +2298,45 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                                     <AlertCircle size={12} /> {validationErrors.course1Lecturer}
                                   </p>
                                 )}
+                              </div>
+
+                              {/* Course 1 Learning Mode (Per-Course Selection) */}
+                              <div className="md:col-span-2">
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide block">
+                                    Course 1 Learning Mode *
+                                  </label>
+                                  <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400">
+                                    {getCourseLearningMode(formData.course1, formData.trainingMode)}
+                                  </span>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                  {(['Virtual Classes', 'Physical Classes', 'Hybrid Classes'] as TrainingMode[]).map(mode => {
+                                    const currentMode = getCourseLearningMode(formData.course1, formData.trainingMode);
+                                    const isSelected = currentMode === mode;
+                                    return (
+                                      <button
+                                        key={mode}
+                                        type="button"
+                                        onClick={() => setFormData({
+                                          ...formData,
+                                          course1: {
+                                            ...formData.course1,
+                                            learningMode: mode,
+                                            trainingMode: mode,
+                                          }
+                                        })}
+                                        className={`py-2 px-2 sm:px-3 rounded-xl border text-center transition-all cursor-pointer ${
+                                          isSelected
+                                            ? 'border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400 font-extrabold ring-1 ring-orange-500/50 shadow-xs'
+                                            : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-medium hover:border-slate-300'
+                                        }`}
+                                      >
+                                        <span className="text-xs block truncate">{mode}</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
                               </div>
 
                               <div>
@@ -2133,6 +2475,45 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                                   />
                                 </div>
 
+                                {/* Course 2 Learning Mode (Per-Course Selection) */}
+                                <div className="md:col-span-2">
+                                  <div className="flex items-center justify-between mb-1.5">
+                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide block">
+                                      Course 2 Learning Mode
+                                    </label>
+                                    <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400">
+                                      {getCourseLearningMode(formData.course2, formData.trainingMode)}
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-2">
+                                    {(['Virtual Classes', 'Physical Classes', 'Hybrid Classes'] as TrainingMode[]).map(mode => {
+                                      const currentMode = getCourseLearningMode(formData.course2, formData.trainingMode);
+                                      const isSelected = currentMode === mode;
+                                      return (
+                                        <button
+                                          key={mode}
+                                          type="button"
+                                          onClick={() => setFormData({
+                                            ...formData,
+                                            course2: {
+                                              ...(formData.course2 || { courseName: '', lecturer: '', weeklyLectureDays: '', lectureTime: '' }),
+                                              learningMode: mode,
+                                              trainingMode: mode,
+                                            }
+                                          })}
+                                          className={`py-2 px-2 sm:px-3 rounded-xl border text-center transition-all cursor-pointer ${
+                                            isSelected
+                                              ? 'border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400 font-extrabold ring-1 ring-orange-500/50 shadow-xs'
+                                              : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-medium hover:border-slate-300'
+                                          }`}
+                                        >
+                                          <span className="text-xs block truncate">{mode}</span>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+
                                 <div>
                                   <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide block mb-1.5">
                                     Weekly Lecture Days
@@ -2224,6 +2605,45 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                                   />
                                 </div>
 
+                                {/* Course 3 Learning Mode (Per-Course Selection) */}
+                                <div className="md:col-span-2">
+                                  <div className="flex items-center justify-between mb-1.5">
+                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide block">
+                                      Course 3 Learning Mode
+                                    </label>
+                                    <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400">
+                                      {getCourseLearningMode(formData.course3, formData.trainingMode)}
+                                    </span>
+                                  </div>
+                                  <div className="grid grid-cols-3 gap-2">
+                                    {(['Virtual Classes', 'Physical Classes', 'Hybrid Classes'] as TrainingMode[]).map(mode => {
+                                      const currentMode = getCourseLearningMode(formData.course3, formData.trainingMode);
+                                      const isSelected = currentMode === mode;
+                                      return (
+                                        <button
+                                          key={mode}
+                                          type="button"
+                                          onClick={() => setFormData({
+                                            ...formData,
+                                            course3: {
+                                              ...(formData.course3 || { courseName: '', lecturer: '', weeklyLectureDays: '', lectureTime: '' }),
+                                              learningMode: mode,
+                                              trainingMode: mode,
+                                            }
+                                          })}
+                                          className={`py-2 px-2 sm:px-3 rounded-xl border text-center transition-all cursor-pointer ${
+                                            isSelected
+                                              ? 'border-orange-500 bg-orange-500/10 text-orange-600 dark:text-orange-400 font-extrabold ring-1 ring-orange-500/50 shadow-xs'
+                                              : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-medium hover:border-slate-300'
+                                          }`}
+                                        >
+                                          <span className="text-xs block truncate">{mode}</span>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+
                                 <div>
                                   <label className="text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wide block mb-1.5">
                                     Weekly Lecture Days
@@ -2283,14 +2703,24 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                       {activeTab === 4 && (
                         <div className="space-y-6">
                           <div className="bg-slate-50/80 dark:bg-slate-950/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-2">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-[#000E32] dark:text-orange-400 block">
-                              Payment Record Verification
-                            </span>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                              <span className="text-[10px] font-black uppercase tracking-widest text-[#000E32] dark:text-orange-400 block">
+                                Payment Record Verification
+                              </span>
+                              <a
+                                href={`mailto:${OFFICIAL_ADMISSIONS_EMAIL}`}
+                                className="inline-flex items-center gap-1.5 text-[10.5px] font-mono font-bold text-orange-600 dark:text-orange-400 hover:underline"
+                                title="Bursary desk email"
+                              >
+                                <Mail size={11} />
+                                <span>{OFFICIAL_ADMISSIONS_EMAIL}</span>
+                              </a>
+                            </div>
                             <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
                               This section logs your self-reported payment record for Academy bursary auditing. If you are registering under a sponsored scholarship, corporate invoice, or paying at the campus bursary desk, check <strong>Non-Applicable</strong>.
                             </p>
                             <p className="text-[11px] text-slate-400 dark:text-slate-500 italic">
-                              * Notice: Submitting a payment record does not automatically constitute approved clearance until audited by admissions bursars.
+                              * Notice: Submitting a payment record does not automatically constitute approved clearance until audited by admissions bursars. Proof of payment or sponsorship documents may also be sent to <strong>{OFFICIAL_ADMISSIONS_EMAIL}</strong>.
                             </p>
                           </div>
 
@@ -2379,9 +2809,66 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                               <div><span className="text-slate-400 font-medium">Nationality & Origin:</span> <strong className="text-slate-800 dark:text-slate-200 ml-1">{formData.nationality} ({formData.stateOfOrigin})</strong></div>
                               <div><span className="text-slate-400 font-medium">WhatsApp Contact:</span> <strong className="font-mono text-slate-800 dark:text-slate-200 ml-1">{formData.whatsappNumber || 'Missing'}</strong></div>
                               <div><span className="text-slate-400 font-medium">Email:</span> <strong className="font-mono text-slate-800 dark:text-slate-200 ml-1">{formData.emailAddress || 'Missing'}</strong></div>
-                              <div><span className="text-slate-400 font-medium">Programme:</span> <strong className="text-slate-800 dark:text-slate-200 ml-1">{formData.programmeType} ({formData.programmeDuration})</strong></div>
-                              <div><span className="text-slate-400 font-medium">Training Mode:</span> <strong className="text-slate-800 dark:text-slate-200 ml-1">{formData.trainingMode} - {formData.teachingLanguage}</strong></div>
-                              <div><span className="text-slate-400 font-medium">Course 1:</span> <strong className="text-slate-800 dark:text-slate-200 ml-1">{formData.course1.courseName || 'Missing'}</strong></div>
+                              <div>
+                                <span className="text-slate-400 font-medium block mb-1">Programme Track:</span>
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  {getProgrammeTypes(formData).map(pt => (
+                                    <span
+                                      key={pt}
+                                      className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
+                                        pt === 'Scholarship'
+                                          ? 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
+                                          : 'bg-orange-100 text-orange-900 dark:bg-orange-950/60 dark:text-orange-300 border border-orange-300 dark:border-orange-800'
+                                      }`}
+                                    >
+                                      {pt}
+                                    </span>
+                                  ))}
+                                  <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold ml-1">
+                                    ({formData.programmeDuration || 'Two Weeks'})
+                                  </span>
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-slate-400 font-medium block mb-1">Teaching Language(s):</span>
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  {getTeachingLanguages(formData).map(lang => (
+                                    <span
+                                      key={lang}
+                                      className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700"
+                                    >
+                                      {lang}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="sm:col-span-2 space-y-1.5 pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
+                                <span className="text-slate-400 font-medium block">Selected Courses & Learning Modes:</span>
+                                <div className="space-y-1">
+                                  <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200/60 dark:border-slate-800">
+                                    <span className="text-slate-800 dark:text-slate-200 font-bold">1. {formData.course1.courseName || 'Pending'}</span>
+                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+                                      {getCourseLearningMode(formData.course1, formData.trainingMode)}
+                                    </span>
+                                  </div>
+                                  {formData.course2?.courseName && (
+                                    <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200/60 dark:border-slate-800">
+                                      <span className="text-slate-800 dark:text-slate-200 font-bold">2. {formData.course2.courseName}</span>
+                                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+                                        {getCourseLearningMode(formData.course2, formData.trainingMode)}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {formData.course3?.courseName && (
+                                    <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-2 rounded-lg border border-slate-200/60 dark:border-slate-800">
+                                      <span className="text-slate-800 dark:text-slate-200 font-bold">3. {formData.course3.courseName}</span>
+                                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-900">
+                                        {getCourseLearningMode(formData.course3, formData.trainingMode)}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                               <div><span className="text-slate-400 font-medium">Payment Record:</span> <strong className="text-slate-800 dark:text-slate-200 ml-1">{formData.paymentIsNA ? 'Non-Applicable' : `₦${Number(formData.amountPaid || 0).toLocaleString()}`}</strong></div>
                             </div>
                           </div>
@@ -2422,6 +2909,22 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                                 <AlertCircle size={12} /> {validationErrors.agreeConfirmation}
                               </p>
                             )}
+                          </div>
+
+                          {/* Official Admissions Contact Desk Bar */}
+                          <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-400">
+                            <span className="font-semibold text-slate-700 dark:text-slate-300">Official Admissions &amp; Inquiries:</span>
+                            <div className="flex items-center gap-3 flex-wrap">
+                              <a
+                                href={`mailto:${OFFICIAL_ADMISSIONS_EMAIL}`}
+                                className="inline-flex items-center gap-1.5 font-mono font-bold text-orange-600 dark:text-orange-400 hover:underline"
+                              >
+                                <Mail size={12} className="text-orange-500" />
+                                <span>{OFFICIAL_ADMISSIONS_EMAIL}</span>
+                              </a>
+                              <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+                              <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">+234 902 348 9111</span>
+                            </div>
                           </div>
                         </div>
                       )}

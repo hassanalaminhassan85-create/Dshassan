@@ -116,6 +116,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Our Team", value: "team" },
     { label: "Blog", value: "blog" },
     { label: "Academy", value: "training" },
+    { label: "Course Registration Form", value: "course-registration" },
     { label: "Clients", value: "clients" },
     { label: "Recognition", value: "recognition" },
     { label: "Careers", value: "careers" }
@@ -128,6 +129,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Notre Équipe", value: "team" },
     { label: "Blog", value: "blog" },
     { label: "Académie", value: "training" },
+    { label: "Inscription Cours", value: "course-registration" },
     { label: "Clients", value: "clients" },
     { label: "Reconnaissance", value: "recognition" },
     { label: "Carrières", value: "careers" }
@@ -140,6 +142,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Kungiyarmu", value: "team" },
     { label: "Blog", value: "blog" },
     { label: "Makaranta", value: "training" },
+    { label: "Fom ɗin Rijistar Darussa", value: "course-registration" },
     { label: "Abokan Ciniki", value: "clients" },
     { label: "Yabo da Kyaututtuka", value: "recognition" },
     { label: "Ayyuka Buɗe", value: "careers" }
@@ -152,6 +155,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Ẹgbẹ Wa", value: "team" },
     { label: "Blog", value: "blog" },
     { label: "Ile-ẹkọ", value: "training" },
+    { label: "Fọọmu Iforukọsilẹ Ẹkọ", value: "course-registration" },
     { label: "Awọn alabara", value: "clients" },
     { label: "Idanimọ", value: "recognition" },
     { label: "Iṣẹ-ṣiṣe", value: "careers" }
@@ -164,6 +168,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Equipo", value: "team" },
     { label: "Blog", value: "blog" },
     { label: "Academia", value: "training" },
+    { label: "Formulario de Cursos", value: "course-registration" },
     { label: "Clientes", value: "clients" },
     { label: "Reconocimientos", value: "recognition" },
     { label: "Carreras", value: "careers" }
@@ -176,6 +181,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "فريقنا", value: "team" },
     { label: "المدونة", value: "blog" },
     { label: "الأكاديمية", value: "training" },
+    { label: "استمارة تسجيل الدورات", value: "course-registration" },
     { label: "العملاء", value: "clients" },
     { label: "شهادات التقدير", value: "recognition" },
     { label: "الوظائف", value: "careers" }
@@ -188,6 +194,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Unser Team", value: "team" },
     { label: "Blog", value: "blog" },
     { label: "Akademie", value: "training" },
+    { label: "Kursanmeldung", value: "course-registration" },
     { label: "Kunden", value: "clients" },
     { label: "Anerkennung", value: "recognition" },
     { label: "Karriere", value: "careers" }
@@ -200,6 +207,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Наша команда", value: "team" },
     { label: "Блог", value: "blog" },
     { label: "Академия", value: "training" },
+    { label: "Регистрация на курс", value: "course-registration" },
     { label: "Клиенты", value: "clients" },
     { label: "Признание", value: "recognition" },
     { label: "Вакансии", value: "careers" }
@@ -212,6 +220,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Nossa Equipe", value: "team" },
     { label: "Blog", value: "blog" },
     { label: "Academia", value: "training" },
+    { label: "Inscrição de Cursos", value: "course-registration" },
     { label: "Clientes", value: "clients" },
     { label: "Reconhecimento", value: "recognition" },
     { label: "Carreiras", value: "careers" }
@@ -224,6 +233,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "我们的团队", value: "team" },
     { label: "博客资讯", value: "blog" },
     { label: "培训学院", value: "training" },
+    { label: "课程注册表", value: "course-registration" },
     { label: "客户门户", value: "clients" },
     { label: "资质荣誉", value: "recognition" },
     { label: "人才招聘", value: "careers" }
@@ -748,6 +758,9 @@ export default function App() {
     setActivePage(resolved.activePage);
     setIsAdminView(resolved.isAdminView);
     setCurrentAppId(resolved.appId);
+    try {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    } catch {}
   };
 
   // Submit Application Form Action handler

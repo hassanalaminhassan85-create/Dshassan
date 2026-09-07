@@ -53,6 +53,7 @@ export const StandalonePageHeader: React.FC<StandalonePageHeaderProps> = ({
 
   const navItems = [
     { label: 'Home', path: '/', icon: Layers, key: 'home' },
+    { label: 'Course Registration Form', path: '/course-registration', icon: BookOpen, key: 'course-registration' },
     { label: 'Portfolio', path: '/portfolio', icon: Briefcase, key: 'portfolio' },
     { label: 'Accreditations', path: '/recognition', icon: Award, key: 'recognition' },
     { label: 'About Us', path: '/about', icon: Info, key: 'about' },

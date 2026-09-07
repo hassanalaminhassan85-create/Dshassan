@@ -20,8 +20,11 @@ export type TeachingLanguage =
 export interface CourseSelectionItem {
   courseName: string;
   lecturer: string;
+  learningMode?: TrainingMode | string;
+  trainingMode?: TrainingMode | string;
   weeklyLectureDays: string;
   lectureTime: string;
+  preferredLanguages?: TeachingLanguage[];
 }
 
 export interface CourseRegistrationRecord {
@@ -42,15 +45,24 @@ export interface CourseRegistrationRecord {
   alternativePhone?: string;
 
   // 2. Programme Information
-  programmeType: ProgrammeType | '';
+  // Multi-select Programme Types array stored in state, validation, PDF, and database
+  programmeTypes: ProgrammeType[];
+  // Scalar / joined representation for backward compatibility
+  programmeType?: ProgrammeType | string;
   programmeDuration: ProgrammeDuration | '';
-  trainingMode: TrainingMode | '';
-  teachingLanguage: TeachingLanguage | '';
+  // Default / primary training mode preference
+  trainingMode: TrainingMode | string;
+  trainingModes?: TrainingMode[];
+  // Multi-select Teaching Languages array stored in state, validation, PDF, and database
+  teachingLanguages: TeachingLanguage[];
+  // Scalar / joined representation for backward compatibility
+  teachingLanguage?: TeachingLanguage | string;
 
-  // 3. Courses Applied For
+  // 3. Courses Applied For (each course has independent learningMode, lecturer, timetable)
   course1: CourseSelectionItem;
   course2?: CourseSelectionItem;
   course3?: CourseSelectionItem;
+  courses?: CourseSelectionItem[];
 
   // 4. Payment Record
   amountPaid: string | number;

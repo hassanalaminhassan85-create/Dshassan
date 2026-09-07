@@ -440,10 +440,23 @@ ${liveContext ? liveContext : ''}`;
       const registrationId = body.registrationId || `DSTA-CR/2026/${Math.floor(100000 + Math.random() * 900000)}`;
       const now = new Date().toISOString();
 
+      // Normalize array-based fields for resilient database storage
+      const programmeTypes = Array.isArray(body.programmeTypes) && body.programmeTypes.length > 0
+        ? body.programmeTypes
+        : (body.programmeType ? [body.programmeType] : ['Scholarship']);
+
+      const teachingLanguages = Array.isArray(body.teachingLanguages) && body.teachingLanguages.length > 0
+        ? body.teachingLanguages
+        : (body.teachingLanguage ? [body.teachingLanguage] : ['English']);
+
       const record = {
         ...body,
         id,
         registrationId,
+        programmeTypes,
+        programmeType: programmeTypes.length === 2 ? 'Scholarship & Paid Programme' : programmeTypes.join(', '),
+        teachingLanguages,
+        teachingLanguage: teachingLanguages.join(', '),
         createdAt: body.createdAt || now,
         updatedAt: now,
       };

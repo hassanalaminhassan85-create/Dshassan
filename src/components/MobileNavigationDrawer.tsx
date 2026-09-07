@@ -84,21 +84,24 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
     { label: 'Our Team', value: 'team', path: '/team', icon: Users, category: 'main' },
     { label: 'Clients & Partners', value: 'clients', path: '/clients', icon: Star, category: 'main' },
     { label: 'Blog & News', value: 'blog', path: '/blog', icon: FileText, category: 'main' },
+    { label: 'Course Registration Form', value: 'course-registration', path: '/course-registration', icon: BookOpen, badge: 'Official', category: 'main' },
   ];
 
   const resourceNavItems = [
     { label: 'DS TECH Academy', value: 'academy-overview', path: '/academy-overview', icon: GraduationCap, category: 'academy' },
+    { label: 'Course Registration Form', value: 'course-registration', path: '/course-registration', icon: BookOpen, badge: 'Admissions', category: 'academy' },
     { label: 'Recognition & Trust', value: 'recognition', path: '/recognition', icon: Award, category: 'main' },
     { label: 'Careers & Vacancies', value: 'careers', path: '/careers', icon: Briefcase, badge: 'Hiring', category: 'main' },
   ];
 
   const applicationNavItems = [
+    { label: 'Course Registration Form', value: 'course-registration', path: '/course-registration', icon: BookOpen, tag: 'Register', category: 'academy' },
     { label: 'Student Registration (10 Steps)', value: 'student-registration', path: '/student-registration', icon: UserCheck, tag: 'Enroll', category: 'academy' },
     { label: 'Faculty & Tutor Application', value: 'tutor-application', path: '/tutor-application', icon: Award, tag: '24 Roles', category: 'academy' },
   ];
 
-  // 4 Official Academy Forms Catalog
-  const academyFourForms = [
+  // Official Academy Forms Catalog
+  const academyOfficialForms = [
     {
       id: 'form-1',
       formNumber: 'Form 01',
@@ -142,10 +145,22 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
       icon: Building2,
       badge: 'Enterprise',
       category: 'academy'
+    },
+    {
+      id: 'form-5',
+      formNumber: 'Form 05',
+      title: 'Course Registration Form',
+      subtitle: 'Official Course Enrolment, Lecture Schedules & Verified Slip',
+      path: '/course-registration',
+      value: 'course-registration',
+      icon: BookOpen,
+      badge: 'Official',
+      category: 'academy'
     }
   ];
 
   const gridProgramItems = [
+    { label: 'Course Registration Form', value: 'course-registration', path: '/course-registration', icon: BookOpen, category: 'academy' },
     { label: 'Internship Form', value: 'internship-application', path: '/internship-application', icon: Briefcase, category: 'academy' },
     { label: '1-on-1 Mentorship', value: 'mentorship-application', path: '/mentorship-application', icon: UserPlus, category: 'academy' },
   ];
@@ -171,11 +186,17 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const query = searchQuery.toLowerCase().trim();
-    return allSearchableItems.filter(item => 
-      item.label.toLowerCase().includes(query) || 
-      item.section.toLowerCase().includes(query) ||
-      item.path.toLowerCase().includes(query)
-    );
+    const seen = new Set<string>();
+    return allSearchableItems.filter(item => {
+      const key = `${item.path}-${item.label}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return (
+        item.label.toLowerCase().includes(query) || 
+        item.section.toLowerCase().includes(query) ||
+        item.path.toLowerCase().includes(query)
+      );
+    });
   }, [searchQuery, allSearchableItems]);
 
   return (
@@ -289,7 +310,7 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
                       const IconComponent = item.icon;
                       return (
                         <button
-                          key={item.value}
+                          key={`${item.value}-${item.section}`}
                           onClick={() => handleLinkClick(item.path)}
                           type="button"
                           className={`w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition-all flex items-center justify-between group ${
@@ -351,7 +372,14 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
                                 />
                                 <span>{item.label}</span>
                               </div>
-                              <ChevronRight size={13} className="text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                              <div className="flex items-center gap-2">
+                                {'badge' in item && item.badge && (
+                                  <span className="text-[9px] font-bold text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded bg-orange-50 dark:bg-orange-950/40 border border-orange-200/50 dark:border-orange-800/50">
+                                    {item.badge}
+                                  </span>
+                                )}
+                                <ChevronRight size={13} className="text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 group-hover:translate-x-0.5 transition-transform" />
+                              </div>
                             </button>
                           );
                         })}
@@ -425,20 +453,20 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
                         })}
                       </div>
 
-                      {/* Admissions Grid - 4 Official Forms */}
+                      {/* Admissions Grid - Official Academy Forms */}
                       <div className="pt-1 space-y-2">
                         <div className="flex items-center justify-between px-1">
                           <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 uppercase font-bold tracking-wider">
-                            4 OFFICIAL ACADEMY FORMS
+                            OFFICIAL ACADEMY FORMS
                           </span>
                           <span className="text-[9px] font-bold text-orange-500 bg-orange-50 dark:bg-orange-950/40 px-1.5 py-0.5 rounded border border-orange-200/50 dark:border-orange-800/40">
                             Verified
                           </span>
                         </div>
 
-                        {/* 4 Official Forms Cards Grid */}
+                        {/* Official Forms Cards Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                          {academyFourForms.map((form) => {
+                          {academyOfficialForms.map((form) => {
                             const isActive = activePage === form.value;
                             const IconComponent = form.icon;
                             return (
@@ -447,6 +475,8 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
                                 onClick={() => handleLinkClick(form.path)}
                                 type="button"
                                 className={`w-full text-left p-2.5 rounded-xl transition-all border group relative overflow-hidden ${
+                                  form.id === 'form-5' ? 'sm:col-span-2' : ''
+                                } ${
                                   isActive
                                     ? 'bg-orange-500 text-white border-orange-600 shadow-md shadow-orange-500/20'
                                     : 'bg-slate-50/70 hover:bg-slate-100 dark:bg-slate-800/60 dark:hover:bg-slate-800 border-slate-200/80 dark:border-slate-700/70 text-slate-800 dark:text-slate-100'
@@ -488,7 +518,7 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
                         </div>
 
                         {/* Secondary Program Pathways */}
-                        <div className="grid grid-cols-2 gap-1 pt-1">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 pt-1">
                           {gridProgramItems.map((item) => {
                             const isActive = activePage === item.value;
                             const IconComponent = item.icon;
