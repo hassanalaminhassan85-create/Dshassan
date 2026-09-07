@@ -4,7 +4,7 @@ import path from 'path';
 
 const publicDir = path.resolve(process.cwd(), 'public');
 const svgPath = path.join(publicDir, 'icon.svg');
-const logoJpgPath = path.resolve(process.cwd(), 'src/assets/images/logo_og_image_1788790588032.jpg');
+const logoJpgPath = path.resolve(process.cwd(), 'src/assets/images/exact_ds_tech_logo_1788790934101.jpg');
 
 async function generateIcons() {
   console.log('Generating official DS TECH PWA high-res PNG icons...');
