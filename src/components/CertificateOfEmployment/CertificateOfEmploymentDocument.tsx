@@ -7,6 +7,8 @@ interface CertificateDocumentProps {
   qrCodeDataUrl?: string;
   id?: string;
   className?: string;
+  onSignClick?: () => void;
+  interactive?: boolean;
 }
 
 export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps> = ({
@@ -14,6 +16,8 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
   qrCodeDataUrl,
   id = 'ds-certificate-of-employment-document',
   className = '',
+  onSignClick,
+  interactive = false,
 }) => {
   // Format dynamic values or fallback to uppercase placeholders if empty
   const appRefNo = certificate.appointmentRefNo || certificate.certificateNumber || 'DST/COE/2026/0001';
@@ -127,19 +131,20 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
 
       {/* ========================================================= */}
       {/* MAIN CONTENT CONTAINER (Inset from outer border)          */}
+      {/* pb-[68px] guarantees content never overlaps footer bar    */}
       {/* ========================================================= */}
-      <div className="relative z-20 flex flex-col justify-between h-full pt-[22px] px-[36px] pb-0 box-border">
+      <div className="relative z-20 flex flex-col justify-between h-full pt-[20px] px-[36px] pb-[68px] box-border">
 
         <div>
           {/* ========================================================= */}
           {/* 2. TOP HEADER: LOGO & CORPORATE CONTACT INFOS            */}
           {/* ========================================================= */}
-          <div className="flex items-center justify-between gap-4 pb-2">
+          <div className="flex items-center justify-between gap-4 pb-1.5">
             
             {/* Header Left: Official DS Tech Vector Logo & Brand Title */}
             <div className="flex items-center gap-3.5">
               {/* Circular DS Tech Emblem with bursting pixels */}
-              <div className="relative w-[78px] h-[78px] shrink-0">
+              <div className="relative w-[74px] h-[74px] shrink-0">
                 <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm overflow-visible">
                   {/* Digital Pixel / Block cluster exploding from top right */}
                   <rect x="58" y="16" width="7" height="7" fill="#F25C05" rx="1" />
@@ -175,14 +180,14 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
               {/* Brand Typography */}
               <div className="flex flex-col text-left">
                 <h1
-                  className="font-black text-[#002D62] text-[27px] leading-tight tracking-[0.03em] uppercase"
+                  className="font-black text-[#002D62] text-[26px] leading-tight tracking-[0.03em] uppercase"
                   style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
                 >
                   DS TECH
                 </h1>
                 
                 <p
-                  className="text-[10px] font-extrabold text-[#002D62] tracking-[0.14em] uppercase -mt-0.5"
+                  className="text-[9.5px] font-extrabold text-[#002D62] tracking-[0.14em] uppercase -mt-0.5"
                   style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
                 >
                   AND DIGITAL MARKETING
@@ -191,22 +196,22 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                 {/* Orange Divider with AGENCY LIMITED */}
                 <div className="flex items-center gap-1.5 my-[2px]">
                   <div className="h-[1.5px] w-6 bg-[#E8590C]" />
-                  <span className="text-[9.5px] font-black text-[#E8590C] tracking-[0.12em] uppercase">
+                  <span className="text-[9px] font-black text-[#E8590C] tracking-[0.12em] uppercase">
                     AGENCY LIMITED
                   </span>
                   <div className="h-[1.5px] w-6 bg-[#E8590C]" />
                 </div>
 
-                <p className="text-[8.5px] font-medium text-slate-600 tracking-normal italic mt-0.5">
+                <p className="text-[8px] font-medium text-slate-600 tracking-normal italic mt-0.5">
                   Empowering Brands &amp; Talents with Tech &amp; Digital Excellence
                 </p>
               </div>
             </div>
 
             {/* Header Right: Official Headquarters & Contact Details */}
-            <div className="text-left text-[9px] text-slate-700 space-y-1 pr-1 font-medium">
+            <div className="text-left text-[8.8px] text-slate-700 space-y-0.5 pr-1 font-medium">
               <div className="flex items-start gap-1.5">
-                <span className="text-[#E8590C] text-[10px] shrink-0 mt-[1px]">📍</span>
+                <span className="text-[#E8590C] text-[9.5px] shrink-0 mt-[1px]">📍</span>
                 <div className="leading-tight">
                   <span className="font-semibold text-slate-800">Ext A-73 Efab Mall</span><br />
                   <span>Second Floor Area 10</span><br />
@@ -215,17 +220,17 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-[#E8590C] text-[10px] shrink-0">📞</span>
+                <span className="text-[#E8590C] text-[9.5px] shrink-0">📞</span>
                 <span className="font-semibold text-slate-800 tracking-wide">09023489111</span>
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-[#E8590C] text-[10px] shrink-0">✉️</span>
+                <span className="text-[#E8590C] text-[9.5px] shrink-0">✉️</span>
                 <span className="font-medium text-slate-700">dstechanddigitalmarketingltd@gmail.com</span>
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-[#E8590C] text-[10px] shrink-0">🌐</span>
+                <span className="text-[#E8590C] text-[9.5px] shrink-0">🌐</span>
                 <span className="font-semibold text-[#002D62]">www.dstech.com.ng</span>
               </div>
             </div>
@@ -235,13 +240,13 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
           {/* ========================================================= */}
           {/* 3. TITLE BANNER: CERTIFICATE OF EMPLOYMENT                */}
           {/* ========================================================= */}
-          <div className="relative mt-3 mb-5 flex items-center justify-center">
+          <div className="relative mt-2 mb-3.5 flex items-center justify-center">
             {/* Chamfered Ribbon with Golden Chevrons */}
-            <div className="relative w-full max-w-[620px] h-[52px] flex items-center justify-center">
+            <div className="relative w-full max-w-[620px] h-[48px] flex items-center justify-center">
               
               {/* Left Gold Chevron Tip */}
               <div
-                className="absolute left-0 top-0 bottom-0 w-[24px]"
+                className="absolute left-0 top-0 bottom-0 w-[22px]"
                 style={{
                   clipPath: 'polygon(0% 50%, 100% 0%, 100% 100%)',
                   background: 'linear-gradient(135deg, #F59E0B, #D97706)',
@@ -250,7 +255,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
 
               {/* Main Navy Body */}
               <div
-                className="w-full h-full mx-[14px] flex items-center justify-center relative shadow-sm"
+                className="w-full h-full mx-[12px] flex items-center justify-center relative shadow-sm"
                 style={{
                   backgroundColor: '#061A40',
                   clipPath: 'polygon(14px 0%, calc(100% - 14px) 0%, 100% 50%, calc(100% - 14px) 100%, 14px 100%, 0% 50%)',
@@ -269,7 +274,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                 />
 
                 <h2
-                  className="text-white font-extrabold uppercase tracking-[0.14em] text-[20px] text-center drop-shadow-sm px-6"
+                  className="text-white font-extrabold uppercase tracking-[0.14em] text-[19px] text-center drop-shadow-sm px-6"
                   style={{ fontFamily: "'Cinzel', 'Times New Roman', serif" }}
                 >
                   CERTIFICATE OF EMPLOYMENT
@@ -278,7 +283,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
 
               {/* Right Gold Chevron Tip */}
               <div
-                className="absolute right-0 top-0 bottom-0 w-[24px]"
+                className="absolute right-0 top-0 bottom-0 w-[22px]"
                 style={{
                   clipPath: 'polygon(100% 50%, 0% 0%, 0% 100%)',
                   background: 'linear-gradient(135deg, #F59E0B, #D97706)',
@@ -290,7 +295,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
           {/* ========================================================= */}
           {/* 4. EMPLOYEE INFORMATION SECTION + FAINT WATERMARK        */}
           {/* ========================================================= */}
-          <div className="relative px-4 py-2 mt-1">
+          <div className="relative px-4 py-1.5 mt-0.5">
             
             {/* Faint Background Monogram Watermark */}
             <div className="absolute right-8 top-[-10px] w-[180px] h-[180px] opacity-[0.065] pointer-events-none select-none">
@@ -312,39 +317,39 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             </div>
 
             {/* Key-Value Details Grid */}
-            <div className="space-y-[6px] text-[13px] relative z-10 text-left">
+            <div className="space-y-[4.5px] text-[12px] relative z-10 text-left">
               <div className="flex items-center">
-                <span className="w-[230px] font-bold text-slate-800">Appointment Reference No.</span>
+                <span className="w-[220px] font-bold text-slate-800">Appointment Reference No.</span>
                 <span className="w-[18px] font-bold text-slate-700">:</span>
                 <span className="font-extrabold text-[#002D62] tracking-wide">{appRefNo}</span>
               </div>
 
               <div className="flex items-center">
-                <span className="w-[230px] font-bold text-slate-800">Employee ID</span>
+                <span className="w-[220px] font-bold text-slate-800">Employee ID</span>
                 <span className="w-[18px] font-bold text-slate-700">:</span>
                 <span className="font-extrabold text-[#002D62] tracking-wide">{employeeId}</span>
               </div>
 
               <div className="flex items-center">
-                <span className="w-[230px] font-bold text-slate-800">Employee Name</span>
+                <span className="w-[220px] font-bold text-slate-800">Employee Name</span>
                 <span className="w-[18px] font-bold text-slate-700">:</span>
                 <span className="font-extrabold text-[#002D62] uppercase tracking-wide">{employeeName}</span>
               </div>
 
               <div className="flex items-center">
-                <span className="w-[230px] font-bold text-slate-800">Position/Designation</span>
+                <span className="w-[220px] font-bold text-slate-800">Position/Designation</span>
                 <span className="w-[18px] font-bold text-slate-700">:</span>
                 <span className="font-extrabold text-[#002D62]">{position}</span>
               </div>
 
               <div className="flex items-center">
-                <span className="w-[230px] font-bold text-slate-800">Department</span>
+                <span className="w-[220px] font-bold text-slate-800">Department</span>
                 <span className="w-[18px] font-bold text-slate-700">:</span>
                 <span className="font-extrabold text-[#002D62] uppercase">{department}</span>
               </div>
 
               <div className="flex items-center">
-                <span className="w-[230px] font-bold text-slate-800">Date of Initial Appointment</span>
+                <span className="w-[220px] font-bold text-slate-800">Date of Initial Appointment</span>
                 <span className="w-[18px] font-bold text-slate-700">:</span>
                 <span className="font-extrabold text-[#002D62]">{dateOfAppointment}</span>
               </div>
@@ -353,7 +358,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             {/* ========================================================= */}
             {/* 5. MAIN CERTIFICATION PARAGRAPH                           */}
             {/* ========================================================= */}
-            <div className="mt-5 text-left text-[12.5px] leading-[1.65] text-slate-800 font-normal">
+            <div className="mt-3.5 text-left text-[11.8px] leading-[1.6] text-slate-800 font-normal">
               This is to formally certify that{' '}
               <strong className="font-extrabold text-[#002D62] uppercase">{employeeName}</strong>{' '}
               is employed with{' '}
@@ -368,9 +373,9 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
           {/* ========================================================= */}
           {/* 6. EMPLOYMENT TERMS & CONDITIONS SECTION                  */}
           {/* ========================================================= */}
-          <div className="mt-4">
+          <div className="mt-3">
             {/* Section Chamfered Mini-Banner */}
-            <div className="relative inline-flex items-center h-[34px] mb-3">
+            <div className="relative inline-flex items-center h-[32px] mb-2.5">
               <div
                 className="h-full px-5 flex items-center justify-center relative shadow-sm"
                 style={{
@@ -380,14 +385,14 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                   borderBottom: '1.5px solid #D4AF37',
                 }}
               >
-                <span className="text-white text-[11.5px] font-extrabold uppercase tracking-[0.12em]">
+                <span className="text-white text-[11px] font-extrabold uppercase tracking-[0.12em]">
                   EMPLOYMENT TERMS &amp; CONDITIONS
                 </span>
               </div>
 
               {/* Right Mini Chevron Tip */}
               <div
-                className="w-[16px] h-full"
+                className="w-[15px] h-full"
                 style={{
                   clipPath: 'polygon(100% 50%, 0% 0%, 0% 100%)',
                   background: 'linear-gradient(135deg, #F59E0B, #D97706)',
@@ -397,11 +402,11 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             </div>
 
             {/* Terms List with Orange Number Badges */}
-            <div className="space-y-2.5 text-left text-[11px] leading-[1.48] text-slate-700 font-medium pl-1">
+            <div className="space-y-2 text-left text-[10.5px] leading-[1.45] text-slate-700 font-medium pl-1">
               
               {/* Term 1 */}
               <div className="flex items-start gap-2.5">
-                <div className="w-[18px] h-[18px] rounded-full bg-[#E8590C] text-white shrink-0 flex items-center justify-center font-black text-[10px] mt-[1px] shadow-sm">
+                <div className="w-[17px] h-[17px] rounded-full bg-[#E8590C] text-white shrink-0 flex items-center justify-center font-black text-[9.5px] mt-[1px] shadow-sm">
                   1
                 </div>
                 <p>
@@ -411,7 +416,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
 
               {/* Term 2 */}
               <div className="flex items-start gap-2.5">
-                <div className="w-[18px] h-[18px] rounded-full bg-[#E8590C] text-white shrink-0 flex items-center justify-center font-black text-[10px] mt-[1px] shadow-sm">
+                <div className="w-[17px] h-[17px] rounded-full bg-[#E8590C] text-white shrink-0 flex items-center justify-center font-black text-[9.5px] mt-[1px] shadow-sm">
                   2
                 </div>
                 <p>
@@ -421,7 +426,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
 
               {/* Term 3 */}
               <div className="flex items-start gap-2.5">
-                <div className="w-[18px] h-[18px] rounded-full bg-[#E8590C] text-white shrink-0 flex items-center justify-center font-black text-[10px] mt-[1px] shadow-sm">
+                <div className="w-[17px] h-[17px] rounded-full bg-[#E8590C] text-white shrink-0 flex items-center justify-center font-black text-[9.5px] mt-[1px] shadow-sm">
                   3
                 </div>
                 <p>
@@ -432,7 +437,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             </div>
 
             {/* Issuance Date Line */}
-            <div className="mt-4 text-left text-[12px] font-bold text-slate-800">
+            <div className="mt-2.5 text-left text-[11.5px] font-bold text-slate-800">
               Issued this <span className="font-extrabold text-[#002D62]">{issueDate}</span>
             </div>
 
@@ -443,10 +448,10 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
         {/* ========================================================= */}
         {/* 7. OFFICIAL AUTHORIZATION SECTION (3 COLUMNS)             */}
         {/* ========================================================= */}
-        <div className="mb-3">
+        <div className="mb-2">
           
           <h3
-            className="text-left font-black text-[12.5px] uppercase tracking-[0.1em] text-[#002D62] mb-2"
+            className="text-left font-black text-[12px] uppercase tracking-[0.1em] text-[#002D62] mb-1.5"
             style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
           >
             OFFICIAL AUTHORIZATION
@@ -456,35 +461,58 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             
             {/* Left Column: Official Executive Signature & Title */}
             <div className="col-span-5 text-left">
-              <div className="h-[46px] flex items-end mb-1">
-                {/* Director's Executive Blue Ink Signature */}
-                <svg width="150" height="42" viewBox="0 0 150 42" fill="none">
-                  <path
-                    d="M 10 32 C 18 10, 24 6, 32 30 C 38 38, 48 8, 56 18 C 64 28, 70 20, 78 30 C 85 36, 92 14, 102 24 C 112 32, 122 28, 138 34"
-                    stroke="#002D62"
-                    strokeWidth="2.4"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+              <div
+                className={`h-[48px] flex items-end mb-1 ${interactive || onSignClick ? 'cursor-pointer group relative' : ''}`}
+                onClick={onSignClick}
+                title={interactive || onSignClick ? 'Click to open CEO Signature Suite' : undefined}
+              >
+                {certificate.signatureDataUrl ? (
+                  <img
+                    src={certificate.signatureDataUrl}
+                    alt="CEO Executive Signature"
+                    className="max-h-[46px] max-w-[170px] object-contain object-bottom drop-shadow-xs"
                   />
-                  <path
-                    d="M 28 35 C 50 37, 85 36, 142 34"
-                    stroke="#002D62"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d="M 40 18 Q 45 4, 52 14"
-                    stroke="#002D62"
-                    strokeWidth="1.8"
-                    strokeLinecap="round"
-                  />
-                </svg>
+                ) : (
+                  /* Director's Executive Blue Ink Signature */
+                  <svg width="150" height="42" viewBox="0 0 150 42" fill="none">
+                    <path
+                      d="M 10 32 C 18 10, 24 6, 32 30 C 38 38, 48 8, 56 18 C 64 28, 70 20, 78 30 C 85 36, 92 14, 102 24 C 112 32, 122 28, 138 34"
+                      stroke="#002D62"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M 28 35 C 50 37, 85 36, 142 34"
+                      stroke="#002D62"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M 40 18 Q 45 4, 52 14"
+                      stroke="#002D62"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                )}
+
+                {(interactive || onSignClick) && (
+                  <span className="absolute -top-3 left-0 opacity-0 group-hover:opacity-100 transition-opacity bg-[#000E32] text-white text-[8px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider pointer-events-none shadow-sm z-30">
+                    ✍️ CEO Signature Studio
+                  </span>
+                )}
               </div>
 
               <div className="text-[10px] leading-tight text-slate-700">
                 <p className="font-extrabold text-[#002D62] text-[11px]">
-                  Company Director/CEO
+                  {certificate.authorizedOfficerPosition || 'Company Director/CEO'}
                 </p>
+                {(certificate.ceoSignatoryName || certificate.authorizedOfficerName) && (
+                  <p className="font-bold text-[#002D62] text-[9.5px]">
+                    {certificate.ceoSignatoryName || certificate.authorizedOfficerName}
+                  </p>
+                )}
                 <p className="font-semibold text-slate-700 mt-0.5">
                   DS Tech and Digital Marketing Agency Limited
                 </p>

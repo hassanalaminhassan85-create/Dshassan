@@ -4,10 +4,12 @@ import {
   Award, FileText, Download, Printer, Share2, CheckCircle2,
   AlertCircle, Search, Filter, RefreshCw, Eye, Plus, ShieldCheck,
   Building, User, Calendar, QrCode, ArrowRight, ArrowLeft,
-  XCircle, Copy, ExternalLink, Check, RotateCcw, AlertTriangle, Users
+  XCircle, Copy, ExternalLink, Check, RotateCcw, AlertTriangle, Users,
+  Maximize2, Minimize2, PenTool, Feather, CheckSquare, Sparkles, Layout
 } from 'lucide-react';
 import { EmploymentCertificate, CertificateStatus } from '../../types';
 import { CertificateOfEmploymentDocument } from './CertificateOfEmploymentDocument';
+import { CeoSignatureStudio, CeoSignatureResult, OFFICIAL_CEO_PRESET_SVG } from './CeoSignatureStudio';
 import {
   apiSubscribeToCertificates,
   apiSaveCertificate,
@@ -82,14 +84,74 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
-  // Live Preview scaling (A4 container width = 794px)
-  const [previewScale, setPreviewScale] = useState<number>(0.85);
+  // CEO Official Signature & Executive Authorization State
+  const [signatureDataUrl, setSignatureDataUrl] = useState<string>('');
+  const [signatureType, setSignatureType] = useState<'draw' | 'type' | 'upload' | 'preset'>('preset');
+  const [ceoSignatoryName, setCeoSignatoryName] = useState<string>('Dr. Donald S.');
+  const [ceoSignatureDate, setCeoSignatureDate] = useState<string>(() => {
+    return new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+  });
+  const [ceoSignatureHash, setCeoSignatureHash] = useState<string>('DST-EXEC-AUTH-2026');
+  const [showSignatureModal, setShowSignatureModal] = useState<boolean>(false);
+
+  // Responsive Live Preview Auto-Fit & Layout Modes
+  const [previewScale, setPreviewScale] = useState<number>(0.68);
+  const [zoomMode, setZoomMode] = useState<'auto' | 'custom'>('auto');
+  const [previewLayout, setPreviewLayout] = useState<'split' | 'preview-focus'>('split');
+  const [showFullscreenPreview, setShowFullscreenPreview] = useState<boolean>(false);
+  const previewWrapperRef = useRef<HTMLDivElement>(null);
   const certContainerRef = useRef<HTMLDivElement>(null);
   const modalCertContainerRef = useRef<HTMLDivElement>(null);
 
   // History Filters
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  // Handle CEO Signature Apply from Studio
+  const handleCeoSignatureApply = (result: CeoSignatureResult) => {
+    setSignatureDataUrl(result.signatureDataUrl);
+    setSignatureType(result.signatureType);
+    setCeoSignatoryName(result.signatoryName);
+    setAuthorizedOfficerName(result.signatoryName);
+    setAuthorizedOfficerPosition(result.signatoryPosition);
+    setCeoSignatureDate(result.signedAt);
+    setCeoSignatureHash(result.signatureHash);
+    setShowSignatureModal(false);
+    showToast('success', 'CEO Signature successfully applied to Certificate!');
+  };
+
+  const handleClearSignature = () => {
+    setSignatureDataUrl('');
+    setSignatureType('preset');
+    showToast('info', 'Signature reset to DS Tech official preset vector seal.');
+  };
+
+  // Responsive Auto-Fit calculation: adapts preview perfectly to any container width
+  useEffect(() => {
+    const handleResize = () => {
+      if (previewWrapperRef.current && zoomMode === 'auto') {
+        const containerWidth = previewWrapperRef.current.clientWidth;
+        // Available width accounting for container padding
+        const available = Math.max(260, containerWidth - 36);
+        const computed = Math.min(1.0, Math.max(0.35, available / 794));
+        setPreviewScale(Number(computed.toFixed(2)));
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    let observer: ResizeObserver | null = null;
+    if (previewWrapperRef.current && typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(handleResize);
+      observer.observe(previewWrapperRef.current);
+    }
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (observer) observer.disconnect();
+    };
+  }, [zoomMode, previewLayout]);
 
   // Initialize new Certificate Identifiers
   const resetFormToNew = () => {
@@ -111,6 +173,8 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
     setEmploymentStatus('Confirmed');
     setEmploymentType('Full-Time Permanent');
     setIssueDate(new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }));
+    setSignatureDataUrl('');
+    setSignatureType('preset');
   };
 
   // Real-time Database Subscriptions
@@ -208,10 +272,16 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
     employmentStatus,
     employmentType,
     issueDate,
-    authorizedOfficerName,
+    authorizedOfficerName: ceoSignatoryName || authorizedOfficerName,
     authorizedOfficerPosition,
     verificationCode,
     qrVerificationUrl: getVerificationUrl(verificationCode),
+    signatureDataUrl,
+    signatureType,
+    ceoSignatoryName,
+    ceoSignatureDate,
+    ceoSignatureTitle: authorizedOfficerPosition,
+    ceoSignatureHash,
     status: 'Issued',
   };
 
@@ -237,10 +307,16 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
         employmentStatus,
         employmentType,
         issueDate: issueDate.trim(),
-        authorizedOfficerName,
-        authorizedOfficerPosition,
+        authorizedOfficerName: ceoSignatoryName.trim() || authorizedOfficerName,
+        authorizedOfficerPosition: authorizedOfficerPosition.trim() || 'Company Director/CEO',
         verificationCode: verificationCode.trim(),
         qrVerificationUrl: getVerificationUrl(verificationCode.trim()),
+        signatureDataUrl,
+        signatureType,
+        ceoSignatoryName: ceoSignatoryName.trim() || 'Dr. Donald S.',
+        ceoSignatureDate,
+        ceoSignatureTitle: authorizedOfficerPosition.trim() || 'Company Director/CEO',
+        ceoSignatureHash,
         status: statusToSet,
         issuedBy: 'Super Admin',
         createdAt: new Date().toISOString(),
@@ -747,6 +823,26 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
               </div>
             </div>
 
+            {/* Form Section 3: CEO Official Signature & Authorization Tools */}
+            <div className="space-y-2">
+              <div className="border-b border-slate-100 dark:border-slate-800 pb-2 flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase text-[#000E32] dark:text-white tracking-wider flex items-center gap-1.5">
+                  <Feather size={14} className="text-orange-500" />
+                  Official Authorization Step
+                </span>
+                <span className="text-[9px] font-mono text-slate-400 uppercase">Step 3 of 3</span>
+              </div>
+
+              <CeoSignatureStudio
+                currentSignatureUrl={signatureDataUrl}
+                currentSignatureType={signatureType}
+                initialSignatoryName={ceoSignatoryName}
+                initialSignatoryPosition={authorizedOfficerPosition}
+                onSignatureApply={handleCeoSignatureApply}
+                onClearSignature={handleClearSignature}
+              />
+            </div>
+
             {/* Action Buttons: Save, Generate PDF, Print, Share */}
             <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-2 font-mono">
@@ -811,7 +907,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
           </div>
 
-          {/* RIGHT: Live A4 Portrait Preview (7 cols) */}
+          {/* RIGHT: Live A4 Portrait Preview (7 cols or full) */}
           <div className="xl:col-span-7 space-y-4">
             
             {/* Live Preview Controls Header */}
@@ -822,39 +918,88 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                   Live Preview (A4 Portrait 1:1)
                 </h3>
                 <p className="text-[10px] text-slate-500 mt-0.5">
-                  The preview below uses the exact same single-page rendering layout as the final PDF.
+                  Responsive single-page rendering. Click on signature to sign or use tools.
                 </p>
               </div>
 
-              {/* Scaling Buttons */}
-              <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-[10px] font-mono">
-                <span className="text-slate-400 px-1 font-bold">Zoom:</span>
-                {[0.55, 0.7, 0.85, 1.0].map((s) => (
+              {/* Scaling & Signature Action Controls */}
+              <div className="flex flex-wrap items-center gap-2">
+                
+                {/* Auto-Fit / Zoom Buttons */}
+                <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-[10px] font-mono">
                   <button
-                    key={s}
                     type="button"
-                    onClick={() => setPreviewScale(s)}
+                    onClick={() => {
+                      setZoomMode('auto');
+                      if (previewWrapperRef.current) {
+                        const width = previewWrapperRef.current.clientWidth;
+                        const available = Math.max(260, width - 36);
+                        const computed = Math.min(1.0, Math.max(0.35, available / 794));
+                        setPreviewScale(Number(computed.toFixed(2)));
+                      }
+                    }}
                     className={`px-2 py-0.5 rounded-lg font-bold transition-all cursor-pointer ${
-                      previewScale === s
-                        ? 'bg-[#000E32] text-white'
+                      zoomMode === 'auto'
+                        ? 'bg-[#000E32] text-white shadow-xs'
                         : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700'
                     }`}
+                    title="Automatically fit certificate to container width without horizontal overflow"
                   >
-                    {Math.round(s * 100)}%
+                    Auto-Fit ({Math.round(previewScale * 100)}%)
                   </button>
-                ))}
+
+                  {[0.5, 0.65, 0.8, 1.0].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => {
+                        setZoomMode('custom');
+                        setPreviewScale(s);
+                      }}
+                      className={`px-1.5 py-0.5 rounded-lg font-bold transition-all cursor-pointer ${
+                        zoomMode === 'custom' && previewScale === s
+                          ? 'bg-[#000E32] text-white'
+                          : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      {Math.round(s * 100)}%
+                    </button>
+                  ))}
+
+                  <button
+                    type="button"
+                    onClick={() => setShowFullscreenPreview(true)}
+                    title="Open Fullscreen HD Preview"
+                    className="p-1 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 cursor-pointer"
+                  >
+                    <Maximize2 size={13} />
+                  </button>
+                </div>
+
+                {/* Quick CEO Sign Trigger */}
+                <button
+                  type="button"
+                  onClick={() => setShowSignatureModal(true)}
+                  className="px-2.5 py-1 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 shadow-xs cursor-pointer transition-colors"
+                >
+                  <PenTool size={11} />
+                  <span>CEO Sign</span>
+                </button>
               </div>
             </div>
 
-            {/* Document Frame Container with Responsive Centering */}
-            <div className="bg-slate-200/70 dark:bg-slate-950 p-4 sm:p-8 rounded-3xl border border-slate-300/80 dark:border-slate-800 overflow-x-auto flex justify-center shadow-inner">
+            {/* Document Frame Container with Responsive Auto-Fit Centering */}
+            <div
+              ref={previewWrapperRef}
+              className="bg-slate-200/70 dark:bg-slate-950 p-3 sm:p-6 rounded-3xl border border-slate-300/80 dark:border-slate-800 flex justify-center items-start shadow-inner overflow-x-auto min-h-[500px]"
+            >
               <div
                 style={{
                   width: `${794 * previewScale}px`,
                   height: `${1123 * previewScale}px`,
-                  transition: 'all 0.2s ease-out',
+                  transition: 'width 0.15s ease-out, height 0.15s ease-out',
                 }}
-                className="relative shrink-0 shadow-2xl rounded-sm overflow-hidden"
+                className="relative shrink-0 shadow-2xl rounded-sm overflow-hidden bg-white"
               >
                 <div
                   style={{
@@ -868,6 +1013,8 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                     id="ds-certificate-of-employment-document"
                     certificate={currentCertificateData}
                     qrCodeDataUrl={qrCodeDataUrl}
+                    onSignClick={() => setShowSignatureModal(true)}
+                    interactive={true}
                   />
                 </div>
               </div>
@@ -1454,6 +1601,116 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                 </button>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ========================================================= */}
+      {/* MODAL: CEO SIGNATURE & AUTHORIZATION STUDIO               */}
+      {/* ========================================================= */}
+      <AnimatePresence>
+        {showSignatureModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 15 }}
+              className="w-full max-w-2xl my-auto"
+            >
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowSignatureModal(false)}
+                  className="absolute -top-3 -right-3 z-20 w-8 h-8 rounded-full bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-lg flex items-center justify-center hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer border border-slate-200 dark:border-slate-700"
+                >
+                  <XCircle size={20} />
+                </button>
+
+                <CeoSignatureStudio
+                  currentSignatureUrl={signatureDataUrl}
+                  currentSignatureType={signatureType}
+                  initialSignatoryName={ceoSignatoryName}
+                  initialSignatoryPosition={authorizedOfficerPosition}
+                  onSignatureApply={handleCeoSignatureApply}
+                  onClearSignature={handleClearSignature}
+                />
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ========================================================= */}
+      {/* MODAL: FULLSCREEN HD CERTIFICATE PREVIEW                  */}
+      {/* ========================================================= */}
+      <AnimatePresence>
+        {showFullscreenPreview && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex flex-col p-4 overflow-hidden"
+          >
+            {/* Modal Top Bar */}
+            <div className="flex items-center justify-between pb-3 px-2 border-b border-slate-800 text-white shrink-0">
+              <div className="flex items-center gap-2">
+                <Award className="text-orange-500" size={20} />
+                <div>
+                  <h3 className="text-sm font-black uppercase tracking-wider">
+                    Fullscreen Certificate Inspection
+                  </h3>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    Ref: {appointmentRefNo || certificateNumber}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSignatureModal(true)}
+                  className="px-3 py-1.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  <PenTool size={13} />
+                  <span>CEO Sign</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleDownloadPDF()}
+                  className="px-3 py-1.5 rounded-xl bg-[#000E32] border border-blue-900 hover:bg-blue-900 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  <Download size={13} />
+                  <span>Download PDF</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowFullscreenPreview(false)}
+                  className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white cursor-pointer transition-colors"
+                >
+                  <XCircle size={18} />
+                </button>
+              </div>
+            </div>
+
+            {/* Scrollable Document Center */}
+            <div className="flex-1 overflow-auto flex justify-center items-start p-4 sm:p-8">
+              <div className="relative shadow-2xl rounded-sm overflow-hidden bg-white shrink-0 my-auto">
+                <CertificateOfEmploymentDocument
+                  id="ds-modal-fullscreen-certificate-doc"
+                  certificate={currentCertificateData}
+                  qrCodeDataUrl={qrCodeDataUrl}
+                  onSignClick={() => setShowSignatureModal(true)}
+                  interactive={true}
+                />
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -172,6 +172,12 @@ export interface EmploymentCertificate {
   authorizedOfficerPosition: string;
   verificationCode: string;
   qrVerificationUrl?: string;
+  signatureDataUrl?: string;
+  signatureType?: 'draw' | 'type' | 'upload' | 'preset';
+  ceoSignatoryName?: string;
+  ceoSignatureDate?: string;
+  ceoSignatureTitle?: string;
+  ceoSignatureHash?: string;
   status: CertificateStatus;
   issuedBy?: string;
   revocationReason?: string;
