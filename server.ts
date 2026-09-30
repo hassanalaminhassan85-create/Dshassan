@@ -475,6 +475,144 @@ ${liveContext ? liveContext : ''}`;
     return res.json({ success: true, count: list.length, records: list });
   });
 
+  // ==========================================
+  // Certificate of Employment Endpoints
+  // ==========================================
+  const certificatesStore = new Map<string, any>();
+
+  // 1. Create or save certificate
+  app.post('/api/certificates', (req, res) => {
+    try {
+      const body = req.body;
+      if (!body || !body.employeeName || !body.employeeId || !body.position || !body.department) {
+        return res.status(400).json({ success: false, error: 'Missing required employee certificate fields.' });
+      }
+
+      const id = body.id || `cert_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      const now = new Date().toISOString();
+      const currentYear = new Date().getFullYear();
+
+      const existingCerts = Array.from(certificatesStore.values());
+      const nextCount = existingCerts.length + 1;
+      const certificateNumber = body.certificateNumber || `DST/COE/${currentYear}/${String(nextCount).padStart(4, '0')}`;
+      const appointmentRefNo = body.appointmentRefNo || `DST/COE/${currentYear}/${String(nextCount).padStart(4, '0')}`;
+      const verificationCode = body.verificationCode || `DST-VRF-${Math.floor(100000 + Math.random() * 900000)}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
+
+      const record = {
+        ...body,
+        id,
+        certificateNumber,
+        appointmentRefNo,
+        verificationCode,
+        status: body.status || 'Issued',
+        createdAt: body.createdAt || now,
+        updatedAt: now,
+      };
+
+      certificatesStore.set(id, record);
+      return res.json({ success: true, certificate: record });
+    } catch (err: any) {
+      console.error('Error saving certificate in server:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Internal server error' });
+    }
+  });
+
+  // 2. List all certificates
+  app.get('/api/certificates', (req, res) => {
+    try {
+      const list = Array.from(certificatesStore.values())
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      return res.json({ success: true, count: list.length, certificates: list });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message || 'Failed to retrieve certificates' });
+    }
+  });
+
+  // 3. Get certificate by ID
+  app.get('/api/certificates/:id', (req, res) => {
+    const cert = certificatesStore.get(req.params.id);
+    if (!cert) {
+      return res.status(404).json({ success: false, error: 'Certificate not found' });
+    }
+    return res.json({ success: true, certificate: cert });
+  });
+
+  // 4. Public verification endpoint by verificationCode or certificateNumber
+  app.get('/api/certificates/verify/:code', (req, res) => {
+    try {
+      const searchCode = decodeURIComponent(req.params.code).trim().toLowerCase();
+      const all = Array.from(certificatesStore.values());
+      const match = all.find(c => 
+        (c.verificationCode && c.verificationCode.toLowerCase() === searchCode) ||
+        (c.certificateNumber && c.certificateNumber.toLowerCase() === searchCode) ||
+        (c.id && c.id.toLowerCase() === searchCode)
+      );
+
+      if (!match) {
+        return res.status(404).json({ 
+          success: false, 
+          verified: false, 
+          error: 'Certificate not found. The provided verification code is invalid or does not match any official DS Tech record.' 
+        });
+      }
+
+      // Return public verification fields only (protect sensitive personal details if any)
+      const publicCert = {
+        certificateNumber: match.certificateNumber,
+        appointmentRefNo: match.appointmentRefNo,
+        employeeName: match.employeeName,
+        employeeId: match.employeeId,
+        position: match.position,
+        department: match.department,
+        dateOfAppointment: match.dateOfAppointment,
+        employmentStatus: match.employmentStatus,
+        employmentType: match.employmentType,
+        issueDate: match.issueDate,
+        authorizedOfficerName: match.authorizedOfficerName,
+        authorizedOfficerPosition: match.authorizedOfficerPosition,
+        status: match.status,
+        verificationCode: match.verificationCode,
+        createdAt: match.createdAt,
+        verifiedAt: new Date().toISOString()
+      };
+
+      return res.json({ success: true, verified: true, certificate: publicCert });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message || 'Verification service error' });
+    }
+  });
+
+  // 5. Update certificate status (Revoke, Reissue, etc.)
+  app.patch('/api/certificates/:id/status', (req, res) => {
+    try {
+      const cert = certificatesStore.get(req.params.id);
+      if (!cert) {
+        return res.status(404).json({ success: false, error: 'Certificate not found' });
+      }
+
+      const { status, revocationReason, reissueNote, previousCertificateId, updatedBy } = req.body;
+      if (!status) {
+        return res.status(400).json({ success: false, error: 'Status is required' });
+      }
+
+      const now = new Date().toISOString();
+      const updated = {
+        ...cert,
+        status,
+        revocationReason: revocationReason !== undefined ? revocationReason : cert.revocationReason,
+        reissueNote: reissueNote !== undefined ? reissueNote : cert.reissueNote,
+        previousCertificateId: previousCertificateId || cert.previousCertificateId,
+        updatedBy: updatedBy || cert.updatedBy,
+        updatedAt: now
+      };
+
+      certificatesStore.set(req.params.id, updated);
+      return res.json({ success: true, certificate: updated });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message || 'Update status error' });
+    }
+  });
+
   // Always use Vite middleware to support both React client and serverless /api routes in the local server
   const vite = await createViteServer({
     server: { middlewareMode: true },

@@ -62,6 +62,7 @@ import { PortfolioCMS } from './PortfolioCMS';
 import { BlogCMS } from './BlogCMS';
 import { TrainingCMS } from './TrainingCMS';
 import { RecruitmentCMS } from './RecruitmentCMS';
+import { AdminCertificateOfEmploymentManager } from './CertificateOfEmployment/AdminCertificateOfEmploymentManager';
 
 import { 
   SERVICES, 
@@ -321,7 +322,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   
 
   // Super Admin Control Center State
-  const [adminModule, setAdminModule] = useState<'dashboard' | 'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'client-projects' | 'about' | 'diagnostics' | 'sync-logs' | 'ai-knowledge'>('dashboard');
+  const [adminModule, setAdminModule] = useState<'dashboard' | 'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'staff-certificates' | 'client-projects' | 'about' | 'diagnostics' | 'sync-logs' | 'ai-knowledge'>('dashboard');
   
   // Custom navigation header states
   const [isThreeDotsOpen, setIsThreeDotsOpen] = useState<boolean>(false);
@@ -1542,8 +1543,14 @@ export default {
       setTimeout(() => setShowAdminNotification(null), 4000);
     });
 
+    const handleOpenCertModule = () => {
+      setAdminModule('staff-certificates');
+    };
+    window.addEventListener('dstech_open_certificate_module', handleOpenCertModule);
+
     return () => {
       unsubscribe();
+      window.removeEventListener('dstech_open_certificate_module', handleOpenCertModule);
       setRealtimeConnected(false);
     };
   }, []);
@@ -2157,6 +2164,7 @@ export default {
         { id: 'about', label: 'About Company CMS', icon: Info, count: 0 },
         { id: 'recruitment', label: 'Recruitment', icon: Briefcase, count: applications.length },
         { id: 'staff', label: 'Staff & Org HR', icon: Users },
+        { id: 'staff-certificates', label: 'Staff Certificates', icon: Award },
       ]
     },
     {
@@ -3612,6 +3620,14 @@ export default {
 
       {adminModule === 'staff' && (
         <AdminStaffManagement />
+      )}
+
+      {adminModule === 'staff-certificates' && (
+        <AdminCertificateOfEmploymentManager
+          onNavigateToVerification={(code) => {
+            window.open(`/verify-certificate/${code}`, '_blank');
+          }}
+        />
       )}
 
       {adminModule === 'client-projects' && (

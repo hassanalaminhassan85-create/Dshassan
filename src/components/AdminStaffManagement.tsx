@@ -513,6 +513,17 @@ export const AdminStaffManagement: React.FC = () => {
                         {member.status}
                       </span>
                       <button 
+                        type="button"
+                        onClick={() => {
+                          const event = new CustomEvent('dstech_open_certificate_module', { detail: member });
+                          window.dispatchEvent(event);
+                        }}
+                        className="p-1.5 rounded-lg bg-orange-100 dark:bg-orange-500/10 hover:bg-orange-200 dark:hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 transition-colors cursor-pointer"
+                        title="Issue Certificate of Employment"
+                      >
+                        <Award size={14} />
+                      </button>
+                      <button 
                         onClick={() => openEditModal(member)}
                         className="p-1.5 rounded-lg bg-slate-200 dark:bg-gray-800 hover:bg-slate-300 dark:hover:bg-gray-700 text-slate-700 dark:text-gray-300 transition-colors"
                         title="Edit Properties"

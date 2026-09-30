@@ -153,3 +153,30 @@ export interface StaffActivityLog {
   details: string;
   created_at: string;
 }
+
+export type CertificateStatus = 'Draft' | 'Issued' | 'Revoked' | 'Reissued';
+
+export interface EmploymentCertificate {
+  id: string;
+  certificateNumber: string;
+  appointmentRefNo: string;
+  employeeName: string;
+  employeeId: string;
+  position: string;
+  department: string;
+  dateOfAppointment: string;
+  employmentStatus: string;
+  employmentType: string;
+  issueDate: string;
+  authorizedOfficerName: string;
+  authorizedOfficerPosition: string;
+  verificationCode: string;
+  qrVerificationUrl?: string;
+  status: CertificateStatus;
+  issuedBy?: string;
+  revocationReason?: string;
+  reissueNote?: string;
+  previousCertificateId?: string;
+  createdAt: string;
+  updatedAt: string;
+}

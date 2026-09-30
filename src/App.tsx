@@ -28,6 +28,7 @@ import { ScholarshipApplicationForm } from './components/ScholarshipApplication/
 import { InternshipApplicationForm } from './components/InternshipApplication/InternshipApplicationForm';
 import { CorporateTrainingForm } from './components/CorporateTraining/CorporateTrainingForm';
 import { MentorshipApplicationForm } from './components/MentorshipApplication/MentorshipApplicationForm';
+import { PublicCertificateVerification } from './components/CertificateOfEmployment/PublicCertificateVerification';
 import { StudentDashboard } from './components/StudentDashboard';
 import { TutorDashboard } from './components/TutorDashboard';
 import { PaystackPayButton, PaystackPaymentConfig } from './components/PaystackMotionCheckout';
@@ -240,7 +241,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
   ]
 };
 
-export type ActivePageType = 'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard';
+export type ActivePageType = 'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard' | 'verify-certificate';
 
 export function resolvePathToState(rawPath: string): {
   path: string;
@@ -248,6 +249,15 @@ export function resolvePathToState(rawPath: string): {
   isAdminView: boolean;
   appId: string | null;
 } {
+  // Check URL query parameters for direct verification links (e.g. ?verify=DST-VRF-... or ?code=...)
+  if (typeof window !== 'undefined' && window.location?.search) {
+    const searchParams = new URLSearchParams(window.location.search);
+    const vCode = searchParams.get('verify') || searchParams.get('code') || searchParams.get('certificate') || searchParams.get('verificationCode');
+    if (vCode) {
+      return { path: '/verify-certificate/' + encodeURIComponent(vCode), activePage: 'verify-certificate', isAdminView: false, appId: vCode };
+    }
+  }
+
   let path = '/';
   try {
     path = decodeURIComponent(rawPath || '').trim();
@@ -267,6 +277,12 @@ export function resolvePathToState(rawPath: string): {
   }
 
   const lowerPath = path.toLowerCase();
+
+  // Certificate Verification route (e.g. /verify-certificate/DST-VRF-12345 or /verify/DST-VRF-12345 or /verify-certificate)
+  const certVerifyMatch = path.match(/^\/verify-certificate(?:\/([\w\-\/]+))?/i) || path.match(/^\/verify(?:\/([\w\-\/]+))?/i);
+  if (certVerifyMatch) {
+    return { path, activePage: 'verify-certificate', isAdminView: false, appId: certVerifyMatch[1] || null };
+  }
 
   // Admin route
   if (lowerPath === '/admin') {
@@ -1511,6 +1527,23 @@ export default function App() {
                     setActivePage('home');
                     window.scrollTo(0, 0);
                   }} />
+              </motion.div>
+              ) : activePage === 'verify-certificate' ? (
+              <motion.div
+                key="verify-certificate-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full"
+              >
+                <PublicCertificateVerification
+                  initialCode={currentAppId || undefined}
+                  onBackToHome={() => {
+                    setActivePage('home');
+                    setCurrentAppId(null);
+                    safeNavigate('/');
+                  }}
+                />
               </motion.div>
              ) : activePage === 'recognition' ? (
               <motion.div

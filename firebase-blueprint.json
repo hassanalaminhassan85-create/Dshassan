@@ -258,9 +258,53 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["registrationId", "fullName", "emailAddress", "whatsappNumber", "programmeTypes", "teachingLanguages"]
+    },
+    "EmploymentCertificate": {
+      "title": "Employment Certificate",
+      "description": "Official Certificate of Employment issued to staff members.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "certificateNumber": { "type": "string" },
+        "appointmentRefNo": { "type": "string" },
+        "employeeName": { "type": "string" },
+        "employeeId": { "type": "string" },
+        "position": { "type": "string" },
+        "department": { "type": "string" },
+        "dateOfAppointment": { "type": "string" },
+        "employmentStatus": { "type": "string" },
+        "employmentType": { "type": "string" },
+        "issueDate": { "type": "string" },
+        "authorizedOfficerName": { "type": "string" },
+        "authorizedOfficerPosition": { "type": "string" },
+        "verificationCode": { "type": "string" },
+        "qrVerificationUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["Draft", "Issued", "Revoked", "Reissued"] },
+        "issuedBy": { "type": "string" },
+        "revocationReason": { "type": "string" },
+        "reissueNote": { "type": "string" },
+        "previousCertificateId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "certificateNumber",
+        "employeeName",
+        "employeeId",
+        "position",
+        "department",
+        "dateOfAppointment",
+        "issueDate",
+        "verificationCode",
+        "status"
+      ]
     }
   },
   "firestore": {
+    "/employment_certificates/{certificateId}": {
+      "schema": "EmploymentCertificate",
+      "description": "Official Certificates of Employment registry."
+    },
     "/course_registrations/{registrationId}": {
       "schema": "CourseRegistration",
       "description": "Official course registration dockets collection."
