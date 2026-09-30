@@ -165,6 +165,7 @@ export interface EmploymentCertificate {
   position: string;
   department: string;
   dateOfAppointment: string;
+  dateOfConfirmation?: string;
   employmentStatus: string;
   employmentType: string;
   issueDate: string;

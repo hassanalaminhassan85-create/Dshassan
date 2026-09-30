@@ -22,25 +22,33 @@ export function formatCertificateFileName(certificate: Partial<EmploymentCertifi
 export async function generateCertificatePDFBlob(
   element: HTMLElement
 ): Promise<Blob> {
-  // Wait for web fonts if any
-  if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
-    await document.fonts.ready;
+  // 1. Wait for web fonts with safe timeout to avoid hanging on slow mobile connections
+  try {
+    if (typeof document !== 'undefined' && document.fonts && document.fonts.ready) {
+      await Promise.race([
+        document.fonts.ready,
+        new Promise((resolve) => setTimeout(resolve, 1200))
+      ]);
+    }
+  } catch (fontErr) {
+    console.warn('[Certificate PDF] Font readiness check skipped:', fontErr);
   }
-  await new Promise(r => setTimeout(r, 120));
+  await new Promise((resolve) => setTimeout(resolve, 150));
 
-  const scale = Math.max(2, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio || 2 : 2, 3));
+  // 2. Safe scale factor: mobile browsers crash on 3x canvas due to memory caps
+  const isMobile =
+    typeof window !== 'undefined' &&
+    (/Android|iPhone|iPad|iPod|Mobile|Silk/i.test(navigator.userAgent) || window.innerWidth < 768);
+  const scale = isMobile ? 1.6 : 2;
 
+  // 3. Render pixel-perfect canvas
   const canvas = await html2canvas(element, {
     scale,
     useCORS: true,
-    allowTaint: false,
+    allowTaint: true,
     backgroundColor: '#FFFFFF',
     logging: false,
-    scrollX: 0,
-    scrollY: 0,
-    x: 0,
-    y: 0,
-    windowWidth: 850,
+    imageTimeout: 8000,
     onclone: (clonedDoc) => {
       // Ensure dark mode classes are removed
       clonedDoc.documentElement.classList.remove('dark');
@@ -50,20 +58,62 @@ export async function generateCertificatePDFBlob(
 
       const clonedTarget = clonedDoc.getElementById(element.id);
       if (clonedTarget) {
+        // Reset all parent containers in clonedDoc up to body so mobile transforms & overflow-hidden do not clip or corrupt canvas
+        let curr = clonedTarget.parentElement;
+        while (curr && curr !== clonedDoc.body) {
+          curr.style.transform = 'none';
+          curr.style.width = 'auto';
+          curr.style.maxWidth = 'none';
+          curr.style.minWidth = '0';
+          curr.style.height = 'auto';
+          curr.style.maxHeight = 'none';
+          curr.style.overflow = 'visible';
+          curr.style.margin = '0';
+          curr.style.padding = '0';
+          curr.style.position = 'static';
+          curr = curr.parentElement;
+        }
+
+        clonedDoc.body.style.width = '850px';
+        clonedDoc.body.style.minHeight = '1200px';
+        clonedDoc.body.style.overflow = 'visible';
+        clonedDoc.body.style.margin = '0';
+        clonedDoc.body.style.padding = '0';
+
         clonedTarget.style.width = '794px';
+        clonedTarget.style.minWidth = '794px';
+        clonedTarget.style.maxWidth = '794px';
         clonedTarget.style.height = '1123px';
         clonedTarget.style.minHeight = '1123px';
         clonedTarget.style.maxHeight = '1123px';
         clonedTarget.style.margin = '0';
-        clonedTarget.style.padding = '0';
         clonedTarget.style.transform = 'none';
         clonedTarget.style.backgroundColor = '#FFFFFF';
+
+        // Ensure all images in cloned element have anonymous CORS
+        const imgs = clonedTarget.querySelectorAll('img');
+        imgs.forEach((img) => {
+          img.setAttribute('crossorigin', 'anonymous');
+          img.crossOrigin = 'anonymous';
+        });
       }
     }
   });
 
-  const imgData = canvas.toDataURL('image/jpeg', 0.98);
+  // 4. Export image data with error fallback
+  let imgData: string;
+  try {
+    imgData = canvas.toDataURL('image/jpeg', 0.95);
+  } catch (exportErr) {
+    console.warn('[Certificate PDF] JPEG export failed, falling back to PNG:', exportErr);
+    imgData = canvas.toDataURL('image/png');
+  }
 
+  if (!imgData || imgData === 'data:,' || imgData.length < 100) {
+    throw new Error('Canvas rendering generated an empty document image.');
+  }
+
+  // 5. Formulate standard A4 PDF (210mm x 297mm)
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -71,24 +121,31 @@ export async function generateCertificatePDFBlob(
     compress: true,
   });
 
-  // Exactly fit A4 210mm x 297mm
   pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
 
   return pdf.output('blob');
 }
 
 /**
- * Download generated PDF with standard name
+ * Download generated PDF with standard name and mobile browser compatibility
  */
 export function downloadCertificateBlob(blob: Blob, fileName: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = fileName;
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  // Extend revoke timeout to 20 seconds so mobile browsers have ample time to complete the download stream
+  setTimeout(() => {
+    try {
+      URL.revokeObjectURL(url);
+    } catch {}
+  }, 20000);
 }
 
 /**

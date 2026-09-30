@@ -10,12 +10,14 @@ import {
 import { EmploymentCertificate, CertificateStatus } from '../../types';
 import { CertificateOfEmploymentDocument } from './CertificateOfEmploymentDocument';
 import { CeoSignatureStudio, CeoSignatureResult, OFFICIAL_CEO_PRESET_SVG } from './CeoSignatureStudio';
+import { InAppCalendarDatePicker } from './InAppCalendarDatePicker';
 import {
   apiSubscribeToCertificates,
   apiSaveCertificate,
   apiUpdateCertificateStatus,
   generateCertificateNumber,
   generateAppointmentRefNo,
+  generateSerialEmployeeId,
   generateVerificationCode,
   getVerificationUrl,
   generateCertificateQRCode,
@@ -55,6 +57,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   const [position, setPosition] = useState<string>('');
   const [department, setDepartment] = useState<string>('');
   const [dateOfAppointment, setDateOfAppointment] = useState<string>('');
+  const [dateOfConfirmation, setDateOfConfirmation] = useState<string>('');
   const [employmentStatus, setEmploymentStatus] = useState<string>('Confirmed');
   const [employmentType, setEmploymentType] = useState<string>('Full-Time Permanent');
 
@@ -85,7 +88,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
 
   // CEO Official Signature & Executive Authorization State
-  const [signatureDataUrl, setSignatureDataUrl] = useState<string>('');
+  const [signatureDataUrl, setSignatureDataUrl] = useState<string>(OFFICIAL_CEO_PRESET_SVG);
   const [signatureType, setSignatureType] = useState<'draw' | 'type' | 'upload' | 'preset'>('preset');
   const [ceoSignatoryName, setCeoSignatoryName] = useState<string>('Dr. Donald S.');
   const [ceoSignatureDate, setCeoSignatureDate] = useState<string>(() => {
@@ -107,23 +110,78 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
 
-  // Handle CEO Signature Apply from Studio
+  // Handle CEO Signature Apply from Studio (Both live sync and explicit confirm)
   const handleCeoSignatureApply = (result: CeoSignatureResult) => {
-    setSignatureDataUrl(result.signatureDataUrl);
+    setSignatureDataUrl(result.signatureDataUrl || OFFICIAL_CEO_PRESET_SVG);
     setSignatureType(result.signatureType);
-    setCeoSignatoryName(result.signatoryName);
-    setAuthorizedOfficerName(result.signatoryName);
-    setAuthorizedOfficerPosition(result.signatoryPosition);
-    setCeoSignatureDate(result.signedAt);
-    setCeoSignatureHash(result.signatureHash);
-    setShowSignatureModal(false);
-    showToast('success', 'CEO Signature successfully applied to Certificate!');
+    if (result.signatoryName) {
+      setCeoSignatoryName(result.signatoryName);
+      setAuthorizedOfficerName(result.signatoryName);
+    }
+    if (result.signatoryPosition) {
+      setAuthorizedOfficerPosition(result.signatoryPosition);
+    }
+    if (result.signedAt) {
+      setCeoSignatureDate(result.signedAt);
+    }
+    if (result.signatureHash) {
+      setCeoSignatureHash(result.signatureHash);
+    }
   };
 
   const handleClearSignature = () => {
-    setSignatureDataUrl('');
+    setSignatureDataUrl(OFFICIAL_CEO_PRESET_SVG);
     setSignatureType('preset');
     showToast('info', 'Signature reset to DS Tech official preset vector seal.');
+  };
+
+  // Automatically calculate next serial Employee ID from certificates & staff directory
+  const computeNextSerialEmployeeId = (certs: EmploymentCertificate[], staff: any[]): string => {
+    let maxSeq = 0;
+    certs.forEach((c) => {
+      if (c.employeeId) {
+        const m = c.employeeId.match(/(\d+)/);
+        if (m) {
+          const num = parseInt(m[1], 10);
+          if (!isNaN(num) && num > maxSeq && num < 100000) maxSeq = num;
+        }
+      }
+    });
+    staff.forEach((s) => {
+      const id = s.employeeId || s.employee_id || '';
+      const m = id.match(/(\d+)/);
+      if (m) {
+        const num = parseInt(m[1], 10);
+        if (!isNaN(num) && num > maxSeq && num < 100000) maxSeq = num;
+      }
+    });
+    const nextNum = Math.max(maxSeq + 1, certs.length + 1, 1);
+    return generateSerialEmployeeId(nextNum);
+  };
+
+  // Load existing certificate from registry into editor for signing / reissue
+  const handleLoadCertificateToEdit = (cert: EmploymentCertificate) => {
+    setCertificateNumber(cert.certificateNumber);
+    setAppointmentRefNo(cert.appointmentRefNo || cert.certificateNumber);
+    setEmployeeName(cert.employeeName);
+    setEmployeeId(cert.employeeId);
+    setPosition(cert.position);
+    setDepartment(cert.department);
+    setDateOfAppointment(cert.dateOfAppointment);
+    setDateOfConfirmation(cert.dateOfConfirmation || '');
+    setEmploymentStatus(cert.employmentStatus || 'Confirmed');
+    setEmploymentType(cert.employmentType || 'Full-Time Permanent');
+    setIssueDate(cert.issueDate);
+    setVerificationCode(cert.verificationCode);
+    setSignatureDataUrl(cert.signatureDataUrl || OFFICIAL_CEO_PRESET_SVG);
+    setSignatureType(cert.signatureType || 'preset');
+    setCeoSignatoryName(cert.ceoSignatoryName || cert.authorizedOfficerName || 'Dr. Donald S.');
+    setAuthorizedOfficerName(cert.ceoSignatoryName || cert.authorizedOfficerName || 'Dr. Donald S.');
+    setAuthorizedOfficerPosition(cert.ceoSignatureTitle || cert.authorizedOfficerPosition || 'Company Director/CEO');
+    if (cert.ceoSignatureDate) setCeoSignatureDate(cert.ceoSignatureDate);
+    if (cert.ceoSignatureHash) setCeoSignatureHash(cert.ceoSignatureHash);
+    setActiveTab('create');
+    showToast('info', `Loaded Certificate ${cert.certificateNumber} for ${cert.employeeName}. Ready for CEO signing.`);
   };
 
   // Responsive Auto-Fit calculation: adapts preview perfectly to any container width
@@ -153,27 +211,29 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
     };
   }, [zoomMode, previewLayout]);
 
-  // Initialize new Certificate Identifiers
+  // Initialize new Certificate Identifiers with auto serial Employee ID
   const resetFormToNew = () => {
     const currentYear = new Date().getFullYear();
     const nextSeq = certificates.length + 1;
     const certNum = generateCertificateNumber(nextSeq, currentYear);
     const refNum = generateAppointmentRefNo(nextSeq, currentYear);
     const vCode = generateVerificationCode();
+    const autoEmpId = computeNextSerialEmployeeId(certificates, staffDirectory);
 
     setCertificateNumber(certNum);
     setAppointmentRefNo(refNum);
     setVerificationCode(vCode);
+    setEmployeeId(autoEmpId);
 
     setEmployeeName('');
-    setEmployeeId('');
     setPosition('');
     setDepartment('');
     setDateOfAppointment('');
+    setDateOfConfirmation('');
     setEmploymentStatus('Confirmed');
     setEmploymentType('Full-Time Permanent');
     setIssueDate(new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }));
-    setSignatureDataUrl('');
+    setSignatureDataUrl(OFFICIAL_CEO_PRESET_SVG);
     setSignatureType('preset');
   };
 
@@ -209,16 +269,19 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
     };
   }, []);
 
-  // Update initial certificate numbers when certificates list loads if empty
+  // Update initial certificate numbers and auto serial Employee ID when certificates list loads if empty
   useEffect(() => {
+    const currentYear = new Date().getFullYear();
+    const nextSeq = certificates.length + 1;
     if (!certificateNumber) {
-      const currentYear = new Date().getFullYear();
-      const nextSeq = certificates.length + 1;
       setCertificateNumber(generateCertificateNumber(nextSeq, currentYear));
       setAppointmentRefNo(generateAppointmentRefNo(nextSeq, currentYear));
       setVerificationCode(generateVerificationCode());
     }
-  }, [certificates]);
+    if (!employeeId) {
+      setEmployeeId(computeNextSerialEmployeeId(certificates, staffDirectory));
+    }
+  }, [certificates, staffDirectory]);
 
   // Update QR Code whenever verification code changes
   useEffect(() => {
@@ -269,6 +332,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
     position,
     department,
     dateOfAppointment,
+    dateOfConfirmation: dateOfConfirmation || issueDate || dateOfAppointment,
     employmentStatus,
     employmentType,
     issueDate,
@@ -276,7 +340,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
     authorizedOfficerPosition,
     verificationCode,
     qrVerificationUrl: getVerificationUrl(verificationCode),
-    signatureDataUrl,
+    signatureDataUrl: signatureDataUrl || OFFICIAL_CEO_PRESET_SVG,
     signatureType,
     ceoSignatoryName,
     ceoSignatureDate,
@@ -304,6 +368,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
         position: position.trim(),
         department: department.trim(),
         dateOfAppointment: dateOfAppointment.trim() || issueDate,
+        dateOfConfirmation: dateOfConfirmation.trim() || dateOfAppointment.trim() || issueDate.trim(),
         employmentStatus,
         employmentType,
         issueDate: issueDate.trim(),
@@ -311,7 +376,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
         authorizedOfficerPosition: authorizedOfficerPosition.trim() || 'Company Director/CEO',
         verificationCode: verificationCode.trim(),
         qrVerificationUrl: getVerificationUrl(verificationCode.trim()),
-        signatureDataUrl,
+        signatureDataUrl: signatureDataUrl || OFFICIAL_CEO_PRESET_SVG,
         signatureType,
         ceoSignatoryName: ceoSignatoryName.trim() || 'Dr. Donald S.',
         ceoSignatureDate,
@@ -339,8 +404,8 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   const handleDownloadPDF = async (certOverride?: EmploymentCertificate) => {
     const cert = certOverride || (currentCertificateData as EmploymentCertificate);
     const targetEl = certOverride
-      ? document.getElementById('ds-modal-certificate-doc')
-      : document.getElementById('ds-certificate-of-employment-document');
+      ? (document.getElementById('ds-modal-certificate-doc') || document.getElementById('ds-modal-fullscreen-certificate-doc'))
+      : (document.getElementById('ds-certificate-clean-export-doc') || document.getElementById('ds-certificate-of-employment-document'));
 
     if (!targetEl) {
       showToast('error', 'Certificate rendering canvas not ready.');
@@ -354,7 +419,8 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
       downloadCertificateBlob(blob, fileName);
       showToast('success', `Downloaded ${fileName}`);
     } catch (err: any) {
-      showToast('error', 'Failed to generate PDF. Please try again.');
+      console.error('[PDF Generation Error]', err);
+      showToast('error', err?.message || 'Failed to generate PDF. Please try again.');
     } finally {
       setIsGeneratingPDF(false);
     }
@@ -363,8 +429,8 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   // Print Action
   const handlePrint = (certOverride?: EmploymentCertificate) => {
     const targetEl = certOverride
-      ? document.getElementById('ds-modal-certificate-doc')
-      : document.getElementById('ds-certificate-of-employment-document');
+      ? (document.getElementById('ds-modal-certificate-doc') || document.getElementById('ds-modal-fullscreen-certificate-doc'))
+      : (document.getElementById('ds-certificate-clean-export-doc') || document.getElementById('ds-certificate-of-employment-document'));
 
     if (!targetEl) {
       showToast('error', 'Certificate element not available for printing.');
@@ -377,8 +443,8 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   const handleShare = async (certOverride?: EmploymentCertificate) => {
     const cert = certOverride || (currentCertificateData as EmploymentCertificate);
     const targetEl = certOverride
-      ? document.getElementById('ds-modal-certificate-doc')
-      : document.getElementById('ds-certificate-of-employment-document');
+      ? (document.getElementById('ds-modal-certificate-doc') || document.getElementById('ds-modal-fullscreen-certificate-doc'))
+      : (document.getElementById('ds-certificate-clean-export-doc') || document.getElementById('ds-certificate-of-employment-document'));
 
     if (!targetEl) {
       showToast('error', 'Certificate element not ready.');
@@ -396,7 +462,8 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
         await navigator.clipboard.writeText(vUrl);
         showToast('info', 'Verification link copied to clipboard!');
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.error('[Share Error]', err);
       showToast('error', 'Share operation cancelled or unavailable.');
     }
   };
@@ -609,17 +676,43 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                 {/* Employee ID & Position in 2 cols */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[11px] font-extrabold uppercase text-slate-700 dark:text-slate-300 block mb-1">
-                      Employee ID *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={employeeId}
-                      onChange={(e) => setEmployeeId(e.target.value)}
-                      placeholder="e.g. DST/STAFF/0042"
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-mono font-bold focus:ring-2 focus:ring-orange-500 focus:outline-none"
-                    />
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-[11px] font-extrabold uppercase text-slate-700 dark:text-slate-300">
+                        Employee ID *
+                      </label>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[9px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-900/60 flex items-center gap-1">
+                          <Sparkles size={9} />
+                          Auto Serial
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newSerial = computeNextSerialEmployeeId(certificates, staffDirectory);
+                            setEmployeeId(newSerial);
+                            showToast('info', `Generated next serial ID: ${newSerial}`);
+                          }}
+                          className="text-[9px] font-bold text-orange-600 dark:text-orange-400 hover:text-orange-700 flex items-center gap-1 px-1.5 py-0.5 rounded bg-orange-50 dark:bg-orange-950/30 border border-orange-200/60 cursor-pointer"
+                          title="Generate next available serial Employee ID"
+                        >
+                          <RefreshCw size={10} />
+                          <span>Next</span>
+                        </button>
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        required
+                        value={employeeId}
+                        onChange={(e) => setEmployeeId(e.target.value)}
+                        placeholder="e.g. DST-STAFF-0001"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-mono font-black focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                      />
+                    </div>
+                    <span className="text-[9.5px] text-slate-400 block mt-1 font-mono">
+                      Sequential organizational ID • Zero manual work
+                    </span>
                   </div>
 
                   <div>
@@ -632,7 +725,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                       value={position}
                       onChange={(e) => setPosition(e.target.value)}
                       placeholder="e.g. Senior Security Architect"
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-orange-500 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -649,21 +742,18 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                       value={department}
                       onChange={(e) => setDepartment(e.target.value)}
                       placeholder="e.g. Software &amp; AI Engineering"
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-orange-500 focus:outline-none"
                     />
                   </div>
 
                   <div>
-                    <label className="text-[11px] font-extrabold uppercase text-slate-700 dark:text-slate-300 block mb-1">
-                      Date of Initial Appointment *
-                    </label>
-                    <input
-                      type="text"
-                      required
+                    <InAppCalendarDatePicker
+                      label="Date of Initial Appointment"
                       value={dateOfAppointment}
-                      onChange={(e) => setDateOfAppointment(e.target.value)}
-                      placeholder="e.g. 15th January 2024"
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                      onChange={(formatted) => setDateOfAppointment(formatted)}
+                      required={true}
+                      placeholder="Select appointment date..."
+                      helperText="One-click selection • Formats into official certificate date"
                     />
                   </div>
                 </div>
@@ -718,19 +808,28 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
               <div className="space-y-3.5">
                 
-                {/* Issue Date */}
-                <div>
-                  <label className="text-[11px] font-extrabold uppercase text-slate-700 dark:text-slate-300 block mb-1">
-                    Certificate Issue Date *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={issueDate}
-                    onChange={(e) => setIssueDate(e.target.value)}
-                    placeholder="e.g. 30th September 2026"
-                    className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-orange-500 focus:outline-none"
-                  />
+                {/* Issue Date & Confirmation Date with In-App Calendar */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <InAppCalendarDatePicker
+                      label="Certificate Issue Date"
+                      value={issueDate}
+                      onChange={(formatted) => setIssueDate(formatted)}
+                      required={true}
+                      placeholder="Select issue date from in-app calendar..."
+                      helperText="Official issuance date stamped on certificate"
+                    />
+                  </div>
+
+                  <div>
+                    <InAppCalendarDatePicker
+                      label="Date of Confirmation"
+                      value={dateOfConfirmation || issueDate}
+                      onChange={(formatted) => setDateOfConfirmation(formatted)}
+                      placeholder="Select confirmation date..."
+                      helperText="Effective date for employment confirmation"
+                    />
+                  </div>
                 </div>
 
                 {/* Authorized Officer */}
@@ -1204,6 +1303,16 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                         {/* Actions */}
                         <td className="px-5 py-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
+                            {/* Edit / Sign */}
+                            <button
+                              type="button"
+                              onClick={() => handleLoadCertificateToEdit(cert)}
+                              className="p-1.5 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/60 rounded-lg transition-colors cursor-pointer"
+                              title="Edit & Sign Certificate"
+                            >
+                              <PenTool size={13} />
+                            </button>
+
                             {/* Preview */}
                             <button
                               type="button"
@@ -1714,6 +1823,28 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Hidden Clean 1:1 Rendering Target for 100% Reliable PDF & Print Generation (Zero Mobile Scaling Glitches) */}
+      <div
+        style={{
+          position: 'fixed',
+          left: '-9999px',
+          top: '0',
+          width: '794px',
+          height: '1123px',
+          overflow: 'visible',
+          pointerEvents: 'none',
+          zIndex: -9999,
+          backgroundColor: '#FFFFFF',
+        }}
+        aria-hidden="true"
+      >
+        <CertificateOfEmploymentDocument
+          id="ds-certificate-clean-export-doc"
+          certificate={currentCertificateData}
+          qrCodeDataUrl={qrCodeDataUrl}
+        />
+      </div>
 
     </div>
   );

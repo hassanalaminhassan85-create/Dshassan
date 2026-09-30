@@ -29,6 +29,15 @@ export function generateCertificateNumber(sequence: number, year: number = new D
 }
 
 /**
+ * Generate serial Employee ID automatically
+ * Format: DST-STAFF-[SEQUENCE] e.g. DST-STAFF-0001, DST-STAFF-0002...
+ */
+export function generateSerialEmployeeId(sequence: number): string {
+  const seqStr = String(sequence).padStart(4, '0');
+  return `DST-STAFF-${seqStr}`;
+}
+
+/**
  * Generate standard Appointment Reference Number
  * Format: DST/COE/[YEAR]/[SEQUENCE]
  */
