@@ -267,48 +267,117 @@ export async function printCertificateElement(element: HTMLElement) {
   }
 }
 
+// In-memory cache for compiled certificate PDF blobs to enable instantaneous (0ms) Web Share without losing user activation
+const certificateBlobCache = new Map<string, { blob: Blob; file: File; timestamp: number }>();
+
+export function getCachedCertificatePDF(certId: string): { blob: Blob; file: File } | null {
+  if (!certId) return null;
+  const item = certificateBlobCache.get(certId);
+  if (!item) return null;
+  // Valid for 10 minutes
+  if (Date.now() - item.timestamp > 10 * 60 * 1000) {
+    certificateBlobCache.delete(certId);
+    return null;
+  }
+  return { blob: item.blob, file: item.file };
+}
+
+export function setCachedCertificatePDF(certId: string, blob: Blob, file: File): void {
+  if (!certId) return;
+  certificateBlobCache.set(certId, { blob, file, timestamp: Date.now() });
+}
+
+export function canShareFiles(): boolean {
+  if (typeof navigator === 'undefined' || typeof navigator.share !== 'function') return false;
+  if (typeof navigator.canShare !== 'function') return true;
+  try {
+    const testFile = new File(['%PDF-1.4 test'], 'test.pdf', { type: 'application/pdf' });
+    return navigator.canShare({ files: [testFile] });
+  } catch {
+    return false;
+  }
+}
+
+export interface ShareCertificateResult {
+  shared: boolean;
+  method: 'native' | 'fallback' | 'cancelled';
+  error?: any;
+}
+
 /**
- * Native mobile and desktop Web Share
+ * Native mobile and desktop Web Share for the exact PDF file
  */
 export async function shareCertificatePDF(
   blob: Blob,
   fileName: string,
   certificate: Partial<EmploymentCertificate>
-): Promise<boolean> {
-  const shareTitle = `DS Tech Certificate of Employment - ${certificate.employeeName || 'Staff'}`;
-  const shareText = `Official Certificate of Employment issued to ${certificate.employeeName || 'Employee'} by DS Tech and Digital Marketing Agency Limited. Verify at: ${certificate.qrVerificationUrl || ''}`;
+): Promise<ShareCertificateResult> {
+  const shareTitle = `Official Certificate of Employment - ${certificate.employeeName || 'Staff'}`;
+  const shareText = `Official Certificate of Employment for ${certificate.employeeName || 'Staff'} (${certificate.position || 'Staff'}). Issued by DS Tech and Digital Marketing Agency Limited.\nVerification Code: ${certificate.verificationCode || 'N/A'}`;
 
-  if (typeof navigator !== 'undefined' && navigator.share) {
+  if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
     try {
-      const file = new File([blob], fileName, { type: 'application/pdf' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: shareTitle,
-          text: shareText,
-        });
-        return true;
-      } else {
-        await navigator.share({
-          title: shareTitle,
-          text: shareText,
-          url: certificate.qrVerificationUrl,
-        });
-        return true;
+      const file = new File([blob], fileName, {
+        type: 'application/pdf',
+        lastModified: Date.now(),
+      });
+
+      // Cache for subsequent instant re-shares
+      if (certificate.id) {
+        setCachedCertificatePDF(certificate.id, blob, file);
       }
+
+      // Check file sharing support
+      const filesSupported = typeof navigator.canShare === 'function' ? navigator.canShare({ files: [file] }) : true;
+
+      if (filesSupported) {
+        // Attempt A: Direct file share with title (standard Android / Samsung Internet)
+        try {
+          await navigator.share({
+            files: [file],
+            title: shareTitle,
+          });
+          return { shared: true, method: 'native' };
+        } catch (firstErr: any) {
+          if (firstErr?.name === 'AbortError') {
+            return { shared: false, method: 'cancelled' };
+          }
+          // Attempt B: Share file only (fixes quirks in certain Samsung Internet / Chrome versions that reject extra metadata with files)
+          try {
+            await navigator.share({
+              files: [file],
+            });
+            return { shared: true, method: 'native' };
+          } catch (secondErr: any) {
+            if (secondErr?.name === 'AbortError') {
+              return { shared: false, method: 'cancelled' };
+            }
+            // Attempt C: Share file with text as fallback
+            await navigator.share({
+              files: [file],
+              title: shareTitle,
+              text: shareText,
+            });
+            return { shared: true, method: 'native' };
+          }
+        }
+      }
+
+      // Fallback: If device doesn't support files array, share the official verification link
+      await navigator.share({
+        title: shareTitle,
+        text: shareText,
+        url: certificate.qrVerificationUrl,
+      });
+      return { shared: true, method: 'native' };
     } catch (err: any) {
-      if (err.name !== 'AbortError') {
-        console.warn('Navigator share error:', err);
+      if (err?.name === 'AbortError') {
+        return { shared: false, method: 'cancelled' };
       }
+      console.warn('[Certificate Share] Native share failed or rejected gesture:', err);
+      return { shared: false, method: 'fallback', error: err };
     }
   }
 
-  // Fallback: Copy link or WhatsApp share
-  if (certificate.qrVerificationUrl) {
-    const waUrl = `https://wa.me/?text=${encodeURIComponent(`${shareTitle}\n${shareText}\n${certificate.qrVerificationUrl}`)}`;
-    window.open(waUrl, '_blank');
-    return true;
-  }
-
-  return false;
+  return { shared: false, method: 'fallback' };
 }

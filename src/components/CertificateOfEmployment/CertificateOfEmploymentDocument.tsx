@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { EmploymentCertificate } from '../../types';
 import { buildCertificateVerificationUrl, generateQrDataUrl } from '../../lib/certificateQrUtility';
+import officialLogoImg from '../../assets/images/exact_ds_tech_logo_1788790934101.jpg';
+import { Logo } from '../Logo';
 
 interface CertificateDocumentProps {
   certificate: Partial<EmploymentCertificate>;
@@ -146,6 +148,151 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
           boxSizing: 'border-box',
         }}
       >
+        {/* ========================================================= */}
+        {/* OFFICIAL WATERMARK IN THE MIDDLE (Centered on A4 Canvas)   */}
+        {/* ========================================================= */}
+        <div
+          className="absolute pointer-events-none select-none"
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '380px',
+            height: '380px',
+            pointerEvents: 'none',
+            zIndex: 0,
+            opacity: 0.055,
+          }}
+          aria-hidden="true"
+        >
+          <svg viewBox="0 0 100 100" className="w-full h-full" style={{ opacity: 0.055 }}>
+            {/* Outer circular shield ring */}
+            <circle
+              cx="50"
+              cy="50"
+              r="47"
+              stroke="#002D62"
+              strokeWidth="3.2"
+              strokeOpacity="0.08"
+              fill="none"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="43"
+              stroke="#002D62"
+              strokeWidth="0.8"
+              strokeDasharray="2 2"
+              strokeOpacity="0.06"
+              fill="none"
+            />
+            {/* Stylized Diamond Crown */}
+            <path
+              d="M 50 8 L 59 13.5 L 50 19 L 41 13.5 Z"
+              fill="#002D62"
+              fillOpacity="0.05"
+              stroke="#002D62"
+              strokeWidth="0.75"
+              strokeOpacity="0.08"
+            />
+            {/* Orange Accent Arcs */}
+            <path
+              d="M 23 28 A 29 29 0 0 0 23 72"
+              stroke="#002D62"
+              strokeWidth="3"
+              strokeOpacity="0.08"
+              fill="none"
+            />
+            <path
+              d="M 77 28 A 29 29 0 0 1 77 72"
+              stroke="#002D62"
+              strokeWidth="3"
+              strokeOpacity="0.08"
+              fill="none"
+            />
+            {/* Inner concentric rings */}
+            <circle
+              cx="50"
+              cy="50"
+              r="38"
+              stroke="#002D62"
+              strokeWidth="0.8"
+              strokeDasharray="4 6"
+              strokeOpacity="0.06"
+              fill="none"
+            />
+            {/* Main DS Monogram */}
+            <text
+              x="50"
+              y="48"
+              fontFamily="'Space Grotesk', 'Inter', system-ui, sans-serif"
+              fontWeight="900"
+              fontSize="26"
+              fill="#002D62"
+              fillOpacity="0.08"
+              textAnchor="middle"
+              letterSpacing="-1"
+            >
+              DS
+            </text>
+            {/* Official Agency Name */}
+            <text
+              x="50"
+              y="58"
+              fontFamily="'Inter', system-ui, sans-serif"
+              fontWeight="900"
+              fontSize="4.2"
+              fill="#002D62"
+              fillOpacity="0.08"
+              textAnchor="middle"
+              letterSpacing="0.6"
+            >
+              TECH AND DIGITAL
+            </text>
+            <text
+              x="50"
+              y="64"
+              fontFamily="'Inter', system-ui, sans-serif"
+              fontWeight="900"
+              fontSize="4.2"
+              fill="#002D62"
+              fillOpacity="0.08"
+              textAnchor="middle"
+              letterSpacing="0.4"
+            >
+              MARKETING AGENCY LTD
+            </text>
+            {/* Slogan */}
+            <line x1="32" y1="69" x2="68" y2="69" stroke="#002D62" strokeWidth="0.5" strokeOpacity="0.06" />
+            <text
+              x="50"
+              y="74"
+              fontFamily="'Inter', system-ui, sans-serif"
+              fontWeight="600"
+              fontSize="2.8"
+              fill="#002D62"
+              fillOpacity="0.06"
+              textAnchor="middle"
+              letterSpacing="0.2"
+            >
+              EMPOWERING BRANDS WITH
+            </text>
+            <text
+              x="50"
+              y="78"
+              fontFamily="'Inter', system-ui, sans-serif"
+              fontWeight="800"
+              fontSize="3.1"
+              fill="#002D62"
+              fillOpacity="0.07"
+              textAnchor="middle"
+              letterSpacing="0.2"
+            >
+              TECH &amp; DIGITAL EXCELLENCE
+            </text>
+          </svg>
+        </div>
 
         {/* TOP SECTION: Header + Title Banner */}
         <div>
@@ -165,7 +312,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             }}
           >
             
-            {/* Header Left: Official DS Tech Vector Logo & Brand Title */}
+            {/* Header Left: Official DS Tech Logo & Brand Title */}
             <div
               style={{
                 display: 'flex',
@@ -176,38 +323,27 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                 width: '450px',
               }}
             >
-              {/* Circular DS Tech Emblem with bursting pixels */}
-              <div style={{ width: '92px', height: '92px', flexShrink: 0, position: 'relative' }}>
-                <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm overflow-visible">
-                  {/* Digital Pixel / Block cluster exploding from top right */}
-                  <rect x="58" y="16" width="7.5" height="7.5" fill="#F25C05" rx="1" />
-                  <rect x="68" y="9" width="8.5" height="8.5" fill="#F25C05" rx="1" />
-                  <rect x="78" y="4" width="9.5" height="9.5" fill="#F25C05" rx="1.5" />
-                  <rect x="68" y="20" width="7.5" height="7.5" fill="#FFA000" rx="1" />
-                  <rect x="78" y="15" width="8.5" height="8.5" fill="#FF8000" rx="1" />
-                  <rect x="87" y="11" width="7.5" height="7.5" fill="#F25C05" rx="1" />
-                  <rect x="78" y="26" width="6.5" height="6.5" fill="#FFA000" rx="1" />
-                  <rect x="86" y="21" width="7.5" height="7.5" fill="#F25C05" rx="1" />
-
-                  {/* Outer Main Blue Ring Shield */}
-                  <circle cx="44" cy="52" r="39" stroke="#002D62" strokeWidth="5.5" fill="none" />
-                  <circle cx="44" cy="52" r="35" fill="#002D62" />
-
-                  {/* Inner Stylized Cursive White 'DS' Monogram */}
-                  <text
-                    x="44"
-                    y="64"
-                    textAnchor="middle"
-                    fontFamily="system-ui, -apple-system, sans-serif"
-                    fontWeight="900"
-                    fontSize="33"
-                    fontStyle="italic"
-                    letterSpacing="-1.5"
-                    fill="#FFFFFF"
-                  >
-                    DS
-                  </text>
-                </svg>
+              {/* Circular Official DS Tech Emblem */}
+              <div style={{ width: '90px', height: '90px', flexShrink: 0, position: 'relative' }}>
+                <img
+                  src={officialLogoImg || '/official-logo.jpg'}
+                  alt="DS Tech Official Logo"
+                  style={{
+                    width: '90px',
+                    height: '90px',
+                    objectFit: 'contain',
+                    borderRadius: '50%',
+                    display: 'block',
+                  }}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const fallback = document.getElementById('ds-cert-header-fallback-logo');
+                    if (fallback) fallback.style.display = 'block';
+                  }}
+                />
+                <div id="ds-cert-header-fallback-logo" style={{ display: 'none', width: '90px', height: '90px' }}>
+                  <Logo size="lg" showText={false} />
+                </div>
               </div>
 
               {/* Brand Typography */}
@@ -246,13 +382,32 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                 {/* Orange Divider with AGENCY LIMITED */}
                 <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', margin: '3px 0' }}>
                   <div style={{ height: '1.8px', width: '32px', backgroundColor: '#E8590C' }} />
-                  <span style={{ color: '#E8590C', fontSize: '11px', fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
+                  <span
+                    style={{
+                      color: '#E8590C',
+                      fontFamily: "'Inter', system-ui, sans-serif",
+                      fontWeight: 900,
+                      fontSize: '10.5px',
+                      letterSpacing: '0.18em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
                     AGENCY LIMITED
                   </span>
                   <div style={{ height: '1.8px', width: '32px', backgroundColor: '#E8590C' }} />
                 </div>
 
-                <p style={{ margin: 0, padding: 0, color: '#475569', fontSize: '10px', fontWeight: 500, fontStyle: 'italic' }}>
+                <p
+                  style={{
+                    margin: 0,
+                    padding: 0,
+                    color: '#64748B',
+                    fontFamily: "'Inter', system-ui, sans-serif",
+                    fontWeight: 600,
+                    fontSize: '9.2px',
+                    fontStyle: 'italic',
+                  }}
+                >
                   Empowering Brands &amp; Talents with Tech &amp; Digital Excellence
                 </p>
               </div>
@@ -340,17 +495,11 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
               {/* Title Typography overlay */}
               <div className="relative z-10 flex flex-col items-center justify-center px-8 text-center">
                 <h2
-                  className="font-extrabold uppercase tracking-[0.16em] text-[23px] leading-tight text-center drop-shadow-sm"
+                  className="font-extrabold uppercase tracking-[0.20em] text-[25px] leading-tight text-center drop-shadow-sm"
                   style={{ color: '#FFFFFF', fontFamily: "'Cinzel', 'Times New Roman', serif" }}
                 >
-                  CONFIRMATION CERTIFICATE
+                  CERTIFICATE OF EMPLOYMENT
                 </h2>
-                <h3
-                  className="font-extrabold uppercase tracking-[0.20em] text-[20px] leading-tight text-center drop-shadow-sm mt-0.5"
-                  style={{ color: '#FFFFFF', fontFamily: "'Cinzel', 'Times New Roman', serif" }}
-                >
-                  OF EMPLOYMENT
-                </h3>
               </div>
 
             </div>
@@ -361,46 +510,9 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
         <div className="flex-1 flex flex-col justify-between py-1">
           
           {/* ========================================================= */}
-          {/* 4. KEY-VALUE DETAILS GRID (7 Exact Rows) + WATERMARK      */}
+          {/* 4. KEY-VALUE DETAILS GRID (7 Exact Rows)                  */}
           {/* ========================================================= */}
           <div className="relative px-6 py-2">
-            
-            {/* Faint Background Monogram Watermark - Explicit Inline & SVG Opacity Guarantees 100% Compatibility */}
-            <div
-              className="absolute pointer-events-none select-none z-0"
-              style={{
-                right: '30px',
-                top: '-10px',
-                width: '270px',
-                height: '270px',
-                opacity: 0.065,
-              }}
-            >
-              <svg viewBox="0 0 100 100" className="w-full h-full" style={{ opacity: 0.065 }}>
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="46"
-                  stroke="#002D62"
-                  strokeWidth="8"
-                  strokeOpacity="0.08"
-                  fill="none"
-                />
-                <text
-                  x="50"
-                  y="65"
-                  textAnchor="middle"
-                  fontFamily="sans-serif"
-                  fontWeight="900"
-                  fontSize="44"
-                  fontStyle="italic"
-                  fill="#002D62"
-                  fillOpacity="0.08"
-                >
-                  DS
-                </text>
-              </svg>
-            </div>
 
             {/* 7 Key-Value Details Rows with Generous Legible Proportions */}
             <div className="space-y-3.5 text-[14.5px] relative z-10 text-left">
@@ -441,19 +553,19 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
               </div>
 
               <div className="flex items-center">
-                <span className="w-[255px] font-bold" style={{ color: '#1E293B' }}>Date of Confirmation</span>
+                <span className="w-[255px] font-bold" style={{ color: '#1E293B' }}>Effective Date of Employment</span>
                 <span className="w-[22px] font-bold" style={{ color: '#334155' }}>:</span>
                 <span className="font-black text-[15px]" style={{ color: '#002D62' }}>{dateOfConfirmation}</span>
               </div>
             </div>
 
             {/* ========================================================= */}
-            {/* 5. MAIN CONFIRMATION PARAGRAPH (Exact Text from Image)    */}
+            {/* 5. MAIN EMPLOYMENT PARAGRAPH                              */}
             {/* ========================================================= */}
             <div className="mt-4 pt-1 text-left text-[14.5px] leading-[1.75] font-normal" style={{ color: '#1E293B' }}>
               This is to formally certify that{' '}
               <strong className="font-black uppercase" style={{ color: '#002D62' }}>{employeeName}</strong>{' '}
-              is hereby confirmed in employment as{' '}
+              is officially employed as{' '}
               <strong className="font-black uppercase" style={{ color: '#002D62' }}>{position}</strong>{' '}
               with{' '}
               <strong className="font-black" style={{ color: '#002D62' }}>DS Tech and Digital Marketing Agency Limited</strong>, effective{' '}
@@ -463,7 +575,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
           </div>
 
           {/* ========================================================= */}
-          {/* 6. CONFIRMATION TERMS & CONDITIONS SECTION (100% SVG)     */}
+          {/* 6. EMPLOYMENT TERMS & CONDITIONS SECTION (100% SVG)       */}
           {/* ========================================================= */}
           <div className="px-2 mt-1">
             
@@ -488,7 +600,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
 
                 <div className="relative z-10 px-6">
                   <span className="text-[12.5px] font-extrabold uppercase tracking-[0.12em]" style={{ color: '#FFFFFF' }}>
-                    CONFIRMATION TERMS &amp; CONDITIONS
+                    EMPLOYMENT TERMS &amp; CONDITIONS
                   </span>
                 </div>
               </div>
@@ -506,7 +618,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                   1
                 </div>
                 <p>
-                  The confirmation is subject to the employee's continued compliance with the policies, procedures, professional standards, confidentiality requirements, and terms of engagement of DS Tech and Digital Marketing Agency Limited.
+                  This employment is subject to the employee's continued compliance with the policies, procedures, professional standards, confidentiality requirements, and terms of engagement of DS Tech and Digital Marketing Agency Limited.
                 </p>
               </div>
 
@@ -532,7 +644,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                   3
                 </div>
                 <p>
-                  This certificate is issued as an official record and confirmation of the employee's continued employment and appointment with DS Tech and Digital Marketing Agency Limited.
+                  This certificate is issued as an official record of the employee's employment and appointment with DS Tech and Digital Marketing Agency Limited.
                 </p>
               </div>
 

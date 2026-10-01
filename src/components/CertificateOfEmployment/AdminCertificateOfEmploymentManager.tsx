@@ -5,7 +5,8 @@ import {
   AlertCircle, Search, Filter, RefreshCw, Eye, Plus, ShieldCheck,
   Building, User, Calendar, QrCode, ArrowRight, ArrowLeft,
   XCircle, Copy, ExternalLink, Check, RotateCcw, AlertTriangle, Users,
-  Maximize2, Minimize2, PenTool, Feather, CheckSquare, Sparkles, Layout
+  Maximize2, Minimize2, PenTool, Feather, CheckSquare, Sparkles, Layout,
+  Smartphone, Mail
 } from 'lucide-react';
 import { EmploymentCertificate, CertificateStatus } from '../../types';
 import { CertificateOfEmploymentDocument } from './CertificateOfEmploymentDocument';
@@ -28,7 +29,10 @@ import {
   printCertificateElement,
   shareCertificatePDF,
   formatCertificateFileName,
+  getCachedCertificatePDF,
+  setCachedCertificatePDF,
 } from './certificatePdfUtils';
+import { CertificateShareModal } from './CertificateShareModal';
 import { apiSubscribeToStaff, apiSubscribeToDepartments } from '../../lib/api';
 
 interface AdminCertificateManagerProps {
@@ -88,8 +92,16 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
   // Operations Loading
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
+  const [isSharing, setIsSharing] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
+  const [shareModalData, setShareModalData] = useState<{
+    blob: Blob | null;
+    file: File | null;
+    fileName: string;
+    certificate: Partial<EmploymentCertificate>;
+    isCompiling?: boolean;
+  } | null>(null);
 
   // CEO Official Signature & Executive Authorization State
   const [signatureDataUrl, setSignatureDataUrl] = useState<string>(OFFICIAL_CEO_PRESET_SVG);
@@ -469,9 +481,76 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
     }
   };
 
-  // Share Action
+  // Pre-generate and cache PDF in the background whenever a certificate is previewed so Share is instant
+  useEffect(() => {
+    if (!previewModalCert?.id) return;
+    const cert = previewModalCert;
+    const cached = getCachedCertificatePDF(cert.id);
+    if (cached) return;
+
+    let isMounted = true;
+    const timer = setTimeout(async () => {
+      try {
+        const targetEl =
+          document.getElementById('ds-certificate-clean-export-doc') ||
+          document.getElementById('ds-modal-certificate-doc');
+        if (targetEl && isMounted) {
+          const blob = await generateCertificatePDFBlob(targetEl);
+          const fileName = formatCertificateFileName(cert);
+          const file = new File([blob], fileName, { type: 'application/pdf', lastModified: Date.now() });
+          setCachedCertificatePDF(cert.id, blob, file);
+        }
+      } catch {
+        // Silent background preheat catch
+      }
+    }, 450);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timer);
+    };
+  }, [previewModalCert]);
+
+  // Share Action: Pops up phone native share channels with exact PDF, or displays channels modal
   const handleShare = async (certOverride?: EmploymentCertificate) => {
     const cert = certOverride || (currentCertificateData as EmploymentCertificate);
+    const fileName = formatCertificateFileName(cert);
+
+    // 1. If PDF is already pre-cached in memory, trigger phone native share with 0ms delay!
+    if (cert.id) {
+      const cached = getCachedCertificatePDF(cert.id);
+      if (cached) {
+        setShareModalData({
+          blob: cached.blob,
+          file: cached.file,
+          fileName,
+          certificate: cert,
+          isCompiling: false,
+        });
+
+        // Trigger native share sheet directly inside click event
+        try {
+          const res = await shareCertificatePDF(cached.blob, fileName, cert);
+          if (res.shared) {
+            showToast('success', 'Phone share channels opened!');
+          }
+        } catch {
+          // Modal will remain open for fallback
+        }
+        return;
+      }
+    }
+
+    // 2. Open channels modal immediately with compiling indicator
+    setShareModalData({
+      blob: null,
+      file: null,
+      fileName,
+      certificate: cert,
+      isCompiling: true,
+    });
+
+    setIsSharing(true);
     try {
       setExportCertData(cert);
       if (cert.verificationCode) {
@@ -479,7 +558,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
         const qr = await generateCertificateQRCode(vUrl).catch(() => '');
         setExportQrUrl(qr);
       }
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 80));
 
       const targetEl =
         document.getElementById('ds-certificate-clean-export-doc') ||
@@ -491,18 +570,35 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
       }
 
       const blob = await generateCertificatePDFBlob(targetEl);
-      const fileName = formatCertificateFileName(cert);
-      const shared = await shareCertificatePDF(blob, fileName, cert);
-      if (shared) {
-        showToast('success', 'Shared certificate successfully!');
-      } else {
-        const vUrl = getVerificationUrl(cert.verificationCode || '');
-        await navigator.clipboard.writeText(vUrl);
-        showToast('info', 'Verification link copied to clipboard!');
+      const file = new File([blob], fileName, { type: 'application/pdf', lastModified: Date.now() });
+
+      if (cert.id) {
+        setCachedCertificatePDF(cert.id, blob, file);
+      }
+
+      // Update modal with ready PDF
+      setShareModalData({
+        blob,
+        file,
+        fileName,
+        certificate: cert,
+        isCompiling: false,
+      });
+
+      // Attempt native share
+      try {
+        const res = await shareCertificatePDF(blob, fileName, cert);
+        if (res.shared) {
+          showToast('success', 'Phone share channels opened!');
+        }
+      } catch {
+        // Fallback is already displayed in the modal
       }
     } catch (err: any) {
       console.error('[Share Error]', err);
-      showToast('error', 'Share operation cancelled or unavailable.');
+      showToast('error', 'Select a share channel below or save PDF to device.');
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -855,11 +951,11 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
                   <div>
                     <InAppCalendarDatePicker
-                      label="Date of Confirmation"
+                      label="Effective Date of Employment"
                       value={dateOfConfirmation || issueDate}
                       onChange={(formatted) => setDateOfConfirmation(formatted)}
-                      placeholder="Select confirmation date..."
-                      helperText="Effective date for employment confirmation"
+                      placeholder="Select effective date..."
+                      helperText="Official effective date of employment certificate"
                     />
                   </div>
                 </div>
@@ -1021,11 +1117,13 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
                 <button
                   type="button"
+                  disabled={isSharing}
                   onClick={() => handleShare()}
-                  className="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  title="Share Certificate PDF to all phone channels"
                 >
-                  <Share2 size={12} />
-                  <span>Share</span>
+                  <Share2 size={12} className={isSharing ? 'animate-spin text-orange-500' : ''} />
+                  <span>{isSharing ? 'Sharing...' : 'Share'}</span>
                 </button>
 
                 <button
@@ -1382,6 +1480,16 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                               <Printer size={13} />
                             </button>
 
+                            {/* Share */}
+                            <button
+                              type="button"
+                              onClick={() => handleShare(cert)}
+                              className="p-1.5 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 hover:bg-orange-100 dark:hover:bg-orange-900/60 rounded-lg transition-colors cursor-pointer"
+                              title="Share Certificate PDF"
+                            >
+                              <Share2 size={13} />
+                            </button>
+
                             {/* Verify Action Link */}
                             <button
                               type="button"
@@ -1606,6 +1714,35 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                       qrCodeDataUrl={qrCodeDataUrl}
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Modal Footer with Actions for quick access on mobile */}
+              <div className="p-3 sm:p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setPreviewModalCert(null)}
+                  className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  Close Preview
+                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleDownloadPDF(previewModalCert)}
+                    className="px-3.5 py-2 bg-[#000E32] hover:bg-[#001750] text-white rounded-xl text-xs font-bold uppercase flex items-center gap-1.5 shadow cursor-pointer active:scale-95"
+                  >
+                    <Download size={14} />
+                    <span className="hidden sm:inline">Download</span> PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleShare(previewModalCert)}
+                    className="px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white rounded-xl text-xs font-black uppercase flex items-center gap-1.5 shadow-md shadow-orange-600/20 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <Share2 size={14} />
+                    <span>Share Certificate</span>
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -1833,6 +1970,15 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
                 <button
                   type="button"
+                  onClick={() => handleShare()}
+                  className="px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  <Share2 size={13} />
+                  <span>Share</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setShowFullscreenPreview(false)}
                   className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white cursor-pointer transition-colors"
                 >
@@ -1856,6 +2002,20 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ========================================================= */}
+      {/* MODAL: SHARE CERTIFICATE CHANNELS PICKER                 */}
+      {/* ========================================================= */}
+      <CertificateShareModal
+        isOpen={!!shareModalData}
+        onClose={() => setShareModalData(null)}
+        certificate={shareModalData?.certificate || null}
+        pdfBlob={shareModalData?.blob || null}
+        pdfFile={shareModalData?.file || null}
+        fileName={shareModalData?.fileName || 'Certificate.pdf'}
+        isCompiling={shareModalData?.isCompiling}
+        onToast={showToast}
+      />
 
       {/* Hidden Clean 1:1 Rendering Target for 100% Reliable PDF & Print Generation (Zero Mobile Scaling Glitches) */}
       <div

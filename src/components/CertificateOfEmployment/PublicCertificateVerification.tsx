@@ -14,7 +14,10 @@ import {
   printCertificateElement,
   shareCertificatePDF,
   formatCertificateFileName,
+  getCachedCertificatePDF,
+  setCachedCertificatePDF,
 } from './certificatePdfUtils';
+import { CertificateShareModal } from './CertificateShareModal';
 
 interface PublicCertificateVerificationProps {
   initialCode?: string;
@@ -37,6 +40,13 @@ export const PublicCertificateVerification: React.FC<PublicCertificateVerificati
   const [showDocPreview, setShowDocPreview] = useState<boolean>(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [shareModalData, setShareModalData] = useState<{
+    blob: Blob | null;
+    file: File | null;
+    fileName: string;
+    certificate: any;
+    isCompiling?: boolean;
+  } | null>(null);
 
   const performVerification = async (codeToVerify: string) => {
     const clean = extractVerificationCodeFromScan(codeToVerify);
@@ -96,15 +106,59 @@ export const PublicCertificateVerification: React.FC<PublicCertificateVerificati
 
   const handleShare = async () => {
     if (!result?.certificate) return;
+    const cert = result.certificate;
+    const fileName = formatCertificateFileName(cert);
+
+    // 1. If already cached in memory, trigger phone native share with 0ms delay!
+    if (cert.id) {
+      const cached = getCachedCertificatePDF(cert.id);
+      if (cached) {
+        setShareModalData({
+          blob: cached.blob,
+          file: cached.file,
+          fileName,
+          certificate: cert,
+          isCompiling: false,
+        });
+        try {
+          await shareCertificatePDF(cached.blob, fileName, cert);
+        } catch {}
+        return;
+      }
+    }
+
+    setShareModalData({
+      blob: null,
+      file: null,
+      fileName,
+      certificate: cert,
+      isCompiling: true,
+    });
+
     const el =
       document.getElementById('ds-public-verified-clean-export') ||
       document.getElementById('ds-public-verified-cert-doc');
     if (!el) return;
+
     try {
       const blob = await generateCertificatePDFBlob(el);
-      const name = formatCertificateFileName(result.certificate);
-      await shareCertificatePDF(blob, name, result.certificate);
-    } catch (e) {}
+      const file = new File([blob], fileName, { type: 'application/pdf', lastModified: Date.now() });
+      if (cert.id) {
+        setCachedCertificatePDF(cert.id, blob, file);
+      }
+      setShareModalData({
+        blob,
+        file,
+        fileName,
+        certificate: cert,
+        isCompiling: false,
+      });
+      try {
+        await shareCertificatePDF(blob, fileName, cert);
+      } catch {}
+    } catch (e) {
+      console.warn('[Public Share Error]', e);
+    }
   };
 
   return (
@@ -447,6 +501,20 @@ export const PublicCertificateVerification: React.FC<PublicCertificateVerificati
         </p>
       </div>
 
+      {/* Share Modal */}
+      <CertificateShareModal
+        isOpen={!!shareModalData}
+        onClose={() => setShareModalData(null)}
+        certificate={shareModalData?.certificate || null}
+        pdfBlob={shareModalData?.blob || null}
+        pdfFile={shareModalData?.file || null}
+        fileName={shareModalData?.fileName || 'Certificate.pdf'}
+        isCompiling={shareModalData?.isCompiling}
+        onToast={(type, msg) => {
+          setToast(msg);
+          setTimeout(() => setToast(null), 3000);
+        }}
+      />
     </div>
   );
 };
