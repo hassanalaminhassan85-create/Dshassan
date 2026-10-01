@@ -286,7 +286,7 @@ ${notes || 'Client requested consultation for this service.'}
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="e.g. Hassan Al-Amin"
+                      placeholder="e.g. Alex Morgan"
                       className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors font-medium"
                     />
                   </div>

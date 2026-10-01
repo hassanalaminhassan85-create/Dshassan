@@ -13,7 +13,7 @@ interface Reviewer {
 }
 
 const DEMO_REVIEWERS: Reviewer[] = [
-  { id: 'rev-1', name: 'Alhaji Hassan', role: 'Chief Executive Officer', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&fit=crop&q=80', action: 'reviewing biometric credentials', color: 'from-orange-500 to-amber-500' },
+  { id: 'rev-1', name: 'Executive Director', role: 'Chief Executive Officer', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&fit=crop&q=80', action: 'reviewing biometric credentials', color: 'from-orange-500 to-amber-500' },
   { id: 'rev-2', name: 'Chioma Nwachukwu', role: 'Head of Recruitment & HR', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&fit=crop&q=80', action: 'checking guarantor signatures', color: 'from-indigo-500 to-pink-500' },
   { id: 'rev-3', name: 'Tunde Oyelowo', role: 'Technical Lead Assessor', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=80&fit=crop&q=80', action: 'running AI cognitive matching', color: 'from-blue-500 to-purple-500' },
 ];

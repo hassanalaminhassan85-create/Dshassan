@@ -261,7 +261,7 @@ export const ApplicationQRScanner: React.FC<ApplicationQRScannerProps> = ({
     return null;
   };
 
-  // Process and validate retrieved application ID
+  // Process and validate retrieved application ID or Certificate Verification QR
   const handleSuccessfulScan = async (decodedText: string) => {
     stopCameraScanner();
     setScanResult(decodedText);
@@ -271,9 +271,43 @@ export const ApplicationQRScanner: React.FC<ApplicationQRScannerProps> = ({
     setSafetyReport(null);
     setSafetyLoading(true);
 
+    // 1. Check if the scanned QR is a Certificate of Employment / Accreditation verification QR
+    const isCertScan = 
+      decodedText.includes('verify-certificate') || 
+      decodedText.includes('/verify/') || 
+      decodedText.includes('DST-VRF-') || 
+      decodedText.includes('DST/COE/');
+
+    if (isCertScan) {
+      const codeMatch = 
+        decodedText.match(/(?:verify-certificate|verify)\/([A-Za-z0-9_\-\/%]+)/i) ||
+        decodedText.match(/(DST-VRF-[A-Za-z0-9\-]+)/i) ||
+        decodedText.match(/(DST\/COE\/[A-Za-z0-9\/]+)/i);
+
+      let targetCode = '';
+      if (codeMatch && codeMatch[1]) {
+        try {
+          targetCode = decodeURIComponent(codeMatch[1]);
+        } catch {
+          targetCode = codeMatch[1];
+        }
+      } else {
+        try {
+          const url = new URL(decodedText.startsWith('http') ? decodedText : `https://dstech.com.ng/${decodedText}`);
+          targetCode = url.searchParams.get('verify') || url.searchParams.get('code') || '';
+        } catch {}
+      }
+
+      if (targetCode) {
+        onClose();
+        window.location.href = `/verify-certificate/${encodeURIComponent(targetCode)}`;
+        return;
+      }
+    }
+
     const appId = extractAppId(decodedText);
     if (!appId) {
-      setFileError('The scanned QR code does not contain a valid DS Tech application ID or portal link.');
+      setFileError('The scanned QR code does not contain a valid DS Tech application ID or certificate verification link.');
       setLoadingApp(false);
       setSafetyLoading(false);
       return;

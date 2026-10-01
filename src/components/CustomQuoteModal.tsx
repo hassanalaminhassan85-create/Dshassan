@@ -206,7 +206,7 @@ ${description}
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="e.g. Hassan Al-Amin"
+                      placeholder="e.g. Alex Morgan"
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-bold text-white placeholder-slate-600 focus:outline-none focus:border-orange-500 transition-colors"
                     />
                   </div>

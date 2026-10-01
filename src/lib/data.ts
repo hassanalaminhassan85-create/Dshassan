@@ -523,7 +523,7 @@ export const BLOG_POSTS: BlogPost[] = [
     id: "blog_01",
     title: "Maximizing Your Ad Spent: The Ultimate Guide for Nigerian SMBs",
     category: "Marketing",
-    author: "Hassan Al-Amin",
+    author: "DS Tech Editorial",
     date: "June 15, 2026",
     description: "How to avoid wasting money on social media ads. Master regional targeting (Lagos, Abuja, Port Harcourt) and set up programmatic pixels.",
     content: "When deploying ads in Nigeria, standard broad targeting is a recipe for budget exhaustion. Instead, segmenting targets into specific high-income hubs like Maitama/Asokoro in Abuja or Ikoyi/Lekki in Lagos yields 4x higher quality leads. Furthermore, utilizing WhatsApp click-to-chat CTA paths drastically increases conversions since over 85% of local buyers prefer direct messaging over complex e-commerce checkouts...",

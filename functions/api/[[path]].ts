@@ -122,7 +122,7 @@ let inMemoryChatMessages: any[] = [
     senderId: 'chatbot',
     senderName: 'AI Career Assistant',
     senderRole: 'bot',
-    receiverId: 'hassanalaminhassan85@gmail.com',
+    receiverId: 'admin@dstech.com',
     message: 'Hello! I am your AI Career Copilot. I can analyze your resume, suggest top roles, mock-interview you, or guide your learning path. Ask me anything!',
     type: 'text',
     mediaUrl: null,
@@ -2159,7 +2159,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
         const userSession = {
           userId: 'usr_admin_dstech',
           email: 'admin@dstech.com',
-          fullName: 'Hassan Al-Amin',
+          fullName: 'DS Tech Administrator',
           role: 'Admin'
         };
         headers.append('Set-Cookie', `dstech_session=${btoa(JSON.stringify(userSession))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
@@ -2180,12 +2180,12 @@ export async function onRequest(context: { request: Request; env: any; params: a
           const passHash = await hashPassword(password);
           await env.DB.prepare(
             "INSERT OR REPLACE INTO users (id, email, full_name, role, status, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
-          ).bind(generatedUserId, 'admin@dstech.com', 'Hassan Al-Amin', 'Admin', 'active', passHash, new Date().toISOString()).run();
+          ).bind(generatedUserId, 'admin@dstech.com', 'DS Tech Administrator', 'Admin', 'active', passHash, new Date().toISOString()).run();
 
           const userSession = {
             userId: generatedUserId,
             email: 'admin@dstech.com',
-            fullName: 'Hassan Al-Amin',
+            fullName: 'DS Tech Administrator',
             role: 'Admin'
           };
           headers.append('Set-Cookie', `dstech_session=${btoa(JSON.stringify(userSession))}; Path=/; HttpOnly; SameSite=Lax; Max-Age=86400`);
@@ -4269,8 +4269,8 @@ export async function onRequest(context: { request: Request; env: any; params: a
           const sampleLogs = [
             {
               id: 'elog-1',
-              recipient_email: 'hassanalaminhassan85@gmail.com',
-              recipient_id: 'usr-hassan',
+              recipient_email: 'admin@dstech.com',
+              recipient_id: 'usr-admin',
               subject: '🔒 alihsan.online: Your Secure 6-Digit Signup Verification OTP',
               email_type: 'otp_verification',
               status: 'delivered',
@@ -4305,8 +4305,8 @@ export async function onRequest(context: { request: Request; env: any; params: a
             },
             {
               id: 'elog-3',
-              recipient_email: 'hassanalaminhassan85@gmail.com',
-              recipient_id: 'usr-hassan',
+              recipient_email: 'admin@dstech.com',
+              recipient_id: 'usr-admin',
               subject: '💼 High Priority Interview Panel matched: React Architect',
               email_type: 'interview_invitation',
               status: 'clicked',

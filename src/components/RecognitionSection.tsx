@@ -385,7 +385,7 @@ export const RecognitionSection: React.FC<RecognitionSectionProps> = ({ onBackTo
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/90 backdrop-blur-md"
+              className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-6 bg-slate-950/90 backdrop-blur-md"
               onClick={() => setPreviewCert(null)}
             >
               <motion.div 
@@ -393,62 +393,62 @@ export const RecognitionSection: React.FC<RecognitionSectionProps> = ({ onBackTo
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-4xl w-full overflow-hidden shadow-2xl text-left flex flex-col max-h-[92vh]"
+                className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 max-w-4xl w-full overflow-hidden shadow-2xl text-left flex flex-col max-h-[92vh] m-auto"
               >
                 {/* Modal Toolbar Header */}
-                <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between gap-4 border-b border-slate-800">
-                  <div className="space-y-0.5">
-                    <h3 className="font-extrabold text-sm sm:text-base text-white font-serif tracking-tight">
+                <div className="p-3.5 sm:p-5 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 border-b border-slate-800">
+                  <div className="space-y-0.5 min-w-0 flex-1">
+                    <h3 className="font-extrabold text-sm sm:text-base text-white font-serif tracking-tight truncate">
                       {previewCert.title}
                     </h3>
-                    <p className="text-[10px] font-mono text-amber-400 uppercase tracking-widest">
+                    <p className="text-[10px] font-mono text-amber-400 uppercase tracking-widest truncate">
                       Ref ID: {previewCert.referenceId || previewCert.id}
                     </p>
                   </div>
 
                   {/* Toolbar controls */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5 shrink-0">
                     <button
                       onClick={() => setZoomLevel(prev => Math.min(prev + 0.25, 2.5))}
-                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200"
+                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
                       title="Zoom In"
                     >
-                      <ZoomIn size={16} />
+                      <ZoomIn size={15} />
                     </button>
                     <button
                       onClick={() => setZoomLevel(prev => Math.max(prev - 0.25, 0.5))}
-                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200"
+                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
                       title="Zoom Out"
                     >
-                      <ZoomOut size={16} />
+                      <ZoomOut size={15} />
                     </button>
                     <button
                       onClick={() => setRotationAngle(prev => (prev + 90) % 360)}
-                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200"
+                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
                       title="Rotate 90°"
                     >
-                      <RotateCw size={16} />
+                      <RotateCw size={15} />
                     </button>
                     <button
                       onClick={() => { setZoomLevel(1); setRotationAngle(0); }}
-                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200"
+                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
                       title="Reset View"
                     >
-                      <RefreshCw size={16} />
+                      <RefreshCw size={15} />
                     </button>
                     <button
                       onClick={() => handlePrint(previewCert)}
-                      className="p-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold"
+                      className="p-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold cursor-pointer"
                       title="Print Certificate"
                     >
-                      <Printer size={16} />
+                      <Printer size={15} />
                     </button>
                     <button
                       onClick={() => setPreviewCert(null)}
-                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-red-600 text-white ml-2"
+                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-red-600 text-white ml-1 cursor-pointer"
                       title="Close"
                     >
-                      <X size={18} />
+                      <X size={16} />
                     </button>
                   </div>
                 </div>

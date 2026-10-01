@@ -18,7 +18,7 @@ const NEURAL_CUES: PresenceCue[] = [
   },
   {
     id: 'cue-2',
-    message: "Founder & CEO Hassan Al-Amin has opened your 3D Career Constellation node.",
+    message: "The Chief Executive Officer has opened your 3D Career Constellation node.",
     type: 'ceo',
     icon: Sparkles
   },

@@ -299,7 +299,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [adminUser, setAdminUser] = useState<any>(() => {
     try {
       const saved = localStorage.getItem('adminUser');
-      return saved ? JSON.parse(saved) : null;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed.fullName && (parsed.fullName.toLowerCase().includes('hassan') || parsed.fullName.toLowerCase().includes('alamin'))) {
+          parsed.fullName = 'Administrator';
+          localStorage.setItem('adminUser', JSON.stringify(parsed));
+        }
+        return parsed;
+      }
+      return null;
     } catch (e) {
       return null;
     }
@@ -1043,7 +1051,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     sqlLines.push("-- Seeds: client_projects");
     const localProjects = [
-      { id: "proj_01", name: "Premium Shopify Storefront", status: "completed", progress: 100, deadline: "2026-04-10", clientName: "Hassan Al-Amin", budget: "₦450,000" },
+      { id: "proj_01", name: "Premium Shopify Storefront", status: "completed", progress: 100, deadline: "2026-04-10", clientName: "Enterprise Client", budget: "₦450,000" },
       { id: "proj_02", name: "LMS Academy Portal Integration", status: "progress", progress: 65, deadline: "2026-07-20", clientName: "DS Consulting LLC", budget: "₦850,000" },
       { id: "proj_03", name: "Meta Ads & Lead Funnel Pipeline", status: "planning", progress: 15, deadline: "2026-08-01", clientName: "GreenLight Foods Ltd", budget: "₦300,000" }
     ];
@@ -1249,33 +1257,33 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleDownloadFullMarkdownWorkbook = () => {
     try {
       const markdownContent = `# CLOUDFLARE D1 & SITE DEPLOYMENT MASTERCLASS
-*Curated by Hassan Al-Amin Super Admin Academy*
+*Curated by Super Admin Academy*
 
 This is the official comprehensive masterclass handbook detailing how to deploy SQL databases correctly, upload site ZIP packages, configure Wrangler, and achieve real-time multi-device cross-tab synchronization.
 
 ================================================================================
 MODULE 1: CREATING & INITIALIZING THE CLOUDFLARE D1 DATABASE (SQLITE EDGE)
 ================================================================================
-Professor Hassan Al-Amin: Welcome, Kofi! Today, we're making our local catalogs live worldwide. First, we need a Cloudflare D1 Database. D1 is SQLite run at the edge, offering near-zero latency and high durability. Go to your Cloudflare Dashboard, select D1 on the sidebar, and click "Create database". Name it "hassan-portal-db".
+Super Admin Instructor: Welcome, Kofi! Today, we're making our local catalogs live worldwide. First, we need a Cloudflare D1 Database. D1 is SQLite run at the edge, offering near-zero latency and high durability. Go to your Cloudflare Dashboard, select D1 on the sidebar, and click "Create database". Name it "dstech-portal-db".
 
-Kofi (Student): Understood, Professor! Once it's created, I get a unique Database ID. But how do we load all our tables, services, portfolios, and courses into it? Do we write them manually?
+Kofi (Student): Understood, Instructor! Once it's created, I get a unique Database ID. But how do we load all our tables, services, portfolios, and courses into it? Do we write them manually?
 
-Professor Hassan Al-Amin: No, Kofi! We use the SQL schema script we just generated in our Admin Dashboard! You can click "Export SQL Schema (D1)" in this utility menu to download the file. Then, use Wrangler CLI to execute it locally or in production:
+Super Admin Instructor: No, Kofi! We use the SQL schema script we just generated in our Admin Dashboard! You can click "Export SQL Schema (D1)" in this utility menu to download the file. Then, use Wrangler CLI to execute it locally or in production:
 
 \`\`\`bash
 # For Local Sandbox testing:
-npx wrangler d1 execute hassan-portal-db --local --file=schema.sql
+npx wrangler d1 execute dstech-portal-db --local --file=schema.sql
 
 # For Production Deployment in the Cloud:
-npx wrangler d1 execute hassan-portal-db --remote --file=schema.sql
+npx wrangler d1 execute dstech-portal-db --remote --file=schema.sql
 \`\`\`
 
 ================================================================================
 MODULE 2: EXPORTING SITE CODE AS ZIP & HOSTING ON CLOUDFLARE PAGES
 ================================================================================
-Kofi (Student): That's incredibly elegant, Professor! Our database is now live. But what about the frontend application itself? How do we export it from AI Studio and host it so anyone can load it?
+Kofi (Student): That's incredibly elegant, Instructor! Our database is now live. But what about the frontend application itself? How do we export it from AI Studio and host it so anyone can load it?
 
-Professor Hassan Al-Amin: An excellent question! We export our code as a ZIP archive. Go to the top settings wheel or export options in Google AI Studio, select "Export as ZIP", and save it. Then:
+Super Admin Instructor: An excellent question! We export our code as a ZIP archive. Go to the top settings wheel or export options in Google AI Studio, select "Export as ZIP", and save it. Then:
 1. Unzip the archive on your local computer.
 2. Open your terminal in that folder and run "npm install" to bootstrap dependencies.
 3. Build the optimized static files using "npm run build". This generates a production-ready "dist/" directory containing optimized Javascript, HTML5, and compiled CSS variables.
@@ -1286,9 +1294,9 @@ Kofi (Student): Wow! That hosts our web assets on Cloudflare's ultra-fast Edge s
 ================================================================================
 MODULE 3: DYNAMIC REAL-TIME STATE SYNC & TAB COORDINATION
 ================================================================================
-Kofi (Student): Professor, here is the ultimate challenge: when I edit a service on my laptop, how does my phone (which is loading the same URL) reflect that change instantly without manual refresh?
+Kofi (Student): Instructor, here is the ultimate challenge: when I edit a service on my laptop, how does my phone (which is loading the same URL) reflect that change instantly without manual refresh?
 
-Professor Hassan Al-Amin: Ah! That is where the magic of synchronization protocols comes in. There are three powerful architectures:
+Super Admin Instructor: Ah! That is where the magic of synchronization protocols comes in. There are three powerful architectures:
 1. Long Polling / SSE (Server-Sent Events): The client phone polls the Cloudflare Pages function API every few seconds or listens to a Server-Sent Events stream to retrieve delta changes from D1.
 2. Wrangler Live Sync (Edge Workers): Cloudflare workers can dispatch broadcast notifications to connected WebSockets, updating the React client states instantly.
 3. Local Storage Coordination: For immediate sync on the same computer, React listens to the "storage" event to immediately update memory states across different tabs or windows.
@@ -1302,12 +1310,12 @@ Create a file named "wrangler.toml" in your project root to bind your frontend w
 
 \`\`\`toml
 # wrangler.toml
-name = "hassan-agency-portal"
+name = "dstech-agency-portal"
 pages_build_output_dir = "dist"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "hassan-portal-db"
+database_name = "dstech-portal-db"
 database_id = "60ce292c-a702-401c-891c-400e80a75828"
 \`\`\`
 
@@ -1350,7 +1358,7 @@ export default {
 \`\`\`
 
 ================================================================================
-MODULE 6: HASSAN AL-AMIN ACADEMY COMPLIANCE CHECKLIST
+MODULE 6: SUPER ADMIN ACADEMY COMPLIANCE CHECKLIST
 ================================================================================
 ✓ Cloudflare D1 Database instance created.
 ✓ SQL Schema schema.sql successfully initialized via wrangler execute.
@@ -1382,12 +1390,12 @@ Enjoy your masterclass credentials!
   const handleDownloadWranglerConfig = () => {
     try {
       const wranglerContent = `# wrangler.toml - Cloudflare Pages or Workers Configuration Binding Template
-name = "hassan-agency-portal"
+name = "dstech-agency-portal"
 pages_build_output_dir = "dist" # The folder produced by npm run build
 
 [[d1_databases]]
 binding = "DB"                  # The binding name used inside your Workers / Pages API functions
-database_name = "hassan-portal-db"
+database_name = "dstech-portal-db"
 database_id = "60ce292c-a702-401c-891c-400e80a75828" # Enter your live D1 UUID from cloudflare dashboard
 `;
       const blob = new Blob([wranglerContent], { type: 'text/plain;charset=utf-8;' });
@@ -1620,7 +1628,7 @@ export default {
           </motion.div>
 
           <span className="text-[10px] font-black tracking-[0.2em] text-amber-700 uppercase bg-amber-100 px-3 py-1 rounded-full border border-amber-200 mb-3">
-            Hassan Al-Amin Academy
+            Super Admin Academy
           </span>
 
           <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-extrabold text-slate-900 tracking-tight max-w-2xl leading-tight">
@@ -1631,13 +1639,13 @@ export default {
           </h2>
 
           <p className="text-[11px] sm:text-xs text-slate-600 mt-4 max-w-lg leading-relaxed">
-            A highly detailed academic workbook documenting the deployment dialogue between <strong>Professor Al-Amin</strong> and his student <strong>Kofi</strong>. Learn to provision edge databases, build client ZIP packages, configure Wrangler, and achieve flawless multi-device synchronization.
+            A highly detailed academic workbook documenting the deployment dialogue between the <strong>Super Admin Instructor</strong> and student <strong>Kofi</strong>. Learn to provision edge databases, build client ZIP packages, configure Wrangler, and achieve flawless multi-device synchronization.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center gap-4 text-[10px] text-slate-500 font-mono">
             <span className="flex items-center gap-1.5 px-3 py-1 bg-white rounded-lg border border-slate-200">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              Teacher: Professor Al-Amin
+              Teacher: Super Admin Instructor
             </span>
             <span className="flex items-center gap-1.5 px-3 py-1 bg-white rounded-lg border border-slate-200">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
@@ -1678,12 +1686,12 @@ export default {
               Prof
             </div>
             <div>
-              <p className="font-bold text-amber-800 text-xs mb-0.5">Professor Hassan Al-Amin</p>
+              <p className="font-bold text-amber-800 text-xs mb-0.5">Super Admin Instructor</p>
               <p className="text-slate-700">
                 Welcome to your first lesson, Kofi! In traditional web development, relational databases are bulky, centralized servers located in a single geographical region. If our server is in Lagos, a student accessing the platform in London or New York will experience high network latency. 
               </p>
               <p className="text-slate-700 mt-2">
-                To solve this, Cloudflare D1 replicates read-only nodes of our <strong>SQLite database</strong> across hundreds of edge location data centers globally. Let's provision our instance! Go to your Cloudflare Dashboard, select <strong>Workers & Pages</strong> on the sidebar, head to <strong>D1</strong>, and click <strong>"Create database"</strong>. Enter the name <code className="bg-white px-1 py-0.5 rounded text-indigo-600 font-mono text-[11px]">hassan-portal-db</code> and click Create.
+                To solve this, Cloudflare D1 replicates read-only nodes of our <strong>SQLite database</strong> across hundreds of edge location data centers globally. Let's provision our instance! Go to your Cloudflare Dashboard, select <strong>Workers & Pages</strong> on the sidebar, head to <strong>D1</strong>, and click <strong>"Create database"</strong>. Enter the name <code className="bg-white px-1 py-0.5 rounded text-indigo-600 font-mono text-[11px]">dstech-portal-db</code> and click Create.
               </p>
             </div>
           </div>
@@ -1695,7 +1703,7 @@ export default {
             <div>
               <p className="font-bold text-blue-800 text-xs mb-0.5">Kofi (Student)</p>
               <p className="text-slate-700">
-                That is fascinating, Professor! D1 truly makes relational database querying zero-latency. Once the database is created, I get a unique Database ID (UUID). But how do we load all our schema tables and populate them with our current agency services, blog posts, and courses?
+                That is fascinating, Instructor! D1 truly makes relational database querying zero-latency. Once the database is created, I get a unique Database ID (UUID). But how do we load all our schema tables and populate them with our current agency services, blog posts, and courses?
               </p>
             </div>
           </div>
@@ -1705,7 +1713,7 @@ export default {
               Prof
             </div>
             <div>
-              <p className="font-bold text-amber-800 text-xs mb-0.5">Professor Hassan Al-Amin</p>
+              <p className="font-bold text-amber-800 text-xs mb-0.5">Super Admin Instructor</p>
               <p className="text-slate-700">
                 A stellar question, Kofi! We use the automated SQL schema seed generator built into our admin dashboard. It scans our current memory state, compiles the exact tables (<code className="bg-white px-1 py-0.5 rounded text-indigo-600 font-mono text-[11px]">admin_services</code>, <code className="bg-white px-1 py-0.5 rounded text-indigo-600 font-mono text-[11px]">admin_portfolio_projects</code>, etc.), and generates optimized SQLite <code className="bg-white px-1.5 py-0.5 rounded text-emerald-600 font-mono text-[11px]">INSERT INTO</code> statements. 
               </p>
@@ -1714,9 +1722,9 @@ export default {
               </p>
               <div className="mt-2.5 bg-slate-900 border border-slate-800 rounded-lg p-3 font-mono text-[10px] sm:text-[11px] text-emerald-400 leading-relaxed shadow-inner">
                 # For Local Sandbox testing:<br />
-                npx wrangler d1 execute hassan-portal-db --local --file=schema.sql<br /><br />
+                npx wrangler d1 execute dstech-portal-db --local --file=schema.sql<br /><br />
                 # For Production Deployment in the Cloud:<br />
-                npx wrangler d1 execute hassan-portal-db --remote --file=schema.sql
+                npx wrangler d1 execute dstech-portal-db --remote --file=schema.sql
               </div>
             </div>
           </div>
@@ -1776,7 +1784,7 @@ export default {
               Prof
             </div>
             <div>
-              <p className="font-bold text-amber-800 text-xs mb-0.5">Professor Hassan Al-Amin</p>
+              <p className="font-bold text-amber-800 text-xs mb-0.5">Super Admin Instructor</p>
               <p className="text-slate-700">
                 An outstanding question! The application we've built is a highly polished, fully functional React SPA compiled with Vite and Tailwind CSS. To deploy it, we do not need to manage servers. We can host it on <strong>Cloudflare Pages</strong> for free with global replication.
               </p>
@@ -1789,7 +1797,7 @@ export default {
                 <li>Verify your <code className="bg-white px-1 py-0.5 rounded font-mono text-cyan-600">package.json</code> contains all framework dependencies and run <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-[10px]">npm install</code>.</li>
                 <li>Run <code className="bg-slate-900 px-1.5 py-0.5 rounded text-emerald-400 font-mono text-[10px]">npm run build</code>. Vite will compile, tree-shake, and optimize all React hooks and Tailwind utility variables, producing a production-ready static directory named <code className="bg-white px-1.5 py-0.5 rounded font-mono text-indigo-600">dist/</code>.</li>
                 <li>Log in to your Cloudflare Dashboard, select <strong>Workers & Pages</strong>, click <strong>"Create application"</strong>, choose <strong>Pages</strong>, and select <strong>"Direct Upload"</strong>.</li>
-                <li>Give your project a name like <code className="bg-white px-1 py-0.5 rounded text-cyan-600 font-mono text-[10px]">hassan-agency</code> and simply drag and drop the whole <code className="bg-white px-1.5 py-0.5 rounded font-mono text-indigo-600">dist/</code> folder!</li>
+                <li>Give your project a name like <code className="bg-white px-1 py-0.5 rounded text-cyan-600 font-mono text-[10px]">dstech-agency</code> and simply drag and drop the whole <code className="bg-white px-1.5 py-0.5 rounded font-mono text-indigo-600">dist/</code> folder!</li>
               </ol>
             </div>
           </div>
@@ -1839,7 +1847,7 @@ export default {
             <div>
               <p className="font-bold text-blue-800 text-xs mb-0.5">Kofi (Student)</p>
               <p className="text-slate-700">
-                Professor, here is the ultimate real-world challenge: when I edit or add a service item, change pricing, or approve an applicant on my laptop, how does my mobile phone (which is loading the exact same URL) display that change instantly in real time without me having to refresh the page?
+                Instructor, here is the ultimate real-world challenge: when I edit or add a service item, change pricing, or approve an applicant on my laptop, how does my mobile phone (which is loading the exact same URL) display that change instantly in real time without me having to refresh the page?
               </p>
             </div>
           </div>
@@ -1849,7 +1857,7 @@ export default {
               Prof
             </div>
             <div>
-              <p className="font-bold text-amber-800 text-xs mb-0.5">Professor Hassan Al-Amin</p>
+              <p className="font-bold text-amber-800 text-xs mb-0.5">Super Admin Instructor</p>
               <p className="text-slate-700">
                 Ah! That is where the magic of <strong>state synchronization protocols</strong> comes into play, Kofi! In high-end portal engineering, if we have different screens or physical devices editing the same dataset, we must prevent "split-brain" or cached states. We achieve this with three coordinated sync layers:
               </p>
@@ -1929,12 +1937,12 @@ export default {
             </p>
             <pre className="bg-slate-950 border border-slate-850 p-3 rounded-lg font-mono text-[10px] sm:text-[11px] text-slate-200 select-all leading-relaxed shadow-md">
 {`# wrangler.toml - Cloudflare Pages & D1 Database Binding File
-name = "hassan-agency-portal"
+name = "dstech-agency-portal"
 pages_build_output_dir = "dist" # Folder produced by 'npm run build'
 
 [[d1_databases]]
 binding = "DB"                  # The binding variable exposed inside your Workers code env object
-database_name = "hassan-portal-db"
+database_name = "dstech-portal-db"
 database_id = "60ce292c-a702-401c-891c-400e80a75828" # Put your unique D1 UUID here`}
             </pre>
           </div>
@@ -1944,7 +1952,7 @@ database_id = "60ce292c-a702-401c-891c-400e80a75828" # Put your unique D1 UUID h
               Prof
             </div>
             <div>
-              <p className="font-bold text-amber-800 text-xs mb-0.5">Professor Hassan Al-Amin</p>
+              <p className="font-bold text-amber-800 text-xs mb-0.5">Super Admin Instructor</p>
               <p className="text-slate-700">
                 Pay extreme attention here, Kofi! The <code className="bg-white px-1 py-0.5 rounded font-mono text-[11px] text-red-600">binding = "DB"</code> variable is the most critical element. When your edge worker starts up, Cloudflare automatically injects a fully authorized SQLite client into your running server context as <code className="bg-white px-1 py-0.5 rounded font-mono text-[11px] text-cyan-600">env.DB</code>. 
               </p>
@@ -1985,7 +1993,7 @@ database_id = "60ce292c-a702-401c-891c-400e80a75828" # Put your unique D1 UUID h
               Prof
             </div>
             <div>
-              <p className="font-bold text-amber-800 text-xs mb-0.5">Professor Hassan Al-Amin</p>
+              <p className="font-bold text-amber-800 text-xs mb-0.5">Super Admin Instructor</p>
               <p className="text-slate-700">
                 Now, Kofi, let's write our actual Cloudflare Worker logic! We need an edge route handler that serves database queries and coordinates cross-device requests. By using a Worker, our database calls execute instantly in under 5 milliseconds from any country!
               </p>
@@ -2082,14 +2090,14 @@ export default {
 
           <h3 className="text-base font-bold text-slate-900 font-serif">Congratulations, Graduate!</h3>
           <p className="text-xs text-slate-600 mt-1 max-w-md">
-            You have successfully mastered Cloudflare D1 Serverless Database configuration, ZIP bundle direct uploads, and real-time state synchronization, receiving validation credentials from <strong>Professor Hassan Al-Amin</strong>!
+            You have successfully mastered Cloudflare D1 Serverless Database configuration, ZIP bundle direct uploads, and real-time state synchronization, receiving validation credentials from the <strong>Super Admin Academy</strong>!
           </p>
 
           <div className="w-full max-w-md bg-white rounded-xl border border-slate-200 mt-4 p-4 text-left text-[11px] space-y-2 text-slate-700 shadow-sm">
             <p className="font-bold text-slate-500 uppercase tracking-wider text-[9px] mb-1.5 font-mono">My Deployment Checklist</p>
             <div className="flex items-start gap-2">
               <span className="text-emerald-600 font-mono font-bold">✓</span>
-              <span>Created a global Cloudflare D1 database instance named <code className="bg-white px-1 rounded font-mono text-[9px]">hassan-portal-db</code>.</span>
+              <span>Created a global Cloudflare D1 database instance named <code className="bg-white px-1 rounded font-mono text-[9px]">dstech-portal-db</code>.</span>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-emerald-600 font-mono font-bold">✓</span>
@@ -2337,41 +2345,50 @@ export default {
         </div>
 
         {/* Sidebar Footer - Clean profile node */}
-        <div className={`p-4 border-t shrink-0 space-y-3 ${
-          theme === 'light' ? 'border-slate-200/80 bg-slate-100/30' : 'border-slate-850 bg-[#070b13]/50'
-        }`}>
-          <div className="flex items-center gap-3">
-            <div className="relative shrink-0">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 flex items-center justify-center font-semibold font-mono text-slate-700 dark:text-slate-300 text-xs shadow-sm">
-                {adminUser?.fullName?.slice(0, 2).toUpperCase() || 'AD'}
+        {(() => {
+          const rawAdminName = adminUser?.fullName || 'Administrator';
+          const adminDisplayName = (rawAdminName.toLowerCase().includes('hassan') || rawAdminName.toLowerCase().includes('alamin')) ? 'Administrator' : rawAdminName;
+          const adminAvatarInitials = adminDisplayName.slice(0, 2).toUpperCase();
+          const adminDisplayEmail = adminUser?.email || 'admin@dstech.com';
+
+          return (
+            <div className={`p-4 border-t shrink-0 space-y-3 ${
+              theme === 'light' ? 'border-slate-200/80 bg-slate-100/30' : 'border-slate-850 bg-[#070b13]/50'
+            }`}>
+              <div className="flex items-center gap-3">
+                <div className="relative shrink-0">
+                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 flex items-center justify-center font-semibold font-mono text-slate-700 dark:text-slate-300 text-xs shadow-sm">
+                    {adminAvatarInitials}
+                  </div>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 border-2 border-white dark:border-[#090d16] rounded-full" />
+                </div>
+                <div className="min-w-0 text-left flex-1">
+                  <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate leading-tight">
+                    {adminDisplayName}
+                  </p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-none">
+                    {adminDisplayEmail}
+                  </p>
+                </div>
               </div>
-              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 border-2 border-white dark:border-[#090d16] rounded-full" />
+              
+              <button
+                onClick={() => {
+                  try {
+                    localStorage.removeItem('isAdminLoggedIn');
+                    localStorage.removeItem('adminUser');
+                  } catch (e) {}
+                  setIsAdminLoggedIn(false);
+                  setAdminUser(null);
+                }}
+                className="w-full py-1.5 border border-slate-200 dark:border-slate-800 hover:border-red-500/20 hover:bg-red-500/5 hover:text-red-600 text-slate-500 dark:text-slate-400 rounded-lg text-[11px] font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+              >
+                <LogOut size={12} />
+                <span>Sign Out Workspace</span>
+              </button>
             </div>
-            <div className="min-w-0 text-left flex-1">
-              <p className="text-xs font-semibold text-slate-800 dark:text-slate-200 truncate leading-tight">
-                {adminUser?.fullName || 'Administrator'}
-              </p>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate mt-0.5 leading-none">
-                {adminUser?.email || 'admin@dstech.com'}
-              </p>
-            </div>
-          </div>
-          
-          <button
-            onClick={() => {
-              try {
-                localStorage.removeItem('isAdminLoggedIn');
-                localStorage.removeItem('adminUser');
-              } catch (e) {}
-              setIsAdminLoggedIn(false);
-              setAdminUser(null);
-            }}
-            className="w-full py-1.5 border border-slate-200 dark:border-slate-800 hover:border-red-500/20 hover:bg-red-500/5 hover:text-red-600 text-slate-500 dark:text-slate-400 rounded-lg text-[11px] font-medium flex items-center justify-center gap-1.5 transition-all cursor-pointer"
-          >
-            <LogOut size={12} />
-            <span>Sign Out Workspace</span>
-          </button>
-        </div>
+          );
+        })()}
       </aside>
 
       {/* Mobile Sidebar backdrop */}
@@ -3398,7 +3415,7 @@ export default {
                   Real-Time Multi-Screen Synchronization
                 </h3>
                 <p className="text-slate-300 text-[11px] leading-relaxed">
-                  Active connection to Hassan Super Admin live websocket/SSE channel is established. Whenever an applicant badge or file is scanned on a mobile smartphone, it will instantly load and display on this desktop screen without refreshing.
+                  Active connection to Super Admin live websocket/SSE channel is established. Whenever an applicant badge or file is scanned on a mobile smartphone, it will instantly load and display on this desktop screen without refreshing.
                 </p>
               </div>
 
@@ -3810,7 +3827,7 @@ export default {
               {/* Modal Footer */}
               <div className="p-4 border-t border-slate-800/80 bg-slate-900/40 flex items-center justify-between text-[10px] text-slate-500 font-mono">
                 <span>SQLite Dialect • Auto-increment Primary Keys compatible</span>
-                <span>Generated via Hassan Al-Amin Super Admin Engine v2.2</span>
+                <span>Generated via Super Admin Engine v2.2</span>
               </div>
             </motion.div>
           </motion.div>
@@ -4076,18 +4093,18 @@ export default {
               {/* Modal Footer */}
               <div className="p-4 border-t border-slate-800/80 bg-slate-900/40 flex items-center justify-between text-[10px] text-slate-500 font-mono">
                 <span>Interactive A4 responsive class workbook</span>
-                <span>© 2026 Hassan Al-Amin Super Admin Academy v2.2</span>
+                <span>© 2026 Super Admin Academy v2.2</span>
               </div>
             </motion.div>
 
             {/* Print-only beautifully formatted book content for PDF download */}
             <div className="hidden print:block bg-white text-slate-900 p-8 font-serif leading-relaxed max-w-3xl mx-auto w-full">
               <div className="text-center mb-10 border-b-2 border-slate-950 pb-6">
-                <p className="text-xs uppercase tracking-widest font-mono text-slate-500">Hassan Al-Amin Academy</p>
+                <p className="text-xs uppercase tracking-widest font-mono text-slate-500">Super Admin Academy</p>
                 <h1 className="text-3xl font-bold mt-2 text-slate-950">Cloudflare D1 & Site Deployment Masterclass</h1>
                 <p className="text-sm italic text-slate-700 mt-1">A dialogue guide on database persistence & multi-device sync</p>
                 <div className="flex justify-center gap-6 text-xs font-mono mt-4 text-slate-500">
-                  <span>Teacher: Professor Al-Amin</span>
+                  <span>Teacher: Super Admin Instructor</span>
                   <span>Student: Kofi</span>
                 </div>
               </div>
@@ -4095,30 +4112,30 @@ export default {
               <div className="space-y-8">
                 <section>
                   <h2 className="text-lg font-bold border-b border-slate-300 pb-1 mb-3">Module 1: Creating & Initializing the Cloudflare D1 Database</h2>
-                  <p className="mb-2"><strong>Professor Al-Amin:</strong> Welcome, Kofi! Today, we're making our local catalogs live worldwide. First, we need a Cloudflare D1 Database. D1 is SQLite run at the edge, offering near-zero latency and high durability. Go to your Cloudflare Dashboard, select D1 on the sidebar, and click "Create database". Name it <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">hassan-portal-db</code>.</p>
-                  <p className="mb-4"><strong>Kofi (Student):</strong> Understood, Professor! Once it's created, I get a unique Database ID. But how do we load all our tables, services, portfolios, and courses into it? Do we write them manually?</p>
-                  <p className="mb-2"><strong>Professor Al-Amin:</strong> No, Kofi! We use the SQL schema script we just generated in our Admin Dashboard! You can click "Export SQL Schema (D1)" in this utility menu to download the file. Then, use Wrangler CLI to execute it locally or in production:</p>
+                  <p className="mb-2"><strong>Super Admin Instructor:</strong> Welcome, Kofi! Today, we're making our local catalogs live worldwide. First, we need a Cloudflare D1 Database. D1 is SQLite run at the edge, offering near-zero latency and high durability. Go to your Cloudflare Dashboard, select D1 on the sidebar, and click "Create database". Name it <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">dstech-portal-db</code>.</p>
+                  <p className="mb-4"><strong>Kofi (Student):</strong> Understood, Instructor! Once it's created, I get a unique Database ID. But how do we load all our tables, services, portfolios, and courses into it? Do we write them manually?</p>
+                  <p className="mb-2"><strong>Super Admin Instructor:</strong> No, Kofi! We use the SQL schema script we just generated in our Admin Dashboard! You can click "Export SQL Schema (D1)" in this utility menu to download the file. Then, use Wrangler CLI to execute it locally or in production:</p>
                   <pre className="bg-white border border-slate-300 p-3 rounded font-mono text-xs text-slate-850 my-3">
 {`# For Local Sandbox testing:
-npx wrangler d1 execute hassan-portal-db --local --file=schema.sql
+npx wrangler d1 execute dstech-portal-db --local --file=schema.sql
 
 # For Production Deployment in the Cloud:
-npx wrangler d1 execute hassan-portal-db --remote --file=schema.sql`}
+npx wrangler d1 execute dstech-portal-db --remote --file=schema.sql`}
                   </pre>
                 </section>
 
                 <section>
                   <h2 className="text-lg font-bold border-b border-slate-300 pb-1 mb-3">Module 2: Deploying the Web Client as a ZIP File</h2>
-                  <p className="mb-2"><strong>Kofi (Student):</strong> That's incredibly elegant, Professor! Our database is now live. But what about the frontend application itself? How do we export it from AI Studio and host it so anyone can load it?</p>
-                  <p className="mb-2"><strong>Professor Al-Amin:</strong> An excellent question! We export our code as a ZIP archive. Go to the top settings wheel or export options in Google AI Studio, select "Export as ZIP", and save it. Then, unzip the archive on your local computer. Open your terminal in that folder and run <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">npm install</code>. Build the optimized static files using <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">npm run build</code>. This generates a production-ready <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">dist/</code> directory.</p>
-                  <p className="mb-4"><strong>Professor Al-Amin:</strong> Go to the Cloudflare Pages section, click "Create direct upload project", and simply drag and drop your <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">dist/</code> folder!</p>
+                  <p className="mb-2"><strong>Kofi (Student):</strong> That's incredibly elegant, Instructor! Our database is now live. But what about the frontend application itself? How do we export it from AI Studio and host it so anyone can load it?</p>
+                  <p className="mb-2"><strong>Super Admin Instructor:</strong> An excellent question! We export our code as a ZIP archive. Go to the top settings wheel or export options in Google AI Studio, select "Export as ZIP", and save it. Then, unzip the archive on your local computer. Open your terminal in that folder and run <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">npm install</code>. Build the optimized static files using <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">npm run build</code>. This generates a production-ready <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">dist/</code> directory.</p>
+                  <p className="mb-4"><strong>Super Admin Instructor:</strong> Go to the Cloudflare Pages section, click "Create direct upload project", and simply drag and drop your <code className="font-mono bg-white px-1 py-0.5 rounded text-slate-850">dist/</code> folder!</p>
                   <p className="mb-2"><strong>Kofi (Student):</strong> Wow! That hosts our web assets on Cloudflare's ultra-fast Edge server network. It will load instantly in any country on browsers and mobile devices alike!</p>
                 </section>
 
                 <section>
                   <h2 className="text-lg font-bold border-b border-slate-300 pb-1 mb-3">Module 3: Real-Time Multi-Device Synchronization</h2>
-                  <p className="mb-2"><strong>Kofi (Student):</strong> Professor, here is the ultimate challenge: when I edit a service on my laptop, how does my phone (which is loading the same URL) reflect that change instantly without manual refresh?</p>
-                  <p className="mb-2"><strong>Professor Al-Amin:</strong> Ah! That is where the magic of synchronization protocols comes in. There are three powerful architectures: Long Polling/SSE, Wrangler Live Sync, and Local Storage Sync.</p>
+                  <p className="mb-2"><strong>Kofi (Student):</strong> Instructor, here is the ultimate challenge: when I edit a service on my laptop, how does my phone (which is loading the same URL) reflect that change instantly without manual refresh?</p>
+                  <p className="mb-2"><strong>Super Admin Instructor:</strong> Ah! That is where the magic of synchronization protocols comes in. There are three powerful architectures: Long Polling/SSE, Wrangler Live Sync, and Local Storage Sync.</p>
                   <p className="mb-2"><strong>Kofi (Student):</strong> Brilliant! By wiring our API routes to query the remote D1 instance on every state change and dispatching updates via real-time hooks, the databases on our phones and browsers stay in perfect harmony!</p>
                 </section>
 
@@ -4126,19 +4143,19 @@ npx wrangler d1 execute hassan-portal-db --remote --file=schema.sql`}
                   <h2 className="text-lg font-bold border-b border-slate-300 pb-1 mb-3">Module 4: Wrangler configuration (.toml)</h2>
                   <pre className="bg-white border border-slate-300 p-3 rounded font-mono text-xs text-slate-850 my-3">
 {`# wrangler.toml
-name = "hassan-agency-portal"
+name = "dstech-agency-portal"
 pages_build_output_dir = "dist"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "hassan-portal-db"
+database_name = "dstech-portal-db"
 database_id = "60ce292c-a702-401c-891c-400e80a75828"`}
                   </pre>
                 </section>
               </div>
               
               <div className="mt-12 text-center text-xs text-slate-400 border-t pt-4">
-                <span>© 2026 Hassan Al-Amin Super Admin Academy • All rights reserved</span>
+                <span>© 2026 Super Admin Academy • All rights reserved</span>
               </div>
             </div>
           </motion.div>

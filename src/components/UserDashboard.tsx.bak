@@ -601,7 +601,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
         milestones: [
           { title: "Phase 1: Cloud Orchestration Mastery", desc: `Upgrade current skills ("${skills}") to target ${role} parameters using advanced Cloudflare Pages Functions microservices & SQLite schema optimizations.` },
           { title: "Phase 2: High-Performance Biometric Architecture", desc: "Integrate native WebAuthn biometric hardware keys, multi-device socket synchronizer, and zero-knowledge student proofing blocks." },
-          { title: "Phase 3: Automated Agency Matching Campaigns", desc: "Unlock direct matchmaking nodes evaluated by Alhaji Hassan, with custom voice screening evaluation metrics." }
+          { title: "Phase 3: Automated Agency Matching Campaigns", desc: "Unlock direct matchmaking nodes evaluated by Executive Leadership, with custom voice screening evaluation metrics." }
         ],
         estimatedTimeline: "6 Weeks Intensive Stream",
         aiProactiveTip: "Leverage biometric signing to increase recruitment security score parameters by +45%."

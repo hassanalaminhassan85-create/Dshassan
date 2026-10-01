@@ -140,7 +140,7 @@ export const AIPersonalInterviewer: React.FC<{ candidateName?: string, position?
             aiResponse = `Superb answer! I have cataloged your cognitive reply. Let me advance to the next step: ${interviewQuestions[nextIndex]}`;
             setQuestionIndex(nextIndex);
           } else {
-            aiResponse = `Splendid interview! Your responses have been securely packaged and transmitted directly to the Garki headquarters. Alhaji Hassan and the recruitment lead will inspect your voice screening metrics shortly.`;
+            aiResponse = `Splendid interview! Your responses have been securely packaged and transmitted directly to the Garki headquarters. Executive leadership and the recruitment lead will inspect your voice screening metrics shortly.`;
           }
           setMessages(prev => [...prev, {
             sender: 'ai',

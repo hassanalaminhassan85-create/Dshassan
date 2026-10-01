@@ -6,7 +6,7 @@ import {
   Building, User, Calendar, QrCode, ArrowRight, ArrowLeft,
   XCircle, Copy, ExternalLink, Check, RotateCcw, AlertTriangle, Users,
   Maximize2, Minimize2, PenTool, Feather, CheckSquare, Sparkles, Layout,
-  Smartphone, Mail, Trash2
+  Smartphone, Mail, Trash2, ZoomIn, ZoomOut
 } from 'lucide-react';
 import { EmploymentCertificate, CertificateStatus } from '../../types';
 import { CertificateOfEmploymentDocument } from './CertificateOfEmploymentDocument';
@@ -899,7 +899,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                     required
                     value={employeeName}
                     onChange={(e) => setEmployeeName(e.target.value)}
-                    placeholder="e.g. Al-Amin Hassan"
+                    placeholder="e.g. Alex Morgan"
                     className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-orange-500 focus:outline-none"
                   />
                 </div>
@@ -1659,7 +1659,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[9999] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -1740,13 +1740,13 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto"
+            className="fixed inset-0 z-[9999] bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden my-auto"
+              className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden m-auto"
             >
               {/* Modal Header */}
               <div className="p-3.5 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 shrink-0">
@@ -1760,8 +1760,33 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                   </p>
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0">
-                  {/* Action buttons for tablets and desktop (hidden on mobile to prevent overlapping) */}
+                {/* Zoom & Action buttons */}
+                <div className="flex items-center gap-2 shrink-0">
+                  
+                  {/* Zoom controls */}
+                  <div className="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-mono">
+                    <button
+                      type="button"
+                      onClick={() => setModalScale(prev => Math.max(0.25, Number((prev - 0.08).toFixed(2))))}
+                      className="p-1 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 rounded-lg cursor-pointer"
+                      title="Zoom Out"
+                    >
+                      <ZoomOut size={13} />
+                    </button>
+                    <span className="px-1.5 font-bold text-[10px] text-slate-700 dark:text-slate-300">
+                      {Math.round(modalScale * 100)}%
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setModalScale(prev => Math.min(1.1, Number((prev + 0.08).toFixed(2))))}
+                      className="p-1 text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 rounded-lg cursor-pointer"
+                      title="Zoom In"
+                    >
+                      <ZoomIn size={13} />
+                    </button>
+                  </div>
+
+                  {/* Action buttons for tablets and desktop */}
                   <div className="hidden sm:flex items-center gap-1.5">
                     <button
                       type="button"
@@ -1814,10 +1839,10 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                 </div>
               </div>
 
-              {/* Modal Body with Dynamically Scaled A4 Document (Fits 100% on phone screens) */}
+              {/* Modal Body with Dynamically Scaled A4 Document (Fits 100% without clipping) */}
               <div
                 ref={modalCertContainerRef}
-                className="p-2 sm:p-6 bg-slate-200 dark:bg-slate-950 overflow-auto flex justify-center items-start flex-1 min-h-[300px]"
+                className="p-2 sm:p-6 bg-slate-200 dark:bg-slate-950 overflow-auto flex justify-center items-center flex-1 min-h-[300px]"
               >
                 <div
                   style={{
@@ -1825,7 +1850,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                     height: `${1123 * modalScale}px`,
                     transition: 'width 0.12s ease-out, height 0.12s ease-out',
                   }}
-                  className="relative shrink-0 shadow-2xl rounded-sm overflow-hidden bg-white my-auto"
+                  className="relative shrink-0 shadow-2xl rounded-sm overflow-hidden bg-white m-auto self-center"
                 >
                   <div
                     style={{
@@ -1908,7 +1933,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[9999] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -1975,7 +2000,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[9999] bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
@@ -2042,7 +2067,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+            className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 10 }}
@@ -2129,7 +2154,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+            className="fixed inset-0 z-[9999] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0, y: 15 }}
@@ -2169,7 +2194,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex flex-col p-4 overflow-hidden"
+            className="fixed inset-0 z-[9999] bg-slate-950/90 backdrop-blur-md flex flex-col p-4 overflow-hidden"
           >
             {/* Modal Top Bar */}
             <div className="flex items-center justify-between pb-3 px-2 border-b border-slate-800 text-white shrink-0">

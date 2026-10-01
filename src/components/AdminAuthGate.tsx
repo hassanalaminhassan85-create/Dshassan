@@ -43,7 +43,8 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({
         const data = await res.json();
         setSuccessMsg("Admin secret verified. Initializing secure workspace...");
         setTimeout(() => {
-          onAuthSuccess({ email: data.email, fullName: data.fullName || 'Administrator' });
+          const resolvedName = (data.fullName && !data.fullName.toLowerCase().includes('hassan')) ? data.fullName : 'Administrator';
+          onAuthSuccess({ email: data.email || 'admin@dstech.com', fullName: resolvedName });
         }, 1200);
         return;
       }

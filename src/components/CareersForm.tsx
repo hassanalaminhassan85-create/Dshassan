@@ -122,7 +122,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
   const handleQuickAutofill = () => {
     const role = positionSkills.majorRole || initialRole || 'Lead Full Stack Engineer';
     setPersonalInfo({
-      fullName: 'Hassan Al-Amin',
+      fullName: 'Alex Morgan',
       maritalStatus: 'Single',
       gender: 'Male',
       dateOfBirth: '1996-08-15',
@@ -131,9 +131,9 @@ export const CareersForm: React.FC<CareersFormProps> = ({
       lgaTownOfOrigin: 'Kano Municipal',
       stateOfResidence: 'FCT Abuja',
       residentialAddress: 'Plot 402, Central Business District, Abuja',
-      emailAddress: 'hassanalaminhassan85@gmail.com',
+      emailAddress: 'applicant@dstech.com',
       phoneNumbers: '+2348023456789',
-      passportPhoto: generateAvatarSvgUrl('Hassan Al-Amin', role),
+      passportPhoto: generateAvatarSvgUrl('Alex Morgan', role),
     });
     setGuarantorInfo({
       fullName: 'Alhaji Ibrahim Usman',
