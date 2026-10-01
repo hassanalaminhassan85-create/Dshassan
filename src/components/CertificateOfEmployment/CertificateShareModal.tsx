@@ -47,9 +47,9 @@ export const CertificateShareModal: React.FC<CertificateShareModalProps> = ({
 
   const fileSizeKb = pdfBlob ? Math.round(pdfBlob.size / 1024) : null;
 
-  // 1. Direct Native Phone Share (Triggers Android / Samsung / iOS system share sheet)
-  const handleOpenNativeShare = async () => {
-    if (!pdfBlob || !pdfFile) {
+  // 1. Direct Native Phone Share (Triggers Android / Samsung / iOS system share sheet with PDF file)
+  const handleSharePDFDocument = async () => {
+    if (!pdfBlob) {
       onToast?.('info', 'Compiling exact PDF, please wait a moment...');
       return;
     }
@@ -58,77 +58,27 @@ export const CertificateShareModal: React.FC<CertificateShareModalProps> = ({
     try {
       const res = await shareCertificatePDF(pdfBlob, fileName, certificate);
       if (res.shared) {
-        onToast?.('success', 'Phone share channels opened!');
-      } else if (res.method === 'cancelled') {
-        // User closed share sheet - no error needed
-      } else {
-        // Fallback: prompt admin to choose WhatsApp or Email below
-        onToast?.('info', 'Choose a channel below (WhatsApp, Email, or Save PDF).');
+        onToast?.('success', 'Phone share opened! Select WhatsApp or any app to send PDF.');
+        onClose();
       }
     } catch (err: any) {
       if (err?.name !== 'AbortError') {
-        onToast?.('info', 'Choose any direct channel below.');
+        downloadCertificateBlob(pdfBlob, fileName);
+        onToast?.('success', `Downloaded ${fileName} to device.`);
       }
     } finally {
       setIsOpeningNativeShare(false);
     }
   };
 
-  // 2. Direct WhatsApp
-  const handleWhatsAppShare = () => {
-    if (pdfBlob) {
-      downloadCertificateBlob(pdfBlob, fileName);
-    }
-    const message = `*Official Certificate of Employment*\n\n` +
-      `*Employee:* ${employeeName}\n` +
-      `*Position:* ${position}\n` +
-      `*Certificate No:* ${certNumber}\n` +
-      `*Verification Code:* ${certificate.verificationCode || 'N/A'}\n\n` +
-      `*Verify Online:* ${verificationUrl}\n\n` +
-      `_Issued by DS Tech and Digital Marketing Agency Limited._`;
-
-    const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(waUrl, '_blank');
-    onToast?.('success', 'WhatsApp opened! Attach the downloaded PDF to your chat.');
-  };
-
-  // 3. Direct Email
-  const handleEmailShare = () => {
-    if (pdfBlob) {
-      downloadCertificateBlob(pdfBlob, fileName);
-    }
-    const subject = `Official Certificate of Employment - ${employeeName}`;
-    const body = `Dear ${employeeName},\n\n` +
-      `Please find attached your official Certificate of Employment issued by DS Tech and Digital Marketing Agency Limited.\n\n` +
-      `Position: ${position}\n` +
-      `Certificate Number: ${certNumber}\n` +
-      `Verification Code: ${certificate.verificationCode || 'N/A'}\n` +
-      `Public Verification Link: ${verificationUrl}\n\n` +
-      `Sincerely,\nExecutive Management\nDS Tech and Digital Marketing Agency Limited\nAbuja, Nigeria`;
-
-    window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    onToast?.('info', 'Email app opened! PDF saved to phone to attach.');
-  };
-
-  // 4. Direct Telegram
-  const handleTelegramShare = () => {
-    if (pdfBlob) {
-      downloadCertificateBlob(pdfBlob, fileName);
-    }
-    const text = `Official Certificate of Employment for ${employeeName} (${position}) - DS Tech. Verification: ${verificationUrl}`;
-    const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(verificationUrl)}&text=${encodeURIComponent(text)}`;
-    window.open(tgUrl, '_blank');
-    onToast?.('success', 'Telegram opened! Attach the downloaded PDF to your chat.');
-  };
-
-  // 5. Download exact PDF
+  // 2. Download exact PDF directly
   const handleDownloadPDF = () => {
     if (!pdfBlob) return;
     downloadCertificateBlob(pdfBlob, fileName);
-    onToast?.('success', `Saved ${fileName} to device`);
+    onToast?.('success', `Saved ${fileName} to Downloads folder`);
   };
 
-  // 6. Copy Link
+  // 3. Copy Link
   const handleCopyLink = () => {
     if (!verificationUrl) return;
     navigator.clipboard.writeText(verificationUrl);
@@ -214,7 +164,7 @@ export const CertificateShareModal: React.FC<CertificateShareModalProps> = ({
             <button
               type="button"
               disabled={isCompiling}
-              onClick={handleOpenNativeShare}
+              onClick={handleSharePDFDocument}
               className="w-full p-4 rounded-2xl bg-gradient-to-r from-[#000E32] via-[#001E5A] to-[#000E32] hover:from-[#001750] hover:to-[#001750] text-white flex items-center justify-between gap-3 shadow-lg shadow-blue-950/30 transition-all cursor-pointer group active:scale-[0.99] disabled:opacity-50"
             >
               <div className="flex items-center gap-3 text-left">
@@ -223,11 +173,11 @@ export const CertificateShareModal: React.FC<CertificateShareModalProps> = ({
                 </div>
                 <div>
                   <p className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-1.5">
-                    <span>Open Phone Share Channels</span>
+                    <span>Share PDF File Directly</span>
                     <span className="px-1.5 py-0.2 rounded text-[8px] bg-orange-500 text-white font-bold">ALL APPS</span>
                   </p>
                   <p className="text-[10px] text-slate-300 mt-0.5">
-                    Pops up WhatsApp, Gmail, Telegram, Quick Share, Google Drive &amp; all phone channels
+                    Attaches exact .pdf document to WhatsApp, Gmail, Telegram &amp; all phone channels
                   </p>
                 </div>
               </div>
@@ -241,13 +191,13 @@ export const CertificateShareModal: React.FC<CertificateShareModalProps> = ({
             {/* Direct App Channels */}
             <div className="space-y-2 pt-1 text-left">
               <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block font-mono">
-                Or Direct Channels
+                Direct Document Channels
               </span>
 
               {/* WhatsApp */}
               <button
                 type="button"
-                onClick={handleWhatsAppShare}
+                onClick={handleSharePDFDocument}
                 className="w-full p-3 bg-emerald-50 dark:bg-emerald-950/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800/60 rounded-2xl flex items-center justify-between text-left transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-3">
@@ -256,10 +206,10 @@ export const CertificateShareModal: React.FC<CertificateShareModalProps> = ({
                   </div>
                   <div>
                     <p className="text-xs font-extrabold text-emerald-900 dark:text-emerald-200">
-                      WhatsApp
+                      WhatsApp / WhatsApp Business
                     </p>
                     <p className="text-[10px] text-emerald-700 dark:text-emerald-400">
-                      Send to WhatsApp chat &amp; attaches exact PDF
+                      Attaches exact PDF certificate file into chat (No text messages)
                     </p>
                   </div>
                 </div>
@@ -269,7 +219,7 @@ export const CertificateShareModal: React.FC<CertificateShareModalProps> = ({
               {/* Email / Gmail */}
               <button
                 type="button"
-                onClick={handleEmailShare}
+                onClick={handleSharePDFDocument}
                 className="w-full p-3 bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-800/60 rounded-2xl flex items-center justify-between text-left transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-3">
@@ -278,10 +228,10 @@ export const CertificateShareModal: React.FC<CertificateShareModalProps> = ({
                   </div>
                   <div>
                     <p className="text-xs font-extrabold text-blue-900 dark:text-blue-200">
-                      Email Client (Gmail / Outlook)
+                      Email (Gmail / Outlook)
                     </p>
                     <p className="text-[10px] text-blue-700 dark:text-blue-400">
-                      Pre-filled formal email with verification details &amp; PDF
+                      Attaches exact PDF certificate file into email
                     </p>
                   </div>
                 </div>
@@ -291,7 +241,7 @@ export const CertificateShareModal: React.FC<CertificateShareModalProps> = ({
               {/* Telegram */}
               <button
                 type="button"
-                onClick={handleTelegramShare}
+                onClick={handleSharePDFDocument}
                 className="w-full p-3 bg-sky-50 dark:bg-sky-950/30 hover:bg-sky-100 dark:hover:bg-sky-900/40 border border-sky-200 dark:border-sky-800/60 rounded-2xl flex items-center justify-between text-left transition-colors cursor-pointer group"
               >
                 <div className="flex items-center gap-3">
@@ -303,7 +253,7 @@ export const CertificateShareModal: React.FC<CertificateShareModalProps> = ({
                       Telegram
                     </p>
                     <p className="text-[10px] text-sky-700 dark:text-sky-400">
-                      Send to Telegram contact or group
+                      Attaches exact PDF certificate file to Telegram contact or group
                     </p>
                   </div>
                 </div>

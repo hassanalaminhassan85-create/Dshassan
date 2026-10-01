@@ -462,16 +462,17 @@ export const PublicCertificateVerification: React.FC<PublicCertificateVerificati
 
                 {/* Hidden Clean 1:1 Rendering Target for 100% Reliable PDF & Print Generation */}
                 <div
+                  id="ds-public-verified-clean-export-container"
                   style={{
                     position: 'fixed',
                     top: 0,
-                    left: 0,
+                    left: '-99999px',
                     width: '794px',
                     height: '1123px',
                     overflow: 'hidden',
                     pointerEvents: 'none',
                     zIndex: -9999,
-                    opacity: 0,
+                    opacity: 1,
                     backgroundColor: '#FFFFFF',
                   }}
                   aria-hidden="true"

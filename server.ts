@@ -613,6 +613,20 @@ ${liveContext ? liveContext : ''}`;
     }
   });
 
+  // 6. Delete certificate permanently
+  app.delete('/api/certificates/:id', (req, res) => {
+    try {
+      const id = req.params.id;
+      if (!certificatesStore.has(id)) {
+        return res.status(404).json({ success: false, error: 'Certificate not found' });
+      }
+      certificatesStore.delete(id);
+      return res.json({ success: true, message: `Certificate ${id} deleted successfully` });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message || 'Delete certificate error' });
+    }
+  });
+
   // Always use Vite middleware to support both React client and serverless /api routes in the local server
   const vite = await createViteServer({
     server: { middlewareMode: true },

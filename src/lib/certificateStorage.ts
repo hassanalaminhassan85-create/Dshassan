@@ -1,4 +1,4 @@
-import { collection, doc, setDoc, updateDoc, getDoc, getDocs, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, updateDoc, deleteDoc, getDoc, getDocs, query, where, orderBy, onSnapshot, Timestamp } from 'firebase/firestore';
 import { db } from './firebase';
 import { EmploymentCertificate, CertificateStatus } from '../types';
 import {
@@ -26,6 +26,34 @@ const CERTIFICATES_COLLECTION = 'employment_certificates';
 export function generateCertificateNumber(sequence: number, year: number = new Date().getFullYear()): string {
   const seqStr = String(sequence).padStart(4, '0');
   return `DST/COE/${year}/${seqStr}`;
+}
+
+/**
+ * Compute the next sequence number by finding the highest sequence in existing certificates
+ */
+export function computeNextCertificateSequence(certs: EmploymentCertificate[]): number {
+  let maxSeq = 0;
+  if (Array.isArray(certs)) {
+    certs.forEach((c) => {
+      if (typeof c.sequenceNumber === 'number' && c.sequenceNumber > maxSeq && c.sequenceNumber < 100000) {
+        maxSeq = c.sequenceNumber;
+      }
+      const candidates = [c.certificateNumber, c.appointmentRefNo];
+      candidates.forEach((str) => {
+        if (typeof str === 'string') {
+          // Match the last sequence of digits e.g. /2026/0004 or -0004
+          const m = str.match(/(\d+)(?!.*\d)/);
+          if (m) {
+            const val = parseInt(m[1], 10);
+            if (!isNaN(val) && val > maxSeq && val < 100000) {
+              maxSeq = val;
+            }
+          }
+        }
+      });
+    });
+  }
+  return maxSeq + 1;
 }
 
 /**
@@ -199,6 +227,36 @@ export async function apiUpdateCertificateStatus(
   }
 
   return null;
+}
+
+/**
+ * Permanently delete a Certificate of Employment from Firestore and backend
+ */
+export async function apiDeleteCertificate(id: string): Promise<boolean> {
+  // 1. Delete from Firestore
+  try {
+    const certRef = doc(db, CERTIFICATES_COLLECTION, id);
+    await deleteDoc(certRef);
+  } catch (err) {
+    console.error('Firestore delete certificate error:', err);
+  }
+
+  // 2. Delete from Backend
+  try {
+    await fetch(`/api/certificates/${id}`, {
+      method: 'DELETE',
+    });
+  } catch (err) {
+    console.warn('Backend delete certificate error:', err);
+  }
+
+  // 3. Dispatch global sync event
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_certificate_deleted', { detail: { id } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
+  return true;
 }
 
 /**

@@ -158,6 +158,7 @@ export type CertificateStatus = 'Draft' | 'Issued' | 'Revoked' | 'Reissued';
 
 export interface EmploymentCertificate {
   id: string;
+  sequenceNumber?: number;
   certificateNumber: string;
   appointmentRefNo: string;
   employeeName: string;

@@ -22,7 +22,10 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
   interactive = false,
 }) => {
   // Format dynamic values or fallback to uppercase placeholders if empty
-  const appRefNo = certificate.appointmentRefNo || certificate.certificateNumber || 'DST/COE/2026/0001';
+  const appRefNo =
+    certificate.appointmentRefNo ||
+    certificate.certificateNumber ||
+    (certificate.employeeName ? `DST/COE/${new Date().getFullYear()}/` : 'DST/COE/2026/----');
   const employeeId = certificate.employeeId || '[EMPLOYEE ID]';
   const employeeName = certificate.employeeName || '[FULL NAME]';
   const position = certificate.position || '[POSITION]';
@@ -95,7 +98,14 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
       {/* Top-Left Corner Geometric Wing Accent */}
       <div className="absolute top-[11px] left-[11px] z-20 pointer-events-none">
         <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
-          <polygon points="0,0 72,0 0,72" fill="url(#goldCornerGrad)" opacity="0.95" />
+          <defs>
+            <linearGradient id="goldCornerGradTL" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#FFA000" />
+              <stop offset="50%" stopColor="#D4AF37" />
+              <stop offset="100%" stopColor="#C89B3C" />
+            </linearGradient>
+          </defs>
+          <polygon points="0,0 72,0 0,72" fill="url(#goldCornerGradTL)" opacity="0.95" />
           <polygon points="0,0 52,0 0,52" fill="#0A2558" />
           <line x1="0" y1="58" x2="58" y2="0" stroke="#FFFFFF" strokeWidth="1.6" opacity="0.85" />
           <line x1="0" y1="64" x2="64" y2="0" stroke="#FFA000" strokeWidth="1.6" />
@@ -105,15 +115,22 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
       {/* Top-Right Corner Geometric Wing Accent */}
       <div className="absolute top-[11px] right-[11px] z-20 pointer-events-none">
         <svg width="72" height="72" viewBox="0 0 72 72" fill="none">
-          <polygon points="72,0 0,0 72,72" fill="url(#goldCornerGrad)" opacity="0.95" />
+          <defs>
+            <linearGradient id="goldCornerGradTR" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#FFA000" />
+              <stop offset="50%" stopColor="#D4AF37" />
+              <stop offset="100%" stopColor="#C89B3C" />
+            </linearGradient>
+          </defs>
+          <polygon points="72,0 0,0 72,72" fill="url(#goldCornerGradTR)" opacity="0.95" />
           <polygon points="72,0 20,0 72,52" fill="#0A2558" />
           <line x1="72" y1="58" x2="14" y2="0" stroke="#FFFFFF" strokeWidth="1.6" opacity="0.85" />
           <line x1="72" y1="64" x2="8" y2="0" stroke="#FFA000" strokeWidth="1.6" />
         </svg>
       </div>
 
-      {/* SVG Definitions for Gradients used across the Certificate */}
-      <svg width="0" height="0" className="absolute">
+      {/* Global Fallback Gradients */}
+      <svg width="0" height="0" className="absolute" style={{ position: 'absolute', width: 0, height: 0 }}>
         <defs>
           <linearGradient id="goldCornerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#FFA000" />
@@ -150,148 +167,41 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
       >
         {/* ========================================================= */}
         {/* OFFICIAL WATERMARK IN THE MIDDLE (Centered on A4 Canvas)   */}
+        {/* Uses Official DS Tech Logo maintaining exact size         */}
         {/* ========================================================= */}
         <div
-          className="absolute pointer-events-none select-none"
+          className="pointer-events-none select-none flex items-center justify-center"
           style={{
             position: 'absolute',
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
             width: '380px',
+            minWidth: '380px',
+            maxWidth: '380px',
             height: '380px',
+            minHeight: '380px',
+            maxHeight: '380px',
             pointerEvents: 'none',
             zIndex: 0,
-            opacity: 0.055,
           }}
           aria-hidden="true"
         >
-          <svg viewBox="0 0 100 100" className="w-full h-full" style={{ opacity: 0.055 }}>
-            {/* Outer circular shield ring */}
-            <circle
-              cx="50"
-              cy="50"
-              r="47"
-              stroke="#002D62"
-              strokeWidth="3.2"
-              strokeOpacity="0.08"
-              fill="none"
-            />
-            <circle
-              cx="50"
-              cy="50"
-              r="43"
-              stroke="#002D62"
-              strokeWidth="0.8"
-              strokeDasharray="2 2"
-              strokeOpacity="0.06"
-              fill="none"
-            />
-            {/* Stylized Diamond Crown */}
-            <path
-              d="M 50 8 L 59 13.5 L 50 19 L 41 13.5 Z"
-              fill="#002D62"
-              fillOpacity="0.05"
-              stroke="#002D62"
-              strokeWidth="0.75"
-              strokeOpacity="0.08"
-            />
-            {/* Orange Accent Arcs */}
-            <path
-              d="M 23 28 A 29 29 0 0 0 23 72"
-              stroke="#002D62"
-              strokeWidth="3"
-              strokeOpacity="0.08"
-              fill="none"
-            />
-            <path
-              d="M 77 28 A 29 29 0 0 1 77 72"
-              stroke="#002D62"
-              strokeWidth="3"
-              strokeOpacity="0.08"
-              fill="none"
-            />
-            {/* Inner concentric rings */}
-            <circle
-              cx="50"
-              cy="50"
-              r="38"
-              stroke="#002D62"
-              strokeWidth="0.8"
-              strokeDasharray="4 6"
-              strokeOpacity="0.06"
-              fill="none"
-            />
-            {/* Main DS Monogram */}
-            <text
-              x="50"
-              y="48"
-              fontFamily="'Space Grotesk', 'Inter', system-ui, sans-serif"
-              fontWeight="900"
-              fontSize="26"
-              fill="#002D62"
-              fillOpacity="0.08"
-              textAnchor="middle"
-              letterSpacing="-1"
-            >
-              DS
-            </text>
-            {/* Official Agency Name */}
-            <text
-              x="50"
-              y="58"
-              fontFamily="'Inter', system-ui, sans-serif"
-              fontWeight="900"
-              fontSize="4.2"
-              fill="#002D62"
-              fillOpacity="0.08"
-              textAnchor="middle"
-              letterSpacing="0.6"
-            >
-              TECH AND DIGITAL
-            </text>
-            <text
-              x="50"
-              y="64"
-              fontFamily="'Inter', system-ui, sans-serif"
-              fontWeight="900"
-              fontSize="4.2"
-              fill="#002D62"
-              fillOpacity="0.08"
-              textAnchor="middle"
-              letterSpacing="0.4"
-            >
-              MARKETING AGENCY LTD
-            </text>
-            {/* Slogan */}
-            <line x1="32" y1="69" x2="68" y2="69" stroke="#002D62" strokeWidth="0.5" strokeOpacity="0.06" />
-            <text
-              x="50"
-              y="74"
-              fontFamily="'Inter', system-ui, sans-serif"
-              fontWeight="600"
-              fontSize="2.8"
-              fill="#002D62"
-              fillOpacity="0.06"
-              textAnchor="middle"
-              letterSpacing="0.2"
-            >
-              EMPOWERING BRANDS WITH
-            </text>
-            <text
-              x="50"
-              y="78"
-              fontFamily="'Inter', system-ui, sans-serif"
-              fontWeight="800"
-              fontSize="3.1"
-              fill="#002D62"
-              fillOpacity="0.07"
-              textAnchor="middle"
-              letterSpacing="0.2"
-            >
-              TECH &amp; DIGITAL EXCELLENCE
-            </text>
-          </svg>
+          {/* Authentic DS Tech Official Logo Watermark */}
+          <img
+            src={officialLogoImg || '/official-logo.jpg'}
+            alt="Official Watermark"
+            crossOrigin="anonymous"
+            style={{
+              width: '380px',
+              height: '380px',
+              objectFit: 'contain',
+              borderRadius: '50%',
+              opacity: 0.07,
+              display: 'block',
+              pointerEvents: 'none',
+            }}
+          />
         </div>
 
         {/* TOP SECTION: Header + Title Banner */}
@@ -328,6 +238,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                 <img
                   src={officialLogoImg || '/official-logo.jpg'}
                   alt="DS Tech Official Logo"
+                  crossOrigin="anonymous"
                   style={{
                     width: '90px',
                     height: '90px',
@@ -468,6 +379,13 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                 className="absolute inset-0 w-full h-full pointer-events-none"
                 preserveAspectRatio="none"
               >
+                <defs>
+                  <linearGradient id="goldRibbonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#F59E0B" />
+                    <stop offset="50%" stopColor="#D97706" />
+                    <stop offset="100%" stopColor="#B45309" />
+                  </linearGradient>
+                </defs>
                 {/* Left Gold Chevron Tip */}
                 <polygon points="0,38 30,0 30,76" fill="url(#goldRibbonGrad)" />
 
@@ -587,6 +505,13 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                   className="absolute inset-0 w-full h-full pointer-events-none"
                   preserveAspectRatio="none"
                 >
+                  <defs>
+                    <linearGradient id="goldRibbonGradTerms" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#F59E0B" />
+                      <stop offset="50%" stopColor="#D97706" />
+                      <stop offset="100%" stopColor="#B45309" />
+                    </linearGradient>
+                  </defs>
                   {/* Navy Chamfered Box */}
                   <polygon
                     points="14,0 330,0 342,18 330,36 14,36 0,18"
@@ -595,7 +520,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                     strokeWidth="1.5"
                   />
                   {/* Right Gold Chevron Tip */}
-                  <polygon points="350,18 332,0 332,36" fill="url(#goldRibbonGrad)" />
+                  <polygon points="350,18 332,0 332,36" fill="url(#goldRibbonGradTerms)" />
                 </svg>
 
                 <div className="relative z-10 px-6">
@@ -693,7 +618,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                     src={certificate.signatureDataUrl}
                     alt="CEO Executive Signature"
                     crossOrigin="anonymous"
-                    className="max-h-[66px] max-w-[210px] object-contain object-bottom drop-shadow-xs"
+                    className="max-h-[66px] max-w-[210px] object-contain object-bottom"
                   />
                 ) : (
                   /* Director's Authentic Executive Blue Ink Signature (Vector Reproduction) */
@@ -765,7 +690,16 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             {/* Middle Column: Scalloped Golden Embossed Official Seal (Exact Match) */}
             <div style={{ width: '150px', flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
               <div className="relative w-[130px] h-[130px]">
-                <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-md overflow-visible">
+                <svg viewBox="0 0 120 120" className="w-full h-full overflow-visible">
+                  <defs>
+                    <linearGradient id="sealMetallicGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#FFE082" />
+                      <stop offset="25%" stopColor="#FFB300" />
+                      <stop offset="50%" stopColor="#FFC107" />
+                      <stop offset="75%" stopColor="#FFA000" />
+                      <stop offset="100%" stopColor="#FF8F00" />
+                    </linearGradient>
+                  </defs>
                   {/* Sunburst Scalloped Outer Teeth (32 teeth) */}
                   <g fill="url(#sealMetallicGrad)">
                     {Array.from({ length: 32 }).map((_, i) => (

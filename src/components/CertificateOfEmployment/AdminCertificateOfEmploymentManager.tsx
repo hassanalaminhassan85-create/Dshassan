@@ -6,7 +6,7 @@ import {
   Building, User, Calendar, QrCode, ArrowRight, ArrowLeft,
   XCircle, Copy, ExternalLink, Check, RotateCcw, AlertTriangle, Users,
   Maximize2, Minimize2, PenTool, Feather, CheckSquare, Sparkles, Layout,
-  Smartphone, Mail
+  Smartphone, Mail, Trash2
 } from 'lucide-react';
 import { EmploymentCertificate, CertificateStatus } from '../../types';
 import { CertificateOfEmploymentDocument } from './CertificateOfEmploymentDocument';
@@ -16,8 +16,10 @@ import {
   apiSubscribeToCertificates,
   apiSaveCertificate,
   apiUpdateCertificateStatus,
+  apiDeleteCertificate,
   generateCertificateNumber,
   generateAppointmentRefNo,
+  computeNextCertificateSequence,
   generateSerialEmployeeId,
   generateVerificationCode,
   getVerificationUrl,
@@ -31,6 +33,8 @@ import {
   formatCertificateFileName,
   getCachedCertificatePDF,
   setCachedCertificatePDF,
+  clearCachedCertificatePDF,
+  clearAllCertificateBlobCache,
 } from './certificatePdfUtils';
 import { CertificateShareModal } from './CertificateShareModal';
 import { apiSubscribeToStaff, apiSubscribeToDepartments } from '../../lib/api';
@@ -89,6 +93,8 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   const [revokeReason, setRevokeReason] = useState<string>('');
   const [reissueModalCert, setReissueModalCert] = useState<EmploymentCertificate | null>(null);
   const [reissueNote, setReissueNote] = useState<string>('');
+  const [deleteModalCert, setDeleteModalCert] = useState<EmploymentCertificate | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   // Operations Loading
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
@@ -230,7 +236,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   // Initialize new Certificate Identifiers with auto serial Employee ID
   const resetFormToNew = () => {
     const currentYear = new Date().getFullYear();
-    const nextSeq = certificates.length + 1;
+    const nextSeq = computeNextCertificateSequence(certificates);
     const certNum = generateCertificateNumber(nextSeq, currentYear);
     const refNum = generateAppointmentRefNo(nextSeq, currentYear);
     const vCode = generateVerificationCode();
@@ -257,6 +263,8 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
   // Real-time Database Subscriptions
   useEffect(() => {
+    // Clear any stale cached PDFs from memory
+    clearAllCertificateBlobCache();
     setLoading(true);
     const unsubCerts = apiSubscribeToCertificates((data) => {
       setCertificates(data);
@@ -287,19 +295,23 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
     };
   }, []);
 
-  // Update initial certificate numbers and auto serial Employee ID when certificates list loads if empty
+  // Update initial certificate numbers and auto serial Employee ID when certificates list loads
   useEffect(() => {
+    if (loading) return;
     const currentYear = new Date().getFullYear();
-    const nextSeq = certificates.length + 1;
-    if (!certificateNumber) {
+    const nextSeq = computeNextCertificateSequence(certificates);
+    // If certificateNumber is uninitialized OR user has not typed an employee yet and sequence was stuck at 0001
+    if (!certificateNumber || (!employeeName.trim() && certificateNumber.endsWith('0001') && nextSeq > 1)) {
       setCertificateNumber(generateCertificateNumber(nextSeq, currentYear));
       setAppointmentRefNo(generateAppointmentRefNo(nextSeq, currentYear));
-      setVerificationCode(generateVerificationCode());
+      if (!verificationCode) {
+        setVerificationCode(generateVerificationCode());
+      }
     }
-    if (!employeeId) {
+    if (!employeeId || (!employeeName.trim() && employeeId.endsWith('0001'))) {
       setEmployeeId(computeNextSerialEmployeeId(certificates, staffDirectory));
     }
-  }, [certificates, staffDirectory]);
+  }, [certificates, staffDirectory, loading]);
 
   // Update QR Code whenever verification code changes
   useEffect(() => {
@@ -418,9 +430,30 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
     }
   };
 
+  // Delete Certificate Permanently
+  const handleDeleteCertificate = async () => {
+    if (!deleteModalCert?.id) return;
+    setIsDeleting(true);
+    try {
+      await apiDeleteCertificate(deleteModalCert.id);
+      clearCachedCertificatePDF(deleteModalCert.id);
+      setCertificates((prev) => prev.filter((c) => c.id !== deleteModalCert.id));
+      showToast('success', `Certificate ${deleteModalCert.certificateNumber} permanently deleted.`);
+      if (previewModalCert?.id === deleteModalCert.id) {
+        setPreviewModalCert(null);
+      }
+      setDeleteModalCert(null);
+    } catch (err: any) {
+      console.error('[Delete Error]', err);
+      showToast('error', err?.message || 'Failed to delete certificate.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Download PDF Action
   const handleDownloadPDF = async (certOverride?: EmploymentCertificate) => {
-    const cert = certOverride || (currentCertificateData as EmploymentCertificate);
+    const cert = certOverride || previewModalCert || (currentCertificateData as EmploymentCertificate);
     setIsGeneratingPDF(true);
     try {
       setExportCertData(cert);
@@ -429,12 +462,13 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
         const qr = await generateCertificateQRCode(vUrl).catch(() => '');
         setExportQrUrl(qr);
       }
-      // Brief pause to ensure React renders the export container cleanly
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Double rAF + safe delay ensures React renders export target with 100% updated state
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       const targetEl =
+        (previewModalCert?.id === cert.id ? document.getElementById('ds-modal-certificate-doc') : null) ||
         document.getElementById('ds-certificate-clean-export-doc') ||
-        document.getElementById('ds-modal-certificate-doc') ||
         document.getElementById('ds-certificate-of-employment-document');
 
       if (!targetEl) {
@@ -443,6 +477,10 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
       const blob = await generateCertificatePDFBlob(targetEl);
       const fileName = formatCertificateFileName(cert);
+      if (cert.id) {
+        const file = new File([blob], fileName, { type: 'application/pdf', lastModified: Date.now() });
+        setCachedCertificatePDF(cert.id, blob, file);
+      }
       downloadCertificateBlob(blob, fileName);
       showToast('success', `Downloaded ${fileName}`);
     } catch (err: any) {
@@ -455,7 +493,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
   // Print Action
   const handlePrint = async (certOverride?: EmploymentCertificate) => {
-    const cert = certOverride || (currentCertificateData as EmploymentCertificate);
+    const cert = certOverride || previewModalCert || (currentCertificateData as EmploymentCertificate);
     try {
       showToast('info', 'Preparing print-ready certificate...');
       setExportCertData(cert);
@@ -464,11 +502,13 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
         const qr = await generateCertificateQRCode(vUrl).catch(() => '');
         setExportQrUrl(qr);
       }
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      // Double rAF + safe delay ensures React renders export target with 100% updated state
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       const targetEl =
+        (previewModalCert?.id === cert.id ? document.getElementById('ds-modal-certificate-doc') : null) ||
         document.getElementById('ds-certificate-clean-export-doc') ||
-        document.getElementById('ds-modal-certificate-doc') ||
         document.getElementById('ds-certificate-of-employment-document');
 
       if (!targetEl) {
@@ -485,15 +525,24 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   useEffect(() => {
     if (!previewModalCert?.id) return;
     const cert = previewModalCert;
+
+    // Immediately sync export data with the specific previewed certificate
+    setExportCertData(cert);
+    if (cert.verificationCode) {
+      const vUrl = cert.qrVerificationUrl || getVerificationUrl(cert.verificationCode);
+      generateCertificateQRCode(vUrl).then(setExportQrUrl).catch(() => {});
+    }
+
     const cached = getCachedCertificatePDF(cert.id);
     if (cached) return;
 
     let isMounted = true;
     const timer = setTimeout(async () => {
       try {
+        // Prioritize the modal certificate doc which is guaranteed to be rendered with previewModalCert
         const targetEl =
-          document.getElementById('ds-certificate-clean-export-doc') ||
-          document.getElementById('ds-modal-certificate-doc');
+          document.getElementById('ds-modal-certificate-doc') ||
+          document.getElementById('ds-certificate-clean-export-doc');
         if (targetEl && isMounted) {
           const blob = await generateCertificatePDFBlob(targetEl);
           const fileName = formatCertificateFileName(cert);
@@ -513,10 +562,28 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
   // Share Action: Pops up phone native share channels with exact PDF, or displays channels modal
   const handleShare = async (certOverride?: EmploymentCertificate) => {
-    const cert = certOverride || (currentCertificateData as EmploymentCertificate);
+    // 1. Determine exact certificate to share (prioritizing override, then preview modal cert, then active form only if name is entered)
+    const cert =
+      certOverride ||
+      previewModalCert ||
+      (employeeName.trim() ? (currentCertificateData as EmploymentCertificate) : null);
+
+    if (!cert || !cert.employeeName || cert.employeeName.trim() === '') {
+      showToast('error', 'Please select a certificate to share or fill in the employee details first.');
+      return;
+    }
+
     const fileName = formatCertificateFileName(cert);
 
-    // 1. If PDF is already pre-cached in memory, trigger phone native share with 0ms delay!
+    // Sync export targets immediately
+    setExportCertData(cert);
+    if (cert.verificationCode) {
+      const vUrl = cert.qrVerificationUrl || getVerificationUrl(cert.verificationCode);
+      const qr = await generateCertificateQRCode(vUrl).catch(() => '');
+      setExportQrUrl(qr);
+    }
+
+    // 2. If PDF is already pre-cached in memory for this exact certificate ID:
     if (cert.id) {
       const cached = getCachedCertificatePDF(cert.id);
       if (cached) {
@@ -528,11 +595,11 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
           isCompiling: false,
         });
 
-        // Trigger native share sheet directly inside click event
+        // Trigger native share sheet directly with ONLY the PDF file
         try {
           const res = await shareCertificatePDF(cached.blob, fileName, cert);
           if (res.shared) {
-            showToast('success', 'Phone share channels opened!');
+            showToast('success', 'PDF shared directly!');
           }
         } catch {
           // Modal will remain open for fallback
@@ -541,7 +608,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
       }
     }
 
-    // 2. Open channels modal immediately with compiling indicator
+    // 3. Open channels modal immediately with compiling indicator
     setShareModalData({
       blob: null,
       file: null,
@@ -552,17 +619,13 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
     setIsSharing(true);
     try {
-      setExportCertData(cert);
-      if (cert.verificationCode) {
-        const vUrl = cert.qrVerificationUrl || getVerificationUrl(cert.verificationCode);
-        const qr = await generateCertificateQRCode(vUrl).catch(() => '');
-        setExportQrUrl(qr);
-      }
-      await new Promise((resolve) => setTimeout(resolve, 80));
+      // Double rAF + safe delay ensures React renders export target with 100% updated state
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       const targetEl =
+        (previewModalCert?.id === cert.id ? document.getElementById('ds-modal-certificate-doc') : null) ||
         document.getElementById('ds-certificate-clean-export-doc') ||
-        document.getElementById('ds-modal-certificate-doc') ||
         document.getElementById('ds-certificate-of-employment-document');
 
       if (!targetEl) {
@@ -585,11 +648,11 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
         isCompiling: false,
       });
 
-      // Attempt native share
+      // Attempt native share with ONLY the PDF file
       try {
         const res = await shareCertificatePDF(blob, fileName, cert);
         if (res.shared) {
-          showToast('success', 'Phone share channels opened!');
+          showToast('success', 'PDF shared directly!');
         }
       } catch {
         // Fallback is already displayed in the modal
@@ -1529,6 +1592,16 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                                 <XCircle size={13} />
                               </button>
                             )}
+
+                            {/* Delete Certificate Button */}
+                            <button
+                              type="button"
+                              onClick={() => setDeleteModalCert(cert)}
+                              className="p-1.5 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 rounded-lg transition-colors cursor-pointer"
+                              title="Delete Certificate Permanently"
+                            >
+                              <Trash2 size={13} />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -1683,6 +1756,18 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
                   <button
                     type="button"
+                    onClick={() => {
+                      if (previewModalCert) setDeleteModalCert(previewModalCert);
+                    }}
+                    className="px-3 py-2 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 rounded-xl text-xs font-bold uppercase flex items-center gap-1.5 cursor-pointer"
+                    title="Delete Certificate"
+                  >
+                    <Trash2 size={14} />
+                    <span>Delete</span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => setPreviewModalCert(null)}
                     className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer ml-1"
                   >
@@ -1711,7 +1796,6 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                     <CertificateOfEmploymentDocument
                       id="ds-modal-certificate-doc"
                       certificate={previewModalCert}
-                      qrCodeDataUrl={qrCodeDataUrl}
                     />
                   </div>
                 </div>
@@ -1719,13 +1803,25 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
               {/* Modal Footer with Actions for quick access on mobile */}
               <div className="p-3 sm:p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setPreviewModalCert(null)}
-                  className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                >
-                  Close Preview
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPreviewModalCert(null)}
+                    className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  >
+                    Close Preview
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (previewModalCert) setDeleteModalCert(previewModalCert);
+                    }}
+                    className="px-3 py-2 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Trash2 size={13} />
+                    <span>Delete</span>
+                  </button>
+                </div>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -1885,6 +1981,93 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
       </AnimatePresence>
 
       {/* ========================================================= */}
+      {/* MODAL: DELETE CERTIFICATE CONFIRMATION                    */}
+      {/* ========================================================= */}
+      <AnimatePresence>
+        {deleteModalCert && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 10 }}
+              className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-red-200 dark:border-red-900/60 space-y-4"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-red-100 dark:bg-red-950/60 flex items-center justify-center text-red-600 dark:text-red-400 shrink-0">
+                  <Trash2 size={24} />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                    Delete Certificate
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    This action is permanent and cannot be undone.
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/60 space-y-1.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Employee:</span>
+                  <span className="font-bold text-slate-900 dark:text-white">{deleteModalCert.employeeName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Certificate No:</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white">{deleteModalCert.certificateNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Position:</span>
+                  <span className="text-slate-700 dark:text-slate-300">{deleteModalCert.position}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Verification Code:</span>
+                  <span className="font-mono text-slate-700 dark:text-slate-300">{deleteModalCert.verificationCode}</span>
+                </div>
+              </div>
+
+              <p className="text-xs text-red-600 dark:text-red-400 leading-relaxed font-medium">
+                Deleting this certificate will permanently remove its database record and invalidate any public verification link or printed QR code.
+              </p>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteModalCert(null)}
+                  disabled={isDeleting}
+                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteCertificate}
+                  disabled={isDeleting}
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-md shadow-red-600/20 cursor-pointer disabled:opacity-50"
+                >
+                  {isDeleting ? (
+                    <>
+                      <RefreshCw size={13} className="animate-spin" />
+                      <span>Deleting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 size={13} />
+                      <span>Delete Certificate</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ========================================================= */}
       {/* MODAL: CEO SIGNATURE & AUTHORIZATION STUDIO               */}
       {/* ========================================================= */}
       <AnimatePresence>
@@ -1970,6 +2153,15 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
                 <button
                   type="button"
+                  onClick={() => handlePrint()}
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-sm"
+                >
+                  <Printer size={13} />
+                  <span>Print</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => handleShare()}
                   className="px-3 py-1.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer shadow-sm"
                 >
@@ -2019,16 +2211,17 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
       {/* Hidden Clean 1:1 Rendering Target for 100% Reliable PDF & Print Generation (Zero Mobile Scaling Glitches) */}
       <div
+        id="ds-certificate-clean-export-container"
         style={{
           position: 'fixed',
           top: 0,
-          left: 0,
+          left: '-99999px',
           width: '794px',
           height: '1123px',
           overflow: 'hidden',
           pointerEvents: 'none',
           zIndex: -9999,
-          opacity: 0,
+          opacity: 1,
           backgroundColor: '#FFFFFF',
         }}
         aria-hidden="true"
