@@ -69,7 +69,9 @@ export const PublicCertificateVerification: React.FC<PublicCertificateVerificati
 
   const handleDownload = async () => {
     if (!result?.certificate) return;
-    const el = document.getElementById('ds-public-verified-cert-doc');
+    const el =
+      document.getElementById('ds-public-verified-clean-export') ||
+      document.getElementById('ds-public-verified-cert-doc');
     if (!el) return;
     setIsGeneratingPDF(true);
     try {
@@ -86,13 +88,17 @@ export const PublicCertificateVerification: React.FC<PublicCertificateVerificati
   };
 
   const handlePrint = () => {
-    const el = document.getElementById('ds-public-verified-cert-doc');
+    const el =
+      document.getElementById('ds-public-verified-clean-export') ||
+      document.getElementById('ds-public-verified-cert-doc');
     if (el) printCertificateElement(el);
   };
 
   const handleShare = async () => {
     if (!result?.certificate) return;
-    const el = document.getElementById('ds-public-verified-cert-doc');
+    const el =
+      document.getElementById('ds-public-verified-clean-export') ||
+      document.getElementById('ds-public-verified-cert-doc');
     if (!el) return;
     try {
       const blob = await generateCertificatePDFBlob(el);
@@ -399,6 +405,29 @@ export const PublicCertificateVerification: React.FC<PublicCertificateVerificati
                     </div>
                   </div>
                 )}
+
+                {/* Hidden Clean 1:1 Rendering Target for 100% Reliable PDF & Print Generation */}
+                <div
+                  style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '794px',
+                    height: '1123px',
+                    overflow: 'hidden',
+                    pointerEvents: 'none',
+                    zIndex: -9999,
+                    opacity: 0,
+                    backgroundColor: '#FFFFFF',
+                  }}
+                  aria-hidden="true"
+                >
+                  <CertificateOfEmploymentDocument
+                    id="ds-public-verified-clean-export"
+                    certificate={result.certificate}
+                    qrCodeDataUrl={qrCodeDataUrl}
+                  />
+                </div>
 
               </div>
             )}

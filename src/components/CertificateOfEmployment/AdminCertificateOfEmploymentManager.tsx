@@ -75,6 +75,10 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   const [verificationCode, setVerificationCode] = useState<string>('');
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
 
+  // Dedicated Export Target State (to render any certificate 1:1 for PDF/Print without modal scale dependencies)
+  const [exportCertData, setExportCertData] = useState<Partial<EmploymentCertificate> | null>(null);
+  const [exportQrUrl, setExportQrUrl] = useState<string>('');
+
   // Active Selected Certificate for Actions/Preview
   const [previewModalCert, setPreviewModalCert] = useState<EmploymentCertificate | null>(null);
   const [revokeModalCert, setRevokeModalCert] = useState<EmploymentCertificate | null>(null);
@@ -405,17 +409,26 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   // Download PDF Action
   const handleDownloadPDF = async (certOverride?: EmploymentCertificate) => {
     const cert = certOverride || (currentCertificateData as EmploymentCertificate);
-    const targetEl = certOverride
-      ? (document.getElementById('ds-modal-certificate-doc') || document.getElementById('ds-modal-fullscreen-certificate-doc'))
-      : (document.getElementById('ds-certificate-clean-export-doc') || document.getElementById('ds-certificate-of-employment-document'));
-
-    if (!targetEl) {
-      showToast('error', 'Certificate rendering canvas not ready.');
-      return;
-    }
-
     setIsGeneratingPDF(true);
     try {
+      setExportCertData(cert);
+      if (cert.verificationCode) {
+        const vUrl = cert.qrVerificationUrl || getVerificationUrl(cert.verificationCode);
+        const qr = await generateCertificateQRCode(vUrl).catch(() => '');
+        setExportQrUrl(qr);
+      }
+      // Brief pause to ensure React renders the export container cleanly
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const targetEl =
+        document.getElementById('ds-certificate-clean-export-doc') ||
+        document.getElementById('ds-modal-certificate-doc') ||
+        document.getElementById('ds-certificate-of-employment-document');
+
+      if (!targetEl) {
+        throw new Error('Certificate rendering canvas not ready.');
+      }
+
       const blob = await generateCertificatePDFBlob(targetEl);
       const fileName = formatCertificateFileName(cert);
       downloadCertificateBlob(blob, fileName);
@@ -430,16 +443,25 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
 
   // Print Action
   const handlePrint = async (certOverride?: EmploymentCertificate) => {
-    const targetEl = certOverride
-      ? (document.getElementById('ds-modal-certificate-doc') || document.getElementById('ds-modal-fullscreen-certificate-doc'))
-      : (document.getElementById('ds-certificate-clean-export-doc') || document.getElementById('ds-certificate-of-employment-document'));
-
-    if (!targetEl) {
-      showToast('error', 'Certificate element not available for printing.');
-      return;
-    }
+    const cert = certOverride || (currentCertificateData as EmploymentCertificate);
     try {
       showToast('info', 'Preparing print-ready certificate...');
+      setExportCertData(cert);
+      if (cert.verificationCode) {
+        const vUrl = cert.qrVerificationUrl || getVerificationUrl(cert.verificationCode);
+        const qr = await generateCertificateQRCode(vUrl).catch(() => '');
+        setExportQrUrl(qr);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const targetEl =
+        document.getElementById('ds-certificate-clean-export-doc') ||
+        document.getElementById('ds-modal-certificate-doc') ||
+        document.getElementById('ds-certificate-of-employment-document');
+
+      if (!targetEl) {
+        throw new Error('Certificate element not available for printing.');
+      }
       await printCertificateElement(targetEl as HTMLElement);
     } catch (err: any) {
       console.error('[Print Error]', err);
@@ -450,16 +472,24 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   // Share Action
   const handleShare = async (certOverride?: EmploymentCertificate) => {
     const cert = certOverride || (currentCertificateData as EmploymentCertificate);
-    const targetEl = certOverride
-      ? (document.getElementById('ds-modal-certificate-doc') || document.getElementById('ds-modal-fullscreen-certificate-doc'))
-      : (document.getElementById('ds-certificate-clean-export-doc') || document.getElementById('ds-certificate-of-employment-document'));
-
-    if (!targetEl) {
-      showToast('error', 'Certificate element not ready.');
-      return;
-    }
-
     try {
+      setExportCertData(cert);
+      if (cert.verificationCode) {
+        const vUrl = cert.qrVerificationUrl || getVerificationUrl(cert.verificationCode);
+        const qr = await generateCertificateQRCode(vUrl).catch(() => '');
+        setExportQrUrl(qr);
+      }
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const targetEl =
+        document.getElementById('ds-certificate-clean-export-doc') ||
+        document.getElementById('ds-modal-certificate-doc') ||
+        document.getElementById('ds-certificate-of-employment-document');
+
+      if (!targetEl) {
+        throw new Error('Certificate element not ready.');
+      }
+
       const blob = await generateCertificatePDFBlob(targetEl);
       const fileName = formatCertificateFileName(cert);
       const shared = await shareCertificatePDF(blob, fileName, cert);
@@ -1335,10 +1365,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                             {/* Download */}
                             <button
                               type="button"
-                              onClick={() => {
-                                setPreviewModalCert(cert);
-                                setTimeout(() => handleDownloadPDF(cert), 200);
-                              }}
+                              onClick={() => handleDownloadPDF(cert)}
                               className="p-1.5 bg-[#000E32] hover:bg-[#001750] text-white rounded-lg transition-colors cursor-pointer"
                               title="Download PDF"
                             >
@@ -1348,10 +1375,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                             {/* Print */}
                             <button
                               type="button"
-                              onClick={() => {
-                                setPreviewModalCert(cert);
-                                setTimeout(() => handlePrint(cert), 200);
-                              }}
+                              onClick={() => handlePrint(cert)}
                               className="p-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
                               title="Print Certificate"
                             >
@@ -1837,21 +1861,22 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
       <div
         style={{
           position: 'fixed',
-          left: '-9999px',
-          top: '0',
+          top: 0,
+          left: 0,
           width: '794px',
           height: '1123px',
-          overflow: 'visible',
+          overflow: 'hidden',
           pointerEvents: 'none',
           zIndex: -9999,
+          opacity: 0,
           backgroundColor: '#FFFFFF',
         }}
         aria-hidden="true"
       >
         <CertificateOfEmploymentDocument
           id="ds-certificate-clean-export-doc"
-          certificate={currentCertificateData}
-          qrCodeDataUrl={qrCodeDataUrl}
+          certificate={exportCertData || currentCertificateData}
+          qrCodeDataUrl={exportQrUrl || qrCodeDataUrl}
         />
       </div>
 

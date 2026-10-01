@@ -54,33 +54,51 @@ export async function generateCertificatePDFBlob(
   }
   await new Promise((resolve) => setTimeout(resolve, 150));
 
-  // 2. Safe scale factor: mobile browsers crash on 3x canvas due to memory caps
-  const isMobile =
-    typeof window !== 'undefined' &&
-    (/Android|iPhone|iPad|iPod|Mobile|Silk|SamsungBrowser/i.test(navigator.userAgent) || window.innerWidth < 768);
-  const scale = isMobile ? 1.8 : 2;
+  // 2. High-precision scale factor (2x scale produces razor-sharp 1588x2246 canvas within safe memory limits)
+  const scale = 2;
 
-  // 3. Render pixel-perfect canvas using html2canvas-pro (with native oklch support)
+  // 3. Render pixel-perfect canvas using html2canvas-pro (with locked desktop viewport and explicit A4 bounds)
   const canvas = await html2canvas(element, {
     scale,
     useCORS: true,
     allowTaint: true,
     backgroundColor: '#FFFFFF',
     logging: false,
-    imageTimeout: 8000,
+    imageTimeout: 10000,
+    width: 794,
+    height: 1123,
+    windowWidth: 1024, // Crucial: forces desktop viewport in iframe so flex and text NEVER collapse to mobile width!
+    windowHeight: 1400,
+    x: 0,
+    y: 0,
+    scrollX: 0,
+    scrollY: 0,
     onclone: (clonedDoc) => {
-      // Ensure dark mode classes are removed
+      // Ensure dark mode classes are removed across cloned document
       clonedDoc.documentElement.classList.remove('dark');
       clonedDoc.body.classList.remove('dark');
       clonedDoc.documentElement.style.backgroundColor = '#FFFFFF';
       clonedDoc.body.style.backgroundColor = '#FFFFFF';
+      clonedDoc.documentElement.style.margin = '0';
+      clonedDoc.documentElement.style.padding = '0';
+      clonedDoc.body.style.margin = '0';
+      clonedDoc.body.style.padding = '0';
+      clonedDoc.body.style.width = '1024px';
+      clonedDoc.body.style.minHeight = '1400px';
+      clonedDoc.body.style.overflow = 'visible';
 
-      const clonedTarget = clonedDoc.getElementById(element.id);
+      const clonedTarget =
+        (element.id ? clonedDoc.getElementById(element.id) : null) ||
+        clonedDoc.getElementById('ds-certificate-clean-export-doc') ||
+        clonedDoc.getElementById('ds-modal-certificate-doc') ||
+        clonedDoc.getElementById('ds-certificate-of-employment-document');
+
       if (clonedTarget) {
-        // Reset all parent containers in clonedDoc up to body so mobile transforms do not clip
+        // Reset all parent containers in clonedDoc up to body so mobile transforms, scales, or overflow do not clip
         let curr = clonedTarget.parentElement;
         while (curr && curr !== clonedDoc.body) {
           curr.style.transform = 'none';
+          curr.style.webkitTransform = 'none';
           curr.style.width = 'auto';
           curr.style.maxWidth = 'none';
           curr.style.minWidth = '0';
@@ -90,15 +108,14 @@ export async function generateCertificatePDFBlob(
           curr.style.margin = '0';
           curr.style.padding = '0';
           curr.style.position = 'static';
+          curr.style.opacity = '1';
           curr = curr.parentElement;
         }
 
-        clonedDoc.body.style.width = '820px';
-        clonedDoc.body.style.minHeight = '1150px';
-        clonedDoc.body.style.overflow = 'visible';
-        clonedDoc.body.style.margin = '0';
-        clonedDoc.body.style.padding = '0';
-
+        // Lock clonedTarget to EXACT A4 portrait dimensions
+        clonedTarget.style.position = 'relative';
+        clonedTarget.style.left = '0';
+        clonedTarget.style.top = '0';
         clonedTarget.style.width = '794px';
         clonedTarget.style.minWidth = '794px';
         clonedTarget.style.maxWidth = '794px';
@@ -107,13 +124,19 @@ export async function generateCertificatePDFBlob(
         clonedTarget.style.maxHeight = '1123px';
         clonedTarget.style.margin = '0';
         clonedTarget.style.transform = 'none';
+        clonedTarget.style.webkitTransform = 'none';
         clonedTarget.style.backgroundColor = '#FFFFFF';
+        clonedTarget.style.opacity = '1';
+        clonedTarget.style.visibility = 'visible';
+        clonedTarget.style.boxSizing = 'border-box';
+        clonedTarget.style.overflow = 'hidden';
 
-        // Secondary safety: scan cloned elements and replace any remaining oklch colors
+        // Secondary safety: scan cloned elements and replace any remaining oklch colors or dark classes
         try {
           const allNodes = clonedTarget.querySelectorAll('*');
           allNodes.forEach((node) => {
             const el = node as HTMLElement;
+            el.classList?.remove('dark');
             if (el.style) {
               if (el.style.color && el.style.color.includes('oklch')) {
                 el.style.color = safeConvertColor(el.style.color);
@@ -143,10 +166,10 @@ export async function generateCertificatePDFBlob(
   // 4. Export image data with error fallback
   let imgData: string;
   try {
-    imgData = canvas.toDataURL('image/jpeg', 0.95);
-  } catch (exportErr) {
-    console.warn('[Certificate PDF] JPEG export failed, falling back to PNG:', exportErr);
     imgData = canvas.toDataURL('image/png');
+  } catch (exportErr) {
+    console.warn('[Certificate PDF] PNG export failed, falling back to JPEG:', exportErr);
+    imgData = canvas.toDataURL('image/jpeg', 0.95);
   }
 
   if (!imgData || imgData === 'data:,' || imgData.length < 100) {
@@ -161,7 +184,7 @@ export async function generateCertificatePDFBlob(
     compress: true,
   });
 
-  pdf.addImage(imgData, 'JPEG', 0, 0, 210, 297, undefined, 'FAST');
+  pdf.addImage(imgData, 'PNG', 0, 0, 210, 297, undefined, 'FAST');
 
   return pdf.output('blob');
 }

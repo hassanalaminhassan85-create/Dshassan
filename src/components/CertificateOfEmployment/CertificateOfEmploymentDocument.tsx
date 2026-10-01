@@ -119,6 +119,12 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             <stop offset="100%" stopColor="#C89B3C" />
           </linearGradient>
 
+          <linearGradient id="goldRibbonGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#F59E0B" />
+            <stop offset="50%" stopColor="#D97706" />
+            <stop offset="100%" stopColor="#B45309" />
+          </linearGradient>
+
           <linearGradient id="sealMetallicGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#FFE082" />
             <stop offset="25%" stopColor="#FFB300" />
@@ -133,7 +139,13 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
       {/* MAIN CONTENT CONTAINER (Inset from outer border)          */}
       {/* Fully populated balanced vertical flow filling the A4     */}
       {/* ========================================================= */}
-      <div className="relative z-20 flex flex-col justify-between h-full pt-[26px] px-[42px] pb-[72px] box-border">
+      <div
+        className="relative z-20 flex flex-col justify-between h-full pt-[26px] px-[42px] pb-[72px] box-border"
+        style={{
+          width: '794px',
+          boxSizing: 'border-box',
+        }}
+      >
 
         {/* TOP SECTION: Header + Title Banner */}
         <div>
@@ -141,14 +153,31 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
           {/* 2. TOP HEADER: LOGO & CORPORATE CONTACT INFOS            */}
           {/* ========================================================= */}
           <div
-            className="flex items-center justify-between gap-4 pb-3"
-            style={{ borderBottom: '1px solid #E2E8F0' }}
+            className="pb-3"
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+              borderBottom: '1px solid #E2E8F0',
+              boxSizing: 'border-box',
+            }}
           >
             
             {/* Header Left: Official DS Tech Vector Logo & Brand Title */}
-            <div className="flex items-center gap-3.5">
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: '14px',
+                flexShrink: 0,
+                width: '450px',
+              }}
+            >
               {/* Circular DS Tech Emblem with bursting pixels */}
-              <div className="relative w-[92px] h-[92px] shrink-0">
+              <div style={{ width: '92px', height: '92px', flexShrink: 0, position: 'relative' }}>
                 <svg viewBox="0 0 100 100" className="w-full h-full drop-shadow-sm overflow-visible">
                   {/* Digital Pixel / Block cluster exploding from top right */}
                   <rect x="58" y="16" width="7.5" height="7.5" fill="#F25C05" rx="1" />
@@ -182,101 +211,134 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
               </div>
 
               {/* Brand Typography */}
-              <div className="flex flex-col text-left">
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left' }}>
                 <h1
-                  className="font-black text-[32px] leading-none tracking-[0.03em] uppercase"
-                  style={{ color: '#002D62', fontFamily: "'Inter', system-ui, sans-serif" }}
+                  style={{
+                    margin: 0,
+                    padding: 0,
+                    color: '#002D62',
+                    fontFamily: "'Inter', system-ui, sans-serif",
+                    fontWeight: 900,
+                    fontSize: '32px',
+                    lineHeight: 1,
+                    letterSpacing: '0.03em',
+                    textTransform: 'uppercase',
+                  }}
                 >
                   DS TECH
                 </h1>
                 
                 <p
-                  className="text-[12px] font-black tracking-[0.16em] uppercase mt-1"
-                  style={{ color: '#002D62', fontFamily: "'Inter', system-ui, sans-serif" }}
+                  style={{
+                    margin: '3px 0 0 0',
+                    padding: 0,
+                    color: '#002D62',
+                    fontFamily: "'Inter', system-ui, sans-serif",
+                    fontWeight: 900,
+                    fontSize: '12px',
+                    letterSpacing: '0.16em',
+                    textTransform: 'uppercase',
+                  }}
                 >
                   AND DIGITAL MARKETING
                 </p>
 
                 {/* Orange Divider with AGENCY LIMITED */}
-                <div className="flex items-center gap-2 my-1">
-                  <div className="h-[1.8px] w-8" style={{ backgroundColor: '#E8590C' }} />
-                  <span className="text-[11px] font-black tracking-[0.16em] uppercase" style={{ color: '#E8590C' }}>
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '8px', margin: '3px 0' }}>
+                  <div style={{ height: '1.8px', width: '32px', backgroundColor: '#E8590C' }} />
+                  <span style={{ color: '#E8590C', fontSize: '11px', fontWeight: 900, letterSpacing: '0.16em', textTransform: 'uppercase' }}>
                     AGENCY LIMITED
                   </span>
-                  <div className="h-[1.8px] w-8" style={{ backgroundColor: '#E8590C' }} />
+                  <div style={{ height: '1.8px', width: '32px', backgroundColor: '#E8590C' }} />
                 </div>
 
-                <p className="text-[10px] font-medium tracking-normal italic" style={{ color: '#475569' }}>
+                <p style={{ margin: 0, padding: 0, color: '#475569', fontSize: '10px', fontWeight: 500, fontStyle: 'italic' }}>
                   Empowering Brands &amp; Talents with Tech &amp; Digital Excellence
                 </p>
               </div>
             </div>
 
             {/* Header Right: Official Headquarters & Contact Details */}
-            <div className="text-left text-[10.5px] space-y-1 pr-1 font-medium leading-tight" style={{ color: '#334155' }}>
-              <div className="flex items-start gap-1.5">
-                <span className="text-[11px] shrink-0 mt-[1px]" style={{ color: '#E8590C' }}>📍</span>
-                <div className="leading-tight">
-                  <span className="font-semibold" style={{ color: '#1E293B' }}>Ext A-73 Efab Mall</span><br />
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
+                width: '240px',
+                flexShrink: 0,
+                color: '#334155',
+                fontSize: '10.5px',
+                lineHeight: 1.25,
+                fontWeight: 500,
+                textAlign: 'left',
+                gap: '4px',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+                <span style={{ color: '#E8590C', fontSize: '11px', flexShrink: 0, marginTop: '1px' }}>📍</span>
+                <div style={{ lineHeight: 1.2 }}>
+                  <span style={{ fontWeight: 600, color: '#1E293B' }}>Ext A-73 Efab Mall</span><br />
                   <span>Second Floor Area 10</span><br />
                   <span>Garki, Abuja, Nigeria</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] shrink-0" style={{ color: '#E8590C' }}>📞</span>
-                <span className="font-semibold tracking-wide" style={{ color: '#1E293B' }}>09023489111</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ color: '#E8590C', fontSize: '11px', flexShrink: 0 }}>📞</span>
+                <span style={{ fontWeight: 600, color: '#1E293B', letterSpacing: '0.02em' }}>09023489111</span>
               </div>
 
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] shrink-0" style={{ color: '#E8590C' }}>✉️</span>
-                <span className="font-medium" style={{ color: '#334155' }}>dstechanddigitalmarketingltd@gmail.com</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ color: '#E8590C', fontSize: '11px', flexShrink: 0 }}>✉️</span>
+                <span style={{ fontWeight: 500, color: '#334155' }}>dstechanddigitalmarketingltd@gmail.com</span>
               </div>
 
-              <div className="flex items-center gap-1.5">
-                <span className="text-[11px] shrink-0" style={{ color: '#E8590C' }}>🌐</span>
-                <span className="font-semibold" style={{ color: '#002D62' }}>www.dstech.com.ng</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ color: '#E8590C', fontSize: '11px', flexShrink: 0 }}>🌐</span>
+                <span style={{ fontWeight: 600, color: '#002D62' }}>www.dstech.com.ng</span>
               </div>
             </div>
 
           </div>
 
           {/* ========================================================= */}
-          {/* 3. PRIMARY TITLE BANNER (Exact Match to Reference Image)   */}
+          {/* 3. PRIMARY TITLE BANNER (100% Native SVG Vector Ribbon)   */}
           {/* ========================================================= */}
-          <div className="relative mt-3.5 mb-4 flex items-center justify-center">
-            {/* Chamfered Ribbon with Golden Chevrons */}
-            <div className="relative w-full max-w-[700px] h-[76px] flex items-center justify-center">
+          <div className="relative mt-3.5 mb-4 flex items-center justify-center w-full" style={{ width: '100%' }}>
+            {/* Pure SVG Ribbon Vector with Gold Chevrons and Golden Borders - Zero clipPath */}
+            <div className="relative w-full max-w-[710px] h-[76px] flex items-center justify-center">
               
-              {/* Left Gold Chevron Tip */}
-              <div
-                className="absolute left-0 top-0 bottom-0 w-[30px]"
-                style={{
-                  clipPath: 'polygon(0% 50%, 100% 0%, 100% 100%)',
-                  background: 'linear-gradient(135deg, #F59E0B, #D97706)',
-                }}
-              />
-
-              {/* Main Navy Body */}
-              <div
-                className="w-full h-full mx-[16px] flex flex-col items-center justify-center relative shadow-md px-6"
-                style={{
-                  backgroundColor: '#061A40',
-                  clipPath: 'polygon(18px 0%, calc(100% - 18px) 0%, 100% 50%, calc(100% - 18px) 100%, 18px 100%, 0% 50%)',
-                  borderTop: '2.5px solid #D4AF37',
-                  borderBottom: '2.5px solid #D4AF37',
-                }}
+              <svg
+                viewBox="0 0 710 76"
+                className="absolute inset-0 w-full h-full pointer-events-none"
+                preserveAspectRatio="none"
               >
-                {/* Thin Inner Golden Accent Hairline */}
-                <div
-                  className="absolute inset-[3.5px] pointer-events-none"
-                  style={{
-                    clipPath: 'polygon(16px 0%, calc(100% - 16px) 0%, 100% 50%, calc(100% - 16px) 100%, 16px 100%, 0% 50%)',
-                    borderTop: '1px solid rgba(255, 215, 0, 0.45)',
-                    borderBottom: '1px solid rgba(255, 215, 0, 0.45)',
-                  }}
+                {/* Left Gold Chevron Tip */}
+                <polygon points="0,38 30,0 30,76" fill="url(#goldRibbonGrad)" />
+
+                {/* Right Gold Chevron Tip */}
+                <polygon points="710,38 680,0 680,76" fill="url(#goldRibbonGrad)" />
+
+                {/* Main Navy Body with chamfered pointed ends */}
+                <polygon
+                  points="30,0 680,0 696,38 680,76 30,76 14,38"
+                  fill="#061A40"
+                  stroke="#D4AF37"
+                  strokeWidth="2.5"
                 />
 
+                {/* Inner Golden Hairline */}
+                <polygon
+                  points="33,3.5 677,3.5 692,38 677,72.5 33,72.5 18,38"
+                  fill="none"
+                  stroke="#FFE082"
+                  strokeWidth="1"
+                  strokeOpacity="0.5"
+                />
+              </svg>
+
+              {/* Title Typography overlay */}
+              <div className="relative z-10 flex flex-col items-center justify-center px-8 text-center">
                 <h2
                   className="font-extrabold uppercase tracking-[0.16em] text-[23px] leading-tight text-center drop-shadow-sm"
                   style={{ color: '#FFFFFF', fontFamily: "'Cinzel', 'Times New Roman', serif" }}
@@ -291,14 +353,6 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                 </h3>
               </div>
 
-              {/* Right Gold Chevron Tip */}
-              <div
-                className="absolute right-0 top-0 bottom-0 w-[30px]"
-                style={{
-                  clipPath: 'polygon(100% 50%, 0% 0%, 0% 100%)',
-                  background: 'linear-gradient(135deg, #F59E0B, #D97706)',
-                }}
-              />
             </div>
           </div>
         </div>
@@ -311,10 +365,27 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
           {/* ========================================================= */}
           <div className="relative px-6 py-2">
             
-            {/* Faint Background Monogram Watermark matching Image */}
-            <div className="absolute right-8 top-[-10px] w-[270px] h-[270px] opacity-[0.065] pointer-events-none select-none">
-              <svg viewBox="0 0 100 100" className="w-full h-full">
-                <circle cx="50" cy="50" r="46" stroke="#002D62" strokeWidth="8" fill="none" />
+            {/* Faint Background Monogram Watermark - Explicit Inline & SVG Opacity Guarantees 100% Compatibility */}
+            <div
+              className="absolute pointer-events-none select-none z-0"
+              style={{
+                right: '30px',
+                top: '-10px',
+                width: '270px',
+                height: '270px',
+                opacity: 0.065,
+              }}
+            >
+              <svg viewBox="0 0 100 100" className="w-full h-full" style={{ opacity: 0.065 }}>
+                <circle
+                  cx="50"
+                  cy="50"
+                  r="46"
+                  stroke="#002D62"
+                  strokeWidth="8"
+                  strokeOpacity="0.08"
+                  fill="none"
+                />
                 <text
                   x="50"
                   y="65"
@@ -324,6 +395,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                   fontSize="44"
                   fontStyle="italic"
                   fill="#002D62"
+                  fillOpacity="0.08"
                 >
                   DS
                 </text>
@@ -391,35 +463,35 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
           </div>
 
           {/* ========================================================= */}
-          {/* 6. CONFIRMATION TERMS & CONDITIONS SECTION (Exact Image)  */}
+          {/* 6. CONFIRMATION TERMS & CONDITIONS SECTION (100% SVG)     */}
           {/* ========================================================= */}
           <div className="px-2 mt-1">
             
-            {/* Section Chamfered Mini-Banner */}
+            {/* Section Chamfered Mini-Banner with 100% Native SVG */}
             <div className="relative inline-flex items-center h-[36px] mb-3">
-              <div
-                className="h-full px-5 flex items-center justify-center relative shadow-sm"
-                style={{
-                  backgroundColor: '#061A40',
-                  clipPath: 'polygon(12px 0%, calc(100% - 12px) 0%, 100% 50%, calc(100% - 12px) 100%, 12px 100%, 0% 50%)',
-                  borderTop: '1.5px solid #D4AF37',
-                  borderBottom: '1.5px solid #D4AF37',
-                }}
-              >
-                <span className="text-[12.5px] font-extrabold uppercase tracking-[0.12em]" style={{ color: '#FFFFFF' }}>
-                  CONFIRMATION TERMS &amp; CONDITIONS
-                </span>
-              </div>
+              <div className="relative h-full flex items-center justify-center">
+                <svg
+                  viewBox="0 0 350 36"
+                  className="absolute inset-0 w-full h-full pointer-events-none"
+                  preserveAspectRatio="none"
+                >
+                  {/* Navy Chamfered Box */}
+                  <polygon
+                    points="14,0 330,0 342,18 330,36 14,36 0,18"
+                    fill="#061A40"
+                    stroke="#D4AF37"
+                    strokeWidth="1.5"
+                  />
+                  {/* Right Gold Chevron Tip */}
+                  <polygon points="350,18 332,0 332,36" fill="url(#goldRibbonGrad)" />
+                </svg>
 
-              {/* Right Mini Chevron Tip */}
-              <div
-                className="w-[18px] h-full"
-                style={{
-                  clipPath: 'polygon(100% 50%, 0% 0%, 0% 100%)',
-                  background: 'linear-gradient(135deg, #F59E0B, #D97706)',
-                  marginLeft: '-2px',
-                }}
-              />
+                <div className="relative z-10 px-6">
+                  <span className="text-[12.5px] font-extrabold uppercase tracking-[0.12em]" style={{ color: '#FFFFFF' }}>
+                    CONFIRMATION TERMS &amp; CONDITIONS
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* 3 Terms with Orange Number Badges */}
@@ -485,10 +557,20 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             OFFICIAL AUTHORIZATION
           </h3>
 
-          <div className="grid grid-cols-12 gap-3.5 items-end">
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'row',
+              alignItems: 'flex-end',
+              justifyContent: 'space-between',
+              width: '100%',
+              gap: '14px',
+              boxSizing: 'border-box',
+            }}
+          >
             
             {/* Left Column: Official Executive Signature & Title */}
-            <div className="col-span-5 text-left">
+            <div style={{ width: '270px', flexShrink: 0, textAlign: 'left' }}>
               <div
                 className={`h-[68px] flex items-end mb-2 ${interactive || onSignClick ? 'cursor-pointer group relative' : ''}`}
                 onClick={onSignClick}
@@ -569,7 +651,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             </div>
 
             {/* Middle Column: Scalloped Golden Embossed Official Seal (Exact Match) */}
-            <div className="col-span-3 flex justify-center">
+            <div style={{ width: '150px', flexShrink: 0, display: 'flex', justifyContent: 'center' }}>
               <div className="relative w-[130px] h-[130px]">
                 <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-md overflow-visible">
                   {/* Sunburst Scalloped Outer Teeth (32 teeth) */}
@@ -665,7 +747,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             </div>
 
             {/* Right Column: Verification Box with QR Code & Brand Slogan */}
-            <div className="col-span-4 flex flex-col items-end">
+            <div style={{ width: '260px', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
               
               {/* Verification Box */}
               <div
@@ -673,11 +755,12 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                 style={{
                   border: '1.5px solid #061A40',
                   backgroundColor: '#FFFFFF',
+                  boxSizing: 'border-box',
                 }}
               >
                 
                 {/* Left side info */}
-                <div className="text-left space-y-0.5 min-w-0">
+                <div className="text-left space-y-0.5 min-w-0" style={{ maxWidth: '170px' }}>
                   <div className="flex items-center gap-1" style={{ color: '#002D62' }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="#002D62">
                       <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1ZM10 16L6.5 12.5L7.91 11.09L10 13.17L16.09 7.08L17.5 8.5L10 16Z" fill="#002D62"/>
