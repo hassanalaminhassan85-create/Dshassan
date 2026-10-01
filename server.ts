@@ -537,10 +537,11 @@ ${liveContext ? liveContext : ''}`;
     return res.json({ success: true, certificate: cert });
   });
 
-  // 4. Public verification endpoint by verificationCode or certificateNumber
-  app.get('/api/certificates/verify/:code', (req, res) => {
+  // 4. Public verification endpoint by verificationCode, certificateNumber, or ID (supports slashes e.g. DST/COE/2026/0001)
+  app.get(['/api/certificates/verify/:code', '/api/certificates/verify/*'], (req, res) => {
     try {
-      const searchCode = decodeURIComponent(req.params.code).trim().toLowerCase();
+      const rawParam = req.params.code || (req.params as any)[0] || req.url.replace(/^\/api\/certificates\/verify\/?/, '');
+      const searchCode = decodeURIComponent(rawParam).trim().toLowerCase();
       const all = Array.from(certificatesStore.values());
       const match = all.find(c => 
         (c.verificationCode && c.verificationCode.toLowerCase() === searchCode) ||
@@ -556,8 +557,9 @@ ${liveContext ? liveContext : ''}`;
         });
       }
 
-      // Return public verification fields only (protect sensitive personal details if any)
+      // Return public verification fields only
       const publicCert = {
+        id: match.id,
         certificateNumber: match.certificateNumber,
         appointmentRefNo: match.appointmentRefNo,
         employeeName: match.employeeName,
@@ -565,13 +567,21 @@ ${liveContext ? liveContext : ''}`;
         position: match.position,
         department: match.department,
         dateOfAppointment: match.dateOfAppointment,
+        dateOfConfirmation: match.dateOfConfirmation,
         employmentStatus: match.employmentStatus,
         employmentType: match.employmentType,
         issueDate: match.issueDate,
         authorizedOfficerName: match.authorizedOfficerName,
         authorizedOfficerPosition: match.authorizedOfficerPosition,
+        signatureDataUrl: match.signatureDataUrl,
+        signatureType: match.signatureType,
+        ceoSignatoryName: match.ceoSignatoryName,
+        ceoSignatureDate: match.ceoSignatureDate,
+        ceoSignatureTitle: match.ceoSignatureTitle,
+        ceoSignatureHash: match.ceoSignatureHash,
         status: match.status,
         verificationCode: match.verificationCode,
+        qrVerificationUrl: match.qrVerificationUrl,
         createdAt: match.createdAt,
         verifiedAt: new Date().toISOString()
       };

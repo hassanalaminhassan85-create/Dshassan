@@ -181,21 +181,25 @@ export function extractVerificationCodeFromScan(rawPayload: string): string {
   if (!rawPayload) return '';
   const text = rawPayload.trim();
 
-  // 1. Match /verify-certificate/:code or /verify/:code
-  const pathMatch = text.match(/(?:verify-certificate|verify)\/([A-Za-z0-9_\-\/]+)/i);
+  // 1. Match /verify-certificate/:code or /verify/:code (supports slashes and url-encoded slashes)
+  const pathMatch = text.match(/(?:verify-certificate|verify)\/([A-Za-z0-9_\-\/%]+)/i);
   if (pathMatch && pathMatch[1]) {
-    return decodeURIComponent(pathMatch[1]).trim();
+    try {
+      return decodeURIComponent(pathMatch[1]).trim();
+    } catch {
+      return pathMatch[1].trim();
+    }
   }
 
   // 2. Match URL query params (?verify=... or ?code=...)
   try {
     if (text.includes('?') || text.startsWith('http')) {
-      const url = new URL(text.startsWith('http') ? text : `https://dummy.com/${text}`);
+      const url = new URL(text.startsWith('http') ? text : `https://dstech.com.ng/${text.replace(/^\//, '')}`);
       const code = url.searchParams.get('verify') || 
                    url.searchParams.get('code') || 
                    url.searchParams.get('certificate') || 
                    url.searchParams.get('verificationCode');
-      if (code) return code.trim();
+      if (code) return decodeURIComponent(code).trim();
     }
   } catch (e) {}
 

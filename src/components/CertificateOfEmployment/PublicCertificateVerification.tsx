@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import {
   ShieldCheck, ShieldAlert, Award, CheckCircle2, AlertTriangle,
-  Search, ArrowLeft, Download, Printer, Share2, Building2, Check, ExternalLink, Calendar, User, Briefcase
+  Search, ArrowLeft, Download, Printer, Share2, Building2, Check, ExternalLink, Calendar, User, Briefcase, ZoomIn, ZoomOut, Maximize2
 } from 'lucide-react';
 import { apiVerifyCertificate } from '../../lib/certificateStorage';
 import { extractVerificationCodeFromScan } from '../../lib/certificateQrUtility';
@@ -37,7 +37,9 @@ export const PublicCertificateVerification: React.FC<PublicCertificateVerificati
   } | null>(null);
 
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
-  const [showDocPreview, setShowDocPreview] = useState<boolean>(false);
+  const [showDocPreview, setShowDocPreview] = useState<boolean>(true);
+  const [docScale, setDocScale] = useState<number>(0.75);
+  const docWrapperRef = useRef<HTMLDivElement>(null);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState<boolean>(false);
   const [toast, setToast] = useState<string | null>(null);
   const [shareModalData, setShareModalData] = useState<{
@@ -56,10 +58,12 @@ export const PublicCertificateVerification: React.FC<PublicCertificateVerificati
     try {
       const res = await apiVerifyCertificate(clean);
       setResult(res);
-      if (res.verified && res.certificate?.verificationCode) {
+      if (res.verified && res.certificate) {
+        setShowDocPreview(true);
+        const codeForQr = res.certificate.verificationCode || clean;
         const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dstech.com.ng';
-        const vUrl = `${origin}/verify-certificate/${res.certificate.verificationCode}`;
-        generateCertificateQRCode(vUrl).then(setQrCodeDataUrl);
+        const vUrl = `${origin}/verify-certificate/${encodeURIComponent(codeForQr)}`;
+        generateCertificateQRCode(vUrl).then(setQrCodeDataUrl).catch(() => {});
       }
     } catch (err: any) {
       setResult({
@@ -76,6 +80,27 @@ export const PublicCertificateVerification: React.FC<PublicCertificateVerificati
       performVerification(initialCode);
     }
   }, [initialCode]);
+
+  // Responsive scale computation for mobile, tablet, and desktop screens
+  useEffect(() => {
+    if (!result?.verified) return;
+    const updateScale = () => {
+      if (docWrapperRef.current) {
+        const containerW = docWrapperRef.current.clientWidth;
+        const padding = window.innerWidth < 640 ? 16 : 40;
+        const available = Math.max(220, containerW - padding);
+        const computed = Math.min(1.0, Math.max(0.30, available / 794));
+        setDocScale(Number(computed.toFixed(2)));
+      }
+    };
+    updateScale();
+    const t = setTimeout(updateScale, 80);
+    window.addEventListener('resize', updateScale);
+    return () => {
+      window.removeEventListener('resize', updateScale);
+      clearTimeout(t);
+    };
+  }, [result?.verified, showDocPreview]);
 
   const handleDownload = async () => {
     if (!result?.certificate) return;
@@ -319,146 +344,183 @@ export const PublicCertificateVerification: React.FC<PublicCertificateVerificati
               </div>
             )}
 
-            {/* Verified Details Matrix */}
+            {/* Verified Details & Exact Certificate Rendering */}
             {result.verified && result.certificate && (
               <div className="space-y-6">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Employee Full Name</span>
-                    <span className="text-sm font-black text-[#000E32] dark:text-white uppercase block">
-                      {result.certificate.employeeName}
-                    </span>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Employee ID</span>
-                    <span className="text-sm font-mono font-bold text-slate-800 dark:text-slate-200 block">
-                      {result.certificate.employeeId}
-                    </span>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Position / Designation</span>
-                    <span className="text-sm font-extrabold text-slate-800 dark:text-slate-200 block">
-                      {result.certificate.position}
-                    </span>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Department</span>
-                    <span className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase block">
-                      {result.certificate.department}
-                    </span>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Initial Appointment Date</span>
-                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 block">
-                      {result.certificate.dateOfAppointment}
-                    </span>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Certificate Issue Date</span>
-                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 block">
-                      {result.certificate.issueDate}
-                    </span>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Appointment Reference #</span>
-                    <span className="text-sm font-mono font-bold text-slate-800 dark:text-slate-200 block">
-                      {result.certificate.appointmentRefNo || result.certificate.certificateNumber}
-                    </span>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Verification Code</span>
-                    <span className="text-sm font-mono font-black text-emerald-600 dark:text-emerald-400 block">
-                      {result.certificate.verificationCode}
-                    </span>
-                  </div>
-
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Authorized Signatory</span>
-                    <span className="text-sm font-bold text-slate-800 dark:text-slate-200 block">
-                      {result.certificate.authorizedOfficerPosition || 'Company Director/CEO'}
-                    </span>
-                  </div>
-
-                </div>
-
-                {/* Actions Row */}
-                <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowDocPreview(!showDocPreview)}
-                      className="px-4 py-2 bg-[#000E32] text-white rounded-xl text-xs font-bold uppercase transition-colors cursor-pointer"
-                    >
-                      {showDocPreview ? 'Hide Certificate Document' : 'View Full Certificate Document'}
-                    </button>
-
+                
+                {/* Immediate Action Toolbar & Zoom Controls */}
+                <div className="p-3.5 sm:p-5 bg-slate-50 dark:bg-slate-800/80 rounded-2xl border border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+                  <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
                       disabled={isGeneratingPDF}
                       onClick={handleDownload}
-                      className="px-4 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold uppercase transition-colors flex items-center gap-1.5 cursor-pointer"
+                      className="px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white rounded-xl text-xs font-black uppercase tracking-wider shadow-md shadow-orange-600/20 transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 disabled:opacity-50"
                     >
                       <Download size={14} />
-                      <span>{isGeneratingPDF ? 'Generating...' : 'Download PDF'}</span>
+                      <span>{isGeneratingPDF ? 'Generating...' : 'Download Official PDF'}</span>
                     </button>
-                  </div>
 
-                  <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={handlePrint}
-                      className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 cursor-pointer"
-                      title="Print"
+                      className="px-3.5 py-2 bg-[#000E32] hover:bg-[#001750] text-white rounded-xl text-xs font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-sm"
                     >
-                      <Printer size={15} />
+                      <Printer size={14} />
+                      <span>Print Certificate</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={handleShare}
-                      className="p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 cursor-pointer"
-                      title="Share"
+                      className="px-3.5 py-2 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 hover:bg-orange-100 rounded-xl text-xs font-bold uppercase transition-all flex items-center gap-1.5 cursor-pointer active:scale-95"
                     >
-                      <Share2 size={15} />
+                      <Share2 size={14} />
+                      <span>Share PDF</span>
+                    </button>
+                  </div>
+
+                  {/* Zoom Controls for easy inspection on mobile & desktop */}
+                  <div className="flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 p-1 rounded-xl text-xs font-mono">
+                    <button
+                      type="button"
+                      onClick={() => setDocScale(prev => Math.max(0.3, Number((prev - 0.1).toFixed(2))))}
+                      className="p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer"
+                      title="Zoom Out"
+                    >
+                      <ZoomOut size={14} />
+                    </button>
+                    <span className="px-2 font-bold text-[11px] text-slate-700 dark:text-slate-300">
+                      {Math.round(docScale * 100)}%
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setDocScale(prev => Math.min(1.2, Number((prev + 0.1).toFixed(2))))}
+                      className="p-1.5 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer"
+                      title="Zoom In"
+                    >
+                      <ZoomIn size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (docWrapperRef.current) {
+                          const containerW = docWrapperRef.current.clientWidth;
+                          const padding = window.innerWidth < 640 ? 16 : 40;
+                          const available = Math.max(220, containerW - padding);
+                          setDocScale(Number((Math.min(1.0, Math.max(0.30, available / 794))).toFixed(2)));
+                        }
+                      }}
+                      className="px-2 py-1 text-[10px] font-bold text-slate-500 hover:text-slate-900 dark:hover:text-white rounded-lg cursor-pointer"
+                      title="Fit to Screen Width"
+                    >
+                      Fit
                     </button>
                   </div>
                 </div>
 
-                {/* Document Display Canvas */}
-                {showDocPreview && (
-                  <div className="p-4 sm:p-8 bg-slate-200 dark:bg-slate-950 rounded-3xl overflow-auto flex justify-center border border-slate-300 dark:border-slate-800 shadow-inner">
+                {/* EXACT CERTIFICATE OF EMPLOYMENT DOCUMENT DISPLAY */}
+                <div
+                  ref={docWrapperRef}
+                  className="w-full p-2 sm:p-6 bg-slate-200 dark:bg-slate-950 rounded-3xl overflow-x-auto flex justify-center items-start border border-slate-300/80 dark:border-slate-800 shadow-inner"
+                >
+                  <div
+                    style={{
+                      width: `${794 * docScale}px`,
+                      height: `${1123 * docScale}px`,
+                      transition: 'width 0.15s ease-out, height 0.15s ease-out',
+                    }}
+                    className="relative shrink-0 shadow-2xl rounded-sm overflow-hidden bg-white my-2"
+                  >
                     <div
                       style={{
-                        width: '635px',
-                        height: '898px',
+                        transform: `scale(${docScale})`,
+                        transformOrigin: 'top left',
+                        width: '794px',
+                        height: '1123px',
                       }}
-                      className="relative shrink-0 shadow-2xl rounded-sm overflow-hidden"
                     >
-                      <div
-                        style={{
-                          transform: 'scale(0.8)',
-                          transformOrigin: 'top left',
-                          width: '794px',
-                          height: '1123px',
-                        }}
-                      >
-                        <CertificateOfEmploymentDocument
-                          id="ds-public-verified-cert-doc"
-                          certificate={result.certificate}
-                          qrCodeDataUrl={qrCodeDataUrl}
-                        />
-                      </div>
+                      <CertificateOfEmploymentDocument
+                        id="ds-public-verified-cert-doc"
+                        certificate={result.certificate}
+                        qrCodeDataUrl={qrCodeDataUrl}
+                      />
                     </div>
                   </div>
-                )}
+                </div>
+
+                {/* Verified Metadata Matrix */}
+                <div className="pt-2 space-y-4">
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 font-mono">
+                    Official Employment Record Details
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
+                    
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Employee Full Name</span>
+                      <span className="text-sm font-black text-[#000E32] dark:text-white uppercase block truncate">
+                        {result.certificate.employeeName}
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Employee ID</span>
+                      <span className="text-sm font-mono font-bold text-slate-800 dark:text-slate-200 block truncate">
+                        {result.certificate.employeeId}
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Position / Designation</span>
+                      <span className="text-sm font-extrabold text-slate-800 dark:text-slate-200 block truncate">
+                        {result.certificate.position}
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Department</span>
+                      <span className="text-sm font-extrabold text-slate-800 dark:text-slate-200 uppercase block truncate">
+                        {result.certificate.department}
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Initial Appointment Date</span>
+                      <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 block truncate">
+                        {result.certificate.dateOfAppointment}
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Certificate Issue Date</span>
+                      <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 block truncate">
+                        {result.certificate.issueDate}
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Appointment Reference #</span>
+                      <span className="text-sm font-mono font-bold text-slate-800 dark:text-slate-200 block truncate">
+                        {result.certificate.appointmentRefNo || result.certificate.certificateNumber}
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Verification Code</span>
+                      <span className="text-sm font-mono font-black text-emerald-600 dark:text-emerald-400 block truncate">
+                        {result.certificate.verificationCode}
+                      </span>
+                    </div>
+
+                    <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-150 dark:border-slate-700/60 space-y-1">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block font-mono">Authorized Signatory</span>
+                      <span className="text-sm font-bold text-slate-800 dark:text-slate-200 block truncate">
+                        {result.certificate.authorizedOfficerPosition || 'Company Director/CEO'}
+                      </span>
+                    </div>
+
+                  </div>
+                </div>
 
                 {/* Hidden Clean 1:1 Rendering Target for 100% Reliable PDF & Print Generation */}
                 <div

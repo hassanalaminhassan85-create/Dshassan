@@ -249,12 +249,21 @@ export function resolvePathToState(rawPath: string): {
   isAdminView: boolean;
   appId: string | null;
 } {
-  // Check URL query parameters for direct verification links (e.g. ?verify=DST-VRF-... or ?code=...)
-  if (typeof window !== 'undefined' && window.location?.search) {
-    const searchParams = new URLSearchParams(window.location.search);
-    const vCode = searchParams.get('verify') || searchParams.get('code') || searchParams.get('certificate') || searchParams.get('verificationCode');
-    if (vCode) {
-      return { path: '/verify-certificate/' + encodeURIComponent(vCode), activePage: 'verify-certificate', isAdminView: false, appId: vCode };
+  // Check URL query parameters or hash for direct verification links (e.g. ?verify=DST-VRF-... or #/verify-certificate/...)
+  if (typeof window !== 'undefined') {
+    if (window.location?.search) {
+      const searchParams = new URLSearchParams(window.location.search);
+      const vCode = searchParams.get('verify') || searchParams.get('code') || searchParams.get('certificate') || searchParams.get('verificationCode');
+      if (vCode) {
+        return { path: '/verify-certificate/' + encodeURIComponent(vCode), activePage: 'verify-certificate', isAdminView: false, appId: vCode };
+      }
+    }
+    if (window.location?.hash) {
+      const hashStr = window.location.hash.replace(/^#/, '');
+      const hashVerifyMatch = hashStr.match(/(?:verify-certificate|verify)\/([\w\-\/]+)/i);
+      if (hashVerifyMatch && hashVerifyMatch[1]) {
+        return { path: '/verify-certificate/' + encodeURIComponent(hashVerifyMatch[1]), activePage: 'verify-certificate', isAdminView: false, appId: hashVerifyMatch[1] };
+      }
     }
   }
 

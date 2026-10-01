@@ -127,6 +127,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   const previewWrapperRef = useRef<HTMLDivElement>(null);
   const certContainerRef = useRef<HTMLDivElement>(null);
   const modalCertContainerRef = useRef<HTMLDivElement>(null);
+  const [modalScale, setModalScale] = useState<number>(0.75);
 
   // History Filters
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -232,6 +233,39 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
       if (observer) observer.disconnect();
     };
   }, [zoomMode, previewLayout]);
+
+  // Dynamically calculate modal preview scale so certificate fits mobile and desktop screens without overlapping or clipping
+  useEffect(() => {
+    if (!previewModalCert) return;
+
+    const computeModalScale = () => {
+      if (modalCertContainerRef.current) {
+        const containerWidth = modalCertContainerRef.current.clientWidth;
+        const containerHeight = modalCertContainerRef.current.clientHeight || (window.innerHeight * 0.7);
+        // Accounting for modal padding (16px on mobile, 32px on desktop)
+        const paddingX = window.innerWidth < 640 ? 16 : 32;
+        const paddingY = window.innerWidth < 640 ? 16 : 32;
+        const availableW = Math.max(200, containerWidth - paddingX);
+        const availableH = Math.max(260, containerHeight - paddingY);
+        // Compute scale considering both width and height so it fits seamlessly
+        const scaleW = availableW / 794;
+        const scaleH = availableH / 1123;
+        const computed = Math.min(0.85, Math.max(0.25, Math.min(scaleW, scaleH)));
+        setModalScale(Number(computed.toFixed(2)));
+      }
+    };
+
+    computeModalScale();
+    const rId = requestAnimationFrame(computeModalScale);
+    const timer = setTimeout(computeModalScale, 60);
+    window.addEventListener('resize', computeModalScale);
+
+    return () => {
+      cancelAnimationFrame(rId);
+      clearTimeout(timer);
+      window.removeEventListener('resize', computeModalScale);
+    };
+  }, [previewModalCert]);
 
   // Initialize new Certificate Identifiers with auto serial Employee ID
   const resetFormToNew = () => {
@@ -1715,79 +1749,87 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
               className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden my-auto"
             >
               {/* Modal Header */}
-              <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-4">
-                <div>
-                  <h3 className="font-extrabold text-sm uppercase text-[#000E32] dark:text-white flex items-center gap-2">
-                    <Award size={18} className="text-orange-500" />
-                    Certificate Preview: {previewModalCert.certificateNumber}
+              <div className="p-3.5 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 shrink-0">
+                <div className="min-w-0 flex-1">
+                  <h3 className="font-extrabold text-xs sm:text-sm uppercase text-[#000E32] dark:text-white flex items-center gap-1.5 truncate">
+                    <Award size={16} className="text-orange-500 shrink-0" />
+                    <span className="truncate">Preview: {previewModalCert.certificateNumber}</span>
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Issued to {previewModalCert.employeeName} ({previewModalCert.position})
+                  <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                    {previewModalCert.employeeName} ({previewModalCert.position})
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleDownloadPDF(previewModalCert)}
-                    className="px-3.5 py-2 bg-[#000E32] text-white rounded-xl text-xs font-bold uppercase flex items-center gap-1.5 cursor-pointer shadow"
-                  >
-                    <Download size={14} />
-                    <span>Download</span>
-                  </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {/* Action buttons for tablets and desktop (hidden on mobile to prevent overlapping) */}
+                  <div className="hidden sm:flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadPDF(previewModalCert)}
+                      className="px-3 py-1.5 bg-[#000E32] hover:bg-[#001750] text-white rounded-xl text-xs font-bold uppercase flex items-center gap-1.5 cursor-pointer shadow-sm transition-all"
+                    >
+                      <Download size={13} />
+                      <span>Download</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handlePrint(previewModalCert)}
-                    className="px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold uppercase flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Printer size={14} />
-                    <span>Print</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => handlePrint(previewModalCert)}
+                      className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold uppercase flex items-center gap-1.5 cursor-pointer hover:bg-slate-200 transition-all"
+                    >
+                      <Printer size={13} />
+                      <span>Print</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => handleShare(previewModalCert)}
-                    className="px-3 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold uppercase flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Share2 size={14} />
-                    <span>Share</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => handleShare(previewModalCert)}
+                      className="px-3 py-1.5 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 hover:bg-orange-100 rounded-xl text-xs font-bold uppercase flex items-center gap-1.5 cursor-pointer transition-all"
+                    >
+                      <Share2 size={13} />
+                      <span>Share</span>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (previewModalCert) setDeleteModalCert(previewModalCert);
-                    }}
-                    className="px-3 py-2 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 rounded-xl text-xs font-bold uppercase flex items-center gap-1.5 cursor-pointer"
-                    title="Delete Certificate"
-                  >
-                    <Trash2 size={14} />
-                    <span>Delete</span>
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (previewModalCert) setDeleteModalCert(previewModalCert);
+                      }}
+                      className="px-3 py-1.5 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 rounded-xl text-xs font-bold uppercase flex items-center gap-1.5 cursor-pointer transition-all"
+                      title="Delete Certificate"
+                    >
+                      <Trash2 size={13} />
+                      <span>Delete</span>
+                    </button>
+                  </div>
 
                   <button
                     type="button"
                     onClick={() => setPreviewModalCert(null)}
-                    className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer ml-1"
+                    className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    title="Close Preview"
                   >
                     <XCircle size={22} />
                   </button>
                 </div>
               </div>
 
-              {/* Modal Body with Scaled A4 Document */}
-              <div className="p-4 sm:p-6 bg-slate-200 dark:bg-slate-950 overflow-auto flex justify-center">
+              {/* Modal Body with Dynamically Scaled A4 Document (Fits 100% on phone screens) */}
+              <div
+                ref={modalCertContainerRef}
+                className="p-2 sm:p-6 bg-slate-200 dark:bg-slate-950 overflow-auto flex justify-center items-start flex-1 min-h-[300px]"
+              >
                 <div
                   style={{
-                    width: '635px',
-                    height: '898px',
+                    width: `${794 * modalScale}px`,
+                    height: `${1123 * modalScale}px`,
+                    transition: 'width 0.12s ease-out, height 0.12s ease-out',
                   }}
-                  className="relative shrink-0 shadow-2xl rounded-sm overflow-hidden"
+                  className="relative shrink-0 shadow-2xl rounded-sm overflow-hidden bg-white my-auto"
                 >
                   <div
                     style={{
-                      transform: 'scale(0.8)',
+                      transform: `scale(${modalScale})`,
                       transformOrigin: 'top left',
                       width: '794px',
                       height: '1123px',
@@ -1802,43 +1844,54 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
               </div>
 
               {/* Modal Footer with Actions for quick access on mobile */}
-              <div className="p-3 sm:p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setPreviewModalCert(null)}
-                    className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                  >
-                    Close Preview
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (previewModalCert) setDeleteModalCert(previewModalCert);
-                    }}
-                    className="px-3 py-2 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <Trash2 size={13} />
-                    <span>Delete</span>
-                  </button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleDownloadPDF(previewModalCert)}
-                    className="px-3.5 py-2 bg-[#000E32] hover:bg-[#001750] text-white rounded-xl text-xs font-bold uppercase flex items-center gap-1.5 shadow cursor-pointer active:scale-95"
-                  >
-                    <Download size={14} />
-                    <span className="hidden sm:inline">Download</span> PDF
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleShare(previewModalCert)}
-                    className="px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white rounded-xl text-xs font-black uppercase flex items-center gap-1.5 shadow-md shadow-orange-600/20 active:scale-95 transition-all cursor-pointer"
-                  >
-                    <Share2 size={14} />
-                    <span>Share Certificate</span>
-                  </button>
+              <div className="p-3 sm:p-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-2.5">
+                  <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => setPreviewModalCert(null)}
+                      className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer text-center"
+                    >
+                      Close Preview
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (previewModalCert) setDeleteModalCert(previewModalCert);
+                      }}
+                      className="flex-1 sm:flex-initial px-3.5 py-2 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/40 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/60 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Trash2 size={13} />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => handlePrint(previewModalCert)}
+                      className="flex-1 sm:flex-initial px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-bold uppercase flex items-center justify-center gap-1.5 cursor-pointer transition-colors"
+                    >
+                      <Printer size={13} />
+                      <span>Print</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadPDF(previewModalCert)}
+                      className="flex-1 sm:flex-initial px-3.5 py-2 bg-[#000E32] hover:bg-[#001750] text-white rounded-xl text-xs font-bold uppercase flex items-center justify-center gap-1.5 shadow cursor-pointer active:scale-95 transition-all"
+                    >
+                      <Download size={13} />
+                      <span>PDF</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleShare(previewModalCert)}
+                      className="flex-1 sm:flex-initial px-4 py-2 bg-gradient-to-r from-orange-600 to-orange-500 hover:from-orange-500 hover:to-orange-400 text-white rounded-xl text-xs font-black uppercase flex items-center justify-center gap-1.5 shadow-md shadow-orange-600/20 active:scale-95 transition-all cursor-pointer"
+                    >
+                      <Share2 size={13} />
+                      <span>Share</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
