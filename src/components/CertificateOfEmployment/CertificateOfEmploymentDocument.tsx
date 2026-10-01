@@ -31,7 +31,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
   const verificationCode = certificate.verificationCode || 'DST-VRF-000000-XX';
 
   // CEO Signatory Details
-  const ceoName = certificate.ceoSignatoryName || certificate.authorizedOfficerName || 'Dr. Donald S.';
+  const ceoName = certificate.ceoSignatoryName || certificate.authorizedOfficerName || '';
   const ceoTitle = certificate.ceoSignatureTitle || certificate.authorizedOfficerPosition || 'Company Director/CEO';
 
   const [activeQr, setActiveQr] = useState<string>(qrCodeDataUrl || '');
@@ -56,7 +56,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
   return (
     <div
       id={id}
-      className={`relative bg-white text-slate-900 overflow-hidden font-sans select-none box-border ${className}`}
+      className={`relative overflow-hidden font-sans select-none box-border ${className}`}
       style={{
         width: '794px',
         minWidth: '794px',
@@ -65,6 +65,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
         minHeight: '1123px',
         maxHeight: '1123px',
         backgroundColor: '#FFFFFF',
+        color: '#1E293B',
         position: 'relative',
         boxSizing: 'border-box',
       }}
@@ -139,7 +140,10 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
           {/* ========================================================= */}
           {/* 2. TOP HEADER: LOGO & CORPORATE CONTACT INFOS            */}
           {/* ========================================================= */}
-          <div className="flex items-center justify-between gap-4 pb-3 border-b border-slate-100">
+          <div
+            className="flex items-center justify-between gap-4 pb-3"
+            style={{ borderBottom: '1px solid #E2E8F0' }}
+          >
             
             {/* Header Left: Official DS Tech Vector Logo & Brand Title */}
             <div className="flex items-center gap-3.5">
@@ -180,58 +184,58 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
               {/* Brand Typography */}
               <div className="flex flex-col text-left">
                 <h1
-                  className="font-black text-[#002D62] text-[32px] leading-none tracking-[0.03em] uppercase"
-                  style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+                  className="font-black text-[32px] leading-none tracking-[0.03em] uppercase"
+                  style={{ color: '#002D62', fontFamily: "'Inter', system-ui, sans-serif" }}
                 >
                   DS TECH
                 </h1>
                 
                 <p
-                  className="text-[12px] font-black text-[#002D62] tracking-[0.16em] uppercase mt-1"
-                  style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+                  className="text-[12px] font-black tracking-[0.16em] uppercase mt-1"
+                  style={{ color: '#002D62', fontFamily: "'Inter', system-ui, sans-serif" }}
                 >
                   AND DIGITAL MARKETING
                 </p>
 
                 {/* Orange Divider with AGENCY LIMITED */}
                 <div className="flex items-center gap-2 my-1">
-                  <div className="h-[1.8px] w-8 bg-[#E8590C]" />
-                  <span className="text-[11px] font-black text-[#E8590C] tracking-[0.16em] uppercase">
+                  <div className="h-[1.8px] w-8" style={{ backgroundColor: '#E8590C' }} />
+                  <span className="text-[11px] font-black tracking-[0.16em] uppercase" style={{ color: '#E8590C' }}>
                     AGENCY LIMITED
                   </span>
-                  <div className="h-[1.8px] w-8 bg-[#E8590C]" />
+                  <div className="h-[1.8px] w-8" style={{ backgroundColor: '#E8590C' }} />
                 </div>
 
-                <p className="text-[10px] font-medium text-slate-600 tracking-normal italic">
+                <p className="text-[10px] font-medium tracking-normal italic" style={{ color: '#475569' }}>
                   Empowering Brands &amp; Talents with Tech &amp; Digital Excellence
                 </p>
               </div>
             </div>
 
             {/* Header Right: Official Headquarters & Contact Details */}
-            <div className="text-left text-[10.5px] text-slate-700 space-y-1 pr-1 font-medium leading-tight">
+            <div className="text-left text-[10.5px] space-y-1 pr-1 font-medium leading-tight" style={{ color: '#334155' }}>
               <div className="flex items-start gap-1.5">
-                <span className="text-[#E8590C] text-[11px] shrink-0 mt-[1px]">📍</span>
+                <span className="text-[11px] shrink-0 mt-[1px]" style={{ color: '#E8590C' }}>📍</span>
                 <div className="leading-tight">
-                  <span className="font-semibold text-slate-800">Ext A-73 Efab Mall</span><br />
+                  <span className="font-semibold" style={{ color: '#1E293B' }}>Ext A-73 Efab Mall</span><br />
                   <span>Second Floor Area 10</span><br />
                   <span>Garki, Abuja, Nigeria</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-[#E8590C] text-[11px] shrink-0">📞</span>
-                <span className="font-semibold text-slate-800 tracking-wide">09023489111</span>
+                <span className="text-[11px] shrink-0" style={{ color: '#E8590C' }}>📞</span>
+                <span className="font-semibold tracking-wide" style={{ color: '#1E293B' }}>09023489111</span>
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-[#E8590C] text-[11px] shrink-0">✉️</span>
-                <span className="font-medium text-slate-700">dstechanddigitalmarketingltd@gmail.com</span>
+                <span className="text-[11px] shrink-0" style={{ color: '#E8590C' }}>✉️</span>
+                <span className="font-medium" style={{ color: '#334155' }}>dstechanddigitalmarketingltd@gmail.com</span>
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span className="text-[#E8590C] text-[11px] shrink-0">🌐</span>
-                <span className="font-semibold text-[#002D62]">www.dstech.com.ng</span>
+                <span className="text-[11px] shrink-0" style={{ color: '#E8590C' }}>🌐</span>
+                <span className="font-semibold" style={{ color: '#002D62' }}>www.dstech.com.ng</span>
               </div>
             </div>
 
@@ -274,14 +278,14 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                 />
 
                 <h2
-                  className="text-white font-extrabold uppercase tracking-[0.16em] text-[23px] leading-tight text-center drop-shadow-sm"
-                  style={{ fontFamily: "'Cinzel', 'Times New Roman', serif" }}
+                  className="font-extrabold uppercase tracking-[0.16em] text-[23px] leading-tight text-center drop-shadow-sm"
+                  style={{ color: '#FFFFFF', fontFamily: "'Cinzel', 'Times New Roman', serif" }}
                 >
                   CONFIRMATION CERTIFICATE
                 </h2>
                 <h3
-                  className="text-white font-extrabold uppercase tracking-[0.20em] text-[20px] leading-tight text-center drop-shadow-sm mt-0.5"
-                  style={{ fontFamily: "'Cinzel', 'Times New Roman', serif" }}
+                  className="font-extrabold uppercase tracking-[0.20em] text-[20px] leading-tight text-center drop-shadow-sm mt-0.5"
+                  style={{ color: '#FFFFFF', fontFamily: "'Cinzel', 'Times New Roman', serif" }}
                 >
                   OF EMPLOYMENT
                 </h3>
@@ -329,59 +333,59 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             {/* 7 Key-Value Details Rows with Generous Legible Proportions */}
             <div className="space-y-3.5 text-[14.5px] relative z-10 text-left">
               <div className="flex items-center">
-                <span className="w-[255px] font-bold text-slate-800">Appointment Reference No.</span>
-                <span className="w-[22px] font-bold text-slate-700">:</span>
-                <span className="font-black text-[#002D62] text-[15.5px] tracking-wide">{appRefNo}</span>
+                <span className="w-[255px] font-bold" style={{ color: '#1E293B' }}>Appointment Reference No.</span>
+                <span className="w-[22px] font-bold" style={{ color: '#334155' }}>:</span>
+                <span className="font-black text-[15.5px] tracking-wide" style={{ color: '#002D62' }}>{appRefNo}</span>
               </div>
 
               <div className="flex items-center">
-                <span className="w-[255px] font-bold text-slate-800">Employee ID</span>
-                <span className="w-[22px] font-bold text-slate-700">:</span>
-                <span className="font-black text-[#002D62] text-[15.5px] tracking-wide">{employeeId}</span>
+                <span className="w-[255px] font-bold" style={{ color: '#1E293B' }}>Employee ID</span>
+                <span className="w-[22px] font-bold" style={{ color: '#334155' }}>:</span>
+                <span className="font-black text-[15.5px] tracking-wide" style={{ color: '#002D62' }}>{employeeId}</span>
               </div>
 
               <div className="flex items-center">
-                <span className="w-[255px] font-bold text-slate-800">Employee Name</span>
-                <span className="w-[22px] font-bold text-slate-700">:</span>
-                <span className="font-black text-[#002D62] text-[15.5px] uppercase tracking-wide">{employeeName}</span>
+                <span className="w-[255px] font-bold" style={{ color: '#1E293B' }}>Employee Name</span>
+                <span className="w-[22px] font-bold" style={{ color: '#334155' }}>:</span>
+                <span className="font-black text-[15.5px] uppercase tracking-wide" style={{ color: '#002D62' }}>{employeeName}</span>
               </div>
 
               <div className="flex items-center">
-                <span className="w-[255px] font-bold text-slate-800">Position/Designation</span>
-                <span className="w-[22px] font-bold text-slate-700">:</span>
-                <span className="font-black text-[#002D62] text-[15px]">{position}</span>
+                <span className="w-[255px] font-bold" style={{ color: '#1E293B' }}>Position/Designation</span>
+                <span className="w-[22px] font-bold" style={{ color: '#334155' }}>:</span>
+                <span className="font-black text-[15px]" style={{ color: '#002D62' }}>{position}</span>
               </div>
 
               <div className="flex items-center">
-                <span className="w-[255px] font-bold text-slate-800">Department</span>
-                <span className="w-[22px] font-bold text-slate-700">:</span>
-                <span className="font-black text-[#002D62] text-[15px] uppercase">{department}</span>
+                <span className="w-[255px] font-bold" style={{ color: '#1E293B' }}>Department</span>
+                <span className="w-[22px] font-bold" style={{ color: '#334155' }}>:</span>
+                <span className="font-black text-[15px] uppercase" style={{ color: '#002D62' }}>{department}</span>
               </div>
 
               <div className="flex items-center">
-                <span className="w-[255px] font-bold text-slate-800">Date of Initial Appointment</span>
-                <span className="w-[22px] font-bold text-slate-700">:</span>
-                <span className="font-black text-[#002D62] text-[15px]">{dateOfAppointment}</span>
+                <span className="w-[255px] font-bold" style={{ color: '#1E293B' }}>Date of Initial Appointment</span>
+                <span className="w-[22px] font-bold" style={{ color: '#334155' }}>:</span>
+                <span className="font-black text-[15px]" style={{ color: '#002D62' }}>{dateOfAppointment}</span>
               </div>
 
               <div className="flex items-center">
-                <span className="w-[255px] font-bold text-slate-800">Date of Confirmation</span>
-                <span className="w-[22px] font-bold text-slate-700">:</span>
-                <span className="font-black text-[#002D62] text-[15px]">{dateOfConfirmation}</span>
+                <span className="w-[255px] font-bold" style={{ color: '#1E293B' }}>Date of Confirmation</span>
+                <span className="w-[22px] font-bold" style={{ color: '#334155' }}>:</span>
+                <span className="font-black text-[15px]" style={{ color: '#002D62' }}>{dateOfConfirmation}</span>
               </div>
             </div>
 
             {/* ========================================================= */}
             {/* 5. MAIN CONFIRMATION PARAGRAPH (Exact Text from Image)    */}
             {/* ========================================================= */}
-            <div className="mt-4 pt-1 text-left text-[14.5px] leading-[1.75] text-slate-800 font-normal">
+            <div className="mt-4 pt-1 text-left text-[14.5px] leading-[1.75] font-normal" style={{ color: '#1E293B' }}>
               This is to formally certify that{' '}
-              <strong className="font-black text-[#002D62] uppercase">{employeeName}</strong>{' '}
+              <strong className="font-black uppercase" style={{ color: '#002D62' }}>{employeeName}</strong>{' '}
               is hereby confirmed in employment as{' '}
-              <strong className="font-black text-[#002D62] uppercase">{position}</strong>{' '}
+              <strong className="font-black uppercase" style={{ color: '#002D62' }}>{position}</strong>{' '}
               with{' '}
-              <strong className="font-black text-[#002D62]">DS Tech and Digital Marketing Agency Limited</strong>, effective{' '}
-              <strong className="font-black text-[#002D62]">{dateOfConfirmation}</strong>.
+              <strong className="font-black" style={{ color: '#002D62' }}>DS Tech and Digital Marketing Agency Limited</strong>, effective{' '}
+              <strong className="font-black" style={{ color: '#002D62' }}>{dateOfConfirmation}</strong>.
             </div>
 
           </div>
@@ -402,7 +406,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                   borderBottom: '1.5px solid #D4AF37',
                 }}
               >
-                <span className="text-white text-[12.5px] font-extrabold uppercase tracking-[0.12em]">
+                <span className="text-[12.5px] font-extrabold uppercase tracking-[0.12em]" style={{ color: '#FFFFFF' }}>
                   CONFIRMATION TERMS &amp; CONDITIONS
                 </span>
               </div>
@@ -419,11 +423,14 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             </div>
 
             {/* 3 Terms with Orange Number Badges */}
-            <div className="space-y-3 text-left text-[12.8px] leading-[1.58] text-slate-700 font-medium pl-1">
+            <div className="space-y-3 text-left text-[12.8px] leading-[1.58] font-medium pl-1" style={{ color: '#334155' }}>
               
               {/* Term 1 */}
               <div className="flex items-start gap-2.5">
-                <div className="w-[22px] h-[22px] rounded-full bg-[#E8590C] text-white shrink-0 flex items-center justify-center font-black text-[11px] mt-[1.5px] shadow-sm">
+                <div
+                  className="w-[22px] h-[22px] rounded-full shrink-0 flex items-center justify-center font-black text-[11px] mt-[1.5px] shadow-sm"
+                  style={{ backgroundColor: '#E8590C', color: '#FFFFFF' }}
+                >
                   1
                 </div>
                 <p>
@@ -433,7 +440,10 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
 
               {/* Term 2 */}
               <div className="flex items-start gap-2.5">
-                <div className="w-[22px] h-[22px] rounded-full bg-[#E8590C] text-white shrink-0 flex items-center justify-center font-black text-[11px] mt-[1.5px] shadow-sm">
+                <div
+                  className="w-[22px] h-[22px] rounded-full shrink-0 flex items-center justify-center font-black text-[11px] mt-[1.5px] shadow-sm"
+                  style={{ backgroundColor: '#E8590C', color: '#FFFFFF' }}
+                >
                   2
                 </div>
                 <p>
@@ -443,7 +453,10 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
 
               {/* Term 3 */}
               <div className="flex items-start gap-2.5">
-                <div className="w-[22px] h-[22px] rounded-full bg-[#E8590C] text-white shrink-0 flex items-center justify-center font-black text-[11px] mt-[1.5px] shadow-sm">
+                <div
+                  className="w-[22px] h-[22px] rounded-full shrink-0 flex items-center justify-center font-black text-[11px] mt-[1.5px] shadow-sm"
+                  style={{ backgroundColor: '#E8590C', color: '#FFFFFF' }}
+                >
                   3
                 </div>
                 <p>
@@ -454,8 +467,8 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             </div>
 
             {/* Issuance Date Line */}
-            <div className="mt-3.5 text-left text-[14px] font-bold text-slate-800">
-              Issued this <span className="font-black text-[#002D62]">{issueDate}</span>
+            <div className="mt-3.5 text-left text-[14px] font-bold" style={{ color: '#1E293B' }}>
+              Issued this <span className="font-black" style={{ color: '#002D62' }}>{issueDate}</span>
             </div>
 
           </div>
@@ -466,8 +479,8 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
         <div className="mt-2 px-2">
           
           <h3
-            className="text-left font-black text-[14px] uppercase tracking-[0.12em] text-[#002D62] mb-2"
-            style={{ fontFamily: "'Inter', system-ui, sans-serif" }}
+            className="text-left font-black text-[14px] uppercase tracking-[0.12em] mb-2"
+            style={{ color: '#002D62', fontFamily: "'Inter', system-ui, sans-serif" }}
           >
             OFFICIAL AUTHORIZATION
           </h3>
@@ -527,24 +540,29 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                 )}
 
                 {(interactive || onSignClick) && (
-                  <span className="absolute -top-3 left-0 opacity-0 group-hover:opacity-100 transition-opacity bg-[#000E32] text-white text-[8px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider pointer-events-none shadow-sm z-30">
+                  <span
+                    className="absolute -top-3 left-0 opacity-0 group-hover:opacity-100 transition-opacity text-[8px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wider pointer-events-none shadow-sm z-30"
+                    style={{ backgroundColor: '#000E32', color: '#FFFFFF' }}
+                  >
                     ✍️ Change Signature
                   </span>
                 )}
               </div>
 
               {/* Signatory Details Hierarchy */}
-              <div className="text-left text-slate-800 leading-tight">
-                <p className="font-black text-[#002D62] text-[13px] tracking-wide">
-                  {ceoName}
-                </p>
-                <p className="font-extrabold text-[#002D62] text-[11.5px] mt-0.5">
+              <div className="text-left leading-tight" style={{ color: '#1E293B' }}>
+                {ceoName ? (
+                  <p className="font-black text-[13px] tracking-wide" style={{ color: '#002D62' }}>
+                    {ceoName}
+                  </p>
+                ) : null}
+                <p className="font-extrabold text-[11.5px] mt-0.5" style={{ color: '#002D62' }}>
                   {ceoTitle}
                 </p>
-                <p className="font-semibold text-slate-700 mt-0.5 text-[10.5px]">
+                <p className="font-semibold mt-0.5 text-[10.5px]" style={{ color: '#334155' }}>
                   DS Tech and Digital Marketing Agency Limited
                 </p>
-                <p className="text-slate-600 font-medium text-[10px]">
+                <p className="font-medium text-[10px]" style={{ color: '#475569' }}>
                   Abuja, Nigeria
                 </p>
               </div>
@@ -650,30 +668,39 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
             <div className="col-span-4 flex flex-col items-end">
               
               {/* Verification Box */}
-              <div className="w-full border-[1.5px] border-[#061A40] rounded-lg p-2.5 bg-white flex items-center justify-between gap-2 shadow-xs">
+              <div
+                className="w-full rounded-lg p-2.5 flex items-center justify-between gap-2 shadow-xs"
+                style={{
+                  border: '1.5px solid #061A40',
+                  backgroundColor: '#FFFFFF',
+                }}
+              >
                 
                 {/* Left side info */}
                 <div className="text-left space-y-0.5 min-w-0">
-                  <div className="flex items-center gap-1 text-[#002D62]">
+                  <div className="flex items-center gap-1" style={{ color: '#002D62' }}>
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="#002D62">
                       <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1ZM10 16L6.5 12.5L7.91 11.09L10 13.17L16.09 7.08L17.5 8.5L10 16Z" fill="#002D62"/>
                     </svg>
-                    <span className="text-[8px] font-black uppercase text-[#002D62] tracking-wider">
+                    <span className="text-[8px] font-black uppercase tracking-wider" style={{ color: '#002D62' }}>
                       Certificate Verification:
                     </span>
                   </div>
 
-                  <p className="text-[9.5px] font-black text-[#002D62] truncate tracking-tight">
+                  <p className="text-[9.5px] font-black truncate tracking-tight" style={{ color: '#002D62' }}>
                     [{verificationCode}]
                   </p>
 
-                  <p className="text-[7.5px] text-slate-500 leading-tight">
+                  <p className="text-[7.5px] leading-tight" style={{ color: '#64748B' }}>
                     Scan QR or visit our website to verify this certificate.
                   </p>
                 </div>
 
                 {/* Right side QR Code */}
-                <div className="w-[58px] h-[58px] shrink-0 border border-slate-200 rounded p-[1px] bg-white flex items-center justify-center overflow-hidden">
+                <div
+                  className="w-[58px] h-[58px] shrink-0 rounded p-[1px] flex items-center justify-center overflow-hidden"
+                  style={{ border: '1px solid #E2E8F0', backgroundColor: '#FFFFFF' }}
+                >
                   {(activeQr || qrCodeDataUrl) ? (
                     <img
                       src={activeQr || qrCodeDataUrl}
@@ -682,7 +709,10 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
                       className="w-full h-full object-contain"
                     />
                   ) : (
-                    <div className="w-full h-full bg-slate-100 flex items-center justify-center text-[7px] text-slate-400">
+                    <div
+                      className="w-full h-full flex items-center justify-center text-[7px]"
+                      style={{ backgroundColor: '#F1F5F9', color: '#94A3B8' }}
+                    >
                       QR
                     </div>
                   )}
@@ -691,7 +721,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
               </div>
 
               {/* Brand Motto underneath matching Image */}
-              <div className="mt-2 text-right text-[10px] italic text-[#002D62] font-semibold leading-tight pr-1">
+              <div className="mt-2 text-right text-[10px] italic font-semibold leading-tight pr-1" style={{ color: '#002D62' }}>
                 <p>Building Brands | Growing Talents</p>
                 <p>Creating Impact</p>
               </div>
@@ -730,26 +760,26 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
 
         {/* Solid Navy Blue Bottom Bar */}
         <div
-          className="w-full py-2.5 px-6 flex items-center justify-center gap-6 text-[10px] text-white font-medium tracking-wide shadow-md"
-          style={{ backgroundColor: '#061A40' }}
+          className="w-full py-2.5 px-6 flex items-center justify-center gap-6 text-[10px] font-medium tracking-wide shadow-md"
+          style={{ backgroundColor: '#061A40', color: '#FFFFFF' }}
         >
           <div className="flex items-center gap-1.5">
-            <span className="text-[#FFA000] text-[10.5px]">🌐</span>
-            <span>www.dstech.com.ng</span>
+            <span className="text-[10.5px]" style={{ color: '#FFA000' }}>🌐</span>
+            <span style={{ color: '#FFFFFF' }}>www.dstech.com.ng</span>
           </div>
 
-          <span className="text-slate-400 font-bold opacity-60">|</span>
+          <span className="font-bold opacity-60" style={{ color: '#94A3B8' }}>|</span>
 
           <div className="flex items-center gap-1.5">
-            <span className="text-[#FFA000] text-[10.5px]">📞</span>
-            <span>09023489111</span>
+            <span className="text-[10.5px]" style={{ color: '#FFA000' }}>📞</span>
+            <span style={{ color: '#FFFFFF' }}>09023489111</span>
           </div>
 
-          <span className="text-slate-400 font-bold opacity-60">|</span>
+          <span className="font-bold opacity-60" style={{ color: '#94A3B8' }}>|</span>
 
           <div className="flex items-center gap-1.5">
-            <span className="text-[#FFA000] text-[10.5px]">✉️</span>
-            <span>dstechanddigitalmarketingltd@gmail.com</span>
+            <span className="text-[10.5px]" style={{ color: '#FFA000' }}>✉️</span>
+            <span style={{ color: '#FFFFFF' }}>dstechanddigitalmarketingltd@gmail.com</span>
           </div>
         </div>
       </div>

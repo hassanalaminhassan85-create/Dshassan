@@ -60,7 +60,7 @@ export const InAppCalendarDatePicker: React.FC<InAppCalendarDatePickerProps> = (
   required = false,
   helperText,
   className = '',
-  placeholder = 'Select date from calendar...',
+  placeholder = 'Select date...',
 }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -181,10 +181,6 @@ export const InAppCalendarDatePicker: React.FC<InAppCalendarDatePickerProps> = (
           <span>{label}</span>
           {required && <span className="text-orange-500 font-black">*</span>}
         </label>
-
-        <span className="text-[9px] font-mono font-bold text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-950/40 px-2 py-0.5 rounded-full border border-orange-200/60 dark:border-orange-900/60">
-          In-App Calendar
-        </span>
       </div>
 
       {/* Clickable Display Input Bar */}

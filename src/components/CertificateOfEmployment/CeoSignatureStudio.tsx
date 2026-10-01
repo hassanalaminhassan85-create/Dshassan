@@ -50,17 +50,17 @@ const STROKE_WIDTHS = [
 ];
 
 const CURSIVE_FONTS = [
-  { id: 'great-vibes', name: 'Great Vibes', family: "'Great Vibes', cursive", sample: 'Donald S.' },
-  { id: 'dancing-script', name: 'Dancing Script', family: "'Dancing Script', cursive", sample: 'Donald S.' },
-  { id: 'alex-brush', name: 'Alex Brush', family: "'Alex Brush', cursive", sample: 'Donald S.' },
-  { id: 'allura', name: 'Allura Script', family: "'Allura', cursive", sample: 'Donald S.' },
-  { id: 'playball', name: 'Playball Prestige', family: "'Playball', cursive", sample: 'Donald S.' },
+  { id: 'great-vibes', name: 'Great Vibes', family: "'Great Vibes', cursive", sample: 'Signature' },
+  { id: 'dancing-script', name: 'Dancing Script', family: "'Dancing Script', cursive", sample: 'Signature' },
+  { id: 'alex-brush', name: 'Alex Brush', family: "'Alex Brush', cursive", sample: 'Signature' },
+  { id: 'allura', name: 'Allura Script', family: "'Allura', cursive", sample: 'Signature' },
+  { id: 'playball', name: 'Playball Prestige', family: "'Playball', cursive", sample: 'Signature' },
 ];
 
 export const CeoSignatureStudio: React.FC<CeoSignatureStudioProps> = ({
   currentSignatureUrl,
   currentSignatureType = 'preset',
-  initialSignatoryName = 'Dr. Donald S.',
+  initialSignatoryName = '',
   initialSignatoryPosition = 'Company Director/CEO',
   initialSignatureDate,
   onSignatureApply,
@@ -73,7 +73,7 @@ export const CeoSignatureStudio: React.FC<CeoSignatureStudioProps> = ({
   );
 
   // Signatory Metadata
-  const [signatoryName, setSignatoryName] = useState<string>(initialSignatoryName || 'Dr. Donald S.');
+  const [signatoryName, setSignatoryName] = useState<string>(initialSignatoryName || '');
   const [signatoryPosition, setSignatoryPosition] = useState<string>(initialSignatoryPosition || 'Company Director/CEO');
   const [signatureDate, setSignatureDate] = useState<string>(() => {
     return initialSignatureDate || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
@@ -90,7 +90,7 @@ export const CeoSignatureStudio: React.FC<CeoSignatureStudioProps> = ({
   const [hasDrawnContent, setHasDrawnContent] = useState<boolean>(false);
 
   // Mode 2: TYPE State
-  const [typedName, setTypedName] = useState<string>(initialSignatoryName || 'Donald S.');
+  const [typedName, setTypedName] = useState<string>(initialSignatoryName || '');
   const [selectedFont, setSelectedFont] = useState<string>(CURSIVE_FONTS[0].family);
 
   // Mode 3: UPLOAD State
@@ -111,7 +111,7 @@ export const CeoSignatureStudio: React.FC<CeoSignatureStudioProps> = ({
     overrideDate?: string
   ) => {
     const typeToUse = overrideType || activeMode;
-    const nameToUse = (overrideName !== undefined ? overrideName : signatoryName).trim() || 'Dr. Donald S.';
+    const nameToUse = (overrideName !== undefined ? overrideName : signatoryName).trim();
     const positionToUse = (overridePosition !== undefined ? overridePosition : signatoryPosition).trim() || 'Company Director/CEO';
     const dateToUse = overrideDate !== undefined ? overrideDate : signatureDate;
 
@@ -164,7 +164,7 @@ export const CeoSignatureStudio: React.FC<CeoSignatureStudioProps> = ({
     // Set font style
     const fontSize = 68;
     ctx.font = `italic ${fontSize}px ${fontFamily}`;
-    ctx.fillText(textToRender || 'Donald S.', canvas.width / 2, canvas.height / 2 - 8);
+    ctx.fillText(textToRender || 'CEO Signature', canvas.width / 2, canvas.height / 2 - 8);
 
     // Dynamic executive underline flourish
     ctx.strokeStyle = color;
@@ -489,7 +489,7 @@ export const CeoSignatureStudio: React.FC<CeoSignatureStudioProps> = ({
               </span>
             </div>
             <p className="text-[11px] text-slate-300 mt-0.5">
-              Draw with pen, type in calligraphy, upload a scan, or apply the official vector seal. Automatically reflected on certificate!
+              Draw with pen, type in calligraphy, upload a scan, or apply the official vector seal. Live updates reflected on certificate.
             </p>
           </div>
         </div>
@@ -517,7 +517,7 @@ export const CeoSignatureStudio: React.FC<CeoSignatureStudioProps> = ({
           {[
             { id: 'draw', label: 'Draw with Pen', icon: PenTool, desc: 'Digital Touch & Mouse Pad' },
             { id: 'type', label: 'Type Calligraphy', icon: Type, desc: 'Executive Cursive Script' },
-            { id: 'upload', label: 'Upload Scan', icon: Upload, desc: 'Auto-Background Removal' },
+            { id: 'upload', label: 'Upload Scan', icon: Upload, desc: 'Transparent Background' },
             { id: 'preset', label: 'Official Seal Preset', icon: ShieldCheck, desc: 'Authorized DS Tech Mark' },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -668,7 +668,7 @@ export const CeoSignatureStudio: React.FC<CeoSignatureStudioProps> = ({
                 type="text"
                 value={typedName}
                 onChange={(e) => handleTypedNameChange(e.target.value)}
-                placeholder="e.g. Donald S."
+                placeholder="Type name for signature..."
                 className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm font-semibold focus:ring-2 focus:ring-orange-500 focus:outline-none"
               />
             </div>
@@ -717,7 +717,7 @@ export const CeoSignatureStudio: React.FC<CeoSignatureStudioProps> = ({
                   Upload Scanned Signature Image
                 </p>
                 <p className="text-[10px] text-slate-400 mt-0.5">
-                  Supports PNG, JPG, JPEG, SVG, WebP. Automatically removes white paper background!
+                  Supports PNG, JPG, JPEG, SVG, WebP with clean background transparency.
                 </p>
               </div>
 
@@ -811,7 +811,7 @@ export const CeoSignatureStudio: React.FC<CeoSignatureStudioProps> = ({
             </div>
 
             <p className="text-[10px] text-slate-500 italic text-center">
-              This signature is automatically verified and accepted across all formal DS Tech employment certificates.
+              This signature is officially verified and accepted across all formal DS Tech employment certificates.
             </p>
           </div>
         )}
@@ -829,7 +829,7 @@ export const CeoSignatureStudio: React.FC<CeoSignatureStudioProps> = ({
                 type="text"
                 value={signatoryName}
                 onChange={(e) => handleSignatoryNameChange(e.target.value)}
-                placeholder="Dr. Donald S."
+                placeholder="Enter Authorized Signatory Name"
                 className="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-orange-500 focus:outline-none"
               />
             </div>

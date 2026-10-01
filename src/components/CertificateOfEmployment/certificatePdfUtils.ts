@@ -1,4 +1,4 @@
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas-pro';
 import jsPDF from 'jspdf';
 import { EmploymentCertificate } from '../../types';
 
@@ -14,6 +14,25 @@ export function formatCertificateFileName(certificate: Partial<EmploymentCertifi
   const cleanName = sanitizeFileNamePart(certificate.employeeName || 'Staff');
   const cleanCertNo = sanitizeFileNamePart(certificate.certificateNumber || 'CERT');
   return `DS-Tech-Certificate-of-Employment-${cleanName}-${cleanCertNo}.pdf`;
+}
+
+/**
+ * Convert any CSS color (including modern oklch, lab, lch) to standard rgb/rgba string
+ * using in-memory 2D canvas context to guarantee 100% html2canvas compatibility.
+ */
+function safeConvertColor(colorStr: string): string {
+  if (!colorStr || !colorStr.includes('oklch')) return colorStr;
+  try {
+    const cvs = document.createElement('canvas');
+    cvs.width = 1;
+    cvs.height = 1;
+    const ctx = cvs.getContext('2d');
+    if (!ctx) return colorStr;
+    ctx.fillStyle = colorStr;
+    return ctx.fillStyle || colorStr;
+  } catch {
+    return colorStr;
+  }
 }
 
 /**
@@ -38,10 +57,10 @@ export async function generateCertificatePDFBlob(
   // 2. Safe scale factor: mobile browsers crash on 3x canvas due to memory caps
   const isMobile =
     typeof window !== 'undefined' &&
-    (/Android|iPhone|iPad|iPod|Mobile|Silk/i.test(navigator.userAgent) || window.innerWidth < 768);
-  const scale = isMobile ? 1.6 : 2;
+    (/Android|iPhone|iPad|iPod|Mobile|Silk|SamsungBrowser/i.test(navigator.userAgent) || window.innerWidth < 768);
+  const scale = isMobile ? 1.8 : 2;
 
-  // 3. Render pixel-perfect canvas
+  // 3. Render pixel-perfect canvas using html2canvas-pro (with native oklch support)
   const canvas = await html2canvas(element, {
     scale,
     useCORS: true,
@@ -58,7 +77,7 @@ export async function generateCertificatePDFBlob(
 
       const clonedTarget = clonedDoc.getElementById(element.id);
       if (clonedTarget) {
-        // Reset all parent containers in clonedDoc up to body so mobile transforms & overflow-hidden do not clip or corrupt canvas
+        // Reset all parent containers in clonedDoc up to body so mobile transforms do not clip
         let curr = clonedTarget.parentElement;
         while (curr && curr !== clonedDoc.body) {
           curr.style.transform = 'none';
@@ -74,8 +93,8 @@ export async function generateCertificatePDFBlob(
           curr = curr.parentElement;
         }
 
-        clonedDoc.body.style.width = '850px';
-        clonedDoc.body.style.minHeight = '1200px';
+        clonedDoc.body.style.width = '820px';
+        clonedDoc.body.style.minHeight = '1150px';
         clonedDoc.body.style.overflow = 'visible';
         clonedDoc.body.style.margin = '0';
         clonedDoc.body.style.padding = '0';
@@ -89,6 +108,27 @@ export async function generateCertificatePDFBlob(
         clonedTarget.style.margin = '0';
         clonedTarget.style.transform = 'none';
         clonedTarget.style.backgroundColor = '#FFFFFF';
+
+        // Secondary safety: scan cloned elements and replace any remaining oklch colors
+        try {
+          const allNodes = clonedTarget.querySelectorAll('*');
+          allNodes.forEach((node) => {
+            const el = node as HTMLElement;
+            if (el.style) {
+              if (el.style.color && el.style.color.includes('oklch')) {
+                el.style.color = safeConvertColor(el.style.color);
+              }
+              if (el.style.backgroundColor && el.style.backgroundColor.includes('oklch')) {
+                el.style.backgroundColor = safeConvertColor(el.style.backgroundColor);
+              }
+              if (el.style.borderColor && el.style.borderColor.includes('oklch')) {
+                el.style.borderColor = safeConvertColor(el.style.borderColor);
+              }
+            }
+          });
+        } catch (colorScanErr) {
+          console.warn('[Certificate PDF] Color sanitization note:', colorScanErr);
+        }
 
         // Ensure all images in cloned element have anonymous CORS
         const imgs = clonedTarget.querySelectorAll('img');
@@ -140,72 +180,68 @@ export function downloadCertificateBlob(blob: Blob, fileName: string) {
   a.click();
   document.body.removeChild(a);
 
-  // Extend revoke timeout to 20 seconds so mobile browsers have ample time to complete the download stream
+  // Extend revoke timeout to 30 seconds so mobile downloads can complete without interruption
   setTimeout(() => {
     try {
       URL.revokeObjectURL(url);
     } catch {}
-  }, 20000);
+  }, 30000);
 }
 
 /**
- * Print the certificate using standard print window / iframe
+ * Print the certificate cleanly across Mobile and Desktop without Print Spooler crashes
  */
 export async function printCertificateElement(element: HTMLElement) {
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) {
-    window.print();
+  const isMobile =
+    typeof window !== 'undefined' &&
+    (/Android|iPhone|iPad|iPod|Mobile|Silk|SamsungBrowser/i.test(navigator.userAgent) || window.innerWidth < 768);
+
+  // 1. Generate clean single-page PDF Blob first
+  const blob = await generateCertificatePDFBlob(element);
+  const blobUrl = URL.createObjectURL(blob);
+
+  // 2. On Mobile (Android / Samsung Browser / iOS):
+  // Opening the generated PDF blob directly activates the native Android PDF viewer / Samsung Print Spooler with zero crash!
+  if (isMobile) {
+    const win = window.open(blobUrl, '_blank');
+    if (!win) {
+      // Fallback if popup blocked: trigger direct download which opens in Samsung Print Spooler / PDF viewer
+      downloadCertificateBlob(blob, 'DS-Tech-Certificate-of-Employment.pdf');
+    }
     return;
   }
 
-  const certHtml = element.outerHTML;
+  // 3. On Desktop: Use hidden iframe for seamless instant printing
+  try {
+    const existingFrame = document.getElementById('ds-cert-print-iframe');
+    if (existingFrame) existingFrame.remove();
 
-  printWindow.document.write(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>DS Tech - Certificate of Employment</title>
-        <style>
-          @page {
-            size: A4 portrait;
-            margin: 0;
-          }
-          body {
-            margin: 0;
-            padding: 0;
-            background: #FFFFFF;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-          }
-          #${element.id} {
-            width: 210mm !important;
-            height: 297mm !important;
-            box-shadow: none !important;
-            margin: 0 !important;
-            page-break-after: avoid !important;
-            page-break-inside: avoid !important;
-          }
-        </style>
-        <script src="https://cdn.tailwindcss.com"></script>
-      </head>
-      <body>
-        ${certHtml}
-        <script>
-          window.onload = function() {
-            setTimeout(function() {
-              window.focus();
-              window.print();
-              window.close();
-            }, 300);
-          };
-        </script>
-      </body>
-    </html>
-  `);
-  printWindow.document.close();
+    const iframe = document.createElement('iframe');
+    iframe.id = 'ds-cert-print-iframe';
+    iframe.style.position = 'fixed';
+    iframe.style.right = '0';
+    iframe.style.bottom = '0';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+    iframe.src = blobUrl;
+
+    document.body.appendChild(iframe);
+
+    iframe.onload = () => {
+      setTimeout(() => {
+        try {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+        } catch {
+          window.open(blobUrl, '_blank');
+        }
+      }, 400);
+    };
+  } catch (err) {
+    console.warn('[Certificate Print] Iframe print fallback:', err);
+    window.open(blobUrl, '_blank');
+  }
 }
 
 /**

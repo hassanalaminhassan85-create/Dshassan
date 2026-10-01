@@ -67,8 +67,8 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   const [issueDate, setIssueDate] = useState<string>(() => {
     return new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   });
-  const [authorizedOfficerName, setAuthorizedOfficerName] = useState<string>('Company Director/CEO');
-  const [authorizedOfficerPosition, setAuthorizedOfficerPosition] = useState<string>('Director/CEO');
+  const [authorizedOfficerName, setAuthorizedOfficerName] = useState<string>('');
+  const [authorizedOfficerPosition, setAuthorizedOfficerPosition] = useState<string>('Company Director/CEO');
   const [allowManualOverrides, setAllowManualOverrides] = useState<boolean>(false);
 
   // Auto-generated Verification state
@@ -90,7 +90,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   // CEO Official Signature & Executive Authorization State
   const [signatureDataUrl, setSignatureDataUrl] = useState<string>(OFFICIAL_CEO_PRESET_SVG);
   const [signatureType, setSignatureType] = useState<'draw' | 'type' | 'upload' | 'preset'>('preset');
-  const [ceoSignatoryName, setCeoSignatoryName] = useState<string>('Dr. Donald S.');
+  const [ceoSignatoryName, setCeoSignatoryName] = useState<string>('');
   const [ceoSignatureDate, setCeoSignatureDate] = useState<string>(() => {
     return new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   });
@@ -175,8 +175,8 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
     setVerificationCode(cert.verificationCode);
     setSignatureDataUrl(cert.signatureDataUrl || OFFICIAL_CEO_PRESET_SVG);
     setSignatureType(cert.signatureType || 'preset');
-    setCeoSignatoryName(cert.ceoSignatoryName || cert.authorizedOfficerName || 'Dr. Donald S.');
-    setAuthorizedOfficerName(cert.ceoSignatoryName || cert.authorizedOfficerName || 'Dr. Donald S.');
+    setCeoSignatoryName(cert.ceoSignatoryName || cert.authorizedOfficerName || '');
+    setAuthorizedOfficerName(cert.ceoSignatoryName || cert.authorizedOfficerName || '');
     setAuthorizedOfficerPosition(cert.ceoSignatureTitle || cert.authorizedOfficerPosition || 'Company Director/CEO');
     if (cert.ceoSignatureDate) setCeoSignatureDate(cert.ceoSignatureDate);
     if (cert.ceoSignatureHash) setCeoSignatureHash(cert.ceoSignatureHash);
@@ -233,6 +233,8 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
     setEmploymentStatus('Confirmed');
     setEmploymentType('Full-Time Permanent');
     setIssueDate(new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }));
+    setCeoSignatoryName('');
+    setAuthorizedOfficerName('');
     setSignatureDataUrl(OFFICIAL_CEO_PRESET_SVG);
     setSignatureType('preset');
   };
@@ -378,7 +380,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
         qrVerificationUrl: getVerificationUrl(verificationCode.trim()),
         signatureDataUrl: signatureDataUrl || OFFICIAL_CEO_PRESET_SVG,
         signatureType,
-        ceoSignatoryName: ceoSignatoryName.trim() || 'Dr. Donald S.',
+        ceoSignatoryName: ceoSignatoryName.trim(),
         ceoSignatureDate,
         ceoSignatureTitle: authorizedOfficerPosition.trim() || 'Company Director/CEO',
         ceoSignatureHash,
@@ -427,7 +429,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
   };
 
   // Print Action
-  const handlePrint = (certOverride?: EmploymentCertificate) => {
+  const handlePrint = async (certOverride?: EmploymentCertificate) => {
     const targetEl = certOverride
       ? (document.getElementById('ds-modal-certificate-doc') || document.getElementById('ds-modal-fullscreen-certificate-doc'))
       : (document.getElementById('ds-certificate-clean-export-doc') || document.getElementById('ds-certificate-of-employment-document'));
@@ -436,7 +438,13 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
       showToast('error', 'Certificate element not available for printing.');
       return;
     }
-    printCertificateElement(targetEl);
+    try {
+      showToast('info', 'Preparing print-ready certificate...');
+      await printCertificateElement(targetEl as HTMLElement);
+    } catch (err: any) {
+      console.error('[Print Error]', err);
+      showToast('error', err?.message || 'Print error. Please try downloading PDF instead.');
+    }
   };
 
   // Share Action
@@ -634,7 +642,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                   Select Registered Staff Member
                 </h4>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                  Pick from the real authenticated database to pre-fill info automatically.
+                  Pick from the database to populate staff details.
                 </p>
               </div>
               <button
@@ -680,25 +688,19 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                       <label className="text-[11px] font-extrabold uppercase text-slate-700 dark:text-slate-300">
                         Employee ID *
                       </label>
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-[9px] font-mono font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200/60 dark:border-emerald-900/60 flex items-center gap-1">
-                          <Sparkles size={9} />
-                          Auto Serial
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const newSerial = computeNextSerialEmployeeId(certificates, staffDirectory);
-                            setEmployeeId(newSerial);
-                            showToast('info', `Generated next serial ID: ${newSerial}`);
-                          }}
-                          className="text-[9px] font-bold text-orange-600 dark:text-orange-400 hover:text-orange-700 flex items-center gap-1 px-1.5 py-0.5 rounded bg-orange-50 dark:bg-orange-950/30 border border-orange-200/60 cursor-pointer"
-                          title="Generate next available serial Employee ID"
-                        >
-                          <RefreshCw size={10} />
-                          <span>Next</span>
-                        </button>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newSerial = computeNextSerialEmployeeId(certificates, staffDirectory);
+                          setEmployeeId(newSerial);
+                          showToast('info', `Generated next serial ID: ${newSerial}`);
+                        }}
+                        className="text-[9px] font-bold text-orange-600 dark:text-orange-400 hover:text-orange-700 flex items-center gap-1 px-1.5 py-0.5 rounded bg-orange-50 dark:bg-orange-950/30 border border-orange-200/60 cursor-pointer"
+                        title="Generate next available serial Employee ID"
+                      >
+                        <RefreshCw size={10} />
+                        <span>Next</span>
+                      </button>
                     </div>
                     <div className="relative">
                       <input
@@ -711,7 +713,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                       />
                     </div>
                     <span className="text-[9.5px] text-slate-400 block mt-1 font-mono">
-                      Sequential organizational ID • Zero manual work
+                      Sequential organizational staff identifier
                     </span>
                   </div>
 
@@ -816,7 +818,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                       value={issueDate}
                       onChange={(formatted) => setIssueDate(formatted)}
                       required={true}
-                      placeholder="Select issue date from in-app calendar..."
+                      placeholder="Select issue date..."
                       helperText="Official issuance date stamped on certificate"
                     />
                   </div>
@@ -832,8 +834,27 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                   </div>
                 </div>
 
-                {/* Authorized Officer */}
+                {/* Authorized Officer Name & Title */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-extrabold uppercase text-slate-700 dark:text-slate-300 block mb-1">
+                      Authorized Signatory Name
+                    </label>
+                    <input
+                      type="text"
+                      value={ceoSignatoryName}
+                      onChange={(e) => {
+                        setCeoSignatoryName(e.target.value);
+                        setAuthorizedOfficerName(e.target.value);
+                      }}
+                      placeholder="Leave empty or input CEO / Signatory Name"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                    />
+                    <span className="text-[9.5px] text-slate-400 block mt-1 font-mono">
+                      CEO can enter during e-signing or leave empty
+                    </span>
+                  </div>
+
                   <div>
                     <label className="text-[11px] font-extrabold uppercase text-slate-700 dark:text-slate-300 block mb-1">
                       Authorized Officer Title
@@ -843,19 +864,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                       value={authorizedOfficerPosition}
                       onChange={(e) => setAuthorizedOfficerPosition(e.target.value)}
                       placeholder="Company Director/CEO"
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-orange-500 focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[11px] font-extrabold uppercase text-slate-700 dark:text-slate-300 block mb-1">
-                      Authorized Location
-                    </label>
-                    <input
-                      type="text"
-                      readOnly
-                      value="Abuja, Nigeria"
-                      className="w-full px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-400 text-xs font-semibold cursor-not-allowed"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs font-semibold focus:ring-2 focus:ring-orange-500 focus:outline-none"
                     />
                   </div>
                 </div>
@@ -865,7 +874,7 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] font-black uppercase text-[#000E32] dark:text-white tracking-wider flex items-center gap-1.5">
                       <ShieldCheck size={13} className="text-emerald-500" />
-                      Auto-Generated Identifiers
+                      Official Certificate Identifiers
                     </span>
                     <button
                       type="button"
@@ -1042,9 +1051,9 @@ export const AdminCertificateOfEmploymentManager: React.FC<AdminCertificateManag
                         ? 'bg-[#000E32] text-white shadow-xs'
                         : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700'
                     }`}
-                    title="Automatically fit certificate to container width without horizontal overflow"
+                    title="Fit certificate to container width without horizontal overflow"
                   >
-                    Auto-Fit ({Math.round(previewScale * 100)}%)
+                    Fit ({Math.round(previewScale * 100)}%)
                   </button>
 
                   {[0.5, 0.65, 0.8, 1.0].map((s) => (
