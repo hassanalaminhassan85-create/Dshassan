@@ -47,7 +47,7 @@ export const TutorAuthGate: React.FC<TutorAuthGateProps> = ({
           id: 'tut_demo_david',
           tutorId: 'DSTA-FAC/2026/0149',
           fullName: 'Engr. David Alao',
-          email: 'david.alao@faculty.dstech.agency',
+          email: 'david.alao@faculty.dstechagency.com',
           phone: '+234 802 888 1234',
           specialization: 'Full-Stack Software Engineering & Cloud',
           assignedCourses: ['DSTA-SWE01', 'DSTA-MERN02'],
@@ -64,7 +64,7 @@ export const TutorAuthGate: React.FC<TutorAuthGateProps> = ({
           id: 'tut_demo_amina',
           tutorId: 'DSTA-FAC/2026/0281',
           fullName: 'Dr. Amina Yusuf',
-          email: 'amina.yusuf@faculty.dstech.agency',
+          email: 'amina.yusuf@faculty.dstechagency.com',
           phone: '+234 811 777 5678',
           specialization: 'AI & Data Science Architectures',
           assignedCourses: ['DSTA-AI101', 'DSTA-PYML03'],
@@ -103,7 +103,7 @@ export const TutorAuthGate: React.FC<TutorAuthGateProps> = ({
           id: `tut_${app.id.replace(/[\/\-]/g, '_')}`,
           tutorId: app.id.startsWith('DSTA-FAC') ? app.id : `DSTA-FAC/2026/${app.id.split('/').pop() || '149'}`,
           fullName: app.fullName,
-          email: app.emailAddress || `${app.id.toLowerCase()}@faculty.dstech.agency`,
+          email: app.emailAddress || `${app.id.toLowerCase()}@faculty.dstechagency.com`,
           phone: app.phoneNumber || '+234 800 000 0000',
           specialization: spec,
           assignedCourses: assignedCodes,
@@ -125,7 +125,7 @@ export const TutorAuthGate: React.FC<TutorAuthGateProps> = ({
         id: `tut_${Date.now()}`,
         tutorId: facultyIdInput.trim().toUpperCase(),
         fullName: 'Lead Faculty Instructor',
-        email: `${facultyIdInput.trim().toLowerCase().replace(/[^a-z0-9]/g, '')}@faculty.dstech.agency`,
+        email: `${facultyIdInput.trim().toLowerCase().replace(/[^a-z0-9]/g, '')}@faculty.dstechagency.com`,
         phone: '+234 800 000 1111',
         specialization: 'Full-Stack Software Engineering',
         assignedCourses: ['DSTA-SWE01'],
@@ -202,7 +202,7 @@ export const TutorAuthGate: React.FC<TutorAuthGateProps> = ({
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      const email = user.email || 'tutor@faculty.dstech.agency';
+      const email = user.email || 'tutor@faculty.dstechagency.com';
       const name = user.displayName || 'Google Faculty Member';
 
       const session: TutorSession = {
@@ -408,7 +408,7 @@ export const TutorAuthGate: React.FC<TutorAuthGateProps> = ({
                   required
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
-                  placeholder="faculty@dstech.agency"
+                  placeholder="faculty@dstechagency.com"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-purple-500 transition-colors"
                 />
               </div>

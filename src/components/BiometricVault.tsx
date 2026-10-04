@@ -294,7 +294,7 @@ export const BiometricVault: React.FC<{ application?: any }> = ({ application })
         subtitle="Verify biometric key credentials to decrypt and unlock sensitive files"
         mode="verify"
         userId={application?.id || 'usr-demo'}
-        email={application?.personalInfo?.emailAddress || 'candidate2026@dstech.com'}
+        email={application?.personalInfo?.emailAddress || 'candidate2026@dstechagency.com'}
       />
     </div>
   );

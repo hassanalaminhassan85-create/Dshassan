@@ -107,7 +107,7 @@ export const PaystackMotionCheckoutModal: React.FC<PaystackMotionCheckoutModalPr
       try {
         const handler = window.PaystackPop.setup({
           key: paystackKey,
-          email: config.email || 'client@dstech.agency',
+          email: config.email || 'client@dstechagency.com',
           amount: Math.round(config.amount * 100), // convert Naira to Kobo
           currency: 'NGN',
           ref: generatedRef,
@@ -508,7 +508,7 @@ export interface PaystackPayButtonProps {
 
 export const PaystackPayButton: React.FC<PaystackPayButtonProps> = ({
   amount,
-  email = 'client@dstech.agency',
+  email = 'client@dstechagency.com',
   customerName = 'Valued Client',
   phone = '',
   title,

@@ -35,7 +35,7 @@ export const PaystackPaymentPage: React.FC<PaystackPaymentPageProps> = ({
   // Local state initialized from config
   const initialAmount = config?.amount || 30000;
   const initialTitle = config?.title || 'DS Tech Instant Project Settlement';
-  const initialEmail = config?.email || 'client@dstech.agency';
+  const initialEmail = config?.email || 'client@dstechagency.com';
   const initialName = config?.customerName || 'Valued Client';
   const initialPhone = config?.phone || '';
   const initialDesc = config?.description || 'Custom Deposit & Retainer Settlement via Paystack API';
@@ -123,7 +123,7 @@ export const PaystackPaymentPage: React.FC<PaystackPaymentPageProps> = ({
         setProcessingStep('Opening Paystack Payment Terminal...');
         const handler = window.PaystackPop.setup({
           key: paystackKey,
-          email: email || 'client@dstech.agency',
+          email: email || 'client@dstechagency.com',
           amount: Math.round(amount * 100), // convert Naira to Kobo
           currency: 'NGN',
           ref: generatedRef,
@@ -393,7 +393,7 @@ export const PaystackPaymentPage: React.FC<PaystackPaymentPageProps> = ({
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
                           className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl py-2 pl-9 pr-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 font-sans"
-                          placeholder="client@dstech.agency"
+                          placeholder="client@dstechagency.com"
                         />
                       </div>
                     </div>

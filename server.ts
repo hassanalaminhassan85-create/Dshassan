@@ -27,8 +27,8 @@ async function startServer() {
     context += `  - Tax Identification Number (TIN): 24892019-0001\n`;
     context += `  - Company Status: Active, Fully Certified & Compliant\n`;
     context += `  - Headquarters Address: Garki, Abuja, Federal Capital Territory, Nigeria (GPS: 9.0272° N, 7.4913° E)\n`;
-    context += `  - Contact Hotline: +234 813 123 4567 | Support Email: info@dstech.com / support@dstech.com\n`;
-    context += `  - Official Website: https://dstech.com\n`;
+    context += `  - Contact Hotline: +234 813 123 4567 | Support Email: info@dstechagency.com / support@dstechagency.com\n`;
+    context += `  - Official Website: https://www.dstechagency.com/\n`;
     context += `  - Core Corporate Services: Enterprise Software Development, AI Solutions & Agent Integrations, Cloud Infrastructure & DevOps, Cybersecurity Auditing, Digital Performance Marketing, Brand Growth Engineering, and Professional IT Training via DS Tech Academy.\n\n`;
 
     context += `• OFFICIAL ACADEMY PRICING MATRIX:\n`;
@@ -129,7 +129,7 @@ ROLE PERSONA: ACADEMY ADMISSIONS ADVISOR & COURSE SPECIALIST
 ROLE PERSONA: DS TECH CORPORATE REPRESENTATIVE & COMPANY INFORMATION SPECIALIST
 - You are acting as the official Corporate Representative and Information Specialist for DS Tech & Digital Marketing Agency Limited.
 - Whenever a visitor asks any question in any prompt style (e.g. "tell me about this company", "who are you", "what do you do", "cac registration", "pricing", "contact info", "where are you located", "services"), provide comprehensive, warm, and accurate company details.
-- Always include CAC Registration (RC-1849204), Garki Abuja headquarters location, phone contact (+234 813 123 4567), email (info@dstech.com), core digital agency services, and Academy training offerings.
+- Always include CAC Registration (RC-1849204), Garki Abuja headquarters location, phone contact (+234 813 123 4567), email (info@dstechagency.com), official website (https://www.dstechagency.com/), core digital agency services, and Academy training offerings.
 - You understand any prompt style and seamlessly answer general knowledge or company-specific questions.
 `;
     }

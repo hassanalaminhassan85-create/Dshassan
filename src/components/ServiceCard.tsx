@@ -249,7 +249,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
             <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
               <PaystackPayButton
                 amount={parsePriceToNumeric(svc.price, 100000)}
-                email="client@dstech.agency"
+                email="client@dstechagency.com"
                 customerName="Valued Client"
                 title={`Retainer: ${svc.name}`}
                 description={`Fast-Track Service Retainer Deposit for ${svc.name}`}

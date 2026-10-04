@@ -111,7 +111,7 @@ interface NotificationItem {
 const DEMO_STAFF_MEMBER: StaffMember = {
   id: "staff_demo_001",
   employeeId: "DST-ENG-8492",
-  email: "garba.aminu@dstech.com",
+  email: "garba.aminu@dstechagency.com",
   fullName: "Dr. Aminu Garba",
   phone: "+234 803 491 8820",
   gender: "Male",
@@ -791,7 +791,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onBackToPortal }) => {
                         required
                         value={email}
                         onChange={e => setEmail(e.target.value)}
-                        placeholder="e.g. garba.aminu@dstech.com"
+                        placeholder="e.g. garba.aminu@dstechagency.com"
                         className={`w-full pl-9 pr-3 py-2.5 rounded-xl border text-xs outline-none transition-all ${
                           isDarkMode 
                             ? 'bg-slate-950 border-slate-800 text-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500' 
@@ -888,7 +888,7 @@ export const StaffPortal: React.FC<StaffPortalProps> = ({ onBackToPortal }) => {
                         required
                         value={regEmail}
                         onChange={e => setRegEmail(e.target.value)}
-                        placeholder="aminu@dstech.com"
+                        placeholder="aminu@dstechagency.com"
                         className={`w-full px-3 py-2 rounded-xl border text-xs outline-none ${
                           isDarkMode ? 'bg-slate-950 border-slate-800 text-white' : 'bg-slate-50 border-slate-300'
                         }`}

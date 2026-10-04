@@ -1150,7 +1150,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     sqlLines.push("INSERT INTO career_constellations (id, candidate_id, skills_matrix_json, retention_prediction_pct, screening_matrix_hash, last_updated) VALUES ('const-02', 'usr-ngozi', '{\"react\":88,\"typescript\":85,\"marketing\":95,\"seo\":92,\"ai_prompting\":90}', 91.2, 'SCREEN-MX-0X2D3C4B5A6F1E', '2027-03-26T15:30:00Z');");
 
     sqlLines.push("\n-- Seeds: users");
-    sqlLines.push("INSERT INTO users (id, email, full_name, role, created_at) VALUES ('usr-demo', 'candidate2026@dstech.com', 'candidate2026', 'Applicant', '2026-07-01T14:29:55.228Z');");
+    sqlLines.push("INSERT INTO users (id, email, full_name, role, created_at) VALUES ('usr-demo', 'candidate2026@dstechagency.com', 'candidate2026', 'Applicant', '2026-07-01T14:29:55.228Z');");
 
     sqlLines.push("\n-- Seeds: applications");
     applications.forEach((app: any) => {
@@ -1165,7 +1165,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
 
     sqlLines.push("\n-- Seeds: biometric_logs");
-    sqlLines.push("INSERT INTO biometric_logs (id, user_id, email, biometric_type, status, message, user_agent, created_at) VALUES ('log_8o9sib87o', 'usr-demo', 'candidate2026@dstech.com', 'platform', 'success', 'Logged in via simulated biometric passkey signature (Preview Mode)', 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36', '2026-07-01T14:29:55.228Z');");
+    sqlLines.push("INSERT INTO biometric_logs (id, user_id, email, biometric_type, status, message, user_agent, created_at) VALUES ('log_8o9sib87o', 'usr-demo', 'candidate2026@dstechagency.com', 'platform', 'success', 'Logged in via simulated biometric passkey signature (Preview Mode)', 'Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36', '2026-07-01T14:29:55.228Z');");
 
     sqlLines.push("\n-- =====================================================================");
     sqlLines.push("-- DATABASE SEEDING COMPLETED SUCCESSFULLY");
@@ -2349,7 +2349,7 @@ export default {
           const rawAdminName = adminUser?.fullName || 'Administrator';
           const adminDisplayName = (rawAdminName.toLowerCase().includes('hassan') || rawAdminName.toLowerCase().includes('alamin')) ? 'Administrator' : rawAdminName;
           const adminAvatarInitials = adminDisplayName.slice(0, 2).toUpperCase();
-          const adminDisplayEmail = adminUser?.email || 'admin@dstech.com';
+          const adminDisplayEmail = adminUser?.email || 'admin@dstechagency.com';
 
           return (
             <div className={`p-4 border-t shrink-0 space-y-3 ${

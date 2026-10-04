@@ -232,7 +232,7 @@ ${hasC2 ? `
 
 --------------------------------------------
 *DS TECH ACADEMY ADMISSIONS DESK*
-🌐 https://dstech.ng | 📞 +234 902 348 9111
+🌐 https://www.dstechagency.com/ | 📞 +234 902 348 9111
 📧 ${OFFICIAL_ADMISSIONS_EMAIL}
 [Official Course Registration Slip Image Included]`;
 }

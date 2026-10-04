@@ -383,7 +383,7 @@ function getLocalSubmissions(): StudentSubmission[] {
   const defaultSubmissions: StudentSubmission[] = [
     {
       id: 'sub_1',
-      studentEmail: 'aisha.mohammed@student.dstech.agency',
+      studentEmail: 'aisha.mohammed@student.dstechagency.com',
       studentName: 'Aisha Bello Mohammed',
       studentId: 'DSTA-STU/2026/89421',
       courseCode: 'DSTA-SWE01',
@@ -402,7 +402,7 @@ function getLocalSubmissions(): StudentSubmission[] {
     },
     {
       id: 'sub_2',
-      studentEmail: 'ibrahim.k@student.dstech.agency',
+      studentEmail: 'ibrahim.k@student.dstechagency.com',
       studentName: 'Ibrahim Khalil',
       studentId: 'DSTA-STU/2026/78291',
       courseCode: 'DSTA-AI101',
@@ -544,7 +544,7 @@ function getLocalPaymentRecords(): AcademyPaymentRecord[] {
     {
       id: 'pay_rec_1',
       reference: 'DST_PAY_2026_984210',
-      studentEmail: 'aisha.mohammed@student.dstech.agency',
+      studentEmail: 'aisha.mohammed@student.dstechagency.com',
       studentName: 'Aisha Bello Mohammed',
       studentId: 'DSTA-STU/2026/89421',
       courseCode: 'DSTA-SWE01',
@@ -643,7 +643,7 @@ function getLocalTutorPayouts(): TutorPayoutRecord[] {
     {
       id: 'payout_1',
       reference: 'DST_PAYOUT_2026_09182',
-      tutorEmail: 'david@dstech.agency',
+      tutorEmail: 'david@dstechagency.com',
       tutorName: 'David Alao',
       tutorId: 'DSTA-TUTOR/2026/109281',
       amount: 180000,
@@ -709,7 +709,7 @@ function getLocalNotifications(): AcademyNotificationItem[] {
   const defaultNotifs: AcademyNotificationItem[] = [
     {
       id: 'notif_init_1',
-      recipientEmail: 'aisha.mohammed@student.dstech.agency',
+      recipientEmail: 'aisha.mohammed@student.dstechagency.com',
       recipientRole: 'student',
       title: 'Tuition Deposit Verified',
       message: 'Your 70% tuition payment of ₦75,000 for Full-Stack Software Engineering is confirmed by the Academy Bursary.',
@@ -720,7 +720,7 @@ function getLocalNotifications(): AcademyNotificationItem[] {
     },
     {
       id: 'notif_init_2',
-      recipientEmail: 'aisha.mohammed@student.dstech.agency',
+      recipientEmail: 'aisha.mohammed@student.dstechagency.com',
       recipientRole: 'student',
       title: 'Module 3 Materials Released',
       message: 'New practical lab guide on React Query & Server Actions is now accessible in the Learning Workspace.',
@@ -731,7 +731,7 @@ function getLocalNotifications(): AcademyNotificationItem[] {
     },
     {
       id: 'notif_init_3',
-      recipientEmail: 'david@dstech.agency',
+      recipientEmail: 'david@dstechagency.com',
       recipientRole: 'tutor',
       title: 'New Student Submission to Grade',
       message: 'Ibrahim Khalil submitted an assignment for "Module 1: Prompt Engineering" in AI for Business.',
@@ -742,7 +742,7 @@ function getLocalNotifications(): AcademyNotificationItem[] {
     },
     {
       id: 'notif_init_4',
-      recipientEmail: 'david@dstech.agency',
+      recipientEmail: 'david@dstechagency.com',
       recipientRole: 'tutor',
       title: 'Faculty Curriculum Meeting',
       message: 'Monthly Q2 Academic Faculty review scheduled for this Friday at 4:00 PM WAT.',

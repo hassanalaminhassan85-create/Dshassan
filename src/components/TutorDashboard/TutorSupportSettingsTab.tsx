@@ -243,7 +243,7 @@ export const TutorSupportSettingsTab: React.FC<TutorSupportSettingsTabProps> = (
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-400 block uppercase font-bold">Academic Dean Office</span>
-                    <span className="font-bold text-slate-900 dark:text-white">dean.academic@dstech.agency</span>
+                    <span className="font-bold text-slate-900 dark:text-white">dean.academic@dstechagency.com</span>
                   </div>
                 </div>
 

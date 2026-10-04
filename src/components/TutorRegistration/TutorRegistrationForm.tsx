@@ -151,7 +151,7 @@ export const TutorRegistrationForm: React.FC<TutorRegistrationFormProps> = ({
       tribe: 'Hausa',
       phoneNumber: '+2348039876543',
       whatsappNumber: '+2348039876543',
-      emailAddress: 'dr.ibrahim.bello@dstech.edu.ng',
+      emailAddress: 'dr.ibrahim.bello@dstechagency.com',
       residentialOfficeLocation: 'Suite 204, Tech Park, Central Business District, Abuja FCT',
       idType: 'NIN',
       idNumber: '39485720194',
@@ -529,7 +529,7 @@ export const TutorRegistrationForm: React.FC<TutorRegistrationFormProps> = ({
               <div className="p-4 rounded-2xl bg-slate-950/60 border border-slate-800/80">
                 <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider block mb-1">Faculty Affairs Desk</span>
                 <p className="text-[11px] text-slate-300 leading-relaxed">
-                  Have questions about instructor compensation or syllabus customization? Email: <strong className="text-white">faculty@dstech.edu.ng</strong>
+                  Have questions about instructor compensation or syllabus customization? Email: <strong className="text-white">faculty@dstechagency.com</strong>
                 </p>
               </div>
             </div>

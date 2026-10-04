@@ -611,7 +611,7 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
                     <div className="flex items-center justify-between pt-1 gap-2">
                       <PaystackPayButton
                         amount={50000}
-                        email="client@dstech.agency"
+                        email="client@dstechagency.com"
                         customerName="DS Tech Client"
                         title="DS Tech Instant Deposit"
                         description="Service retainer or milestone deposit"

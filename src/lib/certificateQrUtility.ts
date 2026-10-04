@@ -52,7 +52,7 @@ export function generateUniqueCertificateReference(prefix: string = 'DST-VRF'): 
  */
 export function buildCertificateVerificationUrl(verificationCode: string, originOverride?: string): string {
   const code = (verificationCode || '').trim();
-  let baseOrigin = 'https://dstech.com.ng';
+  let baseOrigin = 'https://www.dstechagency.com';
 
   if (originOverride) {
     baseOrigin = originOverride.replace(/\/+$/, '');
@@ -194,7 +194,7 @@ export function extractVerificationCodeFromScan(rawPayload: string): string {
   // 2. Match URL query params (?verify=... or ?code=...)
   try {
     if (text.includes('?') || text.startsWith('http')) {
-      const url = new URL(text.startsWith('http') ? text : `https://dstech.com.ng/${text.replace(/^\//, '')}`);
+      const url = new URL(text.startsWith('http') ? text : `https://www.dstechagency.com/${text.replace(/^\//, '')}`);
       const code = url.searchParams.get('verify') || 
                    url.searchParams.get('code') || 
                    url.searchParams.get('certificate') || 

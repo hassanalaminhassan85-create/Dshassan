@@ -4,7 +4,7 @@ import {
   Sparkles, ArrowRight, BarChart3, Users, Star, ArrowUpRight, 
   ChevronRight, Calendar, Heart, ShieldCheck, Mail, MessageSquare, Phone,
   Shield, Target, Smile, Briefcase, TrendingUp, Zap, Award, CheckCircle2,
-  FileText, X, ExternalLink
+  FileText, X, ExternalLink, Globe
 } from 'lucide-react';
 
 const OrbitalVisualNode: React.FC = () => {
@@ -664,6 +664,10 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
               <div className="flex items-center gap-2">
                 <Phone size={13} className="text-orange-500" />
                 <span>+234 902 348 9111</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Globe size={13} className="text-orange-500" />
+                <a href="https://www.dstechagency.com/" className="hover:text-orange-500 transition-colors">www.dstechagency.com</a>
               </div>
               <div className="flex items-center gap-2">
                 <Mail size={13} className="text-orange-500" />

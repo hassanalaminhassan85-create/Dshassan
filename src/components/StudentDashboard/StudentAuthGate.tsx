@@ -48,7 +48,7 @@ export const StudentAuthGate: React.FC<StudentAuthGateProps> = ({
           id: 'stu_demo_aisha',
           studentId: 'DSTA-STU/2026/89421',
           fullName: 'Aisha Bello Mohammed',
-          email: 'aisha.mohammed@student.dstech.agency',
+          email: 'aisha.mohammed@student.dstechagency.com',
           phone: '+234 803 456 7890',
           program: 'Full-Stack Software Engineering',
           courseCode: 'DSTA-SWE01',
@@ -64,7 +64,7 @@ export const StudentAuthGate: React.FC<StudentAuthGateProps> = ({
           id: 'stu_demo_ibrahim',
           studentId: 'DSTA-STU/2026/78291',
           fullName: 'Ibrahim Khalil',
-          email: 'ibrahim.k@student.dstech.agency',
+          email: 'ibrahim.k@student.dstechagency.com',
           phone: '+234 812 345 6789',
           program: 'AI for Business & Productivity',
           courseCode: 'DSTA-AI101',
@@ -121,7 +121,7 @@ export const StudentAuthGate: React.FC<StudentAuthGateProps> = ({
         id: `stu_${Date.now()}`,
         studentId: studentIdInput.trim().toUpperCase(),
         fullName: 'Student Scholar',
-        email: `${studentIdInput.trim().toLowerCase().replace(/[^a-z0-9]/g, '')}@student.dstech.agency`,
+        email: `${studentIdInput.trim().toLowerCase().replace(/[^a-z0-9]/g, '')}@student.dstechagency.com`,
         phone: '+234 800 000 0000',
         program: 'Full-Stack Software Engineering',
         courseCode: 'DSTA-SWE01',
@@ -197,7 +197,7 @@ export const StudentAuthGate: React.FC<StudentAuthGateProps> = ({
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      const email = user.email || 'student@dstech.agency';
+      const email = user.email || 'student@dstechagency.com';
       const name = user.displayName || 'Google Scholar';
 
       const reg = await apiGetStudentRegistration(email);
@@ -411,7 +411,7 @@ export const StudentAuthGate: React.FC<StudentAuthGateProps> = ({
                   required
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
-                  placeholder="student@dstech.agency"
+                  placeholder="student@dstechagency.com"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-sm focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>

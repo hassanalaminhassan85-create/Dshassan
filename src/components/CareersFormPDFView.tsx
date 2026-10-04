@@ -114,6 +114,13 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
               </div>
             </div>
             <div className="flex items-center md:justify-end gap-1.5">
+              <Globe size={11} className="text-[#000E32] shrink-0" />
+              <div>
+                <span className="font-bold text-[#000E32]">Website: </span>
+                <span className="text-slate-500">www.dstechagency.com</span>
+              </div>
+            </div>
+            <div className="flex items-center md:justify-end gap-1.5">
               <Mail size={11} className="text-[#000E32] shrink-0" />
               <div>
                 <span className="font-bold text-[#000E32]">Email: </span>

@@ -723,7 +723,7 @@ export const AdminStaffManagement: React.FC = () => {
                       required
                       value={newEmail}
                       onChange={(e) => setNewEmail(e.target.value)}
-                      placeholder="e.g. s.vance@dstech.org"
+                      placeholder="e.g. s.vance@dstechagency.com"
                       className="w-full bg-[#161c28] border border-[#27354f] text-xs px-3 py-2.5 rounded-xl text-white outline-none focus:border-blue-500"
                     />
                   </div>

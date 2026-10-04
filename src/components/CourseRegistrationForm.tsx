@@ -425,7 +425,7 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
       lga: 'Nassarawa',
       ethnicGroup: 'Hausa',
       sex: 'Male',
-      emailAddress: 'm.almansur@dstech.example.com',
+      emailAddress: 'm.almansur@dstechagency.com',
       whatsappNumber: '+234 813 900 1234',
       alternativePhone: '+234 802 334 5566',
       // Multi-select demonstration: Both Scholarship AND Paid Programme selected!

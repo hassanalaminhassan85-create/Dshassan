@@ -293,7 +293,7 @@ export const ApplicationQRScanner: React.FC<ApplicationQRScannerProps> = ({
         }
       } else {
         try {
-          const url = new URL(decodedText.startsWith('http') ? decodedText : `https://dstech.com.ng/${decodedText}`);
+          const url = new URL(decodedText.startsWith('http') ? decodedText : `https://www.dstechagency.com/${decodedText}`);
           targetCode = url.searchParams.get('verify') || url.searchParams.get('code') || '';
         } catch {}
       }

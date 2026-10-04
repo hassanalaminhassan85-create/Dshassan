@@ -61,7 +61,7 @@ export const PublicCertificateVerification: React.FC<PublicCertificateVerificati
       if (res.verified && res.certificate) {
         setShowDocPreview(true);
         const codeForQr = res.certificate.verificationCode || clean;
-        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dstech.com.ng';
+        const origin = typeof window !== 'undefined' ? window.location.origin : 'https://www.dstechagency.com';
         const vUrl = `${origin}/verify-certificate/${encodeURIComponent(codeForQr)}`;
         generateCertificateQRCode(vUrl).then(setQrCodeDataUrl).catch(() => {});
       }

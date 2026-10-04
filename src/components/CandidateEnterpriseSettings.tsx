@@ -137,10 +137,10 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
   // Initialize setting keys with state values
   const [settings, setSettings] = useState<Record<string, any>>({
     // Category 1: Profile
-    email: currentUser?.email || 'candidate2026@dstech.com',
+    email: currentUser?.email || 'candidate2026@dstechagency.com',
     phone: '+1 (555) 019-2831',
     profileVisibility: 'recruiter-only',
-    customUrl: 'https://dstech.careers/ngozi-balogun',
+    customUrl: 'https://www.dstechagency.com/careers/ngozi-balogun',
     accountRecovery: 'email-phone',
     sessionTimeout: '30',
     verificationStatus: 'Verified Level 3',
@@ -243,7 +243,7 @@ export const CandidateEnterpriseSettings: React.FC<CandidateEnterpriseSettingsPr
     discordIntegration: true,
     telegramIntegration: false,
     whatsappIntegration: false,
-    webhookUrl: 'https://api.dstech.careers/webhooks/notifications',
+    webhookUrl: 'https://www.dstechagency.com/api/webhooks/notifications',
     notificationRoutingRule: 'critical-to-all',
     notificationEscalationEnabled: true,
 

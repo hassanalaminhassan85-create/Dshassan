@@ -782,7 +782,7 @@ export const AppointmentLetter: React.FC<AppointmentLetterProps> = ({
               <div className="text-left md:text-right text-[10px] text-slate-500 space-y-1 md:self-end w-full md:w-auto">
                 <h3 className="font-extrabold text-xs text-[#000E32]">DS TECH AND DIGITAL MARKETING AGENCY LIMITED</h3>
                 <p className="italic text-orange-600 font-semibold text-[9px] min-[375px]:text-[10px]">Empowering Brands with Tech and Digital Excellence</p>
-                <p className="break-all min-[375px]:break-normal">Email: dstechanddigitalmarketingltd@gmail.com</p>
+                <p className="break-all min-[375px]:break-normal">Email: dstechanddigitalmarketingltd@gmail.com | Website: www.dstechagency.com</p>
                 <p>Head Office: Ext A-73, Efab Mall Second Floor, Area 11 Garki Abuja</p>
                 <p>Contact: +2349023489111 | +2349023489246</p>
               </div>
@@ -1142,7 +1142,7 @@ export const AppointmentLetter: React.FC<AppointmentLetterProps> = ({
         subtitle="Verify registered biometric profile to bind secure digital signature to employment contract"
         mode="verify"
         userId={application?.id || 'usr-appointee'}
-        email={candidateEmail || 'candidate@dstech.com'}
+        email={candidateEmail || 'candidate@dstechagency.com'}
       />
     </div>
   );

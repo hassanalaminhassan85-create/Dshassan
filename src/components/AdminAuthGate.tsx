@@ -36,7 +36,7 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: 'admin@dstech.com', password }),
+        body: JSON.stringify({ email: 'admin@dstechagency.com', password }),
       });
 
       if (res.ok) {
@@ -44,7 +44,7 @@ export const AdminAuthGate: React.FC<AdminAuthGateProps> = ({
         setSuccessMsg("Admin secret verified. Initializing secure workspace...");
         setTimeout(() => {
           const resolvedName = (data.fullName && !data.fullName.toLowerCase().includes('hassan')) ? data.fullName : 'Administrator';
-          onAuthSuccess({ email: data.email || 'admin@dstech.com', fullName: resolvedName });
+          onAuthSuccess({ email: data.email || 'admin@dstechagency.com', fullName: resolvedName });
         }, 1200);
         return;
       }

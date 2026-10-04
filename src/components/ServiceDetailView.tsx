@@ -210,7 +210,7 @@ ${notes || 'Client requested consultation for this service.'}
           <div className="flex flex-wrap gap-3 pt-2 items-center">
             <PaystackPayButton
               amount={parsePriceToNumeric(service.price, 30000)}
-              email={email || 'client@dstech.agency'}
+              email={email || 'client@dstechagency.com'}
               customerName={fullName || 'Valued Client'}
               title={`Service Retainer: ${service.name}`}
               description={`30% Initial Retainer Deposit for ${service.name} (${service.category})`}

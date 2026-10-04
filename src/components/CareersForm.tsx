@@ -131,8 +131,8 @@ export const CareersForm: React.FC<CareersFormProps> = ({
       lgaTownOfOrigin: 'Kano Municipal',
       stateOfResidence: 'FCT Abuja',
       residentialAddress: 'Plot 402, Central Business District, Abuja',
-      emailAddress: 'applicant@dstech.com',
-      phoneNumbers: '+2348023456789',
+      emailAddress: 'applicant@dstechagency.com',
+      phoneNumbers: '+2348023489111',
       passportPhoto: generateAvatarSvgUrl('Alex Morgan', role),
     });
     setGuarantorInfo({
@@ -469,7 +469,7 @@ export const CareersForm: React.FC<CareersFormProps> = ({
                         <div className="text-left sm:text-right text-[9px] text-slate-500 space-y-0.5 sm:self-end w-full sm:w-auto">
                           <h3 className="font-extrabold text-[#000E32] text-[10px] uppercase">DS TECH AND DIGITAL MARKETING AGENCY</h3>
                           <p className="italic text-orange-600 font-semibold">Empowering Brands with Tech & Digital Excellence</p>
-                          <p>Email: dstechanddigitalmarketingltd@gmail.com</p>
+                          <p>Email: dstechanddigitalmarketingltd@gmail.com | Web: www.dstechagency.com</p>
                           <p>Location: Garki Area 11, Abuja, Nigeria</p>
                         </div>
                       </div>

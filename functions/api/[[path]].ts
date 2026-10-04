@@ -122,7 +122,7 @@ let inMemoryChatMessages: any[] = [
     senderId: 'chatbot',
     senderName: 'AI Career Assistant',
     senderRole: 'bot',
-    receiverId: 'admin@dstech.com',
+    receiverId: 'admin@dstechagency.com',
     message: 'Hello! I am your AI Career Copilot. I can analyze your resume, suggest top roles, mock-interview you, or guide your learning path. Ask me anything!',
     type: 'text',
     mediaUrl: null,
@@ -980,7 +980,7 @@ async function ensureDatabaseTables(db: any) {
 
   // Insert default user seeds if they don't exist
   try {
-    const demoEmail = 'candidate2026@dstech.com';
+    const demoEmail = 'candidate2026@dstechagency.com';
     const checkDemo = await db.prepare("SELECT COUNT(*) as count FROM users WHERE email = ?").bind(demoEmail).all();
     const demoRows = Array.isArray(checkDemo) ? checkDemo : (checkDemo?.results || []);
     if (demoRows && demoRows[0] && demoRows[0].count === 0) {
@@ -990,7 +990,7 @@ async function ensureDatabaseTables(db: any) {
       ).bind('usr-demo', demoEmail, 'candidate2026', 'Applicant', 'active', demoPassHash, new Date().toISOString()).run();
     }
 
-    const recruiterEmail = 'recruiter@dstech.com';
+    const recruiterEmail = 'recruiter@dstechagency.com';
     const checkRecruiter = await db.prepare("SELECT COUNT(*) as count FROM users WHERE email = ?").bind(recruiterEmail).all();
     const recruiterRows = Array.isArray(checkRecruiter) ? checkRecruiter : (checkRecruiter?.results || []);
     if (recruiterRows && recruiterRows[0] && recruiterRows[0].count === 0) {
@@ -1565,7 +1565,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
 
     if (path === '/api/auth/register-options' && method === 'GET') {
       const userId = url.searchParams.get('userId') || 'usr-demo';
-      const username = url.searchParams.get('username') || 'candidate2026@dstech.com';
+      const username = url.searchParams.get('username') || 'candidate2026@dstechagency.com';
 
       const options = await generateRegistrationOptions({
         rpName: 'Al Ihsan Security Portal',
@@ -1599,7 +1599,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
       // Simulation bypass for preview environment testing only
       if (body.isSimulation) {
         const userId = body.userId || 'usr-demo';
-        const email = body.email || 'candidate2026@dstech.com';
+        const email = body.email || 'candidate2026@dstechagency.com';
         const credIdBase64 = btoa('mock-cred-id-' + Math.random().toString());
         const pubKeyBase64 = btoa('mock-pub-key');
 
@@ -1776,7 +1776,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
 
       if (body.isSimulation) {
         const userId = body.userId || 'usr-demo';
-        const email = body.email || 'candidate2026@dstech.com';
+        const email = body.email || 'candidate2026@dstechagency.com';
 
         const userResults = await env.DB.prepare("SELECT * FROM users WHERE id = ?").bind(userId).all();
         let user = userResults.results?.[0];
@@ -1878,7 +1878,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
 
         const userSession = {
           userId: passkey.user_id,
-          email: user?.email || sessionData.username || 'candidate@dstech.com',
+          email: user?.email || sessionData.username || 'candidate@dstechagency.com',
           fullName: user?.full_name || 'Candidate',
           role: user?.role || 'Applicant'
         };
@@ -2158,7 +2158,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
       if (password === '(DSTECH)') {
         const userSession = {
           userId: 'usr_admin_dstech',
-          email: 'admin@dstech.com',
+          email: 'admin@dstechagency.com',
           fullName: 'DS Tech Administrator',
           role: 'Admin'
         };
@@ -2175,16 +2175,16 @@ export async function onRequest(context: { request: Request; env: any; params: a
 
       if (!user) {
         // Fallback for default admin registration for ease of deploy/testing if DB seed was not run
-        if (email.toLowerCase() === 'admin@dstech.com' && password === (env.ADMIN_PASSCODE || 'admin2026')) {
+        if (email.toLowerCase() === 'admin@dstechagency.com' && password === (env.ADMIN_PASSCODE || 'admin2026')) {
           const generatedUserId = 'usr_admin_seed';
           const passHash = await hashPassword(password);
           await env.DB.prepare(
             "INSERT OR REPLACE INTO users (id, email, full_name, role, status, password_hash, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"
-          ).bind(generatedUserId, 'admin@dstech.com', 'DS Tech Administrator', 'Admin', 'active', passHash, new Date().toISOString()).run();
+          ).bind(generatedUserId, 'admin@dstechagency.com', 'DS Tech Administrator', 'Admin', 'active', passHash, new Date().toISOString()).run();
 
           const userSession = {
             userId: generatedUserId,
-            email: 'admin@dstech.com',
+            email: 'admin@dstechagency.com',
             fullName: 'DS Tech Administrator',
             role: 'Admin'
           };
@@ -4269,7 +4269,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
           const sampleLogs = [
             {
               id: 'elog-1',
-              recipient_email: 'admin@dstech.com',
+              recipient_email: 'admin@dstechagency.com',
               recipient_id: 'usr-admin',
               subject: '🔒 alihsan.online: Your Secure 6-Digit Signup Verification OTP',
               email_type: 'otp_verification',
@@ -4287,7 +4287,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
             },
             {
               id: 'elog-2',
-              recipient_email: 'candidate2026@dstech.com',
+              recipient_email: 'candidate2026@dstechagency.com',
               recipient_id: 'usr-demo',
               subject: '🚀 Welcome to DS Tech Freelancer Platform: Roadmap Ready',
               email_type: 'career_roadmap',
@@ -4305,7 +4305,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
             },
             {
               id: 'elog-3',
-              recipient_email: 'admin@dstech.com',
+              recipient_email: 'admin@dstechagency.com',
               recipient_id: 'usr-admin',
               subject: '💼 High Priority Interview Panel matched: React Architect',
               email_type: 'interview_invitation',
@@ -5411,7 +5411,7 @@ export async function onRequest(context: { request: Request; env: any; params: a
 
         const authUser = getAuthorizedUser(request);
         const userId = authUser ? authUser.userId : (body.userId || 'usr_guest_' + Math.random().toString(36).substring(2, 7));
-        const userEmail = authUser ? authUser.email : 'guest@dstech.com';
+        const userEmail = authUser ? authUser.email : 'guest@dstechagency.com';
         const userName = authUser ? authUser.fullName : 'Guest Visitor';
         
         // Determine effective role with strict RBAC enforcement
@@ -5549,7 +5549,7 @@ RESPONSE FORMATTING:
         const getSmartFallback = (msg: string, role: string) => {
           const lower = msg.toLowerCase();
           if (lower.includes('cac') || lower.includes('registration') || lower.includes('corporate') || lower.includes('rc-1849204')) {
-            return `### CAC Corporate Registration Verification\n\n- **Company Name**: DS Tech & Digital Marketing Agency Limited\n- **RC Registration**: RC-1849204 (Corporate Affairs Commission, Federal Republic of Nigeria)\n- **Corporate Status**: Active, Certified & Compliant\n- **Tax Identification (TIN)**: 24892019-0001\n- **Headquarters Address**: Garki, Abuja, FCT, Nigeria\n- **Hotline**: +234 813 123 4567 | **Email**: info@dstech.com\n\nDS Tech is an officially incorporated enterprise software, AI integration, and digital marketing agency operating under full regulatory compliance.`;
+            return `### CAC Corporate Registration Verification\n\n- **Company Name**: DS Tech & Digital Marketing Agency Limited\n- **RC Registration**: RC-1849204 (Corporate Affairs Commission, Federal Republic of Nigeria)\n- **Corporate Status**: Active, Certified & Compliant\n- **Tax Identification (TIN)**: 24892019-0001\n- **Headquarters Address**: Garki, Abuja, FCT, Nigeria\n- **Hotline**: +234 813 123 4567 | **Email**: info@dstechagency.com | **Official Website**: https://www.dstechagency.com/\n\nDS Tech is an officially incorporated enterprise software, AI integration, and digital marketing agency operating under full regulatory compliance.`;
           }
           if (lower.includes('price') || lower.includes('pricing') || lower.includes('tuition') || lower.includes('cost') || lower.includes('fee')) {
             return `### Official DS Tech Academy Pricing Matrix\n\n| Duration | Virtual Tuition | Physical Tuition | Hybrid Tuition |\n| :--- | :--- | :--- | :--- |\n| **1 Month** | ₦50,000 | ₦100,000 | ₦150,000 |\n| **3 Months** | ₦100,000 | ₦200,000 | ₦300,000 |\n| **6 Months** | ₦200,000 | ₦300,000 | ₦400,000 |\n\nAll courses include hands-on practical project portfolio development, 1-on-1 instructor support, and blockchain-verified certificates upon graduation.`;

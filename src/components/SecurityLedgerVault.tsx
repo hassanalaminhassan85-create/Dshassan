@@ -288,7 +288,7 @@ export const SecurityLedgerVault: React.FC<SecurityLedgerVaultProps> = ({
               </div>
               <div className="space-y-0.5 text-left">
                 <h4 className="text-xs font-black text-white">{currentUser?.fullName || "Candidate Passport"}</h4>
-                <p className="text-[10px] text-indigo-300 font-mono">{currentUser?.email || "candidate@dstech.com"}</p>
+                <p className="text-[10px] text-indigo-300 font-mono">{currentUser?.email || "candidate@dstechagency.com"}</p>
                 <p className="text-[9px] text-slate-400 font-semibold uppercase tracking-wide">{targetRole}</p>
               </div>
             </div>

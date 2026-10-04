@@ -41,11 +41,11 @@ export const TutorAttendanceTab: React.FC<TutorAttendanceTabProps> = ({
   const [isSaved, setIsSaved] = useState(false);
 
   const [roster, setRoster] = useState<AttendanceEntry[]>([
-    { studentId: 'DSTA-2026-0842', studentName: 'Aisha Bello', email: 'aisha.bello@student.dstech.agency', status: 'present' },
-    { studentId: 'DSTA-2026-0915', studentName: 'Ibrahim Danladi', email: 'ibrahim.danladi@student.dstech.agency', status: 'present' },
-    { studentId: 'DSTA-2026-1044', studentName: 'Chidinma Eze', email: 'chidinma.eze@student.dstech.agency', status: 'late' },
-    { studentId: 'DSTA-2026-1189', studentName: 'Tunde Bakare', email: 'tunde.bakare@student.dstech.agency', status: 'present' },
-    { studentId: 'DSTA-2026-1203', studentName: 'Fatima Mohammed', email: 'fatima.mohammed@student.dstech.agency', status: 'absent' },
+    { studentId: 'DSTA-2026-0842', studentName: 'Aisha Bello', email: 'aisha.bello@student.dstechagency.com', status: 'present' },
+    { studentId: 'DSTA-2026-0915', studentName: 'Ibrahim Danladi', email: 'ibrahim.danladi@student.dstechagency.com', status: 'present' },
+    { studentId: 'DSTA-2026-1044', studentName: 'Chidinma Eze', email: 'chidinma.eze@student.dstechagency.com', status: 'late' },
+    { studentId: 'DSTA-2026-1189', studentName: 'Tunde Bakare', email: 'tunde.bakare@student.dstechagency.com', status: 'present' },
+    { studentId: 'DSTA-2026-1203', studentName: 'Fatima Mohammed', email: 'fatima.mohammed@student.dstechagency.com', status: 'absent' },
   ]);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {

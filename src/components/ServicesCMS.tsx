@@ -553,7 +553,7 @@ export const ServicesCMS: React.FC<ServicesCMSProps> = ({ onRefresh }) => {
                     value={formState.url}
                     onChange={e => setFormState({...formState, url: e.target.value})}
                     className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-mono text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition-all"
-                    placeholder="https://wa.me/p/... or https://dstech.ng/services/..."
+                    placeholder="https://wa.me/p/... or https://www.dstechagency.com/services/..."
                   />
                 </div>
 

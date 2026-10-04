@@ -279,7 +279,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
 
   // Demo user login preset for tester convenience
   const handleLoadRecruiterDemo = () => {
-    setEmail('recruiter@dstech.com');
+    setEmail('recruiter@dstechagency.com');
     setPassword('recruiter2026');
     setFullName('Demo Recruiter');
     setSelectedRole('Recruiter');
@@ -505,7 +505,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
       triggerHaptic(100);
       setSuccessMsg("Biometric identity verified successfully!");
     } else {
-      const demoUserEmail = email || 'candidate2026@dstech.com';
+      const demoUserEmail = email || 'candidate2026@dstechagency.com';
       const fakeUser = { id: 'usr-demo', email: demoUserEmail, fullName: fullName || 'Ngozi Balogun', role: selectedRole };
       setCurrentUser(fakeUser);
       setAuthState('dashboard');
@@ -623,7 +623,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
           onClose={() => setIsBiometricPromptOpen(false)}
           onSuccess={handleBiometricSuccess}
           mode={biometricPromptMode}
-          email={email || "candidate2026@dstech.com"}
+          email={email || "candidate2026@dstechagency.com"}
         />
       </div>
     );
@@ -712,7 +712,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
                       required
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      placeholder="e.g. recruiter@dstech.com"
+                      placeholder="e.g. recruiter@dstechagency.com"
                       className="w-full bg-white dark:bg-[#080d1a] border border-slate-400 dark:border-slate-700/80 rounded-xl py-3 pl-11 pr-4 text-sm text-slate-900 dark:text-slate-50 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                     />
                   </div>
@@ -753,7 +753,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({ onLoginStatusChang
         onClose={() => setIsBiometricPromptOpen(false)}
         onSuccess={handleBiometricSuccess}
         mode={biometricPromptMode}
-        email={email || "candidate2026@dstech.com"}
+        email={email || "candidate2026@dstechagency.com"}
       />
     </div>
   );

@@ -362,7 +362,7 @@ export const StudentSupportSettingsTab: React.FC<StudentSupportSettingsTabProps>
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-400 block uppercase font-bold">Faculty Academic Office</span>
-                    <span className="font-bold text-slate-900 dark:text-white">academic.office@dstech.agency</span>
+                    <span className="font-bold text-slate-900 dark:text-white">academic.office@dstechagency.com</span>
                   </div>
                 </div>
 

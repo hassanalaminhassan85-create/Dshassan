@@ -361,7 +361,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <span style={{ color: '#E8590C', fontSize: '11px', flexShrink: 0 }}>🌐</span>
-                <span style={{ fontWeight: 600, color: '#002D62' }}>www.dstech.com.ng</span>
+                <span style={{ fontWeight: 600, color: '#002D62' }}>www.dstechagency.com</span>
               </div>
             </div>
 
@@ -894,7 +894,7 @@ export const CertificateOfEmploymentDocument: React.FC<CertificateDocumentProps>
         >
           <div className="flex items-center gap-1.5">
             <span className="text-[10.5px]" style={{ color: '#FFA000' }}>🌐</span>
-            <span style={{ color: '#FFFFFF' }}>www.dstech.com.ng</span>
+            <span style={{ color: '#FFFFFF' }}>www.dstechagency.com</span>
           </div>
 
           <span className="font-bold opacity-60" style={{ color: '#94A3B8' }}>|</span>

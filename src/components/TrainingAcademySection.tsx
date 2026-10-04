@@ -74,21 +74,21 @@ export interface UserSession {
 const DEMO_STUDENT: UserSession = {
   id: 'usr_demo_student',
   name: 'David Alao',
-  email: 'david@dstech.agency',
+  email: 'david@dstechagency.com',
   role: 'student'
 };
 
 const DEMO_TUTOR: UserSession = {
   id: 'usr_demo_tutor',
   name: 'Prof. Grace Ibrahim',
-  email: 'grace@dstech.agency',
+  email: 'grace@dstechagency.com',
   role: 'tutor'
 };
 
 const DEMO_ADMIN: UserSession = {
   id: 'usr_demo_admin',
   name: 'System Administrator',
-  email: 'admin@dstech.agency',
+  email: 'admin@dstechagency.com',
   role: 'admin'
 };
 
@@ -159,7 +159,7 @@ export const TrainingAcademySection: React.FC<{ onBackToPortal?: () => void }> =
       id: 'tut_1',
       user_id: 'usr_demo_tutor',
       full_name: 'Prof. Grace Ibrahim',
-      email: 'grace@dstech.agency',
+      email: 'grace@dstechagency.com',
       bio: 'Senior Software Architect & Certified AI Curriculum Mentor',
       expertise: 'Full-Stack Web & AI Engineering',
       status: 'approved',
@@ -169,7 +169,7 @@ export const TrainingAcademySection: React.FC<{ onBackToPortal?: () => void }> =
       id: 'tut_2',
       user_id: 'usr_tutor_2',
       full_name: 'Musa Abubakar',
-      email: 'musa@dstech.agency',
+      email: 'musa@dstechagency.com',
       bio: 'Digital Marketing Strategist & Meta Ads Performance Consultant',
       expertise: 'Performance Marketing & SEO',
       status: 'pending',
@@ -759,7 +759,7 @@ export const TrainingAcademySection: React.FC<{ onBackToPortal?: () => void }> =
                         required
                         value={authEmail}
                         onChange={e => setAuthEmail(e.target.value)}
-                        placeholder="david@dstech.agency"
+                        placeholder="david@dstechagency.com"
                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
                       />
                     </div>
@@ -823,7 +823,7 @@ export const TrainingAcademySection: React.FC<{ onBackToPortal?: () => void }> =
                         required
                         value={authEmail}
                         onChange={e => setAuthEmail(e.target.value)}
-                        placeholder="david@dstech.agency"
+                        placeholder="david@dstechagency.com"
                         className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:border-orange-500 text-slate-900 dark:text-white"
                       />
                     </div>
@@ -1153,7 +1153,7 @@ export const TrainingAcademySection: React.FC<{ onBackToPortal?: () => void }> =
                           ) : (
                             <PaystackPayButton
                               amount={parsePriceToNumeric(course.price, 150000)}
-                              email={currentUser?.email || 'student@dstech.agency'}
+                              email={currentUser?.email || 'student@dstechagency.com'}
                               customerName={currentUser?.name || 'Valued Student'}
                               title={`Course Enrollment: ${course.title}`}
                               description={`Accredited Vocational Course Fee: ${course.title}`}

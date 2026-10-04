@@ -47,7 +47,7 @@ export const RealTimeChat: React.FC<RealTimeChatProps> = ({ currentUser, isDarkM
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
-  const email = currentUser?.email || 'candidate@dstech.com';
+  const email = currentUser?.email || 'candidate@dstechagency.com';
   const name = currentUser?.fullName || 'Candidate';
   const role = currentUser?.role || 'user';
 

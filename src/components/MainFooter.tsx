@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { ShieldCheck, Mail, Phone, MapPin, ArrowUp, Building2, ExternalLink, Download } from 'lucide-react';
+import { ShieldCheck, Mail, Phone, MapPin, ArrowUp, Building2, ExternalLink, Download, Globe } from 'lucide-react';
 import { Logo } from './Logo';
 import { 
   FacebookIcon, 
@@ -291,9 +291,15 @@ export const MainFooter: React.FC<MainFooterProps> = ({ onNavigate, publishedCac
                 <span className="leading-snug">Adamawa Regional Hub, Yola, Nigeria</span>
               </li>
               <li className="flex items-center gap-2">
+                <Globe size={14} className="text-slate-400 shrink-0" />
+                <a href="https://www.dstechagency.com/" className="hover:text-slate-200 transition-colors">
+                  www.dstechagency.com
+                </a>
+              </li>
+              <li className="flex items-center gap-2">
                 <Mail size={14} className="text-slate-400 shrink-0" />
-                <a href="mailto:support@dstech.ng" className="hover:text-slate-200 transition-colors">
-                  support@dstech.ng
+                <a href="mailto:support@dstechagency.com" className="hover:text-slate-200 transition-colors">
+                  support@dstechagency.com
                 </a>
               </li>
               <li className="flex items-center gap-2">

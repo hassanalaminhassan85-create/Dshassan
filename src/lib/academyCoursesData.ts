@@ -432,8 +432,8 @@ export const CONTACT_DETAILS = {
   branchOffice: 'No 67 Ahmadu Bello Way Near Livak Arena Hotel Numan LGA, Adamawa State, Nigeria',
   phone: '+234 902 348 9111',
   whatsapp: '+234 902 348 9111',
-  emails: ['info@dstechacademy.com', 'dstechanddigitalmarketingltd@gmail.com'],
-  website: 'https://ds-techs.netlify.app/'
+  emails: ['info@dstechagency.com', 'dstechanddigitalmarketingltd@gmail.com'],
+  website: 'https://www.dstechagency.com/'
 };
 
 export function getCourseByCode(code: string): AcademyCourse | undefined {

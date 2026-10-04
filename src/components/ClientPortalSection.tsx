@@ -1579,7 +1579,7 @@ export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({
                               {inv.status === 'unpaid' ? (
                                 <PaystackPayButton
                                   amount={parsePriceToNumeric(inv.amount, 100000)}
-                                  email={activeClient?.email || 'client@dstech.agency'}
+                                  email={activeClient?.email || 'client@dstechagency.com'}
                                   customerName={activeClient?.contactName || activeClient?.companyName || 'Valued Client'}
                                   phone={activeClient?.phone || ''}
                                   title={`Invoice Settlement: ${inv.number}`}

@@ -335,7 +335,7 @@ ${description}
                 <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
                   <PaystackPayButton
                     amount={50000}
-                    email={email || 'client@dstech.agency'}
+                    email={email || 'client@dstechagency.com'}
                     customerName={fullName || 'Valued Client'}
                     phone={phone}
                     title={`Custom Project Deposit: ${serviceTitle}`}
