@@ -1,61 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { 
-  ShieldCheck, 
   ArrowLeft, 
   ChevronRight, 
   Lock, 
-  Briefcase, 
-  Users, 
-  Building2, 
-  TrendingUp, 
-  DollarSign, 
-  Palette, 
-  Cpu, 
-  Bot, 
-  Scale, 
-  Sparkles, 
   Search,
-  Building,
-  CheckCircle2,
-  FileCheck
+  Mail,
+  ShieldCheck,
+  HelpCircle
 } from 'lucide-react';
-import { Logo } from '../Logo';
 import { OFFICIAL_MANAGEMENT_ROLES } from '../../lib/managementApi';
-import { ManagementRoleCode, ManagementAccountRoleMeta } from '../../types/management';
+import { ManagementRoleCode } from '../../types/management';
 
 interface ManagementLandingViewProps {
   onSelectRole: (role: ManagementRoleCode) => void;
   onNavigateHome: () => void;
   theme: 'light' | 'dark';
-}
-
-const roleIconsMap: Record<ManagementRoleCode, React.ElementType> = {
-  CEO: CrownIcon,
-  HOD_HR: Users,
-  HOD_ADMIN: Building2,
-  HOD_BUSINESS: TrendingUp,
-  HOD_FINANCE: DollarSign,
-  HOD_CREATIVE_DIGITAL: Palette,
-  HOD_IT: Cpu,
-  HOD_AI_TECH: Bot,
-  HOD_LEGAL: Scale
-};
-
-function CrownIcon(props: any) {
-  return (
-    <svg 
-      {...props} 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-    >
-      <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14" />
-    </svg>
-  );
 }
 
 export const ManagementLandingView: React.FC<ManagementLandingViewProps> = ({
@@ -64,223 +24,191 @@ export const ManagementLandingView: React.FC<ManagementLandingViewProps> = ({
   theme
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
-  const filteredRoles = OFFICIAL_MANAGEMENT_ROLES.filter((role) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase().trim();
-    return (
-      role.title.toLowerCase().includes(q) ||
-      role.department.toLowerCase().includes(q) ||
-      role.description.toLowerCase().includes(q) ||
-      role.scope.toLowerCase().includes(q)
-    );
-  });
+  const categories = [
+    { id: 'all', label: 'All Accounts' },
+    { id: 'EXEC', label: 'Executive' },
+    { id: 'HRM', label: 'Human Resources' },
+    { id: 'ADM', label: 'Administration' },
+    { id: 'BIZ', label: 'Business Dev' },
+    { id: 'FIN', label: 'Finance' },
+    { id: 'CMD', label: 'Creative Media' },
+    { id: 'ITD', label: 'Information Tech' },
+    { id: 'AIC', label: 'AI & Creative Tech' },
+    { id: 'LGC', label: 'Legal & Compliance' }
+  ];
+
+  const filteredRoles = useMemo(() => {
+    return OFFICIAL_MANAGEMENT_ROLES.filter((role) => {
+      const q = searchQuery.toLowerCase().trim();
+      const matchesSearch = !q || 
+        role.title.toLowerCase().includes(q) ||
+        role.department.toLowerCase().includes(q) ||
+        role.email.toLowerCase().includes(q) ||
+        role.scope.toLowerCase().includes(q) ||
+        role.description.toLowerCase().includes(q);
+
+      const matchesCat = selectedCategory === 'all' || role.departmentCode === selectedCategory;
+      return matchesSearch && matchesCat;
+    });
+  }, [searchQuery, selectedCategory]);
 
   return (
-    <div className="w-full min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col justify-between selection:bg-orange-500 selection:text-white transition-colors duration-200">
-      {/* Top Header */}
-      <header className="sticky top-0 z-40 w-full backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border-b border-slate-200/90 dark:border-slate-800 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-          <div 
+    <div className="w-full min-h-screen bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 selection:bg-orange-500 selection:text-white transition-colors duration-200">
+      {/* Page Content: matching exact careers section layout & typography */}
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 space-y-8 animate-fade-in text-left">
+        
+        {/* Only Back Navigation Remains - No header bar */}
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
             onClick={onNavigateHome}
-            className="flex items-center gap-3 cursor-pointer group"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white border border-slate-200/80 dark:border-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer group"
           >
-            <Logo size="sm" showText={false} />
-            <div>
-              <div className="text-sm font-black tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                <span>DS TECH COMPANY</span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 font-bold border border-orange-200/60 dark:border-orange-800/60">
-                  MANAGEMENT PORTAL
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Corporate Governance & Leadership Accounts
-              </p>
-            </div>
-          </div>
+            <ArrowLeft size={14} className="text-orange-500 group-hover:-translate-x-0.5 transition-transform" />
+            <span>Back to Main Website</span>
+          </button>
 
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={onNavigateHome}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
-            >
-              <ArrowLeft size={14} className="text-orange-500" />
-              <span>Back to Main Site</span>
-            </button>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+            <ShieldCheck size={12} className="text-emerald-500" />
+            <span>CAC RC-1849204</span>
           </div>
         </div>
-      </header>
 
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 w-full flex-grow">
-        {/* Hero Section */}
-        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-4">
-            <ShieldCheck size={14} className="text-emerald-500" />
-            <span>Authorized DS Tech Leadership Portal</span>
-            <span aria-hidden="true">·</span>
-            <span className="font-mono text-[10px] text-orange-500">CAC RC-1849204</span>
-          </div>
-
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-slate-950 dark:text-white text-balance leading-tight">
-            Management Accounts
+        {/* Section Header: identical typography to careers section */}
+        <div className="space-y-3">
+          <span className="text-orange-500 text-xs uppercase tracking-widest font-black">
+            MANAGEMENT ACCOUNTS
+          </span>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold uppercase font-serif tracking-tight text-[#000E32] dark:text-white">
+            Leadership <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-amber-500 font-extrabold italic">Access Portal</span>
           </h1>
-          <p className="mt-3 sm:mt-4 text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed text-balance">
-            Secure access portal for DS Tech Company management and departmental leadership. Select your designated role below to proceed to verified corporate sign-in.
+          <p className="text-slate-500 dark:text-slate-400 text-xs md:text-sm leading-relaxed max-w-3xl font-light">
+            Secure access portal for DS Tech Company management and departmental leadership. Select your authorized management account below to sign in.
           </p>
+        </div>
 
-          {/* Quick Search */}
-          <div className="mt-6 max-w-md mx-auto relative">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
+        {/* Search & Category Filter Pills Bar (exact career page style) */}
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
+          {/* Search */}
+          <div className="relative w-full max-w-xs bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-1.5 flex items-center shadow-sm">
+            <Search className="w-4 h-4 text-slate-400 mx-3 shrink-0" />
+            <input 
+              type="text" 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by role, department, or scope..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 shadow-2xs"
+              placeholder="Search management accounts..." 
+              className="w-full bg-transparent text-xs text-slate-800 dark:text-slate-200 focus:outline-none placeholder-slate-400 py-1"
             />
+          </div>
+
+          {/* Category Filter Pills */}
+          <div className="flex flex-wrap gap-2">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`px-3.5 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+                  selectedCategory === cat.id
+                    ? 'bg-[#000E32] dark:bg-orange-600 text-white shadow-md'
+                    : 'bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/70 dark:border-slate-800/80'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        {/* Roles Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {filteredRoles.map((role, idx) => {
-            const IconComponent = roleIconsMap[role.code] || Briefcase;
-            const isCeo = role.code === 'CEO';
+        {/* Management Accounts Feed: matching careers section vacancy cards */}
+        {filteredRoles.length === 0 ? (
+          <div className="py-16 text-center space-y-2 bg-white dark:bg-slate-900/35 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+            <HelpCircle size={30} className="mx-auto text-slate-400 animate-pulse" />
+            <p className="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-widest">
+              No management account found
+            </p>
+            <button
+              onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }}
+              className="mt-2 text-xs font-bold text-orange-500 hover:underline cursor-pointer"
+            >
+              Reset filters to view all 9 roles
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredRoles.map((role) => {
+              const isCeo = role.code === 'CEO';
 
-            return (
-              <motion.div
-                key={role.code}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.25, delay: idx * 0.03 }}
-                className={`group relative rounded-2xl p-5 sm:p-6 transition-all duration-200 flex flex-col justify-between border ${
-                  isCeo 
-                    ? 'bg-gradient-to-br from-white via-orange-50/20 to-white dark:from-slate-900 dark:via-orange-950/10 dark:to-slate-900 border-orange-300/80 dark:border-orange-500/30 shadow-md hover:shadow-lg' 
-                    : 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 shadow-2xs hover:shadow-sm'
-                }`}
-              >
-                <div>
-                  {/* Top Role Header */}
-                  <div className="flex items-start justify-between gap-3 mb-4">
-                    <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                      isCeo 
-                        ? 'bg-orange-500 text-white shadow-sm' 
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 group-hover:bg-orange-50 dark:group-hover:bg-orange-950/50 group-hover:text-orange-500'
-                    }`}>
-                      <IconComponent size={20} />
-                    </div>
-
-                    <div className="flex flex-col items-end">
-                      <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
-                        isCeo
-                          ? 'bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 border border-orange-200/80 dark:border-orange-800/80'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                      }`}>
+              return (
+                <div 
+                  key={role.code}
+                  className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/70 dark:border-slate-800 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-5 group hover:shadow-md transition-all duration-300"
+                >
+                  <div className="space-y-2.5 text-left md:max-w-2xl flex-grow">
+                    {/* Role Badges */}
+                    <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold text-slate-400">
+                      <span className="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 rounded uppercase font-mono tracking-wider">
                         {role.departmentCode}
                       </span>
+                      <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                        <Mail size={12} className="text-orange-500" />
+                        <span className="font-mono text-[11px] select-all">{role.email}</span>
+                      </div>
                       {isCeo && (
-                        <span className="text-[9px] font-semibold text-orange-600 dark:text-orange-400 mt-1">
+                        <span className="px-2 py-0.5 bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 rounded text-[9px] font-extrabold tracking-wider uppercase border border-orange-200/60 dark:border-orange-800/60">
                           Executive Board
                         </span>
                       )}
                     </div>
-                  </div>
 
-                  {/* Title & Department */}
-                  <h3 className="text-base sm:text-lg font-bold text-slate-950 dark:text-white leading-snug group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
-                    {role.title}
-                  </h3>
-                  
-                  <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
-                    {role.department}
-                  </p>
-
-                  {/* Description */}
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mt-3 line-clamp-3">
-                    {role.description}
-                  </p>
-
-                  {/* Key Scope Lead */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80">
-                    <div className="text-[10px] font-mono uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                      Operational Remit
+                    {/* Role Title & Department */}
+                    <div>
+                      <h3 className="font-extrabold text-[#000E32] dark:text-white text-base md:text-lg font-serif uppercase tracking-tight group-hover:text-orange-500 transition-colors">
+                        {role.title}
+                      </h3>
+                      <p className="text-xs text-orange-600 dark:text-orange-400 font-semibold mt-0.5">
+                        {role.department}
+                      </p>
                     </div>
-                    <p className="text-[11px] font-medium text-slate-700 dark:text-slate-300 mt-0.5">
-                      {role.scope}
+
+                    {/* Role Description */}
+                    <p className="text-slate-500 dark:text-slate-400 text-xs leading-relaxed font-light">
+                      {role.description}
                     </p>
+
+                    {/* Remit / Scope Tag */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      <span className="px-2 py-0.5 bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-400 text-[10px] font-medium rounded border border-slate-200/60 dark:border-slate-800/60">
+                        <strong className="text-slate-800 dark:text-slate-200 uppercase font-mono text-[9px] mr-1">Remit:</strong>
+                        {role.scope}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Action Button: right aligned, crisp styling */}
+                  <div className="w-full md:w-auto text-left md:text-right shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => onSelectRole(role.code)}
+                      className="w-full md:w-auto px-5 py-2.5 bg-[#000E32] hover:bg-[#00174F] dark:bg-orange-600 dark:hover:bg-orange-500 text-white font-bold text-xs uppercase tracking-wider rounded-2xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm group-hover:scale-[1.02]"
+                    >
+                      <Lock size={13} />
+                      <span>Access Account</span>
+                      <ChevronRight size={14} className="text-orange-400 dark:text-white group-hover:translate-x-1 transition-transform" />
+                    </button>
                   </div>
                 </div>
-
-                {/* Bottom Action Button */}
-                <div className="mt-6 pt-3">
-                  <button
-                    type="button"
-                    onClick={() => onSelectRole(role.code)}
-                    className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                      isCeo
-                        ? 'bg-orange-500 hover:bg-orange-600 text-white shadow-sm'
-                        : 'bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white'
-                    }`}
-                  >
-                    <Lock size={13} />
-                    <span>Access Account</span>
-                    <ChevronRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Empty state for search */}
-        {filteredRoles.length === 0 && (
-          <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6">
-            <Search size={28} className="mx-auto text-slate-400 mb-2" />
-            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-200">No matching role found</h4>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Check your keyword or reset search to view all 9 official corporate management roles.
-            </p>
-            <button
-              onClick={() => setSearchQuery('')}
-              className="mt-3 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer"
-            >
-              Reset Search
-            </button>
+              );
+            })}
           </div>
         )}
 
-        {/* Security & Governance Bottom Note */}
-        <div className="mt-12 sm:mt-16 p-5 sm:p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-200/50 dark:border-emerald-800/50">
-              <CheckCircle2 size={18} />
-            </div>
-            <div>
-              <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-                Statutory Enterprise Security Architecture
-              </h4>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Every management account is backed by role-based access control, cryptographic session hashes, and audited executive oversight under DS Tech & Digital Marketing Agency Ltd (CAC RC-1849204).
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 self-end md:self-auto text-xs text-slate-500 font-mono">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>256-Bit TLS Endpoints</span>
-          </div>
+        {/* Footer Note */}
+        <div className="pt-6 pb-12 text-center text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-200/60 dark:border-slate-800">
+          <span>DS Tech & Digital Marketing Agency Limited · Area 1, Garki, Abuja, FCT, Nigeria · All management logins are cryptographically logged</span>
         </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-200/80 dark:border-slate-800/80 py-6 text-center text-xs text-slate-500 dark:text-slate-400">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>© {new Date().getFullYear()} DS Tech & Digital Marketing Agency Limited. All Rights Reserved.</span>
-          <span className="font-mono text-[11px]">Area 1, Garki, Abuja, FCT, Nigeria</span>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 };

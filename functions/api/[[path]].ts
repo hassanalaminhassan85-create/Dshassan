@@ -5873,6 +5873,72 @@ RESPONSE FORMATTING:
       }
     }
 
+    // MANAGEMENT ACCOUNTS AUTH & SESSION ENDPOINTS
+    if (path === '/api/management/login' && method === 'POST') {
+      try {
+        const body = await request.json().catch(() => ({})) as any;
+        const { email, password, role } = body || {};
+        if (!email || !password) {
+          return new Response(JSON.stringify({ success: false, error: 'Email and password are required.' }), { status: 400, headers });
+        }
+
+        const OFFICIAL_ACCOUNTS: Record<string, { role: string; roleTitle: string; department: string; departmentCode: string; name: string }> = {
+          'dstechceooffice@gmail.com': { role: 'CEO', roleTitle: 'CEO', department: 'Executive Leadership & Board of Directors', departmentCode: 'EXEC', name: 'Chief Executive Officer' },
+          'dstechanddigitalmarketingltd@gmail.com': { role: 'HOD_HR', roleTitle: 'HOD, Human Resource Management', department: 'Human Resource Management', departmentCode: 'HRM', name: 'Head of Department, HR' },
+          'dstechadminoffice@gmail.com': { role: 'HOD_ADMIN', roleTitle: 'HOD, Administrative Services', department: 'Administrative Services', departmentCode: 'ADM', name: 'Head of Department, Administration' },
+          'dstechbusinessoffice@gmail.com': { role: 'HOD_BUSINESS', roleTitle: 'HOD, Business Development', department: 'Business Development', departmentCode: 'BIZ', name: 'Head of Department, Business Development' },
+          'dstechfinanceoffice@gmail.com': { role: 'HOD_FINANCE', roleTitle: 'HOD, Accounting and Finance', department: 'Accounting and Finance', departmentCode: 'FIN', name: 'Head of Department, Accounting & Finance' },
+          'dstechanddigitalltd@gmail.com': { role: 'HOD_CREATIVE_DIGITAL', roleTitle: 'HOD, Creative Media and Digital Marketing', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD', name: 'Head of Department, Creative Media' },
+          'dstechitoffice@gmail.com': { role: 'HOD_IT', roleTitle: 'HOD, Information Technology', department: 'Information Technology', departmentCode: 'ITD', name: 'Head of Department, Information Technology' },
+          'dstechaitechoffice@gmail.com': { role: 'HOD_AI_TECH', roleTitle: 'HOD, AI and Creative Technology', department: 'AI and Creative Technology', departmentCode: 'AIC', name: 'Head of Department, AI & Creative Tech' },
+          'dstechlegaloffice@gmail.com': { role: 'HOD_LEGAL', roleTitle: 'HOD, Legal and Compliance', department: 'Legal and Compliance', departmentCode: 'LGC', name: 'Head of Department, Legal & Compliance' }
+        };
+
+        const normalizedEmail = String(email).trim().toLowerCase();
+        const account = OFFICIAL_ACCOUNTS[normalizedEmail];
+        if (!account) {
+          return new Response(JSON.stringify({ success: false, error: 'Invalid management account credentials.' }), { status: 401, headers });
+        }
+
+        if (role) {
+          const cleanRole = String(role).trim().toUpperCase();
+          const matches = account.role.toUpperCase() === cleanRole || account.roleTitle.toUpperCase() === cleanRole;
+          if (!matches) {
+            return new Response(JSON.stringify({ success: false, error: `Role authorization mismatch: Selected account is ${role}` }), { status: 403, headers });
+          }
+        }
+
+        let cleanPass = String(password).trim();
+        if ((cleanPass.startsWith('"') && cleanPass.endsWith('"')) || (cleanPass.startsWith("'") && cleanPass.endsWith("'"))) {
+          cleanPass = cleanPass.slice(1, -1).trim();
+        }
+
+        if (cleanPass !== 'dstech%)' && password !== 'dstech%)') {
+          return new Response(JSON.stringify({ success: false, error: 'Invalid management account credentials.' }), { status: 401, headers });
+        }
+
+        const sessionToken = 'dst_mgmt_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
+        const userObj = {
+          role: account.role,
+          roleTitle: account.roleTitle,
+          department: account.department,
+          departmentCode: account.departmentCode,
+          email: normalizedEmail,
+          name: account.name,
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
+          phone: '+234 813 123 4567',
+          officeLocation: 'DS Tech Corporate Headquarters, Garki, Abuja',
+          bio: 'DS Tech Management Directorate',
+          joinedDate: '2021-03-15',
+          permissions: ['ALL']
+        };
+
+        return new Response(JSON.stringify({ success: true, token: sessionToken, user: userObj }), { headers });
+      } catch (err: any) {
+        return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500, headers });
+      }
+    }
+
     return new Response(JSON.stringify({ error: "Route not found" }), { status: 404, headers });
   } catch (err: any) {
     console.error("Backend Router Error:", err);
