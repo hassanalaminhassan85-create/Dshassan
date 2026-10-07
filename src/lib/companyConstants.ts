@@ -7,13 +7,13 @@ export const COMPANY_NAME = 'DS TECH & DIGITAL MARKETING AGENCY LIMITED';
 export const COMPANY_NAME_SHORT = 'DS Tech Agency';
 
 // Active CAC Registration Number
-export const COMPANY_RC_NUMBER = '1,845,921';
-export const COMPANY_RC_NUMBER_RAW = '1845921';
+export const COMPANY_RC_NUMBER = '9550925';
+export const COMPANY_RC_NUMBER_RAW = '9550925';
 
 // Formatted Display Labels
-export const COMPANY_CAC_RC_LABEL = 'CAC RC No. 1,845,921';
-export const COMPANY_CAC_RC_FULL = 'CAC RC: 1,845,921';
-export const COMPANY_RC_PREFIX = 'RC: 1,845,921';
+export const COMPANY_CAC_RC_LABEL = 'CAC RC No. 9550925';
+export const COMPANY_CAC_RC_FULL = 'CAC RC: 9550925';
+export const COMPANY_RC_PREFIX = 'RC: 9550925';
 
 // Tax and Corporate Identifiers
 export const COMPANY_TIN = '24892019-0001';
@@ -28,12 +28,12 @@ export const COMPANY_EMAIL = 'support@dstechagency.com';
 export const COMPANY_WEBSITE = 'https://www.dstechagency.com/';
 
 /**
- * Normalizes any dynamic or backend CAC registration string to the active standard format "1,845,921".
+ * Normalizes any dynamic or backend CAC registration string to the active standard format "9550925".
  * If an updated backend registration number is provided, it formats it or falls back to COMPANY_RC_NUMBER.
  */
 export function formatCompanyRc(raw?: string | null): string {
   if (!raw || typeof raw !== 'string') return COMPANY_RC_NUMBER;
-  const cleaned = raw.replace(/^RC[:\s-]*/i, '').trim();
+  const cleaned = raw.replace(/^RC[:\s-]*/i, '').trim().replace(/,/g, '');
   if (
     !cleaned ||
     cleaned === '1849204' ||
@@ -42,7 +42,8 @@ export function formatCompanyRc(raw?: string | null): string {
     cleaned === '7849103' ||
     cleaned === '7850720' ||
     cleaned === '95' ||
-    cleaned === '1845921'
+    cleaned === '1845921' ||
+    cleaned === '1,845,921'
   ) {
     return COMPANY_RC_NUMBER;
   }

@@ -5548,8 +5548,8 @@ RESPONSE FORMATTING:
 
         const getSmartFallback = (msg: string, role: string) => {
           const lower = msg.toLowerCase();
-          if (lower.includes('cac') || lower.includes('registration') || lower.includes('corporate') || lower.includes('rc-1849204')) {
-            return `### CAC Corporate Registration Verification\n\n- **Company Name**: DS Tech & Digital Marketing Agency Limited\n- **RC Registration**: RC-1849204 (Corporate Affairs Commission, Federal Republic of Nigeria)\n- **Corporate Status**: Active, Certified & Compliant\n- **Tax Identification (TIN)**: 24892019-0001\n- **Headquarters Address**: Garki, Abuja, FCT, Nigeria\n- **Hotline**: +234 813 123 4567 | **Email**: info@dstechagency.com | **Official Website**: https://www.dstechagency.com/\n\nDS Tech is an officially incorporated enterprise software, AI integration, and digital marketing agency operating under full regulatory compliance.`;
+          if (lower.includes('cac') || lower.includes('registration') || lower.includes('corporate') || lower.includes('9550925')) {
+            return `### CAC Corporate Registration Verification\n\n- **Company Name**: DS Tech & Digital Marketing Agency Limited\n- **RC Registration**: CAC RC No. 9550925 (Corporate Affairs Commission, Federal Republic of Nigeria)\n- **Corporate Status**: Active, Certified & Compliant\n- **Tax Identification (TIN)**: 24892019-0001\n- **Headquarters Address**: Garki, Abuja, FCT, Nigeria\n- **Hotline**: +234 813 123 4567 | **Email**: info@dstechagency.com | **Official Website**: https://www.dstechagency.com/\n\nDS Tech is an officially incorporated enterprise software, AI integration, and digital marketing agency operating under full regulatory compliance.`;
           }
           if (lower.includes('price') || lower.includes('pricing') || lower.includes('tuition') || lower.includes('cost') || lower.includes('fee')) {
             return `### Official DS Tech Academy Pricing Matrix\n\n| Duration | Virtual Tuition | Physical Tuition | Hybrid Tuition |\n| :--- | :--- | :--- | :--- |\n| **1 Month** | ₦50,000 | ₦100,000 | ₦150,000 |\n| **3 Months** | ₦100,000 | ₦200,000 | ₦300,000 |\n| **6 Months** | ₦200,000 | ₦300,000 | ₦400,000 |\n\nAll courses include hands-on practical project portfolio development, 1-on-1 instructor support, and blockchain-verified certificates upon graduation.`;
@@ -5560,7 +5560,7 @@ RESPONSE FORMATTING:
           if (lower.includes('application') || lower.includes('status') || lower.includes('interview') || role === 'Applicant') {
             return `### DS Tech Career & Recruitment Specialist\n\n- **User Role**: ${role}\n- **Application Status**: Candidate Profile Active & Verified\n- **Next Stage**: Technical assessment and credential audit under review by DS Tech Talent Acquisition.\n\nI can assist you with technical interview preparation, resume tuning, or application status updates.`;
           }
-          return `### DS Tech Enterprise AI Copilot\n\nI have received your query: **"${msg}"**.\n\n- **Active Workspace Role**: ${role}\n- **Company Status**: Active (CAC RC-1849204 | Abuja, Nigeria)\n\nHow else can I assist you with DS Tech digital services, Academy courses, career paths, or technology planning?`;
+          return `### DS Tech Enterprise AI Copilot\n\nI have received your query: **"${msg}"**.\n\n- **Active Workspace Role**: ${role}\n- **Company Status**: Active (CAC RC No. 9550925 | Abuja, Nigeria)\n\nHow else can I assist you with DS Tech digital services, Academy courses, career paths, or technology planning?`;
         };
 
         if (!apiKey) {
@@ -6023,7 +6023,7 @@ RESPONSE FORMATTING:
             activeProjects: 14,
             operationalStatus: 'Optimal (All Divisions Active)',
             description: 'The supreme governing body of DS Tech & Digital Marketing Agency Limited.',
-            coreMandates: ['Setting strategic corporate vision', 'Supervising departmental leadership across 8 specialized directorates', 'Ensuring adherence to CAC RC-1849204, SCUML and FIRS covenants'],
+            coreMandates: ['Setting strategic corporate vision', 'Supervising departmental leadership across 8 specialized directorates', 'Ensuring adherence to CAC RC No. 9550925, SCUML and FIRS covenants'],
             teamMembers: [
               { name: 'Chief Executive Officer', role: 'Chief Executive Officer & Founder', email: 'dstechceooffice@gmail.com', status: 'Active' },
               { name: 'Executive Secretary', role: 'Executive Secretariat / Board Liaison', email: 'boardsecretary@dstechagency.com', status: 'Active' },
@@ -6042,7 +6042,7 @@ RESPONSE FORMATTING:
             { id: 'rep-1', title: 'Consolidated DS Tech Corporate Audit & Performance Q3', period: 'Q3 2026', submittedBy: 'Executive Secretary', department: 'Executive Leadership', departmentCode: 'EXEC', status: 'Approved', date: '2026-10-01', summary: 'Comprehensive operational and fiscal audit.' }
           ],
           documents: [
-            { id: 'doc-1', title: 'CAC Certificate of Incorporation (RC-1849204)', category: 'Statutory', department: 'Executive', departmentCode: 'EXEC', lastUpdated: '2026-08-15', size: '2.4 MB', status: 'Active', referenceNo: 'CAC/RC-1849204', accessTier: 'Executive' }
+            { id: 'doc-1', title: 'CAC Certificate of Incorporation (CAC RC No. 9550925)', category: 'Statutory', department: 'Executive', departmentCode: 'EXEC', lastUpdated: '2026-08-15', size: '2.4 MB', status: 'Active', referenceNo: 'CAC/RC-9550925', accessTier: 'Executive' }
           ],
           announcements: [
             { id: 'ann-1', title: 'Q4 2026 Executive Strategy Assembly & Expansion Review', author: 'Chief Executive Officer', authorRole: 'CEO', date: '2026-10-06', priority: 'High', content: 'All Heads of Department are scheduled for the Q4 Strategic Review assembly on Thursday.', targetAudience: 'All Management Staff' }

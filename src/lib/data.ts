@@ -117,7 +117,7 @@ export const RECOGNITION_CERTIFICATES: RecognitionCertificate[] = [
     verifyUrl: 'https://search.cac.gov.ng',
     badgeUrl: generateDynamicSvgUrl('CAC Certificate', 'compliance', 'cert'),
     imageUrl: generateDynamicSvgUrl('Corporate Affairs Commission Certificate of Incorporation', 'compliance', 'cert'),
-    tags: ['CAC', 'Incorporation', 'RC1845921', 'Legal', '1,845,921'],
+    tags: ['CAC', 'Incorporation', 'RC9550925', 'Legal', '9550925'],
     orderIndex: 1
   },
   {

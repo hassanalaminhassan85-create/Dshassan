@@ -24,7 +24,7 @@ async function startServer() {
     let context = `\n--- [AUTHORIZED LIVE DS TECH BACKEND RETRIEVAL DATA] ---\n`;
     context += `• COMPANY REGISTRATION & CORPORATE IDENTIFICATION:\n`;
     context += `  - Full Legal Name: DS Tech & Digital Marketing Agency Limited\n`;
-    context += `  - Registration Number: CAC RC No. 1,845,921 (Corporate Affairs Commission, Federal Republic of Nigeria)\n`;
+    context += `  - Registration Number: CAC RC No. 9550925 (Corporate Affairs Commission, Federal Republic of Nigeria)\n`;
     context += `  - Tax Identification Number (TIN): 24892019-0001\n`;
     context += `  - Company Status: Active, Fully Certified & Compliant\n`;
     context += `  - Headquarters Address: Garki, Abuja, Federal Capital Territory, Nigeria (GPS: 9.0272° N, 7.4913° E)\n`;
@@ -130,12 +130,12 @@ ROLE PERSONA: ACADEMY ADMISSIONS ADVISOR & COURSE SPECIALIST
 ROLE PERSONA: DS TECH CORPORATE REPRESENTATIVE & COMPANY INFORMATION SPECIALIST
 - You are acting as the official Corporate Representative and Information Specialist for DS Tech & Digital Marketing Agency Limited.
 - Whenever a visitor asks any question in any prompt style (e.g. "tell me about this company", "who are you", "what do you do", "cac registration", "pricing", "contact info", "where are you located", "services"), provide comprehensive, warm, and accurate company details.
-- Always include CAC Registration (CAC RC No. 1,845,921), Garki Abuja headquarters location, phone contact (+234 813 123 4567), email (info@dstechagency.com), official website (https://www.dstechagency.com/), core digital agency services, and Academy training offerings.
+- Always include CAC Registration (CAC RC No. 9550925), Garki Abuja headquarters location, phone contact (+234 813 123 4567), email (info@dstechagency.com), official website (https://www.dstechagency.com/), core digital agency services, and Academy training offerings.
 - You understand any prompt style and seamlessly answer general knowledge or company-specific questions.
 `;
     }
 
-    return `You are DS TECH AI, an intelligent, versatile, and articulate AI created by DS Tech & Digital Marketing Agency Limited (CAC RC No. 1,845,921).
+    return `You are DS TECH AI, an intelligent, versatile, and articulate AI created by DS Tech & Digital Marketing Agency Limited (CAC RC No. 9550925).
 
 ${personaInstruction}
 
@@ -151,7 +151,7 @@ CORE RULES:
    - Provide direct, accurate answers using the page context and authoritative DS TECH data.` : ''}
 
 3. DS TECH DATA ACCURACY:
-   - Always reference accurate company details: CAC Registration CAC RC No. 1,845,921, Garki Abuja headquarters, phone +234 813 123 4567, TIN 24892019-0001.
+   - Always reference accurate company details: CAC Registration CAC RC No. 9550925, Garki Abuja headquarters, phone +234 813 123 4567, TIN 24892019-0001.
    - For Academy pricing: 1 Month (Virtual ₦50k, Physical ₦100k, Hybrid ₦150k), 3 Months (Virtual ₦100k, Physical ₦200k, Hybrid ₦300k), 6 Months (Virtual ₦200k, Physical ₦300k, Hybrid ₦400k).
 
 4. RESPONSE STYLE & FORMATTING:
@@ -833,7 +833,7 @@ ${liveContext ? liveContext : ''}`;
         avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=256&q=80',
         phone: '+234 813 123 4575',
         officeLocation: 'Legal Affairs Directorate Suite 202, Garki, Abuja',
-        bio: 'Safeguarding corporate statutory compliance, Corporate Affairs Commission (CAC RC No. 1,845,921) records, SCUML standing, and contract execution.',
+        bio: 'Safeguarding corporate statutory compliance, Corporate Affairs Commission (CAC RC No. 9550925) records, SCUML standing, and contract execution.',
         joinedDate: '2021-09-01',
         permissions: ['CAC_COMPLIANCE', 'CONTRACTS_REVIEW', 'LEGAL_REGISTRY', 'RISK_ASSESSMENT']
       }
@@ -1128,7 +1128,7 @@ ${liveContext ? liveContext : ''}`;
         authorRole: 'HOD, Legal & Compliance',
         date: '2026-10-04',
         priority: 'Normal' as const,
-        content: 'Corporate Affairs Commission (CAC RC No. 1,845,921) statutory returns have been validated and reconciled with SCUML compliance certification.',
+        content: 'Corporate Affairs Commission (CAC RC No. 9550925) statutory returns have been validated and reconciled with SCUML compliance certification.',
         targetAudience: 'Executive & Department Leadership'
       },
       {
@@ -1233,7 +1233,7 @@ ${liveContext ? liveContext : ''}`;
         coreMandates: [
           'Setting strategic corporate vision, expansion horizons, and technology roadmaps',
           'Supervising departmental leadership across all 8 specialized functional directorates',
-          'Ensuring strict adherence to Nigerian statutory requirements (CAC RC No. 1,845,921, SCUML, FIRS)',
+          'Ensuring strict adherence to Nigerian statutory requirements (CAC RC No. 9550925, SCUML, FIRS)',
           'Safeguarding corporate liquidity, capital allocation, and shareholder value',
           'Approving high-value institutional partnerships, government tenders, and client master retainers'
         ],
