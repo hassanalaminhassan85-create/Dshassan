@@ -9,6 +9,7 @@ import {
   apiSubscribeToPageContent, apiSavePageContent, 
   apiSubscribeToCacMetadata, apiUploadFile, resolveImageUrl 
 } from '../lib/api';
+import { COMPANY_RC_NUMBER, formatCompanyRc } from '../lib/companyConstants';
 import { StandalonePageHeader } from './StandalonePageHeader';
 import { StandalonePageFooter } from './StandalonePageFooter';
 
@@ -169,7 +170,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ isAdmin = false, onB
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Founding Year</span>
               </div>
               <div className="space-y-1">
-                <span className="text-2xl sm:text-3xl font-black text-orange-400 font-mono">RC: 1845921</span>
+                <span className="text-2xl sm:text-3xl font-black text-orange-400 font-mono">RC: {formatCompanyRc(cacData?.registration_number || COMPANY_RC_NUMBER)}</span>
                 <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">CAC Registered</span>
               </div>
               <div className="space-y-1">
@@ -485,7 +486,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ isAdmin = false, onB
                 <Shield size={24} className="text-amber-400" />
                 <div>
                   <span className="text-[10px] font-mono uppercase text-slate-400 font-bold block">CAC RC NUMBER</span>
-                  <span className="text-xl font-black text-white font-mono">1845921</span>
+                  <span className="text-xl font-black text-white font-mono">{formatCompanyRc(cacData?.registration_number || COMPANY_RC_NUMBER)}</span>
                 </div>
               </div>
               <div className="pt-2 border-t border-white/10 flex items-center justify-between gap-4 text-[11px] font-mono text-slate-300">

@@ -6,6 +6,7 @@ import {
   Zap, Award, RefreshCw, Check
 } from 'lucide-react';
 import { resolveImageUrl, generateDynamicSvgUrl } from '../lib/api';
+import { COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
 
 interface AnimatedHomeSectionImagePreviewProps {
   imageSrc?: string | null;
@@ -358,7 +359,7 @@ export const AnimatedHomeSectionImagePreview: React.FC<AnimatedHomeSectionImageP
                   {title}
                 </h4>
                 <p className="text-[10px] text-slate-400 font-mono mt-0.5">
-                  RC: 7849103 • Verified Official Corporate Certificate
+                  {COMPANY_CAC_RC_LABEL} • Verified Official Corporate Certificate
                 </p>
               </div>
             </div>

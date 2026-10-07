@@ -59,6 +59,7 @@ const OrbitalVisualNode: React.FC = () => {
 };
 
 import { SERVICES, TESTIMONIALS, ServiceItem } from '../lib/data';
+import { COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
 import { LanguageCode } from '../lib/translations';
 import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
 import { CacTrustSection } from './CacTrustSection';
@@ -328,7 +329,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                   DS TECH & DIGITAL MARKETING LTD
                 </span>
                 <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-mono font-bold">
-                  CAC RC: 7850720
+                  {COMPANY_CAC_RC_LABEL}
                 </span>
                 <span className="px-2 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[9px] font-mono font-bold">
                   TIN & SCUML VERIFIED

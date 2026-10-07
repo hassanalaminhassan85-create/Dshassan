@@ -15,6 +15,7 @@ import { OfficialWhatsAppIcon } from './OfficialWhatsAppIcon';
 import { CourseRegistrationPDFSlip } from './CourseRegistrationPDFSlip';
 import { useProfessionalPDF } from '../hooks/useProfessionalPDF';
 import { ACADEMY_COURSES } from '../lib/academyCoursesData';
+import { COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
 import { 
   CourseRegistrationRecord, 
   ProgrammeType, 
@@ -140,7 +141,7 @@ const WhatsAppDetailsMotionWriter: React.FC<{ record: CourseRegistrationRecord }
 
       <div className="pt-2 text-[10px] text-emerald-400/90 font-medium flex items-center justify-between">
         <span>✨ Includes 100% of applicant's filled registration fields</span>
-        <span className="font-mono text-slate-400">CAC RC 9550925</span>
+        <span className="font-mono text-slate-400">{COMPANY_CAC_RC_LABEL}</span>
       </div>
     </motion.div>
   );
@@ -951,7 +952,7 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
                   DS TECH ACADEMY
                 </span>
                 <span className="text-[9px] font-mono font-bold bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 px-1.5 py-0.5 rounded">
-                  CAC RC 9550925
+                  {COMPANY_CAC_RC_LABEL}
                 </span>
               </div>
               <p className="text-xs font-extrabold text-[#000E32] dark:text-white uppercase tracking-tight">
@@ -997,7 +998,7 @@ export const CourseRegistrationForm: React.FC<CourseRegistrationFormProps> = ({ 
               <span className="font-mono">{OFFICIAL_ADMISSIONS_EMAIL}</span>
             </a>
             <span className="text-[9.5px] font-mono font-extrabold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-              CAC RC 9550925
+              {COMPANY_CAC_RC_LABEL}
             </span>
             <span className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 shrink-0 bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
               {formData.registrationId}

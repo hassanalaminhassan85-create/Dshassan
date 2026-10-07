@@ -15,6 +15,7 @@ import {
   CacMetadata,
   apiSubscribeToCacMetadata
 } from '../lib/api';
+import { COMPANY_RC_NUMBER, COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
 import { AnimatedHomeSectionImagePreview } from './AnimatedHomeSectionImagePreview';
 
 // Reusable Document Viewer
@@ -414,7 +415,7 @@ export const CacAdminCenter: React.FC = () => {
                     <input 
                       type="text"
                       required
-                      placeholder="e.g. RC 9550925"
+                      placeholder={`e.g. RC ${COMPANY_RC_NUMBER}`}
                       value={editingCert.registration_number || ''}
                       onChange={e => setEditingCert(prev => ({ ...prev, registration_number: e.target.value }))}
                       className="w-full px-4 py-2.5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl focus:border-orange-500 font-mono font-semibold"
@@ -527,7 +528,7 @@ export const CacAdminCenter: React.FC = () => {
                     status="Verified License"
                     progress={100}
                     shortDescription={editingCert.description || "Official CAC Incorporation Record"}
-                    technologies={`RC: ${editingCert.registration_number || 'RC-7849103'}`}
+                    technologies={`RC: ${editingCert.registration_number || COMPANY_RC_NUMBER}`}
                     fileName={selectedFile?.name || editingCert.file_name}
                     fileSize={selectedFile?.size}
                   />

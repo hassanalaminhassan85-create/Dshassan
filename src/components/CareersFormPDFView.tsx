@@ -1,6 +1,7 @@
 import React from 'react';
 import { JobApplication } from '../types';
 import { Mail, Phone, MapPin, CheckSquare, Square, Globe, Facebook, Instagram, Youtube, Linkedin, Twitter } from 'lucide-react';
+import { COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
 
 const TiktokIcon = ({ size = 12, className = '' }: { size?: number; className?: string }) => (
   <svg 
@@ -74,7 +75,7 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
               OFFICIAL - DS TECH
             </span>
             <span className="text-xs font-black tracking-[0.25em] text-orange-600 uppercase block mt-2">
-              AUTHENTIC CAREERS DOCKET • CAC RC 9550925
+              AUTHENTIC CAREERS DOCKET • {COMPANY_CAC_RC_LABEL}
             </span>
           </div>
         </div>
@@ -465,7 +466,7 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
 
         {/* Page 1 Footer indicator */}
         <div className="mt-8 pt-4 border-t border-slate-200 flex justify-between items-center text-xs text-slate-400 font-semibold">
-          <span>DS Tech & Digital Marketing Agency Limited — RC: 1845921</span>
+          <span>DS Tech & Digital Marketing Agency Limited — {COMPANY_CAC_RC_LABEL}</span>
           <span>Page 1 of 2</span>
         </div>
       </div>
@@ -488,7 +489,7 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
               OFFICIAL - DS TECH
             </span>
             <span className="text-xs font-black tracking-[0.25em] text-orange-600 uppercase block mt-2">
-              AUTHENTIC CAREERS DOCKET • CAC RC 9550925
+              AUTHENTIC CAREERS DOCKET • {COMPANY_CAC_RC_LABEL}
             </span>
           </div>
         </div>
@@ -638,7 +639,7 @@ export const CareersFormPDFView: React.FC<CareersFormPDFViewProps> = ({ applicat
 
         {/* Page 2 Footer indicator */}
         <div className="mt-12 pt-4 border-t border-slate-200 flex justify-between items-center text-xs text-slate-400 font-semibold">
-          <span>DS Tech & Digital Marketing Agency Limited — RC: 1845921</span>
+          <span>DS Tech & Digital Marketing Agency Limited — {COMPANY_CAC_RC_LABEL}</span>
           <span>Page 2 of 2</span>
         </div>
       </div>

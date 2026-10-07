@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { Sparkles, UserPlus, LogIn, Search, CheckCircle2, Award, Clock, Users, ArrowRight, ShieldCheck } from 'lucide-react';
 import { apiGetStudentRegistration } from '../../lib/studentStorage';
 import { StudentRegistrationApplication } from '../../types/studentRegistration';
+import { COMPANY_CAC_RC_LABEL } from '../../lib/companyConstants';
 
 interface Step1EntryModalProps {
   onStartNew: () => void;
@@ -63,7 +64,7 @@ export const Step1EntryModal: React.FC<Step1EntryModalProps> = ({
             <Sparkles className="w-3.5 h-3.5" />
             <span>Official Student Admission Portal</span>
           </div>
-          <span className="text-[10px] font-mono text-slate-500 font-semibold">CAC: RC-7945781</span>
+          <span className="text-[10px] font-mono text-slate-500 font-semibold">{COMPANY_CAC_RC_LABEL}</span>
         </div>
 
         {/* Main Title */}

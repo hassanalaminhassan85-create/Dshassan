@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { Logo } from '../Logo';
 import { PageContext } from '../FloatingAiLauncher';
+import { COMPANY_CAC_RC_LABEL, COMPANY_RC_NUMBER } from '../../lib/companyConstants';
 
 interface Message {
   id?: string;
@@ -40,7 +41,7 @@ interface Props {
 
 const QUICK_PROMPTS_BY_ROLE: Record<string, { title: string; prompt: string }[]> = {
   Public: [
-    { title: 'CAC Verification', prompt: 'Verify DS TECH Corporate Registration & RC-1849204 details' },
+    { title: 'CAC Verification', prompt: `Verify DS TECH Corporate Registration & ${COMPANY_CAC_RC_LABEL} details` },
     { title: 'Academy Courses', prompt: 'What Academy programmes and courses are currently offered?' },
     { title: 'Academy Pricing', prompt: 'What is the current price matrix for 1, 3, and 6-month programmes?' },
     { title: 'Digital Services', prompt: 'Tell me about DS TECH software development and marketing services' }
@@ -92,8 +93,8 @@ const SUGGESTION_CARDS = [
     icon: Building2,
     iconBg: 'bg-[#002f6c]/10 text-[#002f6c] dark:bg-blue-400/20 dark:text-blue-300',
     title: 'CAC Verification',
-    prompt: 'Show DS TECH RC-1849204 corporate registration & verification details.',
-    sub: 'Show DS TECH RC-1849204 details.'
+    prompt: `Show DS TECH ${COMPANY_CAC_RC_LABEL} corporate registration & verification details.`,
+    sub: `Show DS TECH ${COMPANY_CAC_RC_LABEL} details.`
   },
   {
     id: 'concept',
@@ -768,7 +769,7 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
                     <div className="space-y-2 text-[11px]">
                       <div className="p-2 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20">
                         <p className="font-semibold">CAC Verification Active</p>
-                        <p className="text-[10px] opacity-80">RC-1849204 synchronized with live backend.</p>
+                        <p className="text-[10px] opacity-80">{COMPANY_CAC_RC_LABEL} synchronized with live backend.</p>
                       </div>
                       <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                         <p className="font-semibold">Gemini 3.7 Online</p>
@@ -1544,7 +1545,7 @@ export const EnterpriseAiAssistantModal: React.FC<Props> = ({
                 </div>
 
                 <p className="text-[10px] text-slate-500 text-center font-medium mt-2">
-                  DS TECH AI can assist with general queries, CAC verification (RC-1849204), services, and academy programmes.
+                  DS TECH AI can assist with general queries, CAC verification ({COMPANY_CAC_RC_LABEL}), services, and academy programmes.
                 </p>
               </div>
             </div>

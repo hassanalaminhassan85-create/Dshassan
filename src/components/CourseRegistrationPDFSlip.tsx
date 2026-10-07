@@ -8,6 +8,7 @@ import {
   formatTeachingLanguages, 
   getCourseLearningMode 
 } from '../lib/courseRegistrationStorage';
+import { COMPANY_CAC_RC_LABEL, COMPANY_RC_NUMBER_RAW, COMPANY_RC_NUMBER } from '../lib/companyConstants';
 
 interface CourseRegistrationPDFSlipProps {
   record: CourseRegistrationRecord;
@@ -46,7 +47,8 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
           languages: teachLangsArray,
           course: record.course1?.courseName || '',
           c1_mode: c1Mode,
-          cac_rc: '9550925',
+          cac_rc: COMPANY_RC_NUMBER_RAW,
+          cac_rc_display: COMPANY_CAC_RC_LABEL,
           verified: true,
           date: record.createdAt,
         });
@@ -126,7 +128,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
               className="text-xs font-black tracking-[0.25em] uppercase block mt-2"
               style={{ color: 'rgba(234, 88, 12, 0.12)' }}
             >
-              AUTHENTIC ACADEMY DOCKET • CAC RC 9550925
+              AUTHENTIC ACADEMY DOCKET • {COMPANY_CAC_RC_LABEL}
             </span>
           </div>
         </div>
@@ -229,7 +231,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
                   </span>
                 </div>
                 <p className="text-[10px] font-bold text-slate-500 tracking-wider uppercase mt-0.5">
-                  DS TECH &amp; DIGITAL MARKETING AGENCY LTD • CAC RC 9550925
+                  DS TECH &amp; DIGITAL MARKETING AGENCY LTD • {COMPANY_CAC_RC_LABEL}
                 </p>
                 <p className="text-[8.5px] font-semibold text-slate-400 tracking-wide mt-0.5">
                   Federal Republic of Nigeria • Accredited Higher Learning Directorate
@@ -529,7 +531,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
                 <strong>• Attendance Policy:</strong> Enrolled candidates are required to maintain a minimum of 80% attendance across all assigned lecture days specified in Section 3 for certificate eligibility.
               </p>
               <p>
-                <strong>• Credential Verification:</strong> This document serves as official provisional proof of enrolment at DS TECH Academy (CAC RC 9550925).
+                <strong>• Credential Verification:</strong> This document serves as official provisional proof of enrolment at DS TECH Academy ({COMPANY_CAC_RC_LABEL}).
               </p>
               <p>
                 <strong>• Admissions Desk Contact:</strong> For schedule modifications or bursary receipts, contact admissions at <strong>+234 902 348 9111</strong> or <strong>dstechanddigitalmarketingltd@gmail.com</strong>.
@@ -579,7 +581,7 @@ export const CourseRegistrationPDFSlip: React.FC<CourseRegistrationPDFSlipProps>
                     ADMISSIONS CLEARED
                   </span>
                   <span className="text-[7px] font-mono text-slate-700 font-bold block">
-                    CAC RC 9550925
+                    {COMPANY_CAC_RC_LABEL}
                   </span>
                 </div>
               </div>

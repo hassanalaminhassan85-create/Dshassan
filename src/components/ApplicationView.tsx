@@ -17,6 +17,7 @@ import { RealTimePresence } from './RealTimePresence';
 import { BiometricVault } from './BiometricVault';
 import { AIPersonalInterviewer } from './AIPersonalInterviewer';
 import { apiGetApplication } from '../lib/storage';
+import { COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
 
 interface ApplicationViewProps {
   application: JobApplication;
@@ -179,7 +180,7 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
       const target = document.getElementById('careers-pdf-document') || document.querySelector('.print-page');
       if (!target) {
         const portalUrl = getShareableUrl();
-        window.open(`https://wa.me/${companyPhone}?text=${encodeURIComponent(`*DS TECH & DIGITAL MARKETING AGENCY LTD*\n*OFFICIAL CAREERS APPLICATION DOCKET*\nApplicant: ${candidateName}\nRole: ${role}\nCAC RC: 1845921\nPortal: ${portalUrl}`)}`, '_blank');
+        window.open(`https://wa.me/${companyPhone}?text=${encodeURIComponent(`*DS TECH & DIGITAL MARKETING AGENCY LTD*\n*OFFICIAL CAREERS APPLICATION DOCKET*\nApplicant: ${candidateName}\nRole: ${role}\n${COMPANY_CAC_RC_LABEL}\nPortal: ${portalUrl}`)}`, '_blank');
         return;
       }
 
@@ -243,7 +244,7 @@ export const ApplicationView: React.FC<ApplicationViewProps> = ({
         }
 
         // 4. WhatsApp open with clean official reference (NO raw form data dump)
-        const text = `*DS TECH & DIGITAL MARKETING AGENCY LTD*\n*OFFICIAL CAREERS APPLICATION DOCKET*\nApplicant: ${candidateName}\nPosition: ${role}\nCAC Nigeria RC: 1845921\n\n[Official Signed Document Image Generated — Please paste (Ctrl+V) or attach file below]`;
+        const text = `*DS TECH & DIGITAL MARKETING AGENCY LTD*\n*OFFICIAL CAREERS APPLICATION DOCKET*\nApplicant: ${candidateName}\nPosition: ${role}\n${COMPANY_CAC_RC_LABEL}\n\n[Official Signed Document Image Generated — Please paste (Ctrl+V) or attach file below]`;
         window.open(`https://wa.me/${companyPhone}?text=${encodeURIComponent(text)}`, '_blank');
         setIsImageModalOpen(true);
       }

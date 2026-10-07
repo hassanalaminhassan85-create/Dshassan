@@ -6,6 +6,7 @@ import {
   X, Loader2, CheckCircle, Info, Lock, ChevronLeft, ChevronRight, Eye, ArrowLeft, RotateCcw
 } from 'lucide-react';
 import { apiGetCacMetadata, CacMetadata, apiSubscribeToCacMetadata, apiSubscribeToRealtimeSync } from '../lib/api';
+import { COMPANY_RC_NUMBER, COMPANY_CAC_RC_LABEL, formatCompanyRc } from '../lib/companyConstants';
 
 export function formatCleanFileName(fileNameOrKey: string, companyName?: string): string {
   if (!fileNameOrKey) return companyName ? `${companyName} Certificate` : 'Corporate Registration Certificate';
@@ -254,7 +255,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
         {/* Company Registration Box */}
         <div className="text-center relative z-10 my-1">
           <p className="text-xs md:text-sm uppercase tracking-wider font-extrabold text-slate-800">
-            COMPANY REGISTRATION NO. <span className="font-mono text-base font-black text-slate-950 ml-1">{activeCac?.registration_number || '1845921'}</span>
+            COMPANY REGISTRATION NO. <span className="font-mono text-base font-black text-slate-950 ml-1">{formatCompanyRc(activeCac?.registration_number)}</span>
           </p>
         </div>
 
@@ -355,7 +356,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
         </div>
 
         <div className="text-left text-[9px] font-mono font-black text-slate-700 relative z-10 -mb-2 mt-2 border-t border-emerald-600/10 pt-2">
-          TAX IDENTIFICATION NUMBER: <span className="text-slate-950 font-bold">{(activeCac?.registration_number || '1845921').replace(/\D/g, '')}26237</span>
+          TAX IDENTIFICATION NUMBER: <span className="text-slate-950 font-bold">{formatCompanyRc(activeCac?.registration_number).replace(/\D/g, '')}26237</span>
         </div>
       </div>
     );
@@ -477,7 +478,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
                       {activeCac.company_status}
                     </span>
                     <span className="text-xs font-mono text-slate-400 font-semibold">
-                      RC: {activeCac.registration_number}
+                      CAC RC No. {formatCompanyRc(activeCac.registration_number)}
                     </span>
                   </div>
 
@@ -497,7 +498,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
                     </div>
                     <div>
                       <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">RC NUMBER</span>
-                      <span className="text-xs font-mono font-bold text-slate-100">{activeCac.registration_number}</span>
+                      <span className="text-xs font-mono font-bold text-slate-100">{formatCompanyRc(activeCac.registration_number)}</span>
                     </div>
                   </div>
 
@@ -664,7 +665,7 @@ export const CacTrustSection: React.FC<CacTrustSectionProps> = ({
                 </div>
                 <div className="text-left">
                   <h4 className="text-xs md:text-sm font-bold uppercase tracking-wider text-slate-100 line-clamp-1">{activeCac.company_name}</h4>
-                  <p className="text-[10px] font-mono text-orange-400/90 font-semibold">RC: {activeCac.registration_number}</p>
+                  <p className="text-[10px] font-mono text-orange-400/90 font-semibold">CAC RC No. {formatCompanyRc(activeCac.registration_number)}</p>
                 </div>
               </div>
 

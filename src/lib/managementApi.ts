@@ -8,6 +8,7 @@ import {
   ManagementAnnouncementItem
 } from '../types/management';
 import { generateRoleDashboardPayload } from './managementDataDefaults';
+import { COMPANY_CAC_RC_LABEL } from './companyConstants';
 
 export { generateRoleDashboardPayload };
 
@@ -107,7 +108,7 @@ export const OFFICIAL_MANAGEMENT_ROLES: ManagementAccountRoleMeta[] = [
     department: 'Legal and Compliance',
     departmentCode: 'LGC',
     scope: 'CAC Regulatory Standing, SCUML, IP Protection & Contractual Governance',
-    description: 'Safeguards corporate legal standing, CAC RC-1849204 statutory covenants, NDAs, client service agreements, and regulatory risk governance.',
+    description: `Safeguards corporate legal standing, ${COMPANY_CAC_RC_LABEL} statutory covenants, NDAs, client service agreements, and regulatory risk governance.`,
     email: 'dstechlegaloffice@gmail.com',
     authorizedPerson: 'Head of Department, Legal & Compliance',
     executiveRank: 2

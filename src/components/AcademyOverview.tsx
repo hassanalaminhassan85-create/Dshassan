@@ -75,6 +75,7 @@ import {
   AcademyCategory,
   AcademyCourse
 } from '../lib/academyCoursesData';
+import { COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
 import { Logo } from './Logo';
 import { ProfessionalHamburgerButton } from './ProfessionalHamburgerButton';
 import { MobileNavigationDrawer } from './MobileNavigationDrawer';
@@ -741,8 +742,8 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>
-                <span className="inline sm:hidden">CAC ACCREDITED IT ACADEMY (RC: 95)</span>
-                <span className="hidden sm:inline">FCT ABUJA & ADAMAWA CAMPUSES • CAC ACCREDITED IT ACADEMY (RC: 95)</span>
+                <span className="inline sm:hidden">CAC ACCREDITED IT ACADEMY ({COMPANY_CAC_RC_LABEL})</span>
+                <span className="hidden sm:inline">FCT ABUJA & ADAMAWA CAMPUSES • CAC ACCREDITED IT ACADEMY ({COMPANY_CAC_RC_LABEL})</span>
               </span>
             </motion.div>
 
@@ -964,7 +965,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
                   </div>
                   <div className="flex items-center gap-2.5 font-medium">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span><strong>Accredited Diploma:</strong> CAC Registered Institution (RC: 95)</span>
+                    <span><strong>Accredited Diploma:</strong> CAC Registered Institution ({COMPANY_CAC_RC_LABEL})</span>
                   </div>
                 </div>
               </div>
@@ -1685,7 +1686,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    <span>Official CAC-Accredited DSTA Diploma (RC: 95)</span>
+                    <span>Official CAC-Accredited DSTA Diploma ({COMPANY_CAC_RC_LABEL})</span>
                   </li>
                 </ul>
               </div>
@@ -2142,7 +2143,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
               <Logo size="sm" showText={true} variant="light" className="transition-opacity duration-200 hover:opacity-90" />
             </div>
             <p className="text-xs text-slate-400 leading-relaxed max-w-sm font-normal">
-              DS Tech Academy (DSTA) is the official training division of DS Tech & Digital Marketing Ltd (RC: 95). Certified IT, AI, and digital media education with campuses in FCT Abuja and Adamawa State.
+              DS Tech Academy (DSTA) is the official training division of DS Tech & Digital Marketing Ltd ({COMPANY_CAC_RC_LABEL}). Certified IT, AI, and digital media education with campuses in FCT Abuja and Adamawa State.
             </p>
           </div>
 
@@ -2170,7 +2171,7 @@ export const AcademyOverview: React.FC<AcademyOverviewProps> = ({
 
         <div className="max-w-7xl mx-auto pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
           <div>
-            © {new Date().getFullYear()} DS Tech Academy. All Rights Reserved. CAC Reg: RC 95.
+            © {new Date().getFullYear()} DS Tech Academy. All Rights Reserved. {COMPANY_CAC_RC_LABEL}.
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => onNavigate?.('/')} className="hover:text-slate-300 transition-colors cursor-pointer">

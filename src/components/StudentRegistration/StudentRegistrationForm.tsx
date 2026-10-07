@@ -28,6 +28,7 @@ import {
   generateEnrollmentId 
 } from '../../lib/enrollmentStorage';
 import { AcademyEnrollment } from '../../types/enrollment';
+import { COMPANY_CAC_RC_LABEL } from '../../lib/companyConstants';
 
 // Subcomponents
 import { Step1EntryModal } from './Step1EntryModal';
@@ -646,7 +647,7 @@ export const StudentRegistrationForm: React.FC<StudentRegistrationFormProps> = (
                         <Logo size="md" variant="light" />
                         <div>
                           <h2 className="text-lg font-black tracking-tight text-white font-sans">DS TECH ACADEMY</h2>
-                          <p className="text-[10px] text-orange-400 font-sans uppercase font-bold tracking-widest">CAC RC-7945781 • Federal Republic of Nigeria</p>
+                          <p className="text-[10px] text-orange-400 font-sans uppercase font-bold tracking-widest">{COMPANY_CAC_RC_LABEL} • Federal Republic of Nigeria</p>
                         </div>
                       </div>
                       <div className="text-right text-[11px] font-sans text-slate-400">

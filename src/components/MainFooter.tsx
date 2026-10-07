@@ -11,6 +11,7 @@ import {
   TikTokIcon 
 } from './SocialIcons';
 import { apiGetCacMetadata, apiSubscribeToCacMetadata, apiSubscribeToRealtimeSync } from '../lib/api';
+import { COMPANY_RC_NUMBER, formatCompanyRc } from '../lib/companyConstants';
 
 interface MainFooterProps {
   onNavigate?: (path: string) => void;
@@ -91,8 +92,8 @@ export const MainFooter: React.FC<MainFooterProps> = ({ onNavigate, publishedCac
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const cleanRawRc = liveCac?.registration_number || initialPublishedCac?.registration_number || '1845921';
-  const rcNumber = cleanRawRc.replace(/^RC[:\s-]*/i, '');
+  const cleanRawRc = liveCac?.registration_number || initialPublishedCac?.registration_number || COMPANY_RC_NUMBER;
+  const rcNumber = formatCompanyRc(cleanRawRc);
   const companyStatus = liveCac?.company_status || initialPublishedCac?.company_status || 'Incorporated & Active';
 
   const socialLinks = [
@@ -158,7 +159,7 @@ export const MainFooter: React.FC<MainFooterProps> = ({ onNavigate, publishedCac
             <div className="pt-1 flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-300">
                 <ShieldCheck size={13} className="text-orange-400 shrink-0" />
-                <span>CAC RC: <strong className="text-slate-100 font-semibold">{rcNumber}</strong></span>
+                <span>CAC RC No. <strong className="text-slate-100 font-semibold">{rcNumber}</strong></span>
               </div>
               
               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-[11px] font-mono text-emerald-400">

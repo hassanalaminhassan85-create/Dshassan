@@ -2,6 +2,8 @@
 // Maps the full 26 services catalog, portfolio projects, blog posts, courses, and client portal states.
 
 import { generateDynamicSvgUrl, generateAvatarSvgUrl } from './mediaUtils';
+export * from './companyConstants';
+import { COMPANY_RC_NUMBER, COMPANY_CAC_RC_LABEL } from './companyConstants';
 
 export function parsePriceToNumeric(priceStr?: string | number, defaultPrice = 100000): number {
   if (priceStr === undefined || priceStr === null || priceStr === '') return defaultPrice;
@@ -108,14 +110,14 @@ export const RECOGNITION_CERTIFICATES: RecognitionCertificate[] = [
     title: 'Certificate of Incorporation (Limited Liability Company)',
     issuingOrganization: 'Corporate Affairs Commission (CAC Nigeria)',
     issueDate: 'October 14, 2021',
-    description: 'Statutory certificate confirming full legal incorporation under the Companies and Allied Matters Act (CAMA 2020) with Company RC Number 1845921.',
+    description: `Statutory certificate confirming full legal incorporation under the Companies and Allied Matters Act (CAMA 2020) with Company RC Number ${COMPANY_RC_NUMBER}.`,
     category: 'Legal & Incorporation',
-    referenceId: 'RC: 1845921',
+    referenceId: COMPANY_CAC_RC_LABEL,
     isVerified: true,
     verifyUrl: 'https://search.cac.gov.ng',
     badgeUrl: generateDynamicSvgUrl('CAC Certificate', 'compliance', 'cert'),
     imageUrl: generateDynamicSvgUrl('Corporate Affairs Commission Certificate of Incorporation', 'compliance', 'cert'),
-    tags: ['CAC', 'Incorporation', 'RC1845921', 'Legal'],
+    tags: ['CAC', 'Incorporation', 'RC1845921', 'Legal', '1,845,921'],
     orderIndex: 1
   },
   {

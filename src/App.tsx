@@ -52,6 +52,7 @@ import {
 } from './components/SocialIcons';
 import { apiGetApplication, apiSaveApplication, apiUpdateApplication } from './lib/storage';
 import { apiGetCacMetadata, apiSubscribeToCacMetadata, apiSubscribeToRealtimeSync } from './lib/api';
+import { COMPANY_CAC_RC_LABEL } from './lib/companyConstants';
 import { CAREER_ROLES, CATEGORIES, CareerRole } from './lib/roles';
 import { TRANSLATIONS, LANGUAGES, LanguageCode } from './lib/translations';
 import { RolesCatalog } from './components/RolesCatalog';
@@ -462,7 +463,7 @@ export default function App() {
           break;
         case 'about':
           pageTitle = 'About DS TECH & CAC Compliance';
-          section = 'Corporate Registration RC-1849204';
+          section = `Corporate Registration ${COMPANY_CAC_RC_LABEL}`;
           workflowState = 'Viewing Corporate Verification';
           break;
         case 'services':

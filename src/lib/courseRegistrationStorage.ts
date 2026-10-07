@@ -5,6 +5,7 @@ import {
   CourseSelectionItem 
 } from '../types/courseRegistration';
 import { CONTACT_DETAILS } from './academyCoursesData';
+import { COMPANY_CAC_RC_LABEL } from './companyConstants';
 
 const STORAGE_KEY = 'dstech_course_registrations_cache';
 
@@ -180,7 +181,7 @@ export function formatCourseRegistrationWhatsAppMessage(reg: CourseRegistrationR
 
   return `*DS TECH ACADEMY — OFFICIAL COURSE REGISTRATION DOCKET*
 *DS TECH & DIGITAL MARKETING AGENCY LTD*
-CAC RC 9550925
+${COMPANY_CAC_RC_LABEL}
 
 --------------------------------------------
 *REGISTRATION DOCKET SUMMARY*

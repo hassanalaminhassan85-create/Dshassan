@@ -7,6 +7,7 @@ import {
   Database, Fingerprint, ExternalLink, QrCode
 } from 'lucide-react';
 import { Logo } from './Logo';
+import { COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
 
 export interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -325,7 +326,7 @@ export function PWAPrompt() {
                     DS TECH AND DIGITAL
                   </h3>
                   <p className="text-xs text-slate-400 font-medium">
-                    MARKETING AGENCY LIMITED (CAC RC: 1849204)
+                    MARKETING AGENCY LIMITED ({COMPANY_CAC_RC_LABEL})
                   </p>
                 </div>
               </div>

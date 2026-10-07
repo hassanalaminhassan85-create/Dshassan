@@ -15,6 +15,7 @@ import {
   Printer
 } from 'lucide-react';
 import { TutorSession, TutorPayoutRequest, apiCreateTutorPayout } from '../../lib/academyStorage';
+import { COMPANY_CAC_RC_LABEL } from '../../lib/companyConstants';
 
 interface TutorPayoutsTabProps {
   session: TutorSession;
@@ -354,7 +355,7 @@ export const TutorPayoutsTab: React.FC<TutorPayoutsTabProps> = ({
                     DS TECH ACADEMY LTD
                   </h3>
                   <p className="text-[10px] text-slate-500">
-                    Faculty Honorarium Voucher • CAC RC: 1849204
+                    Faculty Honorarium Voucher • {COMPANY_CAC_RC_LABEL}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 print:hidden">

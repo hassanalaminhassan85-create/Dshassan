@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import html2canvas from 'html2canvas-pro';
 import jsPDF from 'jspdf';
+import { COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
 
 export interface GeneratePDFOptions {
   /** ID of the HTML element to render into PDF */
@@ -68,7 +69,7 @@ export function drawSecurityWatermark(
     pdf.setFontSize(9);
     pdf.setTextColor(234, 88, 12); // DS TECH Orange Accent (#EA580C)
 
-    pdf.text('AUTHENTIC DOCUMENT • CAC RC 9550925', centerX, centerY + 10, {
+    pdf.text(`AUTHENTIC DOCUMENT • ${COMPANY_CAC_RC_LABEL}`, centerX, centerY + 10, {
       align: 'center',
       angle: 42,
       baseline: 'middle',

@@ -20,6 +20,7 @@ import {
   ExternalLink
 } from 'lucide-react';
 import { StudentSession } from '../../lib/academyStorage';
+import { COMPANY_CAC_RC_LABEL } from '../../lib/companyConstants';
 
 interface StudentSupportSettingsTabProps {
   session: StudentSession;
@@ -95,7 +96,7 @@ export const StudentSupportSettingsTab: React.FC<StudentSupportSettingsTabProps>
     'Enterprise Cloud Sandbox Access',
     'GitHub Student & Pro Tools Integration',
     'Direct 1-on-1 Lead Tutor Mentorship',
-    'Verified CAC Registered Diploma (RC-1849204)',
+    `Verified CAC Registered Diploma (${COMPANY_CAC_RC_LABEL})`,
     '24/7 High-Speed Solar Powered Innovation Hub Access',
     'Live Virtual Coding Terminals & Recorded Archives',
     'Direct Tech Career Placement & Resume Coaching',

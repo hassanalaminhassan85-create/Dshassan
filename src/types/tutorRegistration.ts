@@ -1,4 +1,5 @@
 import { AcademyCourse } from '../lib/academyCoursesData';
+import { COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
 
 export type TeachingMode = 'Physical' | 'Virtual' | 'Hybrid';
 export type TeachingDays = 'Monday-Friday' | 'Saturday-Sunday' | 'Both Weekdays & Weekends';
@@ -496,7 +497,7 @@ export const TUTOR_BENEFITS = [
   {
     number: '10',
     title: 'Verifiable Digital Credentials & CAC Letter',
-    desc: 'Official appointment letter backed by CAC registration (RC-7945781) and cryptographic faculty badges.'
+    desc: `Official appointment letter backed by CAC registration (${COMPANY_CAC_RC_LABEL}) and cryptographic faculty badges.`
   },
   {
     number: '11',

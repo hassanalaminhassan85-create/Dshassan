@@ -13,6 +13,7 @@ import { OFFICIAL_MANAGEMENT_ROLES } from '../../lib/managementApi';
 import { ManagementRoleCode } from '../../types/management';
 import { OfficialRoleSvg } from './OfficialRoleSvgs';
 import { apiGetCacMetadata, apiSubscribeToCacMetadata, apiSubscribeToRealtimeSync } from '../../lib/api';
+import { COMPANY_RC_NUMBER, COMPANY_CAC_RC_LABEL, formatCompanyRc } from '../../lib/companyConstants';
 
 interface ManagementLandingViewProps {
   onSelectRole: (role: ManagementRoleCode) => void;
@@ -144,8 +145,8 @@ export const ManagementLandingView: React.FC<ManagementLandingViewProps> = ({
   }, [initialPublishedCac]);
 
   // Exact same clean RC logic as main home footer
-  const cleanRawRc = liveCac?.registration_number || initialPublishedCac?.registration_number || '1845921';
-  const rcNumber = cleanRawRc.replace(/^RC[:\s-]*/i, '');
+  const cleanRawRc = liveCac?.registration_number || initialPublishedCac?.registration_number || COMPANY_RC_NUMBER;
+  const rcNumber = formatCompanyRc(cleanRawRc);
 
   const categories = [
     { id: 'all', label: 'All Accounts' },
@@ -195,7 +196,7 @@ export const ManagementLandingView: React.FC<ManagementLandingViewProps> = ({
           {/* Real-time CAC RC Badge (synchronized with Main Footer, fully mobile responsive) */}
           <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-mono text-slate-700 dark:text-slate-300 shadow-2xs shrink-0">
             <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
-            <span className="whitespace-nowrap">RC: <strong className="text-slate-950 dark:text-white font-bold">{rcNumber}</strong></span>
+            <span className="whitespace-nowrap">CAC RC No. <strong className="text-slate-950 dark:text-white font-bold">{rcNumber}</strong></span>
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
           </div>
         </div>
@@ -347,7 +348,7 @@ export const ManagementLandingView: React.FC<ManagementLandingViewProps> = ({
           <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] font-mono text-slate-500 dark:text-slate-400">
             <span className="inline-flex items-center gap-1 font-bold text-slate-800 dark:text-slate-200">
               <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
-              CAC RC: {rcNumber}
+              CAC RC No. {rcNumber}
             </span>
             <span aria-hidden="true" className="hidden sm:inline">·</span>
             <span>Area 1, Garki, Abuja, FCT, Nigeria</span>

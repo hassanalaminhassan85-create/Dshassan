@@ -9,6 +9,7 @@ import {
   User, Building2, Calendar, AlertCircle, RefreshCw, CheckCircle, ShieldCheck
 } from 'lucide-react';
 import { PhoneBiometricPrompt } from './PhoneBiometricPrompt';
+import { COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
 
 interface AppointmentLetterProps {
   application: JobApplication;
@@ -781,7 +782,8 @@ export const AppointmentLetter: React.FC<AppointmentLetterProps> = ({
               
               <div className="text-left md:text-right text-[10px] text-slate-500 space-y-1 md:self-end w-full md:w-auto">
                 <h3 className="font-extrabold text-xs text-[#000E32]">DS TECH AND DIGITAL MARKETING AGENCY LIMITED</h3>
-                <p className="italic text-orange-600 font-semibold text-[9px] min-[375px]:text-[10px]">Empowering Brands with Tech and Digital Excellence</p>
+                <p className="font-mono text-orange-600 font-bold text-[9px] min-[375px]:text-[10px]">{COMPANY_CAC_RC_LABEL} • Federal Republic of Nigeria</p>
+                <p className="italic text-slate-600 font-semibold text-[9px] min-[375px]:text-[10px]">Empowering Brands with Tech and Digital Excellence</p>
                 <p className="break-all min-[375px]:break-normal">Email: dstechanddigitalmarketingltd@gmail.com | Website: www.dstechagency.com</p>
                 <p>Head Office: Ext A-73, Efab Mall Second Floor, Area 11 Garki Abuja</p>
                 <p>Contact: +2349023489111 | +2349023489246</p>

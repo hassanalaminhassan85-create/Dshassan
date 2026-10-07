@@ -1,4 +1,5 @@
 import { MIN_ACADEMY_TUITION } from './pricing';
+import { COMPANY_CAC_RC_LABEL } from './companyConstants';
 
 // Master Academy Course Dataset with all 115 Courses & 22 Categories
 export interface AcademyCategory {
@@ -385,7 +386,7 @@ export const WHY_CHOOSE_US_ACCORDIONS = [
     id: 'why-5',
     title: '5. Verifiable Professional Certification',
     icon: 'Award',
-    content: 'Every graduate receives a cryptographically hashed certificate with unique verification QR codes registered under DS Tech & Digital Marketing Ltd (CAC Accredited: RC-7945781).'
+    content: `Every graduate receives a cryptographically hashed certificate with unique verification QR codes registered under DS Tech & Digital Marketing Ltd (${COMPANY_CAC_RC_LABEL}).`
   },
   {
     id: 'why-6',

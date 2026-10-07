@@ -15,6 +15,7 @@ import {
   GraduationCap
 } from 'lucide-react';
 import { AcademyPaymentRecord, StudentSession } from '../../lib/academyStorage';
+import { COMPANY_CAC_RC_LABEL } from '../../lib/companyConstants';
 
 interface StudentPaymentHistoryTabProps {
   session: StudentSession;
@@ -169,7 +170,7 @@ export const StudentPaymentHistoryTab: React.FC<StudentPaymentHistoryTabProps> =
                       DS TECH ACADEMY LTD
                     </h3>
                     <p className="text-[10px] text-slate-500 font-mono">
-                      CAC RC: 1849204 • Federal Republic of Nigeria
+                      {COMPANY_CAC_RC_LABEL} • Federal Republic of Nigeria
                     </p>
                     <p className="text-[10px] text-slate-500">
                       Abuja Campus & Adamawa Innovation Hub

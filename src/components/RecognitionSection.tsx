@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { apiSubscribeToRecognitionCertificates } from '../lib/api';
 import { RECOGNITION_CERTIFICATES, RecognitionCertificate } from '../lib/data';
+import { COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
 import { StandalonePageHeader } from './StandalonePageHeader';
 import { StandalonePageFooter } from './StandalonePageFooter';
 
@@ -154,7 +155,7 @@ export const RecognitionSection: React.FC<RecognitionSectionProps> = ({ onBackTo
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-white/10">
               <div className="space-y-1">
                 <span className="text-xs font-mono font-bold text-amber-400 uppercase tracking-wider block">Incorporation</span>
-                <span className="text-lg font-black text-white font-serif">CAC RC: 1845921</span>
+                <span className="text-lg font-black text-white font-serif">{COMPANY_CAC_RC_LABEL}</span>
               </div>
               <div className="space-y-1">
                 <span className="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wider block">Anti-Money Laundering</span>

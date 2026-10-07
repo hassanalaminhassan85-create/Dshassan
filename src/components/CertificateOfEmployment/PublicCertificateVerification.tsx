@@ -18,6 +18,7 @@ import {
   setCachedCertificatePDF,
 } from './certificatePdfUtils';
 import { CertificateShareModal } from './CertificateShareModal';
+import { COMPANY_CAC_RC_LABEL } from '../../lib/companyConstants';
 
 interface PublicCertificateVerificationProps {
   initialCode?: string;
@@ -228,7 +229,7 @@ export const PublicCertificateVerification: React.FC<PublicCertificateVerificati
                 DS Tech and Digital Marketing Agency
               </h1>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Official Document Verification &amp; Authentication System • CAC RC-1849204
+                Official Document Verification &amp; Authentication System • {COMPANY_CAC_RC_LABEL}
               </p>
             </div>
           </div>
@@ -557,7 +558,7 @@ export const PublicCertificateVerification: React.FC<PublicCertificateVerificati
       {/* Footer Info */}
       <div className="mt-8 text-center text-xs text-slate-400 space-y-1 max-w-xl">
         <p className="font-semibold text-slate-300">
-          DS Tech and Digital Marketing Agency Limited • RC-1849204
+          DS Tech and Digital Marketing Agency Limited • {COMPANY_CAC_RC_LABEL}
         </p>
         <p className="text-[11px]">
           Ext A-73 Efab Mall, Second Floor Area 10, Garki, Abuja, Nigeria • Phone: 09023489111 • Email: dstechanddigitalmarketingltd@gmail.com

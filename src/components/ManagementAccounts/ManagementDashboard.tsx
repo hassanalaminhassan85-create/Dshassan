@@ -63,6 +63,7 @@ import {
 } from '../../lib/managementApi';
 import { generateRoleDashboardPayload } from '../../lib/managementDataDefaults';
 import { apiGetCacMetadata, apiSubscribeToCacMetadata, apiSubscribeToRealtimeSync } from '../../lib/api';
+import { COMPANY_RC_NUMBER, COMPANY_CAC_RC_LABEL, formatCompanyRc } from '../../lib/companyConstants';
 import { OfficialRoleSvg } from './OfficialRoleSvgs';
 
 interface ManagementDashboardProps {
@@ -155,8 +156,8 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
     };
   }, [initialPublishedCac]);
 
-  const cleanRawRc = liveCac?.registration_number || initialPublishedCac?.registration_number || '1845921';
-  const rcNumber = cleanRawRc.replace(/^RC[:\s-]*/i, '');
+  const cleanRawRc = liveCac?.registration_number || initialPublishedCac?.registration_number || COMPANY_RC_NUMBER;
+  const rcNumber = formatCompanyRc(cleanRawRc);
 
   // Modals & Action States
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
@@ -660,7 +661,7 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
                     <ShieldCheck size={14} />
                     <span>{isCeo ? 'Executive Directorate' : `${dashboardData.departmentInfo.name}`}</span>
                     <span aria-hidden="true">·</span>
-                    <span className="font-mono text-[10px] text-white">CAC RC: {rcNumber}</span>
+                    <span className="font-mono text-[10px] text-white">CAC RC No. {rcNumber}</span>
                   </div>
 
                   <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-white leading-tight">

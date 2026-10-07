@@ -21,6 +21,7 @@ import {
 import { StudentSession, AcademyPaymentRecord, apiRecordVerifiedPayment } from '../../lib/academyStorage';
 import { AcademyEnrollment } from '../../types/enrollment';
 import { AcademyCourse } from '../../lib/academyCoursesData';
+import { COMPANY_CAC_RC_LABEL } from '../../lib/companyConstants';
 
 interface StudentPaymentsTabProps {
   session: StudentSession;
@@ -335,7 +336,7 @@ export const StudentPaymentsTab: React.FC<StudentPaymentsTabProps> = ({
                           Paystack Secure Checkout
                         </h3>
                         <p className="text-[10px] font-mono text-slate-400">
-                          DS TECH ACADEMY LTD (RC-1849204)
+                          DS TECH ACADEMY LTD ({COMPANY_CAC_RC_LABEL})
                         </p>
                       </div>
                     </div>

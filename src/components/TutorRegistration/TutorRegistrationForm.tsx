@@ -8,6 +8,7 @@ import {
   Printer, Copy, RotateCcw 
 } from 'lucide-react';
 import { Logo } from '../Logo';
+import { COMPANY_CAC_RC_LABEL } from '../../lib/companyConstants';
 import { 
   TutorApplication, 
   SelectedCoursePosition 
@@ -604,7 +605,7 @@ export const TutorRegistrationForm: React.FC<TutorRegistrationFormProps> = ({
                         <Logo size="md" variant="light" />
                         <div>
                           <h2 className="text-lg font-black tracking-tight text-white font-sans">DS TECH ACADEMY</h2>
-                          <p className="text-[10px] text-amber-400 font-sans uppercase font-bold tracking-widest">CAC RC-7945781 • Faculty & Academic Directorate</p>
+                          <p className="text-[10px] text-amber-400 font-sans uppercase font-bold tracking-widest">{COMPANY_CAC_RC_LABEL} • Faculty & Academic Directorate</p>
                         </div>
                       </div>
                       <div className="text-right text-[11px] font-sans text-slate-400">

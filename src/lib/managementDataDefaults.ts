@@ -12,6 +12,7 @@ import {
   ManagementActivityItem
 } from '../types/management';
 import { OFFICIAL_MANAGEMENT_ROLES } from './managementApi';
+import { COMPANY_CAC_RC_LABEL, COMPANY_RC_NUMBER } from './companyConstants';
 
 // Master canonical tasks for directorates - realistic, live actionable management items
 export const MASTER_MANAGEMENT_TASKS: ManagementTaskItem[] = [
@@ -96,7 +97,7 @@ export const DEFAULT_ANNOUNCEMENTS: ManagementAnnouncementItem[] = [
     authorRole: 'HOD, Legal & Compliance',
     date: '2026-10-04',
     priority: 'Normal',
-    content: 'Corporate Affairs Commission (CAC RC-1849204) statutory returns have been validated and reconciled with SCUML compliance certification.',
+    content: `Corporate Affairs Commission (${COMPANY_CAC_RC_LABEL}) statutory returns have been validated and reconciled with SCUML compliance certification.`,
     targetAudience: 'Executive & Department Leadership'
   },
   {
@@ -198,13 +199,13 @@ export function generateRoleDashboardPayload(
 
     reports = [
       { id: 'rep-ceo-1', title: 'Consolidated DS Tech Corporate Audit & Performance Q3', period: 'Q3 2026', submittedBy: 'Executive Secretariat', department: 'Executive Leadership', departmentCode: 'EXEC', status: 'Approved', date: '2026-10-01', summary: 'Comprehensive operational, fiscal, and instructional audit across all 8 operating directorates.' },
-      { id: 'rep-ceo-2', title: 'Statutory Corporate Compliance & CAC RC-1849204 Validation', period: 'Annual 2026', submittedBy: 'HOD Legal & Compliance', department: 'Legal & Compliance', departmentCode: 'LGC', status: 'Approved', date: '2026-09-28', summary: 'Full regulatory certification including FIRS tax compliance and SCUML accreditation.' },
+      { id: 'rep-ceo-2', title: `Statutory Corporate Compliance & ${COMPANY_CAC_RC_LABEL} Validation`, period: 'Annual 2026', submittedBy: 'HOD Legal & Compliance', department: 'Legal & Compliance', departmentCode: 'LGC', status: 'Approved', date: '2026-09-28', summary: 'Full regulatory certification including FIRS tax compliance and SCUML accreditation.' },
       { id: 'rep-ceo-3', title: 'Commercial Business Development & Client Pipeline Forecast', period: 'Q4 2026', submittedBy: 'HOD Business Development', department: 'Business Development', departmentCode: 'BIZ', status: 'Pending Review', date: '2026-10-05', summary: 'Quarterly review of enterprise training and bespoke cloud software client engagements.' },
       { id: 'rep-ceo-4', title: 'Academic Faculty Quality & Student Graduation Metric Summary', period: 'Semester 2', submittedBy: 'HOD Human Resource Management', department: 'Human Resource Management', departmentCode: 'HRM', status: 'Pending Review', date: '2026-10-04', summary: 'Evaluation of 26 faculty leads across 115 vocational tech disciplines.' }
     ];
 
     documents = [
-      { id: 'doc-ceo-1', title: 'CAC Certificate of Incorporation (RC-1849204)', category: 'Statutory', department: 'Executive', departmentCode: 'EXEC', lastUpdated: '2026-08-15', size: '2.4 MB', status: 'Active', referenceNo: 'CAC/RC-1849204', accessTier: 'Executive' },
+      { id: 'doc-ceo-1', title: `CAC Certificate of Incorporation (${COMPANY_CAC_RC_LABEL})`, category: 'Statutory', department: 'Executive', departmentCode: 'EXEC', lastUpdated: '2026-08-15', size: '2.4 MB', status: 'Active', referenceNo: `CAC/RC-${COMPANY_RC_NUMBER}`, accessTier: 'Executive' },
       { id: 'doc-ceo-2', title: 'DS Tech Strategic Master Plan 2026-2028', category: 'Strategy', department: 'Executive', departmentCode: 'EXEC', lastUpdated: '2026-09-01', size: '4.8 MB', status: 'Active', referenceNo: 'DST/STRAT/2026/01', accessTier: 'Executive' },
       { id: 'doc-ceo-3', title: 'Board Resolutions & Executive Governance Charter', category: 'Governance', department: 'Executive', departmentCode: 'EXEC', lastUpdated: '2026-07-20', size: '1.9 MB', status: 'Active', referenceNo: 'DST/GOV/BR-09', accessTier: 'Executive' },
       { id: 'doc-ceo-4', title: 'Consolidated Financial Statements & Tax Returns', category: 'Finance', department: 'Finance', departmentCode: 'FIN', lastUpdated: '2026-09-30', size: '3.6 MB', status: 'Active', referenceNo: 'DST/FIN/FS-2026-Q3', accessTier: 'Executive' }
@@ -229,7 +230,7 @@ export function generateRoleDashboardPayload(
       coreMandates: [
         'Setting strategic corporate vision, expansion horizons, and technology roadmaps',
         'Supervising departmental leadership across all 8 specialized functional directorates',
-        'Ensuring strict adherence to Nigerian statutory requirements (CAC RC-1849204, SCUML, FIRS)',
+        `Ensuring strict adherence to Nigerian statutory requirements (${COMPANY_CAC_RC_LABEL}, SCUML, FIRS)`,
         'Safeguarding corporate liquidity, capital allocation, and shareholder value',
         'Approving high-value institutional partnerships, government tenders, and client master retainers'
       ],

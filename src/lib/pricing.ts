@@ -1,4 +1,5 @@
 // Single Authoritative Source of Truth for DS TECH Academy Official Fixed Pricing
+import { COMPANY_CAC_RC_LABEL } from './companyConstants';
 
 export type AcademyDuration = '1-Month' | '3-Month' | '6-Month' | '1 Month' | '3 Months' | '6 Months';
 export type AcademyTrainingMode = 'Virtual' | 'Physical' | 'Hybrid';
@@ -78,7 +79,7 @@ export const ACADEMY_PRICING_TIERS: PricingTier[] = [
       'Full Hands-on Practicals & Real-world Projects',
       'Weekly 1-on-1 Faculty Mentorship & Code Audits',
       'Portfolio Defense & Industry Review',
-      'Official CAC-Accredited DSTA Diploma (RC: 95)',
+      `Official CAC-Accredited DSTA Diploma (${COMPANY_CAC_RC_LABEL})`,
     ],
   },
   {

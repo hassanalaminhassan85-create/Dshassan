@@ -21,6 +21,7 @@ import {
 import { AcademyCourse, ACADEMY_CATEGORIES } from '../lib/academyCoursesData';
 import { apiFetchAcademyCoursesFromFirestore } from '../lib/academyStorage';
 import { getAcademyTuition, formatNGN } from '../lib/pricing';
+import { COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
 
 export interface CourseCatalogueProps {
   isOpen?: boolean;
@@ -486,7 +487,7 @@ export const CourseCatalogue: React.FC<CourseCatalogueProps> = ({
       <div className="p-4 bg-slate-950/90 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
         <div className="flex items-center gap-2">
           <GraduationCap className="w-4 h-4 text-orange-400" />
-          <span>DS TECH Academy • CAC Accredited Technology Institution (RC: 95)</span>
+          <span>DS TECH Academy • CAC Accredited Technology Institution ({COMPANY_CAC_RC_LABEL})</span>
         </div>
         <span>{filteredCourses.length} of {courses.length} Programmes Shown</span>
       </div>
