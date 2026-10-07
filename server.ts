@@ -1049,17 +1049,75 @@ ${liveContext ? liveContext : ''}`;
     const role = session.role;
     const isCeo = role === 'CEO';
 
-    // Standard Department Performance Table (for CEO and performance view)
-    const departmentPerformance = [
-      { department: 'Human Resource Management', code: 'HRM', head: 'Dr. Aisha Bello', tasksCompleted: 18, totalTasks: 20, operationalHealth: 'Active' as const, highlights: 'Faculty accredited across 24 disciplines; Q4 recruitment on track' },
-      { department: 'Administrative Services', code: 'ADM', head: 'Barr. Ibrahim Danladi', tasksCompleted: 14, totalTasks: 15, operationalHealth: 'Active' as const, highlights: 'Garki HQ facility optimization; physical desk allocation completed' },
-      { department: 'Business Development', code: 'BIZ', head: 'Mrs. Ngozi Okafor', tasksCompleted: 22, totalTasks: 24, operationalHealth: 'Active' as const, highlights: 'Enterprise institutional training client proposals and corporate partnerships' },
-      { department: 'Accounting and Finance', code: 'FIN', head: 'Mr. Babatunde Adeleke (FCA)', tasksCompleted: 19, totalTasks: 19, operationalHealth: 'Active' as const, highlights: 'Paystack ledger reconciliation 100%; SCUML & FIRS filings active' },
-      { department: 'Creative Media and Digital Marketing', code: 'CMD', head: 'Mr. Emmanuel Eze', tasksCompleted: 25, totalTasks: 28, operationalHealth: 'Active' as const, highlights: 'Multi-channel creative storytelling and corporate brand campaigns active' },
-      { department: 'Information Technology', code: 'ITD', head: 'Engr. Faruq Mohammed', tasksCompleted: 31, totalTasks: 32, operationalHealth: 'Active' as const, highlights: '99.98% platform uptime; zero security incidents in 180 days' },
-      { department: 'AI and Creative Technology', code: 'AIC', head: 'Dr. Chioma Nnamdi', tasksCompleted: 16, totalTasks: 17, operationalHealth: 'Active' as const, highlights: 'Proprietary student tutor co-pilot deployed with Gemini 3.7 integration' },
-      { department: 'Legal and Compliance', code: 'LGC', head: 'Barr. Kalu Samuel', tasksCompleted: 12, totalTasks: 12, operationalHealth: 'Active' as const, highlights: 'Corporate compliance affirmed; 86 executed commercial NDAs' }
+    // Master canonical management tasks
+    const masterDepartmentTasks = [
+      // HRM Tasks
+      { id: 't-hr-1', title: 'Process Appointment Letters for 4 Newly Accredited Instructors', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'HOD HR', department: 'Human Resource Management', departmentCode: 'HRM' },
+      { id: 't-hr-2', title: 'Review Q4 Faculty Teaching Retainers across 24 Tech Tracks', priority: 'Urgent', status: 'Pending', dueDate: '2026-10-10', assignee: 'HR Directorate', department: 'Human Resource Management', departmentCode: 'HRM' },
+      { id: 't-hr-3', title: 'Conduct Biometric Identity Card Issuance at Regional Hub', priority: 'Medium', status: 'Pending', dueDate: '2026-10-15', assignee: 'HR Lead', department: 'Human Resource Management', departmentCode: 'HRM' },
+      { id: 't-hr-4', title: 'Process Monthly Faculty Lecture Hours & Verification Log', priority: 'High', status: 'Completed', dueDate: '2026-10-02', assignee: 'HOD HR', department: 'Human Resource Management', departmentCode: 'HRM' },
+
+      // ADM Tasks
+      { id: 't-adm-1', title: 'Audit Physical Server Room Power Redundancy in Abuja HQ', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'HOD Administration', department: 'Administrative Services', departmentCode: 'ADM' },
+      { id: 't-adm-2', title: 'Renew Annual Facility Tenancy & Utility Licenses', priority: 'Urgent', status: 'Pending', dueDate: '2026-10-12', assignee: 'Admin Lead', department: 'Administrative Services', departmentCode: 'ADM' },
+      { id: 't-adm-3', title: 'Replenish Academy Hardware Lab Kits (Raspberry Pi & Arduino)', priority: 'Medium', status: 'Completed', dueDate: '2026-10-03', assignee: 'Procurement Officer', department: 'Administrative Services', departmentCode: 'ADM' },
+
+      // BIZ Tasks
+      { id: 't-biz-1', title: 'Submit Corporate Upskilling RFP for Commercial Banking Cohort', priority: 'Urgent', status: 'In Progress', dueDate: '2026-10-10', assignee: 'HOD Business Development', department: 'Business Development', departmentCode: 'BIZ' },
+      { id: 't-biz-2', title: 'Structure Enterprise Retainer Agreement for FinTech Client', priority: 'High', status: 'Pending', dueDate: '2026-10-14', assignee: 'Commercial Lead', department: 'Business Development', departmentCode: 'BIZ' },
+      { id: 't-biz-3', title: 'Finalize Sponsorship MoUs with Regional Tech Innovation Council', priority: 'Medium', status: 'Completed', dueDate: '2026-10-04', assignee: 'HOD Business Development', department: 'Business Development', departmentCode: 'BIZ' },
+
+      // FIN Tasks
+      { id: 't-fin-1', title: 'Reconcile Paystack & Direct Bank Settlement Ledgers for September', priority: 'Urgent', status: 'Completed', dueDate: '2026-10-04', assignee: 'HOD Accounting & Finance', department: 'Accounting and Finance', departmentCode: 'FIN' },
+      { id: 't-fin-2', title: 'Audit Student Academy Tuition Installment Verification Pipeline', priority: 'Medium', status: 'In Progress', dueDate: '2026-10-11', assignee: 'Finance Lead', department: 'Accounting and Finance', departmentCode: 'FIN' },
+      { id: 't-fin-3', title: 'Prepare FIRS Statutory Withholding & Value Added Tax (VAT) Remittance', priority: 'High', status: 'Pending', dueDate: '2026-10-15', assignee: 'HOD Accounting & Finance', department: 'Accounting and Finance', departmentCode: 'FIN' },
+
+      // CMD Tasks
+      { id: 't-cmd-1', title: 'Launch Targeted Meta Video Ad for AI for Kids Q4 Cohort', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'HOD Creative Media', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD' },
+      { id: 't-cmd-2', title: 'Produce Video Showcase for Student Capstone Projects', priority: 'Medium', status: 'Pending', dueDate: '2026-10-13', assignee: 'Media Producer', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD' },
+      { id: 't-cmd-3', title: 'Publish Q4 Social Media Brand Awareness Campaign', priority: 'Normal', status: 'Completed', dueDate: '2026-10-01', assignee: 'HOD Creative Media', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD' },
+
+      // ITD Tasks
+      { id: 't-it-1', title: 'Rotate Database Access Secrets & Audit S3 Storage Bucket ACLs', priority: 'High', status: 'Completed', dueDate: '2026-10-05', assignee: 'HOD Information Technology', department: 'Information Technology', departmentCode: 'ITD' },
+      { id: 't-it-2', title: 'Deploy High-Availability Reverse Proxy Load Balancer', priority: 'Urgent', status: 'In Progress', dueDate: '2026-10-10', assignee: 'DevOps Lead', department: 'Information Technology', departmentCode: 'ITD' },
+      { id: 't-it-3', title: 'Perform Automated Vulnerability & SSL Certificate Health Check', priority: 'Medium', status: 'Completed', dueDate: '2026-10-02', assignee: 'HOD Information Technology', department: 'Information Technology', departmentCode: 'ITD' },
+
+      // AIC Tasks
+      { id: 't-aic-1', title: 'Refine Context-Grounding Prompts for DS Tech Academic Curriculum', priority: 'High', status: 'Completed', dueDate: '2026-10-04', assignee: 'HOD AI & Creative Tech', department: 'AI and Creative Technology', departmentCode: 'AIC' },
+      { id: 't-aic-2', title: 'Integrate Gemini Multimodal Live Streaming for Code Review Assistant', priority: 'Urgent', status: 'In Progress', dueDate: '2026-10-11', assignee: 'AI Systems Architect', department: 'AI and Creative Technology', departmentCode: 'AIC' },
+      { id: 't-aic-3', title: 'Benchmark Response Latency for Student AI Tutor Co-pilot', priority: 'Medium', status: 'Pending', dueDate: '2026-10-14', assignee: 'HOD AI & Creative Tech', department: 'AI and Creative Technology', departmentCode: 'AIC' },
+
+      // LGC Tasks
+      { id: 't-lgc-1', title: 'Verify Corporate Affairs Commission (CAC) Annual Filing Documentation', priority: 'High', status: 'Completed', dueDate: '2026-10-03', assignee: 'HOD Legal & Compliance', department: 'Legal and Compliance', departmentCode: 'LGC' },
+      { id: 't-lgc-2', title: 'Draft Master Services Retainer for Federal Agency Tech Proposal', priority: 'Urgent', status: 'In Progress', dueDate: '2026-10-10', assignee: 'HOD Legal & Compliance', department: 'Legal and Compliance', departmentCode: 'LGC' },
+      { id: 't-lgc-3', title: 'Audit SCUML Anti-Fraud Compliance & NDPR Privacy Directives', priority: 'High', status: 'Completed', dueDate: '2026-10-02', assignee: 'Legal Counsel', department: 'Legal and Compliance', departmentCode: 'LGC' }
     ];
+
+    // Compute live dynamic Department Performance from actual tasks
+    const rawDeptDefinitions = [
+      { department: 'Human Resource Management', code: 'HRM', head: 'Head of Department (HR)', operationalHealth: 'Active' as const, highlights: 'Faculty accredited across 24 disciplines; Q4 recruitment on track' },
+      { department: 'Administrative Services', code: 'ADM', head: 'Head of Department (ADM)', operationalHealth: 'Active' as const, highlights: 'Garki HQ facility optimization; physical desk allocation completed' },
+      { department: 'Business Development', code: 'BIZ', head: 'Head of Department (BIZ)', operationalHealth: 'Active' as const, highlights: 'Enterprise institutional training client proposals and corporate partnerships' },
+      { department: 'Accounting and Finance', code: 'FIN', head: 'Head of Department (FIN)', operationalHealth: 'Active' as const, highlights: 'Paystack ledger reconciliation 100%; SCUML & FIRS filings active' },
+      { department: 'Creative Media and Digital Marketing', code: 'CMD', head: 'Head of Department (CMD)', operationalHealth: 'Active' as const, highlights: 'Multi-channel creative storytelling and corporate brand campaigns active' },
+      { department: 'Information Technology', code: 'ITD', head: 'Head of Department (ITD)', operationalHealth: 'Active' as const, highlights: '99.98% platform uptime; zero security incidents in 180 days' },
+      { department: 'AI and Creative Technology', code: 'AIC', head: 'Head of Department (AIC)', operationalHealth: 'Active' as const, highlights: 'Proprietary student tutor co-pilot deployed with Gemini 3.7 integration' },
+      { department: 'Legal and Compliance', code: 'LGC', head: 'Head of Department (LGC)', operationalHealth: 'Active' as const, highlights: 'Corporate compliance affirmed; 86 executed commercial NDAs' }
+    ];
+
+    const departmentPerformance = rawDeptDefinitions.map(dept => {
+      const deptTasks = masterDepartmentTasks.filter(t => t.departmentCode === dept.code);
+      const completed = deptTasks.filter(t => t.status === 'Completed').length;
+      return {
+        department: dept.department,
+        code: dept.code,
+        head: dept.head,
+        tasksCompleted: completed,
+        totalTasks: deptTasks.length,
+        operationalHealth: dept.operationalHealth,
+        highlights: dept.highlights
+      };
+    });
 
     // Seeded/customized announcements
     const announcements = [
@@ -1076,7 +1134,7 @@ ${liveContext ? liveContext : ''}`;
       {
         id: 'ann-2',
         title: 'Corporate Affairs Commission (CAC) Annual Filing Clearance',
-        author: 'Barr. Kalu Samuel',
+        author: 'HOD, Legal & Compliance',
         authorRole: 'HOD, Legal & Compliance',
         date: '2026-10-04',
         priority: 'Normal' as const,
@@ -1086,7 +1144,7 @@ ${liveContext ? liveContext : ''}`;
       {
         id: 'ann-3',
         title: 'DS Tech Academy Q4 Cohort Enrollment Crosses 1,200 Students',
-        author: 'Dr. Aisha Bello',
+        author: 'HOD, Human Resource Management',
         authorRole: 'HOD, Human Resource Management',
         date: '2026-10-02',
         priority: 'Normal' as const,
@@ -1146,17 +1204,18 @@ ${liveContext ? liveContext : ''}`;
     if (isCeo) {
       // CEO EXECUTIVE OVERVIEW
       tasks = [
-        { id: 't-ceo-1', title: 'Review Q4 Institutional Expansion Budget with Finance HOD', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'CEO Office', department: 'Executive Leadership', departmentCode: 'EXEC' },
+        { id: 't-ceo-1', title: 'Review Q4 Institutional Expansion Budget with Finance Directorate', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'CEO Office', department: 'Executive Leadership', departmentCode: 'EXEC' },
         { id: 't-ceo-2', title: 'Sign Off on Master Partnership Agreement with Federal Communications Partner', priority: 'Urgent', status: 'Pending', dueDate: '2026-10-10', assignee: 'Chief Executive Officer', department: 'Executive Leadership', departmentCode: 'EXEC' },
         { id: 't-ceo-3', title: 'Preside over Q4 Executive Management Board Session', priority: 'High', status: 'Pending', dueDate: '2026-10-12', assignee: 'Chief Executive Officer', department: 'Executive Leadership', departmentCode: 'EXEC' },
-        { id: 't-ceo-4', title: 'Approve New AI and Creative Technology R&D Capital Requisition', priority: 'Medium', status: 'Completed', dueDate: '2026-10-05', assignee: 'Chief Executive Officer', department: 'Executive Leadership', departmentCode: 'EXEC' }
+        { id: 't-ceo-4', title: 'Approve New AI and Creative Technology R&D Capital Requisition', priority: 'Medium', status: 'Completed', dueDate: '2026-10-05', assignee: 'Chief Executive Officer', department: 'Executive Leadership', departmentCode: 'EXEC' },
+        ...masterDepartmentTasks
       ];
 
       reports = [
-        { id: 'rep-ceo-1', title: 'Consolidated DS Tech Corporate Audit & Performance Q3', period: 'Q3 2026', submittedBy: 'Executive Secretary', department: 'Executive Leadership', departmentCode: 'EXEC', status: 'Approved', date: '2026-10-01', summary: 'Comprehensive operational, fiscal, and instructional audit across all 8 operating departments.' },
-        { id: 'rep-ceo-2', title: 'Statutory Corporate Compliance & CAC RC Validation', period: 'Annual 2026', submittedBy: 'Barr. Kalu Samuel (HOD Legal)', department: 'Legal & Compliance', departmentCode: 'LGC', status: 'Approved', date: '2026-09-28', summary: 'Full regulatory certification including FIRS tax compliance and SCUML accreditation.' },
-        { id: 'rep-ceo-3', title: 'Commercial Business Development & Client Pipeline Forecast', period: 'Q4 2026', submittedBy: 'Mrs. Ngozi Okafor (HOD BizDev)', department: 'Business Development', departmentCode: 'BIZ', status: 'Pending Review', date: '2026-10-05', summary: 'Quarterly review of enterprise training and bespoke cloud software client engagements.' },
-        { id: 'rep-ceo-4', title: 'Academic Faculty Quality & Student Graduation Metric Summary', period: 'Semester 2', submittedBy: 'Dr. Aisha Bello (HOD HR)', department: 'Human Resource Management', departmentCode: 'HRM', status: 'Pending Review', date: '2026-10-04', summary: 'Evaluation of 26 faculty leads across 115 vocational tech disciplines.' }
+        { id: 'rep-ceo-1', title: 'Consolidated DS Tech Corporate Audit & Performance Q3', period: 'Q3 2026', submittedBy: 'Executive Secretariat', department: 'Executive Leadership', departmentCode: 'EXEC', status: 'Approved', date: '2026-10-01', summary: 'Comprehensive operational, fiscal, and instructional audit across all 8 operating directorates.' },
+        { id: 'rep-ceo-2', title: 'Statutory Corporate Compliance & CAC RC Validation', period: 'Annual 2026', submittedBy: 'HOD Legal & Compliance', department: 'Legal & Compliance', departmentCode: 'LGC', status: 'Approved', date: '2026-09-28', summary: 'Full regulatory certification including FIRS tax compliance and SCUML accreditation.' },
+        { id: 'rep-ceo-3', title: 'Commercial Business Development & Client Pipeline Forecast', period: 'Q4 2026', submittedBy: 'HOD Business Development', department: 'Business Development', departmentCode: 'BIZ', status: 'Pending Review', date: '2026-10-05', summary: 'Quarterly review of enterprise training and bespoke cloud software client engagements.' },
+        { id: 'rep-ceo-4', title: 'Academic Faculty Quality & Student Graduation Metric Summary', period: 'Semester 2', submittedBy: 'HOD Human Resource Management', department: 'Human Resource Management', departmentCode: 'HRM', status: 'Pending Review', date: '2026-10-04', summary: 'Evaluation of 26 faculty leads across 115 vocational tech disciplines.' }
       ];
 
       documents = [
@@ -1167,10 +1226,10 @@ ${liveContext ? liveContext : ''}`;
       ];
 
       recentActivities = [
-        { id: 'act-ceo-1', action: 'Approved Q4 Corporate Budget Allocations', user: 'Chief Executive Officer', role: 'CEO', department: 'Executive Leadership', timestamp: '2 hours ago', status: 'Authorized', category: 'executive', details: 'Transferred capital funds for Academy server upgrades and Yola campus setup.' },
-        { id: 'act-ceo-2', action: 'Reviewed Legal Compliance Report', user: 'Barr. Kalu Samuel', role: 'HOD Legal', department: 'Legal & Compliance', timestamp: '5 hours ago', status: 'Under Review', category: 'compliance', details: 'Statutory returns verified with Corporate Affairs Commission.' },
-        { id: 'act-ceo-3', action: 'Paystack Tuition Ledger Reconciled', user: 'Mr. Babatunde Adeleke', role: 'HOD Finance', department: 'Accounting & Finance', timestamp: 'Yesterday', status: 'Verified', category: 'finance', details: 'Monthly student course tuition fees verified without discrepancies.' },
-        { id: 'act-ceo-4', action: 'AI Co-pilot Assistant V2 Successfully Deployed', user: 'Dr. Chioma Nnamdi', role: 'HOD AI Tech', department: 'AI & Creative Tech', timestamp: '2 days ago', status: 'Live', category: 'tech', details: 'Integrated Gemini 3.7 streaming responses with page-context grounding.' }
+        { id: 'act-ceo-1', action: 'Approved Q4 Corporate Budget Allocations', user: 'Chief Executive Officer', role: 'CEO', department: 'Executive Leadership', timestamp: '2 hours ago', status: 'Authorized', category: 'executive', details: 'Transferred capital funds for Academy server upgrades and regional campus setup.' },
+        { id: 'act-ceo-2', action: 'Reviewed Legal Compliance Report', user: 'HOD Legal', role: 'HOD Legal', department: 'Legal & Compliance', timestamp: '5 hours ago', status: 'Under Review', category: 'compliance', details: 'Statutory returns verified with Corporate Affairs Commission.' },
+        { id: 'act-ceo-3', action: 'Paystack Tuition Ledger Reconciled', user: 'HOD Finance', role: 'HOD Finance', department: 'Accounting & Finance', timestamp: 'Yesterday', status: 'Verified', category: 'finance', details: 'Monthly student course tuition fees verified without discrepancies.' },
+        { id: 'act-ceo-4', action: 'AI Co-pilot Assistant V2 Successfully Deployed', user: 'HOD AI Tech', role: 'HOD AI Tech', department: 'AI & Creative Tech', timestamp: '2 days ago', status: 'Live', category: 'tech', details: 'Integrated Gemini 3.7 streaming responses with page-context grounding.' }
       ];
 
       departmentInfo = {
@@ -1190,28 +1249,22 @@ ${liveContext ? liveContext : ''}`;
           'Approving high-value institutional partnerships, government tenders, and client master retainers'
         ],
         teamMembers: [
-          { name: 'Engr. D. S. Al-Amin', role: 'Chief Executive Officer & Founder', email: 'dstechceooffice@gmail.com', status: 'Active' },
-          { name: 'Hajiya Fatima Garba', role: 'Executive Vice President / Board Secretary', email: 'boardsecretary@dstechagency.com', status: 'Active' },
-          { name: 'Dr. Aisha Bello', role: 'Head of Department, HR', email: 'dstechanddigitalmarketingltd@gmail.com', status: 'Active' },
-          { name: 'Mr. Babatunde Adeleke (FCA)', role: 'Head of Department, Accounting & Finance', email: 'dstechfinanceoffice@gmail.com', status: 'Active' },
-          { name: 'Barr. Kalu Samuel', role: 'Head of Department, Legal & Compliance', email: 'dstechlegaloffice@gmail.com', status: 'Active' }
+          { name: 'Chief Executive Officer', role: 'Chief Executive Officer & Founder', email: 'dstechceooffice@gmail.com', status: 'Active' },
+          { name: 'Executive Secretary', role: 'Executive Secretariat / Board Liaison', email: 'boardsecretary@dstechagency.com', status: 'Active' },
+          { name: 'Head of Department (HR)', role: 'Head of Department, HR', email: 'dstechanddigitalmarketingltd@gmail.com', status: 'Active' },
+          { name: 'Head of Department (Finance)', role: 'Head of Department, Accounting & Finance', email: 'dstechfinanceoffice@gmail.com', status: 'Active' },
+          { name: 'Head of Department (Legal)', role: 'Head of Department, Legal & Compliance', email: 'dstechlegaloffice@gmail.com', status: 'Active' }
         ]
       };
     } else {
       // HOD DEPARTMENT SPECIFIC VIEW
       const deptCode = session.departmentCode;
+      tasks = masterDepartmentTasks.filter(t => t.departmentCode === deptCode);
 
       if (deptCode === 'HRM') {
-        tasks = [
-          { id: 't-hr-1', title: 'Issue Appointment Confirmation for 4 New Software Engineers', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'Dr. Aisha Bello', department: 'Human Resource Management', departmentCode: 'HRM' },
-          { id: 't-hr-2', title: 'Review Q4 Faculty Teaching Retainers for 24 Course Tracks', priority: 'Urgent', status: 'Pending', dueDate: '2026-10-10', assignee: 'HR Lead', department: 'Human Resource Management', departmentCode: 'HRM' },
-          { id: 't-hr-3', title: 'Conduct Biometric Identity Card Issuance at Adamawa Hub', priority: 'Medium', status: 'Pending', dueDate: '2026-10-15', assignee: 'HR Officer', department: 'Human Resource Management', departmentCode: 'HRM' },
-          { id: 't-hr-4', title: 'Process Monthly Faculty Lecture Hours & Verification Log', priority: 'High', status: 'Completed', dueDate: '2026-10-02', assignee: 'HR Lead', department: 'Human Resource Management', departmentCode: 'HRM' }
-        ];
-
         reports = [
-          { id: 'rep-hr-1', title: 'Monthly Workforce Attendance & Payroll Audit Ledger', period: 'September 2026', submittedBy: 'Dr. Aisha Bello', department: 'Human Resource Management', departmentCode: 'HRM', status: 'Approved', date: '2026-10-01', summary: 'Attendance records, overtime tracking, and teaching hour verifications.' },
-          { id: 'rep-hr-2', title: 'Faculty Accreditation & Teaching Quality Assessment', period: 'Q3 2026', submittedBy: 'Dr. Aisha Bello', department: 'Human Resource Management', departmentCode: 'HRM', status: 'Pending Review', date: '2026-10-04', summary: 'Student satisfaction metrics across all 24 technical faculty disciplines.' }
+          { id: 'rep-hr-1', title: 'Monthly Workforce Attendance & Payroll Audit Ledger', period: 'September 2026', submittedBy: 'HOD Human Resources', department: 'Human Resource Management', departmentCode: 'HRM', status: 'Approved', date: '2026-10-01', summary: 'Attendance records, overtime tracking, and teaching hour verifications.' },
+          { id: 'rep-hr-2', title: 'Faculty Accreditation & Teaching Quality Assessment', period: 'Q3 2026', submittedBy: 'HOD Human Resources', department: 'Human Resource Management', departmentCode: 'HRM', status: 'Pending Review', date: '2026-10-04', summary: 'Student satisfaction metrics across all 24 technical faculty disciplines.' }
         ];
 
         documents = [
@@ -1220,13 +1273,13 @@ ${liveContext ? liveContext : ''}`;
         ];
 
         recentActivities = [
-          { id: 'act-hr-1', action: 'Verified 4 New Instructor Credentials', user: 'Dr. Aisha Bello', role: 'HOD HR', department: 'Human Resource Management', timestamp: '3 hours ago', status: 'Completed', category: 'hr', details: 'Full-stack development and Data Science faculty accreditations.' },
-          { id: 'act-hr-2', action: 'Submitted Monthly Attendance Ledger', user: 'Dr. Aisha Bello', role: 'HOD HR', department: 'Human Resource Management', timestamp: '1 day ago', status: 'Submitted', category: 'report', details: 'Transmitted to Finance Directorate for payroll authorization.' }
+          { id: 'act-hr-1', action: 'Verified 4 New Instructor Credentials', user: 'HOD HR', role: 'HOD HR', department: 'Human Resource Management', timestamp: '3 hours ago', status: 'Completed', category: 'hr', details: 'Full-stack development and Data Science faculty accreditations.' },
+          { id: 'act-hr-2', action: 'Submitted Monthly Attendance Ledger', user: 'HOD HR', role: 'HOD HR', department: 'Human Resource Management', timestamp: '1 day ago', status: 'Submitted', category: 'report', details: 'Transmitted to Finance Directorate for payroll authorization.' }
         ];
 
         departmentInfo = {
           name: 'Human Resource Management',
-          head: 'Dr. Aisha Bello',
+          head: 'Head of Department (HR)',
           code: 'HRM',
           staffCount: 12,
           budgetYear: 'FY 2026 / 2027',
@@ -1240,21 +1293,15 @@ ${liveContext ? liveContext : ''}`;
             'Structuring competitive compensation, welfare benefits, and professional development programs'
           ],
           teamMembers: [
-            { name: 'Dr. Aisha Bello', role: 'Head of Department, HR', email: 'dstechanddigitalmarketingltd@gmail.com', status: 'Active' },
-            { name: 'Musa Abdullahi', role: 'Senior Talent Acquisition Specialist', email: 'musa.hr@dstechagency.com', status: 'Active' },
-            { name: 'Grace Nnadi', role: 'Employee Relations & Welfare Officer', email: 'grace.hr@dstechagency.com', status: 'Active' },
-            { name: 'Victor Danjuma', role: 'Academic Faculty Coordinator', email: 'victor.hr@dstechagency.com', status: 'Active' }
+            { name: 'Head of Department', role: 'Head of Department, HR', email: 'dstechanddigitalmarketingltd@gmail.com', status: 'Active' },
+            { name: 'Senior Talent Lead', role: 'Senior Talent Acquisition Specialist', email: 'talent.hr@dstechagency.com', status: 'Active' },
+            { name: 'Employee Welfare Officer', role: 'Employee Relations & Welfare Officer', email: 'welfare.hr@dstechagency.com', status: 'Active' },
+            { name: 'Faculty Coordinator', role: 'Academic Faculty Coordinator', email: 'faculty.hr@dstechagency.com', status: 'Active' }
           ]
         };
       } else if (deptCode === 'ADM') {
-        tasks = [
-          { id: 't-adm-1', title: 'Audit Physical Server Room Power Redundancy in Abuja HQ', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'Barr. Ibrahim Danladi', department: 'Administrative Services', departmentCode: 'ADM' },
-          { id: 't-adm-2', title: 'Renew Annual Facility Tenancy & Utility Licenses', priority: 'Urgent', status: 'Pending', dueDate: '2026-10-12', assignee: 'Admin Lead', department: 'Administrative Services', departmentCode: 'ADM' },
-          { id: 't-adm-3', title: 'Replenish Academy Hardware Lab Kits (Raspberry Pi & Arduino)', priority: 'Medium', status: 'Completed', dueDate: '2026-10-03', assignee: 'Procurement Officer', department: 'Administrative Services', departmentCode: 'ADM' }
-        ];
-
         reports = [
-          { id: 'rep-adm-1', title: 'Q3 Office Operations, Fixed Assets & Facilities Audit', period: 'Q3 2026', submittedBy: 'Barr. Ibrahim Danladi', department: 'Administrative Services', departmentCode: 'ADM', status: 'Approved', date: '2026-10-02', summary: 'Physical inspection report of computer labs, air purification, and power generators.' }
+          { id: 'rep-adm-1', title: 'Q3 Office Operations, Fixed Assets & Facilities Audit', period: 'Q3 2026', submittedBy: 'HOD Administration', department: 'Administrative Services', departmentCode: 'ADM', status: 'Approved', date: '2026-10-02', summary: 'Physical inspection report of computer labs, air purification, and power generators.' }
         ];
 
         documents = [
@@ -1262,12 +1309,12 @@ ${liveContext ? liveContext : ''}`;
         ];
 
         recentActivities = [
-          { id: 'act-adm-1', action: 'Completed Bi-Annual Lab Hardware Inspection', user: 'Barr. Ibrahim Danladi', role: 'HOD Administration', department: 'Administrative Services', timestamp: '4 hours ago', status: 'Completed', category: 'task', details: 'All 60 student desktop workstations certified in Garki Lab 1.' }
+          { id: 'act-adm-1', action: 'Completed Bi-Annual Lab Hardware Inspection', user: 'HOD Administration', role: 'HOD Administration', department: 'Administrative Services', timestamp: '4 hours ago', status: 'Completed', category: 'task', details: 'All 60 student desktop workstations certified in Garki Lab 1.' }
         ];
 
         departmentInfo = {
           name: 'Administrative Services',
-          head: 'Barr. Ibrahim Danladi',
+          head: 'Head of Department (ADM)',
           code: 'ADM',
           staffCount: 8,
           budgetYear: 'FY 2026 / 2027',
@@ -1281,20 +1328,13 @@ ${liveContext ? liveContext : ''}`;
             'Managing corporate logistics, vehicle fleet, and regional hub supply chains'
           ],
           teamMembers: [
-            { name: 'Barr. Ibrahim Danladi', role: 'Head of Department, Administration', email: 'dstechadminoffice@gmail.com', status: 'Active' },
-            { name: 'Solomon Peter', role: 'Procurement & Logistics Manager', email: 'solomon.adm@dstechagency.com', status: 'Active' },
-            { name: 'Amina Aliyu', role: 'Facilities Operations Supervisor', email: 'amina.adm@dstechagency.com', status: 'Active' }
+            { name: 'Head of Department', role: 'Head of Department, Administration', email: 'dstechadminoffice@gmail.com', status: 'Active' },
+            { name: 'Facilities Supervisor', role: 'Workplace & Logistics Officer', email: 'logistics.adm@dstechagency.com', status: 'Active' }
           ]
         };
       } else if (deptCode === 'BIZ') {
-        tasks = [
-          { id: 't-biz-1', title: 'Submit Corporate Upskilling RFP for Commercial Banking Cohort', priority: 'Urgent', status: 'In Progress', dueDate: '2026-10-10', assignee: 'Mrs. Ngozi Okafor', department: 'Business Development', departmentCode: 'BIZ' },
-          { id: 't-biz-2', title: 'Prepare Pitch Deck for Enterprise AI Workflow Retainer', priority: 'High', status: 'Pending', dueDate: '2026-10-13', assignee: 'BizDev Associate', department: 'Business Development', departmentCode: 'BIZ' },
-          { id: 't-biz-3', title: 'Finalize Sponsorship MoUs with Regional Tech Innovation Council', priority: 'Medium', status: 'Completed', dueDate: '2026-10-04', assignee: 'Mrs. Ngozi Okafor', department: 'Business Development', departmentCode: 'BIZ' }
-        ];
-
         reports = [
-          { id: 'rep-biz-1', title: 'Q3 Enterprise Client Engagements & Pipeline Report', period: 'Q3 2026', submittedBy: 'Mrs. Ngozi Okafor', department: 'Business Development', departmentCode: 'BIZ', status: 'Approved', date: '2026-10-03', summary: 'Detailed performance breakdown of custom software sales and academy enterprise training.' }
+          { id: 'rep-biz-1', title: 'Q3 Enterprise Client Engagements & Pipeline Report', period: 'Q3 2026', submittedBy: 'HOD Business Development', department: 'Business Development', departmentCode: 'BIZ', status: 'Approved', date: '2026-10-03', summary: 'Detailed performance breakdown of custom software sales and academy enterprise training.' }
         ];
 
         documents = [
@@ -1302,12 +1342,12 @@ ${liveContext ? liveContext : ''}`;
         ];
 
         recentActivities = [
-          { id: 'act-biz-1', action: 'Delivered Custom Software Demo to FinTech Client', user: 'Mrs. Ngozi Okafor', role: 'HOD BizDev', department: 'Business Development', timestamp: '2 hours ago', status: 'Negotiating', category: 'task', details: 'Presented automated payroll and biometric verification architecture.' }
+          { id: 'act-biz-1', action: 'Delivered Custom Software Demo to FinTech Client', user: 'HOD BizDev', role: 'HOD BizDev', department: 'Business Development', timestamp: '2 hours ago', status: 'Negotiating', category: 'task', details: 'Presented automated payroll and biometric verification architecture.' }
         ];
 
         departmentInfo = {
           name: 'Business Development',
-          head: 'Mrs. Ngozi Okafor',
+          head: 'Head of Department (BIZ)',
           code: 'BIZ',
           staffCount: 7,
           budgetYear: 'FY 2026 / 2027',
@@ -1321,20 +1361,13 @@ ${liveContext ? liveContext : ''}`;
             'Maintaining strategic client relationship management to maximize recurring retainer value'
           ],
           teamMembers: [
-            { name: 'Mrs. Ngozi Okafor', role: 'Head of Department, Business Development', email: 'dstechbusinessoffice@gmail.com', status: 'Active' },
-            { name: 'Emeka Nwosu', role: 'Enterprise Sales Director', email: 'emeka.biz@dstechagency.com', status: 'Active' },
-            { name: 'Khadija Umar', role: 'Partnership & Alliance Specialist', email: 'khadija.biz@dstechagency.com', status: 'Active' }
+            { name: 'Head of Department', role: 'Head of Department, Business Development', email: 'dstechbusinessoffice@gmail.com', status: 'Active' },
+            { name: 'Enterprise Sales Lead', role: 'Senior Commercial Accounts Manager', email: 'sales.biz@dstechagency.com', status: 'Active' }
           ]
         };
       } else if (deptCode === 'FIN') {
-        tasks = [
-          { id: 't-fin-1', title: 'Reconcile Paystack & Direct Bank Settlement Ledgers for September', priority: 'Urgent', status: 'Completed', dueDate: '2026-10-04', assignee: 'Mr. Babatunde Adeleke', department: 'Accounting and Finance', departmentCode: 'FIN' },
-          { id: 't-fin-2', title: 'Disburse Q4 Faculty Honoraria & Teaching Retainers', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'Finance Lead', department: 'Accounting and Finance', departmentCode: 'FIN' },
-          { id: 't-fin-3', title: 'Prepare FIRS Statutory Withholding & Value Added Tax (VAT) Remittance', priority: 'High', status: 'Pending', dueDate: '2026-10-15', assignee: 'Mr. Babatunde Adeleke', department: 'Accounting and Finance', departmentCode: 'FIN' }
-        ];
-
         reports = [
-          { id: 'rep-fin-1', title: 'Monthly Expenditure & Cashflow Operating Statement (Sept 2026)', period: 'September 2026', submittedBy: 'Mr. Babatunde Adeleke (FCA)', department: 'Accounting and Finance', departmentCode: 'FIN', status: 'Approved', date: '2026-10-03', summary: 'Reconciliation of student course fees, enterprise retainers, and operating expenses.' }
+          { id: 'rep-fin-1', title: 'Monthly Expenditure & Cashflow Operating Statement (Sept 2026)', period: 'September 2026', submittedBy: 'HOD Accounting & Finance', department: 'Accounting and Finance', departmentCode: 'FIN', status: 'Approved', date: '2026-10-03', summary: 'Reconciliation of student course fees, enterprise retainers, and operating expenses.' }
         ];
 
         documents = [
@@ -1342,12 +1375,12 @@ ${liveContext ? liveContext : ''}`;
         ];
 
         recentActivities = [
-          { id: 'act-fin-1', action: 'Approved Faculty Honoraria Payout Schedule', user: 'Mr. Babatunde Adeleke', role: 'HOD Finance', department: 'Accounting and Finance', timestamp: '1 hour ago', status: 'Disbursed', category: 'finance', details: 'Transferred instructor fees for completed 1-Month and 3-Month cohorts.' }
+          { id: 'act-fin-1', action: 'Approved Faculty Honoraria Payout Schedule', user: 'HOD Finance', role: 'HOD Finance', department: 'Accounting and Finance', timestamp: '1 hour ago', status: 'Disbursed', category: 'finance', details: 'Transferred instructor fees for completed 1-Month and 3-Month cohorts.' }
         ];
 
         departmentInfo = {
           name: 'Accounting and Finance',
-          head: 'Mr. Babatunde Adeleke (FCA)',
+          head: 'Head of Department (FIN)',
           code: 'FIN',
           staffCount: 6,
           budgetYear: 'FY 2026 / 2027',
@@ -1361,20 +1394,13 @@ ${liveContext ? liveContext : ''}`;
             'Executing departmental capital disbursement in alignment with approved board budgets'
           ],
           teamMembers: [
-            { name: 'Mr. Babatunde Adeleke (FCA)', role: 'Head of Department, Accounting & Finance', email: 'dstechfinanceoffice@gmail.com', status: 'Active' },
-            { name: 'Olumide Bakare', role: 'Senior Treasury Accountant', email: 'olumide.fin@dstechagency.com', status: 'Active' },
-            { name: 'Chidinma Eze', role: 'Tuition Billing & Audit Associate', email: 'chidinma.fin@dstechagency.com', status: 'Active' }
+            { name: 'Head of Department', role: 'Head of Department, Accounting & Finance', email: 'dstechfinanceoffice@gmail.com', status: 'Active' },
+            { name: 'Senior Treasury Accountant', role: 'Payroll & Ledger Officer', email: 'accounts.fin@dstechagency.com', status: 'Active' }
           ]
         };
       } else if (deptCode === 'CMD') {
-        tasks = [
-          { id: 't-cmd-1', title: 'Launch Targeted Meta Video Ad for AI for Kids Q4 Cohort', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'Mr. Emmanuel Eze', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD' },
-          { id: 't-cmd-2', title: 'Produce High-Resolution Campus Tour Video for Garki Abuja HQ', priority: 'High', status: 'Pending', dueDate: '2026-10-12', assignee: 'Media Production Lead', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD' },
-          { id: 't-cmd-3', title: 'Optimize Google Search Ads for "Full Stack Software Engineering Abuja"', priority: 'Medium', status: 'Completed', dueDate: '2026-10-04', assignee: 'Growth Marketer', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD' }
-        ];
-
         reports = [
-          { id: 'rep-cmd-1', title: 'Monthly Digital Advertising ROAS & Conversion Performance', period: 'September 2026', submittedBy: 'Mr. Emmanuel Eze', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD', status: 'Approved', date: '2026-10-02', summary: 'Analysis of course inquiries and paid student conversion funnels.' }
+          { id: 'rep-cmd-1', title: 'Monthly Digital Advertising ROAS & Conversion Performance', period: 'September 2026', submittedBy: 'HOD Creative Media', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD', status: 'Approved', date: '2026-10-02', summary: 'Analysis of course inquiries and paid student conversion funnels.' }
         ];
 
         documents = [
@@ -1382,12 +1408,12 @@ ${liveContext ? liveContext : ''}`;
         ];
 
         recentActivities = [
-          { id: 'act-cmd-1', action: 'Published Q4 Video Campaign on Official Channels', user: 'Mr. Emmanuel Eze', role: 'HOD Creative Media', department: 'Creative Media and Digital Marketing', timestamp: '5 hours ago', status: 'Published', category: 'task', details: 'Spotlight on student software project showcases and instructor feedback.' }
+          { id: 'act-cmd-1', action: 'Published Q4 Video Campaign on Official Channels', user: 'HOD Creative Media', role: 'HOD Creative Media', department: 'Creative Media and Digital Marketing', timestamp: '5 hours ago', status: 'Published', category: 'task', details: 'Spotlight on student software project showcases and instructor feedback.' }
         ];
 
         departmentInfo = {
           name: 'Creative Media and Digital Marketing',
-          head: 'Mr. Emmanuel Eze',
+          head: 'Head of Department (CMD)',
           code: 'CMD',
           staffCount: 10,
           budgetYear: 'FY 2026 / 2027',
@@ -1401,20 +1427,13 @@ ${liveContext ? liveContext : ''}`;
             'Managing corporate communications, media press releases, and student success features'
           ],
           teamMembers: [
-            { name: 'Mr. Emmanuel Eze', role: 'Head of Department, Creative Media', email: 'dstechanddigitalltd@gmail.com', status: 'Active' },
-            { name: 'David Oshodi', role: 'Senior Video Producer & Motion Designer', email: 'david.cmd@dstechagency.com', status: 'Active' },
-            { name: 'Blessing Kalu', role: 'Performance Ad Specialist', email: 'blessing.cmd@dstechagency.com', status: 'Active' }
+            { name: 'Head of Department', role: 'Head of Department, Creative Media', email: 'dstechanddigitalltd@gmail.com', status: 'Active' },
+            { name: 'Creative Lead', role: 'Senior Motion Designer & Brand Strategist', email: 'creative.cmd@dstechagency.com', status: 'Active' }
           ]
         };
       } else if (deptCode === 'ITD') {
-        tasks = [
-          { id: 't-it-1', title: 'Rotate Database Access Secrets & Audit S3 Storage Bucket ACLs', priority: 'High', status: 'Completed', dueDate: '2026-10-05', assignee: 'Engr. Faruq Mohammed', department: 'Information Technology', departmentCode: 'ITD' },
-          { id: 't-it-2', title: 'Deploy Enhanced PWA Service Worker Cache Version 2.4', priority: 'High', status: 'In Progress', dueDate: '2026-10-08', assignee: 'DevOps Lead', department: 'Information Technology', departmentCode: 'ITD' },
-          { id: 't-it-3', title: 'Conduct Bi-Weekly Automated Vulnerability Scan on Public APIs', priority: 'Medium', status: 'Pending', dueDate: '2026-10-12', assignee: 'Security Engineer', department: 'Information Technology', departmentCode: 'ITD' }
-        ];
-
         reports = [
-          { id: 'rep-it-1', title: 'Monthly Enterprise Platform Reliability & Security Audit', period: 'September 2026', submittedBy: 'Engr. Faruq Mohammed', department: 'Information Technology', departmentCode: 'ITD', status: 'Approved', date: '2026-10-01', summary: 'System availability, DDoS mitigation events, and container performance benchmarks.' }
+          { id: 'rep-it-1', title: 'Monthly Enterprise Platform Reliability & Security Audit', period: 'September 2026', submittedBy: 'HOD Information Technology', department: 'Information Technology', departmentCode: 'ITD', status: 'Approved', date: '2026-10-01', summary: 'System availability, DDoS mitigation events, and container performance benchmarks.' }
         ];
 
         documents = [
@@ -1422,12 +1441,12 @@ ${liveContext ? liveContext : ''}`;
         ];
 
         recentActivities = [
-          { id: 'act-it-1', action: 'Applied Security Patch to Production Server', user: 'Engr. Faruq Mohammed', role: 'HOD IT', department: 'Information Technology', timestamp: '1 hour ago', status: 'Deployed', category: 'tech', details: 'Hardened cryptographic session validation and token revocation.' }
+          { id: 'act-it-1', action: 'Applied Security Patch to Production Server', user: 'HOD IT', role: 'HOD IT', department: 'Information Technology', timestamp: '1 hour ago', status: 'Deployed', category: 'tech', details: 'Hardened cryptographic session validation and token revocation.' }
         ];
 
         departmentInfo = {
           name: 'Information Technology',
-          head: 'Engr. Faruq Mohammed',
+          head: 'Head of Department (ITD)',
           code: 'ITD',
           staffCount: 9,
           budgetYear: 'FY 2026 / 2027',
@@ -1441,20 +1460,13 @@ ${liveContext ? liveContext : ''}`;
             'Providing swift IT technical assistance to staff, students, and faculty'
           ],
           teamMembers: [
-            { name: 'Engr. Faruq Mohammed', role: 'Head of Department, Information Technology', email: 'dstechitoffice@gmail.com', status: 'Active' },
-            { name: 'Tunde Adebayo', role: 'Senior Cloud DevOps Engineer', email: 'tunde.it@dstechagency.com', status: 'Active' },
-            { name: 'Halima Sadiq', role: 'Information Security & Compliance Analyst', email: 'halima.it@dstechagency.com', status: 'Active' }
+            { name: 'Head of Department', role: 'Head of Department, Information Technology', email: 'dstechitoffice@gmail.com', status: 'Active' },
+            { name: 'Senior Cloud Engineer', role: 'DevOps & Security Specialist', email: 'devops.it@dstechagency.com', status: 'Active' }
           ]
         };
       } else if (deptCode === 'AIC') {
-        tasks = [
-          { id: 't-aic-1', title: 'Refine Context-Grounding Prompts for DS Tech Academic Curriculum', priority: 'High', status: 'Completed', dueDate: '2026-10-04', assignee: 'Dr. Chioma Nnamdi', department: 'AI and Creative Technology', departmentCode: 'AIC' },
-          { id: 't-aic-2', title: 'Benchmark Gemini 3.7 Flash vs Gemini 3.1 Flash-Lite Token Efficiencies', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'AI Research Lead', department: 'AI and Creative Technology', departmentCode: 'AIC' },
-          { id: 't-aic-3', title: 'Develop Code Explainer Module for Junior Programming Cohort', priority: 'Medium', status: 'Pending', dueDate: '2026-10-14', assignee: 'ML Engineer', department: 'AI and Creative Technology', departmentCode: 'AIC' }
-        ];
-
         reports = [
-          { id: 'rep-aic-1', title: 'AI Assistant Performance & Automated Tutoring Analytics', period: 'Q3 2026', submittedBy: 'Dr. Chioma Nnamdi', department: 'AI and Creative Technology', departmentCode: 'AIC', status: 'Approved', date: '2026-10-02', summary: 'Student learning trajectory enhancement using Gemini-powered conversational agents.' }
+          { id: 'rep-aic-1', title: 'AI Assistant Performance & Automated Tutoring Analytics', period: 'Q3 2026', submittedBy: 'HOD AI & Creative Tech', department: 'AI and Creative Technology', departmentCode: 'AIC', status: 'Approved', date: '2026-10-02', summary: 'Student learning trajectory enhancement using Gemini-powered conversational agents.' }
         ];
 
         documents = [
@@ -1462,12 +1474,12 @@ ${liveContext ? liveContext : ''}`;
         ];
 
         recentActivities = [
-          { id: 'act-aic-1', action: 'Enhanced Multilingual System Prompts', user: 'Dr. Chioma Nnamdi', role: 'HOD AI Tech', department: 'AI and Creative Technology', timestamp: '2 hours ago', status: 'Verified', category: 'tech', details: 'Added localized technical guidance across English, Hausa, Yoruba, and French.' }
+          { id: 'act-aic-1', action: 'Enhanced Multilingual System Prompts', user: 'HOD AI Tech', role: 'HOD AI Tech', department: 'AI and Creative Technology', timestamp: '2 hours ago', status: 'Verified', category: 'tech', details: 'Added localized technical guidance across English, Hausa, Yoruba, and French.' }
         ];
 
         departmentInfo = {
           name: 'AI and Creative Technology',
-          head: 'Dr. Chioma Nnamdi',
+          head: 'Head of Department (AIC)',
           code: 'AIC',
           staffCount: 7,
           budgetYear: 'FY 2026 / 2027',
@@ -1481,20 +1493,13 @@ ${liveContext ? liveContext : ''}`;
             'Ensuring ethical AI compliance, safety guardrails, and student data confidentiality'
           ],
           teamMembers: [
-            { name: 'Dr. Chioma Nnamdi', role: 'Head of Department, AI & Creative Tech', email: 'dstechaitechoffice@gmail.com', status: 'Active' },
-            { name: 'Ifeanyi Okoro', role: 'Senior AI / NLP Engineer', email: 'ifeanyi.aic@dstechagency.com', status: 'Active' },
-            { name: 'Maryam Bello', role: 'Creative Technologist & Prompt Architect', email: 'maryam.aic@dstechagency.com', status: 'Active' }
+            { name: 'Head of Department', role: 'Head of Department, AI & Creative Tech', email: 'dstechaitechoffice@gmail.com', status: 'Active' },
+            { name: 'AI Research Engineer', role: 'Creative Technologist & Prompt Architect', email: 'prompt.aic@dstechagency.com', status: 'Active' }
           ]
         };
       } else if (deptCode === 'LGC') {
-        tasks = [
-          { id: 't-lgc-1', title: 'Verify Corporate Affairs Commission (CAC) Annual Filing Documentation', priority: 'High', status: 'Completed', dueDate: '2026-10-03', assignee: 'Barr. Kalu Samuel', department: 'Legal and Compliance', departmentCode: 'LGC' },
-          { id: 't-lgc-2', title: 'Draft Master Services Retainer for Federal Agency Tech Proposal', priority: 'Urgent', status: 'In Progress', dueDate: '2026-10-10', assignee: 'Barr. Kalu Samuel', department: 'Legal and Compliance', departmentCode: 'LGC' },
-          { id: 't-lgc-3', title: 'Audit Student Data Privacy Protections Under NDPR Guidelines', priority: 'Medium', status: 'Pending', dueDate: '2026-10-16', assignee: 'Compliance Associate', department: 'Legal and Compliance', departmentCode: 'LGC' }
-        ];
-
         reports = [
-          { id: 'rep-lgc-1', title: 'Annual Corporate Governance & Statutory Compliance Audit', period: '2026 Statutory', submittedBy: 'Barr. Kalu Samuel', department: 'Legal and Compliance', departmentCode: 'LGC', status: 'Approved', date: '2026-09-25', summary: 'Validation of CAC RC registration, TIN standing, and SCUML compliance.' }
+          { id: 'rep-lgc-1', title: 'Annual Corporate Governance & Statutory Compliance Audit', period: '2026 Statutory', submittedBy: 'HOD Legal & Compliance', department: 'Legal and Compliance', departmentCode: 'LGC', status: 'Approved', date: '2026-09-25', summary: 'Validation of CAC RC registration, TIN standing, and SCUML compliance.' }
         ];
 
         documents = [
@@ -1503,12 +1508,12 @@ ${liveContext ? liveContext : ''}`;
         ];
 
         recentActivities = [
-          { id: 'act-lgc-1', action: 'Executed Client Service Agreement', user: 'Barr. Kalu Samuel', role: 'HOD Legal', department: 'Legal and Compliance', timestamp: '4 hours ago', status: 'Executed', category: 'compliance', details: 'Finalized enterprise software development retainer agreement.' }
+          { id: 'act-lgc-1', action: 'Executed Client Service Agreement', user: 'HOD Legal', role: 'HOD Legal', department: 'Legal and Compliance', timestamp: '4 hours ago', status: 'Executed', category: 'compliance', details: 'Finalized enterprise software development retainer agreement.' }
         ];
 
         departmentInfo = {
           name: 'Legal and Compliance',
-          head: 'Barr. Kalu Samuel',
+          head: 'Head of Department (LGC)',
           code: 'LGC',
           staffCount: 5,
           budgetYear: 'FY 2026 / 2027',
@@ -1522,9 +1527,8 @@ ${liveContext ? liveContext : ''}`;
             'Governing NDPR data privacy compliance and student credential verification standards'
           ],
           teamMembers: [
-            { name: 'Barr. Kalu Samuel', role: 'Head of Department, Legal & Compliance', email: 'dstechlegaloffice@gmail.com', status: 'Active' },
-            { name: 'Barr. Zainab Mustapha', role: 'Regulatory & Corporate Affairs Counsel', email: 'zainab.lgc@dstechagency.com', status: 'Active' },
-            { name: 'Chinedu Obi', role: 'Contracts & Intellectual Property Officer', email: 'chinedu.lgc@dstechagency.com', status: 'Active' }
+            { name: 'Head of Department', role: 'Head of Department, Legal & Compliance', email: 'dstechlegaloffice@gmail.com', status: 'Active' },
+            { name: 'Legal Associate', role: 'Corporate Regulatory Counsel', email: 'legal.counsel@dstechagency.com', status: 'Active' }
           ]
         };
       }

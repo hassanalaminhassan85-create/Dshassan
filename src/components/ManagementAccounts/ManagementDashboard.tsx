@@ -40,9 +40,11 @@ import {
   Crown,
   Briefcase,
   Layers,
-  Sparkles
+  Sparkles,
+  Award
 } from 'lucide-react';
 import { Logo } from '../Logo';
+import { AdminCertificateOfEmploymentManager } from '../CertificateOfEmployment/AdminCertificateOfEmploymentManager';
 import {
   ManagementUserSession,
   ManagementDashboardPayload,
@@ -80,6 +82,7 @@ type SidebarTab =
   | 'tasks'
   | 'reports'
   | 'documents'
+  | 'certificates'
   | 'announcements'
   | 'notifications'
   | 'meetings'
@@ -184,6 +187,27 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
   const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
 
   const isCeo = userSession.role === 'CEO';
+
+  // Compute live dynamic Department Performance from actual tasks
+  const liveDepartmentPerformance = useMemo(() => {
+    if (!dashboardData) return [];
+    const baseList = dashboardData.departmentPerformance || [];
+    const tasksList = dashboardData.tasks || [];
+    return baseList.map(dept => {
+      const deptTasks = tasksList.filter(
+        t => t.departmentCode === dept.code || (dept.code === 'HRM' && (t.department?.includes('Human') || t.departmentCode === 'HRM'))
+      );
+      if (deptTasks.length > 0) {
+        const completed = deptTasks.filter(t => t.status === 'Completed').length;
+        return {
+          ...dept,
+          tasksCompleted: completed,
+          totalTasks: deptTasks.length
+        };
+      }
+      return dept;
+    });
+  }, [dashboardData]);
 
   // Fetch Dashboard Data asynchronously in the background
   useEffect(() => {
@@ -344,6 +368,7 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
     { id: 'tasks', label: 'Tasks', icon: CheckSquare, badge: dashboardData?.tasks.filter(t => t.status !== 'Completed').length },
     { id: 'reports', label: 'Reports', icon: FileText, badge: dashboardData?.reports.length },
     { id: 'documents', label: 'Documents', icon: FolderLock },
+    { id: 'certificates', label: isCeo ? 'Certificate Issuing' : 'Staff Certificates', icon: Award },
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
     { id: 'notifications', label: 'Notifications', icon: Bell, badge: dashboardData?.notifications.filter(n => n.unread).length },
     { id: 'meetings', label: 'Meetings / Calendar', icon: Calendar },
@@ -660,6 +685,15 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
 
                     <button
                       type="button"
+                      onClick={() => setActiveTab('certificates')}
+                      className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <Award size={14} />
+                      <span>{isCeo ? 'Issue Certificate of Employment' : 'Staff Certificate Issuing'}</span>
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={() => setIsSubmitReportModalOpen(true)}
                       className="px-4 py-2 rounded-xl text-xs font-bold bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center gap-1.5 cursor-pointer"
                     >
@@ -752,7 +786,7 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
-                        {dashboardData.departmentPerformance.map((dept) => (
+                        {liveDepartmentPerformance.map((dept) => (
                           <tr key={dept.code} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
                             <td className="py-3.5 font-bold text-slate-900 dark:text-white">
                               <div className="flex items-center gap-2">
@@ -1671,7 +1705,7 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {dashboardData.departmentPerformance.map((dept) => (
+                {liveDepartmentPerformance.map((dept) => (
                   <div
                     key={dept.code}
                     className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs flex flex-col justify-between"
@@ -1703,6 +1737,17 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* TAB: CERTIFICATES OF EMPLOYMENT (CEO & MANAGEMENT) */}
+          {activeTab === 'certificates' && (
+            <div className="w-full space-y-6">
+              <AdminCertificateOfEmploymentManager
+                onNavigateToVerification={(code) => {
+                  window.open(`/verify-certificate/${code}`, '_blank');
+                }}
+              />
             </div>
           )}
 
