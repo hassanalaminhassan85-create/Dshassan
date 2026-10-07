@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ManagementRoleCode, ManagementUserSession } from '../../types/management';
 import { 
   getStoredSessionToken, 
+  getStoredSessionUser,
   apiManagementVerifySession, 
   clearStoredSessionToken 
 } from '../../lib/managementApi';
@@ -16,6 +17,7 @@ interface ManagementAccountsPortalProps {
   onNavigateHome: () => void;
   theme: 'light' | 'dark';
   setTheme: (theme: 'light' | 'dark') => void;
+  publishedCac?: any;
   onUpdatePath?: (path: string) => void;
 }
 
@@ -25,6 +27,7 @@ export const ManagementAccountsPortal: React.FC<ManagementAccountsPortalProps> =
   onNavigateHome,
   theme,
   setTheme,
+  publishedCac,
   onUpdatePath
 }) => {
   const [view, setView] = useState<'landing' | 'login' | 'dashboard'>(initialView);
@@ -32,12 +35,13 @@ export const ManagementAccountsPortal: React.FC<ManagementAccountsPortalProps> =
   const [userSession, setUserSession] = useState<ManagementUserSession | null>(null);
   const [verifyingSession, setVerifyingSession] = useState<boolean>(true);
 
-  // Check stored session on mount
+  // Check stored session on mount once only
   useEffect(() => {
     let isMounted = true;
     async function verify() {
-      const token = getStoredSessionToken();
-      if (!token) {
+      const activeUser = getStoredSessionUser();
+      const token = getStoredSessionToken() || activeUser?.token;
+      if (!token && !activeUser) {
         if (isMounted) {
           setVerifyingSession(false);
           // If the user requested dashboard directly without token, prevent access and fall back to landing
@@ -50,18 +54,26 @@ export const ManagementAccountsPortal: React.FC<ManagementAccountsPortalProps> =
       }
 
       try {
-        const result = await apiManagementVerifySession(token);
+        const result = await apiManagementVerifySession(token || undefined);
         if (isMounted && result.success && result.user) {
           setUserSession(result.user);
           setView('dashboard');
           if (onUpdatePath) onUpdatePath('/management/dashboard');
+        } else if (isMounted && activeUser) {
+          setUserSession(activeUser);
+          setView('dashboard');
         }
       } catch (e) {
         if (isMounted) {
-          clearStoredSessionToken();
-          setUserSession(null);
-          setView('landing');
-          if (onUpdatePath) onUpdatePath('/management-accounts');
+          if (activeUser) {
+            setUserSession(activeUser);
+            setView('dashboard');
+          } else {
+            clearStoredSessionToken();
+            setUserSession(null);
+            setView('landing');
+            if (onUpdatePath) onUpdatePath('/management-accounts');
+          }
         }
       } finally {
         if (isMounted) setVerifyingSession(false);
@@ -72,7 +84,7 @@ export const ManagementAccountsPortal: React.FC<ManagementAccountsPortalProps> =
     return () => {
       isMounted = false;
     };
-  }, [initialView, onUpdatePath]);
+  }, []); // Run on mount only
 
   // Handle selecting a role card on landing page
   const handleSelectRole = (role: ManagementRoleCode) => {
@@ -134,6 +146,7 @@ export const ManagementAccountsPortal: React.FC<ManagementAccountsPortalProps> =
         onNavigateHome={onNavigateHome}
         theme={theme}
         setTheme={setTheme}
+        publishedCac={publishedCac}
       />
     );
   }
@@ -146,6 +159,7 @@ export const ManagementAccountsPortal: React.FC<ManagementAccountsPortalProps> =
         onBackToRoleSelection={handleBackToRoleSelection}
         onNavigateHome={onNavigateHome}
         theme={theme}
+        publishedCac={publishedCac}
       />
     );
   }
@@ -155,6 +169,7 @@ export const ManagementAccountsPortal: React.FC<ManagementAccountsPortalProps> =
       onSelectRole={handleSelectRole}
       onNavigateHome={onNavigateHome}
       theme={theme}
+      publishedCac={publishedCac}
     />
   );
 };

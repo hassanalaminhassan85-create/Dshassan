@@ -1583,6 +1583,7 @@ export default function App() {
                   }}
                   theme={theme}
                   setTheme={setTheme}
+                  publishedCac={publishedCac}
                   onUpdatePath={(newPath) => {
                     try {
                       window.history.pushState(null, '', newPath);

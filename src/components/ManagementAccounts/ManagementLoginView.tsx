@@ -9,11 +9,13 @@ import {
   CheckCircle2, 
   AlertCircle, 
   KeyRound, 
-  ShieldCheck,
+  ShieldCheck, 
   Sparkles
 } from 'lucide-react';
 import { OFFICIAL_MANAGEMENT_ROLES, apiManagementLogin } from '../../lib/managementApi';
 import { ManagementRoleCode, ManagementUserSession } from '../../types/management';
+import { OfficialRoleSvg } from './OfficialRoleSvgs';
+import { apiGetCacMetadata, apiSubscribeToCacMetadata, apiSubscribeToRealtimeSync } from '../../lib/api';
 
 interface ManagementLoginViewProps {
   selectedRole: ManagementRoleCode;
@@ -21,6 +23,7 @@ interface ManagementLoginViewProps {
   onBackToRoleSelection: () => void;
   onNavigateHome: () => void;
   theme: 'light' | 'dark';
+  publishedCac?: any;
 }
 
 export const ManagementLoginView: React.FC<ManagementLoginViewProps> = ({
@@ -28,18 +31,70 @@ export const ManagementLoginView: React.FC<ManagementLoginViewProps> = ({
   onLoginSuccess,
   onBackToRoleSelection,
   onNavigateHome,
-  theme
+  theme,
+  publishedCac: initialPublishedCac
 }) => {
   // Retrieve selected role details
   const roleMeta = OFFICIAL_MANAGEMENT_ROLES.find(r => r.code === selectedRole) || OFFICIAL_MANAGEMENT_ROLES[0];
 
-  // Pre-fill email with the designated role email so users don't encounter typos
+  // Pre-fill email with designated role email so users don't encounter typing mistakes
   const [email, setEmail] = useState(roleMeta.email);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [liveCac, setLiveCac] = useState<any>(initialPublishedCac || null);
+
+  // Sync real-time CAC metadata with database and main home footer
+  useEffect(() => {
+    if (initialPublishedCac) {
+      setLiveCac(initialPublishedCac);
+    }
+  }, [initialPublishedCac]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadCac = async () => {
+      try {
+        const data = await apiGetCacMetadata(false);
+        if (data && data.length > 0 && isMounted) {
+          const published = data.find((c: any) => c.is_published === 1) || data[0];
+          if (published) {
+            setLiveCac(published);
+          }
+        }
+      } catch (e) {}
+    };
+
+    if (!initialPublishedCac) {
+      loadCac();
+    }
+
+    const unsubCac = apiSubscribeToCacMetadata((cacData) => {
+      if (cacData && cacData.length > 0 && isMounted) {
+        const published = cacData.find((c: any) => c.is_published === 1) || cacData[0];
+        if (published) {
+          setLiveCac(published);
+        }
+      }
+    });
+
+    const unsubSSE = apiSubscribeToRealtimeSync((event) => {
+      if (event?.type?.startsWith('CAC_')) {
+        loadCac();
+      }
+    });
+
+    return () => {
+      isMounted = false;
+      unsubCac();
+      unsubSSE();
+    };
+  }, [initialPublishedCac]);
+
+  const cleanRawRc = liveCac?.registration_number || initialPublishedCac?.registration_number || '1845921';
+  const rcNumber = cleanRawRc.replace(/^RC[:\s-]*/i, '');
 
   // Keep email in sync if selectedRole changes
   useEffect(() => {
@@ -93,9 +148,13 @@ export const ManagementLoginView: React.FC<ManagementLoginViewProps> = ({
     try {
       const response = await apiManagementLogin(trimmedEmail, cleanPass, selectedRole);
       setSuccessMsg('Authentication successful. Loading management workspace...');
+      const userSession = {
+        ...response.user,
+        token: response.token || response.user.token || 'dst_mgmt_session'
+      };
       setTimeout(() => {
-        onLoginSuccess(response.user);
-      }, 500);
+        onLoginSuccess(userSession);
+      }, 350);
     } catch (err: any) {
       setErrorMsg(err.message || 'Authentication failed. Please verify your email and password.');
     } finally {
@@ -113,20 +172,22 @@ export const ManagementLoginView: React.FC<ManagementLoginViewProps> = ({
       {/* Content Container - Matching career page styling */}
       <div className="max-w-2xl mx-auto px-4 md:px-6 py-6 md:py-8 space-y-8 animate-fade-in text-left">
         
-        {/* Only Back Navigation Remains - No header bar */}
-        <div className="flex items-center justify-between">
+        {/* Only Back Navigation Remains + Real-Time CAC RC matching Main Home Footer */}
+        <div className="flex items-center justify-between gap-3">
           <button
             type="button"
             onClick={onBackToRoleSelection}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white border border-slate-200/80 dark:border-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer group"
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white border border-slate-200/80 dark:border-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer group shrink-0"
           >
             <ArrowLeft size={14} className="text-orange-500 group-hover:-translate-x-0.5 transition-transform" />
             <span>Back to All Management Accounts</span>
           </button>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-            <ShieldCheck size={12} className="text-emerald-500" />
-            <span>Role Verification</span>
+          {/* Real-time CAC RC Badge (synchronized with Main Footer) */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-[11px] font-mono text-slate-700 dark:text-slate-300 shadow-2xs shrink-0">
+            <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+            <span>CAC RC: <strong className="text-slate-950 dark:text-white font-bold">{rcNumber}</strong></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" />
           </div>
         </div>
 
@@ -143,22 +204,31 @@ export const ManagementLoginView: React.FC<ManagementLoginViewProps> = ({
           </p>
         </div>
 
-        {/* Polished Login Card (Career Theme rounded-3xl) */}
+        {/* Polished Login Card with Official Coloured SVG Emblem */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 border border-slate-200/70 dark:border-slate-800 shadow-sm space-y-6">
           
-          {/* Active Account Identity Pill */}
-          <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800/60">
-            <div className="space-y-0.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                Designated Role
-              </span>
-              <div className="text-xs font-black text-[#000E32] dark:text-white uppercase font-serif">
+          {/* Active Account Identity Pill with Official SVG */}
+          <div className="flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200/60 dark:border-slate-800/60">
+            <div className="shrink-0 w-16 h-16 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-2 flex items-center justify-center shadow-xs">
+              <OfficialRoleSvg role={roleMeta.code} size={50} />
+            </div>
+
+            <div className="space-y-1 flex-grow min-w-0">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                  Designated Management Account
+                </span>
+                <span className="px-2 py-0.5 rounded-md bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 text-[10px] font-mono font-bold uppercase border border-orange-200/60 dark:border-orange-800/60">
+                  {roleMeta.departmentCode}
+                </span>
+              </div>
+              <div className="text-sm font-black text-[#000E32] dark:text-white uppercase font-serif truncate">
                 {roleMeta.title}
               </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                {roleMeta.department}
+              </div>
             </div>
-            <span className="px-2.5 py-1 rounded-lg bg-orange-100 dark:bg-orange-950/60 text-orange-600 dark:text-orange-400 text-[10px] font-mono font-bold uppercase border border-orange-200/60 dark:border-orange-800/60">
-              {roleMeta.departmentCode}
-            </span>
           </div>
 
           {/* Feedback messages */}
@@ -277,8 +347,8 @@ export const ManagementLoginView: React.FC<ManagementLoginViewProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="pt-4 pb-8 text-center text-[11px] text-slate-400 dark:text-slate-500">
-          <span>DS Tech & Digital Marketing Agency Limited · Area 1, Garki, Abuja</span>
+        <div className="pt-4 pb-8 text-center text-[11px] text-slate-400 dark:text-slate-500 space-y-1">
+          <p>DS Tech & Digital Marketing Agency Limited · CAC RC: <strong className="font-mono text-slate-600 dark:text-slate-300 font-bold">{rcNumber}</strong> · Area 1, Garki, Abuja</p>
         </div>
       </div>
     </div>
