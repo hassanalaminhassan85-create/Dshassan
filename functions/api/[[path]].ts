@@ -5981,14 +5981,14 @@ RESPONSE FORMATTING:
 
         // Standard Department Performance Overview
         const departmentPerformance = [
-          { department: 'Human Resource Management', code: 'HRM', head: 'Dr. Aisha Bello', tasksCompleted: 18, totalTasks: 20, operationalHealth: 'Active', highlights: 'Faculty accredited across 24 disciplines; Q4 recruitment on track' },
-          { department: 'Administrative Services', code: 'ADM', head: 'Barr. Ibrahim Danladi', tasksCompleted: 14, totalTasks: 15, operationalHealth: 'Active', highlights: 'Garki HQ facility optimization; physical desk allocation completed' },
-          { department: 'Business Development', code: 'BIZ', head: 'Mrs. Ngozi Okafor', tasksCompleted: 22, totalTasks: 24, operationalHealth: 'Active', highlights: 'Enterprise institutional training client proposals and corporate partnerships' },
-          { department: 'Accounting and Finance', code: 'FIN', head: 'Mr. Babatunde Adeleke (FCA)', tasksCompleted: 19, totalTasks: 19, operationalHealth: 'Active', highlights: 'Paystack ledger reconciliation 100%; SCUML & FIRS statutory filings current' },
-          { department: 'Creative Media and Digital Marketing', code: 'CMD', head: 'Mr. Emmanuel Eze', tasksCompleted: 25, totalTasks: 28, operationalHealth: 'Active', highlights: 'Digital brand awareness campaigns and multi-channel creative storytelling' },
-          { department: 'Information Technology', code: 'ITD', head: 'Engr. Faruq Mohammed', tasksCompleted: 31, totalTasks: 32, operationalHealth: 'Active', highlights: '99.98% platform uptime; zero security incidents logged' },
-          { department: 'AI and Creative Technology', code: 'AIC', head: 'Dr. Chioma Nnamdi', tasksCompleted: 16, totalTasks: 17, operationalHealth: 'Active', highlights: 'Proprietary student tutor co-pilot deployed with Gemini models' },
-          { department: 'Legal and Compliance', code: 'LGC', head: 'Barr. Kalu Samuel', tasksCompleted: 12, totalTasks: 12, operationalHealth: 'Active', highlights: 'CAC corporate compliance affirmed; commercial agreements verified' }
+          { department: 'Human Resource Management', code: 'HRM', head: 'Head of Department (HR)', tasksCompleted: 18, totalTasks: 20, operationalHealth: 'Active', highlights: 'Faculty accredited across 24 disciplines; Q4 recruitment on track' },
+          { department: 'Administrative Services', code: 'ADM', head: 'Head of Department (ADM)', tasksCompleted: 14, totalTasks: 15, operationalHealth: 'Active', highlights: 'Garki HQ facility optimization; physical desk allocation completed' },
+          { department: 'Business Development', code: 'BIZ', head: 'Head of Department (BIZ)', tasksCompleted: 22, totalTasks: 24, operationalHealth: 'Active', highlights: 'Enterprise institutional training client proposals and corporate partnerships' },
+          { department: 'Accounting and Finance', code: 'FIN', head: 'Head of Department (FIN)', tasksCompleted: 19, totalTasks: 19, operationalHealth: 'Active', highlights: 'Paystack ledger reconciliation 100%; SCUML & FIRS statutory filings current' },
+          { department: 'Creative Media and Digital Marketing', code: 'CMD', head: 'Head of Department (CMD)', tasksCompleted: 25, totalTasks: 28, operationalHealth: 'Active', highlights: 'Digital brand awareness campaigns and multi-channel creative storytelling' },
+          { department: 'Information Technology', code: 'ITD', head: 'Head of Department (ITD)', tasksCompleted: 31, totalTasks: 32, operationalHealth: 'Active', highlights: '99.98% platform uptime; zero security incidents logged' },
+          { department: 'AI and Creative Technology', code: 'AIC', head: 'Head of Department (AIC)', tasksCompleted: 16, totalTasks: 17, operationalHealth: 'Active', highlights: 'Proprietary student tutor co-pilot deployed with Gemini models' },
+          { department: 'Legal and Compliance', code: 'LGC', head: 'Head of Department (LGC)', tasksCompleted: 12, totalTasks: 12, operationalHealth: 'Active', highlights: 'CAC corporate compliance affirmed; commercial agreements verified' }
         ];
 
         const payload = {
@@ -6025,7 +6025,11 @@ RESPONSE FORMATTING:
             description: 'The supreme governing body of DS Tech & Digital Marketing Agency Limited.',
             coreMandates: ['Setting strategic corporate vision', 'Supervising departmental leadership across 8 specialized directorates', 'Ensuring adherence to CAC RC-1849204, SCUML and FIRS covenants'],
             teamMembers: [
-              { name: 'Engr. D. S. Al-Amin', role: 'Chief Executive Officer & Founder', email: 'dstechceooffice@gmail.com', status: 'Active' }
+              { name: 'Chief Executive Officer', role: 'Chief Executive Officer & Founder', email: 'dstechceooffice@gmail.com', status: 'Active' },
+              { name: 'Executive Secretary', role: 'Executive Secretariat / Board Liaison', email: 'boardsecretary@dstechagency.com', status: 'Active' },
+              { name: 'Head of Department (HR)', role: 'Head of Department, HR', email: 'dstechanddigitalmarketingltd@gmail.com', status: 'Active' },
+              { name: 'Head of Department (Finance)', role: 'Head of Department, Accounting & Finance', email: 'dstechfinanceoffice@gmail.com', status: 'Active' },
+              { name: 'Head of Department (Legal)', role: 'Head of Department, Legal & Compliance', email: 'dstechlegaloffice@gmail.com', status: 'Active' }
             ]
           },
           recentActivities: [

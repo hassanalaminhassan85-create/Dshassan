@@ -836,13 +836,13 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
                         onClick={() => setActiveTab('tasks')}
                         className="text-xs font-semibold text-orange-600 dark:text-orange-400 hover:underline flex items-center gap-1"
                       >
-                        <span>View All ({dashboardData.tasks.length})</span>
+                        <span>View All ({dashboardData.tasks.filter(t => t.status !== 'Completed').length})</span>
                         <ChevronRight size={13} />
                       </button>
                     </div>
 
                     <div className="space-y-2.5">
-                      {dashboardData.tasks.slice(0, 4).map((task) => (
+                      {dashboardData.tasks.filter(t => t.status !== 'Completed').slice(0, 4).map((task) => (
                         <div
                           key={task.id}
                           className="p-3 rounded-xl border border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/40 flex items-start justify-between gap-3"

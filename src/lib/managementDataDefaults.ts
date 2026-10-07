@@ -19,42 +19,32 @@ export const MASTER_MANAGEMENT_TASKS: ManagementTaskItem[] = [
   { id: 't-hr-1', title: 'Process Appointment Letters for 4 Newly Accredited Instructors', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'HOD HR', department: 'Human Resource Management', departmentCode: 'HRM' },
   { id: 't-hr-2', title: 'Review Q4 Faculty Teaching Retainers across 24 Tech Tracks', priority: 'Urgent', status: 'Pending', dueDate: '2026-10-10', assignee: 'HR Directorate', department: 'Human Resource Management', departmentCode: 'HRM' },
   { id: 't-hr-3', title: 'Conduct Biometric Identity Card Issuance at Regional Hub', priority: 'Medium', status: 'Pending', dueDate: '2026-10-15', assignee: 'HR Lead', department: 'Human Resource Management', departmentCode: 'HRM' },
-  { id: 't-hr-4', title: 'Process Monthly Faculty Lecture Hours & Verification Log', priority: 'High', status: 'Completed', dueDate: '2026-10-02', assignee: 'HOD HR', department: 'Human Resource Management', departmentCode: 'HRM' },
 
   // ADM Tasks
   { id: 't-adm-1', title: 'Audit Physical Server Room Power Redundancy in Abuja HQ', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'HOD Administration', department: 'Administrative Services', departmentCode: 'ADM' },
   { id: 't-adm-2', title: 'Renew Annual Facility Tenancy & Utility Licenses', priority: 'Urgent', status: 'Pending', dueDate: '2026-10-12', assignee: 'Admin Lead', department: 'Administrative Services', departmentCode: 'ADM' },
-  { id: 't-adm-3', title: 'Replenish Academy Hardware Lab Kits (Raspberry Pi & Arduino)', priority: 'Medium', status: 'Completed', dueDate: '2026-10-03', assignee: 'Procurement Officer', department: 'Administrative Services', departmentCode: 'ADM' },
 
   // BIZ Tasks
   { id: 't-biz-1', title: 'Submit Corporate Upskilling RFP for Commercial Banking Cohort', priority: 'Urgent', status: 'In Progress', dueDate: '2026-10-10', assignee: 'HOD Business Development', department: 'Business Development', departmentCode: 'BIZ' },
   { id: 't-biz-2', title: 'Structure Enterprise Retainer Agreement for FinTech Client', priority: 'High', status: 'Pending', dueDate: '2026-10-14', assignee: 'Commercial Lead', department: 'Business Development', departmentCode: 'BIZ' },
-  { id: 't-biz-3', title: 'Finalize Sponsorship MoUs with Regional Tech Innovation Council', priority: 'Medium', status: 'Completed', dueDate: '2026-10-04', assignee: 'HOD Business Development', department: 'Business Development', departmentCode: 'BIZ' },
 
   // FIN Tasks
-  { id: 't-fin-1', title: 'Reconcile Paystack & Direct Bank Settlement Ledgers for September', priority: 'Urgent', status: 'Completed', dueDate: '2026-10-04', assignee: 'HOD Accounting & Finance', department: 'Accounting and Finance', departmentCode: 'FIN' },
   { id: 't-fin-2', title: 'Audit Student Academy Tuition Installment Verification Pipeline', priority: 'Medium', status: 'In Progress', dueDate: '2026-10-11', assignee: 'Finance Lead', department: 'Accounting and Finance', departmentCode: 'FIN' },
   { id: 't-fin-3', title: 'Prepare FIRS Statutory Withholding & Value Added Tax (VAT) Remittance', priority: 'High', status: 'Pending', dueDate: '2026-10-15', assignee: 'HOD Accounting & Finance', department: 'Accounting and Finance', departmentCode: 'FIN' },
 
   // CMD Tasks
   { id: 't-cmd-1', title: 'Launch Targeted Meta Video Ad for AI for Kids Q4 Cohort', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'HOD Creative Media', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD' },
   { id: 't-cmd-2', title: 'Produce Video Showcase for Student Capstone Projects', priority: 'Medium', status: 'Pending', dueDate: '2026-10-13', assignee: 'Media Producer', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD' },
-  { id: 't-cmd-3', title: 'Publish Q4 Social Media Brand Awareness Campaign', priority: 'Normal' as any, status: 'Completed', dueDate: '2026-10-01', assignee: 'HOD Creative Media', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD' },
 
   // ITD Tasks
-  { id: 't-it-1', title: 'Rotate Database Access Secrets & Audit S3 Storage Bucket ACLs', priority: 'High', status: 'Completed', dueDate: '2026-10-05', assignee: 'HOD Information Technology', department: 'Information Technology', departmentCode: 'ITD' },
   { id: 't-it-2', title: 'Deploy High-Availability Reverse Proxy Load Balancer', priority: 'Urgent', status: 'In Progress', dueDate: '2026-10-10', assignee: 'DevOps Lead', department: 'Information Technology', departmentCode: 'ITD' },
-  { id: 't-it-3', title: 'Perform Automated Vulnerability & SSL Certificate Health Check', priority: 'Medium', status: 'Completed', dueDate: '2026-10-02', assignee: 'HOD Information Technology', department: 'Information Technology', departmentCode: 'ITD' },
 
   // AIC Tasks
-  { id: 't-aic-1', title: 'Refine Context-Grounding Prompts for DS Tech Academic Curriculum', priority: 'High', status: 'Completed', dueDate: '2026-10-04', assignee: 'HOD AI & Creative Tech', department: 'AI and Creative Technology', departmentCode: 'AIC' },
   { id: 't-aic-2', title: 'Integrate Gemini Multimodal Live Streaming for Code Review Assistant', priority: 'Urgent', status: 'In Progress', dueDate: '2026-10-11', assignee: 'AI Systems Architect', department: 'AI and Creative Technology', departmentCode: 'AIC' },
   { id: 't-aic-3', title: 'Benchmark Response Latency for Student AI Tutor Co-pilot', priority: 'Medium', status: 'Pending', dueDate: '2026-10-14', assignee: 'HOD AI & Creative Tech', department: 'AI and Creative Technology', departmentCode: 'AIC' },
 
   // LGC Tasks
-  { id: 't-lgc-1', title: 'Verify Corporate Affairs Commission (CAC) Annual Filing Documentation', priority: 'High', status: 'Completed', dueDate: '2026-10-03', assignee: 'HOD Legal & Compliance', department: 'Legal and Compliance', departmentCode: 'LGC' },
-  { id: 't-lgc-2', title: 'Draft Master Services Retainer for Federal Agency Tech Proposal', priority: 'Urgent', status: 'In Progress', dueDate: '2026-10-10', assignee: 'HOD Legal & Compliance', department: 'Legal and Compliance', departmentCode: 'LGC' },
-  { id: 't-lgc-3', title: 'Audit SCUML Anti-Fraud Compliance & NDPR Privacy Directives', priority: 'High', status: 'Completed', dueDate: '2026-10-02', assignee: 'Legal Counsel', department: 'Legal and Compliance', departmentCode: 'LGC' }
+  { id: 't-lgc-2', title: 'Draft Master Services Retainer for Federal Agency Tech Proposal', priority: 'Urgent', status: 'In Progress', dueDate: '2026-10-10', assignee: 'HOD Legal & Compliance', department: 'Legal and Compliance', departmentCode: 'LGC' }
 ];
 
 // Helper to compute live department metrics from task list
@@ -198,12 +188,11 @@ export function generateRoleDashboardPayload(
   let departmentInfo: any = null;
 
   if (isCeo) {
-    // CEO Executive Tasks & Records (CEO sees all organization tasks)
+    // CEO Executive Tasks & Records (CEO sees all active organization tasks)
     tasks = [
       { id: 't-ceo-1', title: 'Review Q4 Institutional Expansion Budget with Finance Directorate', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'CEO Office', department: 'Executive Leadership', departmentCode: 'EXEC' },
       { id: 't-ceo-2', title: 'Sign Off on Master Partnership Agreement with Federal Communications Partner', priority: 'Urgent', status: 'Pending', dueDate: '2026-10-10', assignee: 'Chief Executive Officer', department: 'Executive Leadership', departmentCode: 'EXEC' },
       { id: 't-ceo-3', title: 'Preside over Q4 Executive Management Board Session', priority: 'High', status: 'Pending', dueDate: '2026-10-12', assignee: 'Chief Executive Officer', department: 'Executive Leadership', departmentCode: 'EXEC' },
-      { id: 't-ceo-4', title: 'Approve New AI and Creative Technology R&D Capital Requisition', priority: 'Medium', status: 'Completed', dueDate: '2026-10-05', assignee: 'Chief Executive Officer', department: 'Executive Leadership', departmentCode: 'EXEC' },
       ...MASTER_MANAGEMENT_TASKS
     ];
 
