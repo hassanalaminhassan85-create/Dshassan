@@ -78,6 +78,7 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
   // Structured Menu Items Catalog
   const mainNavItems = [
     { label: 'Home', value: 'home', path: '/', icon: Home, category: 'main' },
+    { label: 'Management Accounts', value: 'management-accounts', path: '/management-accounts', icon: Building2, badge: 'Executive', category: 'main' },
     { label: 'About Us', value: 'about', path: '/about', icon: Info, category: 'main' },
     { label: 'Services', value: 'services', path: '/services', icon: Layers, category: 'main' },
     { label: 'Portfolio', value: 'portfolio', path: '/portfolio', icon: ImageIcon, category: 'main' },
@@ -166,6 +167,7 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
   ];
 
   const systemPortals = [
+    { label: 'Management Accounts', value: 'management-accounts', path: '/management-accounts', icon: Building2, badge: 'Leadership', category: 'portals' },
     { label: 'Student Dashboard', value: 'student-dashboard', path: '/student-dashboard', icon: BookOpen, category: 'portals' },
     { label: 'Faculty / Tutor Portal', value: 'tutor-dashboard', path: '/tutor-dashboard', icon: Award, category: 'portals' },
     { label: 'Client Dashboard', value: 'account', path: '/account', icon: Briefcase, category: 'portals' },

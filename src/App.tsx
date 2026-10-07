@@ -31,6 +31,7 @@ import { MentorshipApplicationForm } from './components/MentorshipApplication/Me
 import { PublicCertificateVerification } from './components/CertificateOfEmployment/PublicCertificateVerification';
 import { StudentDashboard } from './components/StudentDashboard';
 import { TutorDashboard } from './components/TutorDashboard';
+import { ManagementAccountsPortal } from './components/ManagementAccounts/ManagementAccountsPortal';
 import { PaystackPayButton, PaystackPaymentConfig } from './components/PaystackMotionCheckout';
 import { PaystackPaymentPage } from './components/PaystackPaymentPage';
 import { JobApplication } from './types';
@@ -241,7 +242,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
   ]
 };
 
-export type ActivePageType = 'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard' | 'verify-certificate';
+export type ActivePageType = 'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard' | 'verify-certificate' | 'management-accounts' | 'management-dashboard';
 
 export function resolvePathToState(rawPath: string): {
   path: string;
@@ -375,6 +376,23 @@ export function resolvePathToState(rawPath: string): {
   }
   if (lowerPath === '/staff-portal' || lowerPath === '/staff') {
     return { path, activePage: 'staff-portal', isAdminView: false, appId: null };
+  }
+  if (
+    lowerPath === '/management-accounts' ||
+    lowerPath === '/management' ||
+    lowerPath === '/management-login' ||
+    lowerPath.startsWith('/management-accounts') ||
+    lowerPath.startsWith('/management-login')
+  ) {
+    return { path, activePage: 'management-accounts', isAdminView: false, appId: null };
+  }
+  if (
+    lowerPath === '/management/dashboard' ||
+    lowerPath === '/management-dashboard' ||
+    lowerPath.startsWith('/management/dashboard') ||
+    lowerPath.startsWith('/management-dashboard')
+  ) {
+    return { path, activePage: 'management-dashboard', isAdminView: false, appId: null };
   }
 
   return { path, activePage: 'home', isAdminView: false, appId: null };
@@ -546,6 +564,16 @@ export default function App() {
           section = 'Verification & Clearance';
           workflowState = 'Viewing CAC Compliance';
           break;
+        case 'management-accounts':
+          pageTitle = 'DS TECH Management Accounts Portal';
+          section = 'Corporate Governance';
+          workflowState = 'Selecting Management Role';
+          break;
+        case 'management-dashboard':
+          pageTitle = 'DS TECH Corporate Management Dashboard';
+          section = 'Leadership Suite';
+          workflowState = 'In Management Dashboard';
+          break;
       }
     }
 
@@ -553,15 +581,17 @@ export default function App() {
       ? 'Admin' 
       : activePage === 'staff-portal' 
         ? 'Staff' 
-        : activePage === 'tutor-dashboard' 
-          ? 'Tutor' 
-          : activePage === 'student-dashboard' || activePage === 'training' 
-            ? 'Student' 
-            : activePage === 'clients' 
-              ? 'Client' 
-              : activePage === 'account' 
-                ? 'Applicant' 
-                : 'Public';
+        : activePage === 'management-dashboard' || activePage === 'management-accounts'
+          ? 'Management'
+          : activePage === 'tutor-dashboard' 
+            ? 'Tutor' 
+            : activePage === 'student-dashboard' || activePage === 'training' 
+              ? 'Student' 
+              : activePage === 'clients' 
+                ? 'Client' 
+                : activePage === 'account' 
+                  ? 'Applicant' 
+                  : 'Public';
 
     let userObj = null;
     try {
@@ -1537,6 +1567,30 @@ export default function App() {
                     window.scrollTo(0, 0);
                   }} />
               </motion.div>
+              ) : activePage === 'management-accounts' || activePage === 'management-dashboard' ? (
+              <motion.div
+                key="management-accounts-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full"
+              >
+                <ManagementAccountsPortal
+                  initialView={activePage === 'management-dashboard' ? 'dashboard' : 'landing'}
+                  onNavigateHome={() => {
+                    setActivePage('home');
+                    safeNavigate('/');
+                  }}
+                  theme={theme}
+                  setTheme={setTheme}
+                  onUpdatePath={(newPath) => {
+                    try {
+                      window.history.pushState(null, '', newPath);
+                    } catch {}
+                    setCurrentPath(newPath);
+                  }}
+                />
+              </motion.div>
               ) : activePage === 'verify-certificate' ? (
               <motion.div
                 key="verify-certificate-section"
@@ -1949,7 +2003,7 @@ export default function App() {
       </main>
 
       {/* Document bottom footer info */}
-      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'student-dashboard', 'tutor-dashboard', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog'].includes(activePage) && (
+      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'student-dashboard', 'tutor-dashboard', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog', 'management-accounts', 'management-dashboard'].includes(activePage) && (
         <MainFooter publishedCac={publishedCac} />
       )}
       {/* Premium Circular Floating AI Assistant Launcher (Hidden on course-registration page per user specification) */}
