@@ -134,11 +134,10 @@ export interface DepartmentPerformanceMetric {
   department: string;
   code: string;
   head: string;
-  kpiScore: number;
+  email?: string;
   tasksCompleted: number;
   totalTasks: number;
-  budgetUtilization: string;
-  operationalHealth: 'Excellent' | 'Good' | 'Needs Attention';
+  operationalHealth: 'Active' | 'Optimal' | 'Under Review' | 'Excellent' | 'Good';
   highlights: string;
 }
 
@@ -178,7 +177,5 @@ export interface ManagementDashboardPayload {
     totalStaff: number;
     pendingExecutiveReports: number;
     scheduledBoardMeetings: number;
-    averageKpiScore: number;
-    annualRunRate: string;
   };
 }

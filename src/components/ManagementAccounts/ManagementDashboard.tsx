@@ -347,7 +347,7 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
     { id: 'announcements', label: 'Announcements', icon: Megaphone },
     { id: 'notifications', label: 'Notifications', icon: Bell, badge: dashboardData?.notifications.filter(n => n.unread).length },
     { id: 'meetings', label: 'Meetings / Calendar', icon: Calendar },
-    { id: 'performance', label: 'Department Performance', icon: BarChart3 },
+    { id: 'performance', label: 'Department Overview', icon: BarChart3 },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -685,9 +685,9 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
               <div>
                 <div className="flex items-center justify-between mb-3 px-1">
                   <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                    {isCeo ? 'ORGANIZATION PERFORMANCE METRICS' : 'DEPARTMENT OPERATIONAL INDICATORS'}
+                    {isCeo ? 'EXECUTIVE OPERATIONAL SUMMARY' : 'DEPARTMENT OPERATIONAL STATUS'}
                   </h2>
-                  <span className="text-[11px] font-mono text-slate-400">Live Q4 Tracking</span>
+                  <span className="text-[11px] font-mono text-slate-400">Live Workspace Status</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
@@ -726,10 +726,10 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-5">
                     <div>
                       <h3 className="text-base font-bold text-slate-950 dark:text-white">
-                        Executive Departmental Audit & Performance Overview
+                        Executive Departmental Audit & Operational Overview
                       </h3>
                       <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                        Comparative governance benchmarks across all 8 DS Tech specialized directorates.
+                        Governance benchmarks and active deliverables across all 8 DS Tech specialized directorates.
                       </p>
                     </div>
 
@@ -746,9 +746,8 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
                         <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase font-mono text-[10px] tracking-wider">
                           <th className="pb-3 font-semibold">Department</th>
                           <th className="pb-3 font-semibold">Head of Department</th>
-                          <th className="pb-3 font-semibold text-center">KPI Score</th>
                           <th className="pb-3 font-semibold text-center">Tasks Completed</th>
-                          <th className="pb-3 font-semibold text-right">Budget Util.</th>
+                          <th className="pb-3 font-semibold">Operational Highlights</th>
                           <th className="pb-3 font-semibold text-right">Status</th>
                         </tr>
                       </thead>
@@ -764,14 +763,11 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
                               </div>
                             </td>
                             <td className="py-3.5 text-slate-600 dark:text-slate-300">{dept.head}</td>
-                            <td className="py-3.5 text-center font-mono font-bold tabular-nums text-slate-900 dark:text-white">
-                              {dept.kpiScore}%
-                            </td>
-                            <td className="py-3.5 text-center font-mono tabular-nums text-slate-600 dark:text-slate-400">
+                            <td className="py-3.5 text-center font-mono tabular-nums text-slate-900 dark:text-white font-bold">
                               {dept.tasksCompleted} / {dept.totalTasks}
                             </td>
-                            <td className="py-3.5 text-right font-mono tabular-nums text-slate-600 dark:text-slate-300">
-                              {dept.budgetUtilization}
+                            <td className="py-3.5 text-slate-600 dark:text-slate-400 max-w-md truncate">
+                              {dept.highlights}
                             </td>
                             <td className="py-3.5 text-right">
                               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50">
@@ -1662,15 +1658,15 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
             </div>
           )}
 
-          {/* TAB 11: DEPARTMENT PERFORMANCE */}
+          {/* TAB 11: DEPARTMENT OVERVIEW */}
           {activeTab === 'performance' && (
             <div className="max-w-5xl space-y-6">
               <div>
                 <h2 className="text-xl font-black text-slate-950 dark:text-white">
-                  Department Performance & KPI Tracking
+                  Department Operational Overview & Deliverables
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Detailed performance scorecards across operational disciplines.
+                  Detailed operational status and active milestones across directorates.
                 </p>
               </div>
 
@@ -1685,8 +1681,8 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
                         <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
                           {dept.code}
                         </span>
-                        <span className="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                          Score: {dept.kpiScore}%
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50">
+                          {dept.operationalHealth}
                         </span>
                       </div>
                       <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
@@ -1702,7 +1698,7 @@ export const ManagementDashboard: React.FC<ManagementDashboardProps> = ({
 
                     <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
                       <span>Tasks: {dept.tasksCompleted}/{dept.totalTasks}</span>
-                      <span>Budget: {dept.budgetUtilization}</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">Active Deliverables</span>
                     </div>
                   </div>
                 ))}

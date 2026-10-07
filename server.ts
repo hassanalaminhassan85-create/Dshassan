@@ -1051,14 +1051,14 @@ ${liveContext ? liveContext : ''}`;
 
     // Standard Department Performance Table (for CEO and performance view)
     const departmentPerformance = [
-      { department: 'Human Resource Management', code: 'HRM', head: 'Dr. Aisha Bello', kpiScore: 94.2, tasksCompleted: 18, totalTasks: 20, budgetUtilization: '88.5%', operationalHealth: 'Excellent' as const, highlights: 'Faculty accredited across 24 disciplines; Q4 recruitment on track' },
-      { department: 'Administrative Services', code: 'ADM', head: 'Barr. Ibrahim Danladi', kpiScore: 91.5, tasksCompleted: 14, totalTasks: 15, budgetUtilization: '92.1%', operationalHealth: 'Excellent' as const, highlights: 'Garki HQ facility optimization; physical desk allocation completed' },
-      { department: 'Business Development', code: 'BIZ', head: 'Mrs. Ngozi Okafor', kpiScore: 95.8, tasksCompleted: 22, totalTasks: 24, budgetUtilization: '84.0%', operationalHealth: 'Excellent' as const, highlights: '₦48.2M active enterprise RFP pipeline across 5 institutional clients' },
-      { department: 'Accounting and Finance', code: 'FIN', head: 'Mr. Babatunde Adeleke (FCA)', kpiScore: 98.4, tasksCompleted: 19, totalTasks: 19, budgetUtilization: '96.8%', operationalHealth: 'Excellent' as const, highlights: 'Paystack ledger reconciliation 100%; SCUML & FIRS filings active' },
-      { department: 'Creative Media and Digital Marketing', code: 'CMD', head: 'Mr. Emmanuel Eze', kpiScore: 92.0, tasksCompleted: 25, totalTasks: 28, budgetUtilization: '94.2%', operationalHealth: 'Good' as const, highlights: '1.48M+ monthly digital ad impressions; 84.5K community followers' },
-      { department: 'Information Technology', code: 'ITD', head: 'Engr. Faruq Mohammed', kpiScore: 97.6, tasksCompleted: 31, totalTasks: 32, budgetUtilization: '90.4%', operationalHealth: 'Excellent' as const, highlights: '99.98% platform uptime; zero security incidents in 180 days' },
-      { department: 'AI and Creative Technology', code: 'AIC', head: 'Dr. Chioma Nnamdi', kpiScore: 96.5, tasksCompleted: 16, totalTasks: 17, budgetUtilization: '89.1%', operationalHealth: 'Excellent' as const, highlights: 'Proprietary student tutor co-pilot deployed with Gemini 3.7 integration' },
-      { department: 'Legal and Compliance', code: 'LGC', head: 'Barr. Kalu Samuel', kpiScore: 99.1, tasksCompleted: 12, totalTasks: 12, budgetUtilization: '91.0%', operationalHealth: 'Excellent' as const, highlights: 'CAC RC-1849204 compliance affirmed; 86 executed commercial NDAs' }
+      { department: 'Human Resource Management', code: 'HRM', head: 'Dr. Aisha Bello', tasksCompleted: 18, totalTasks: 20, operationalHealth: 'Active' as const, highlights: 'Faculty accredited across 24 disciplines; Q4 recruitment on track' },
+      { department: 'Administrative Services', code: 'ADM', head: 'Barr. Ibrahim Danladi', tasksCompleted: 14, totalTasks: 15, operationalHealth: 'Active' as const, highlights: 'Garki HQ facility optimization; physical desk allocation completed' },
+      { department: 'Business Development', code: 'BIZ', head: 'Mrs. Ngozi Okafor', tasksCompleted: 22, totalTasks: 24, operationalHealth: 'Active' as const, highlights: 'Enterprise institutional training client proposals and corporate partnerships' },
+      { department: 'Accounting and Finance', code: 'FIN', head: 'Mr. Babatunde Adeleke (FCA)', tasksCompleted: 19, totalTasks: 19, operationalHealth: 'Active' as const, highlights: 'Paystack ledger reconciliation 100%; SCUML & FIRS filings active' },
+      { department: 'Creative Media and Digital Marketing', code: 'CMD', head: 'Mr. Emmanuel Eze', tasksCompleted: 25, totalTasks: 28, operationalHealth: 'Active' as const, highlights: 'Multi-channel creative storytelling and corporate brand campaigns active' },
+      { department: 'Information Technology', code: 'ITD', head: 'Engr. Faruq Mohammed', tasksCompleted: 31, totalTasks: 32, operationalHealth: 'Active' as const, highlights: '99.98% platform uptime; zero security incidents in 180 days' },
+      { department: 'AI and Creative Technology', code: 'AIC', head: 'Dr. Chioma Nnamdi', tasksCompleted: 16, totalTasks: 17, operationalHealth: 'Active' as const, highlights: 'Proprietary student tutor co-pilot deployed with Gemini 3.7 integration' },
+      { department: 'Legal and Compliance', code: 'LGC', head: 'Barr. Kalu Samuel', tasksCompleted: 12, totalTasks: 12, operationalHealth: 'Active' as const, highlights: 'Corporate compliance affirmed; 86 executed commercial NDAs' }
     ];
 
     // Seeded/customized announcements
@@ -1145,15 +1145,6 @@ ${liveContext ? liveContext : ''}`;
 
     if (isCeo) {
       // CEO EXECUTIVE OVERVIEW
-      stats = [
-        { id: 's-1', label: 'Operating Units', value: '9 Divisions', change: '+12% capacity', trend: 'up', description: '8 Specialized Departments + Executive Office' },
-        { id: 's-2', label: 'Total Workforce', value: '68 Personnel', change: '100% verified', trend: 'up', description: '42 Core Staff & 26 Accredited Faculty' },
-        { id: 's-3', label: 'Corporate Revenue (Q3/Q4)', value: '₦84.65M', change: '+18.4% YoY', trend: 'up', description: 'Enterprise Solutions & Academy Tuition' },
-        { id: 's-4', label: 'Corporate Regulatory Standing', value: '100% Certified', change: 'CAC RC-1849204', trend: 'neutral', description: 'Active & SCUML/FIRS Compliant' },
-        { id: 's-5', label: 'Academy Student Body', value: '1,240 Enrolled', change: '+24% MoM', trend: 'up', description: '115+ Courses across 22 Tech Sectors' },
-        { id: 's-6', label: 'Infrastructure Reliability', value: '99.98% Uptime', change: 'Zero critical downtime', trend: 'up', description: 'Cloud Services & Systems Reliability' }
-      ];
-
       tasks = [
         { id: 't-ceo-1', title: 'Review Q4 Institutional Expansion Budget with Finance HOD', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'CEO Office', department: 'Executive Leadership', departmentCode: 'EXEC' },
         { id: 't-ceo-2', title: 'Sign Off on Master Partnership Agreement with Federal Communications Partner', priority: 'Urgent', status: 'Pending', dueDate: '2026-10-10', assignee: 'Chief Executive Officer', department: 'Executive Leadership', departmentCode: 'EXEC' },
@@ -1163,13 +1154,13 @@ ${liveContext ? liveContext : ''}`;
 
       reports = [
         { id: 'rep-ceo-1', title: 'Consolidated DS Tech Corporate Audit & Performance Q3', period: 'Q3 2026', submittedBy: 'Executive Secretary', department: 'Executive Leadership', departmentCode: 'EXEC', status: 'Approved', date: '2026-10-01', summary: 'Comprehensive operational, fiscal, and instructional audit across all 8 operating departments.' },
-        { id: 'rep-ceo-2', title: 'Statutory Corporate Compliance & CAC RC-1849204 Validation', period: 'Annual 2026', submittedBy: 'Barr. Kalu Samuel (HOD Legal)', department: 'Legal & Compliance', departmentCode: 'LGC', status: 'Approved', date: '2026-09-28', summary: 'Full regulatory certification including FIRS tax compliance and SCUML accreditation.' },
-        { id: 'rep-ceo-3', title: 'Commercial Business Development & Revenue Pipeline Forecast', period: 'Q4 2026', submittedBy: 'Mrs. Ngozi Okafor (HOD BizDev)', department: 'Business Development', departmentCode: 'BIZ', status: 'Pending Review', date: '2026-10-05', summary: 'Projected ₦48.2M in enterprise training and bespoke cloud software client engagements.' },
+        { id: 'rep-ceo-2', title: 'Statutory Corporate Compliance & CAC RC Validation', period: 'Annual 2026', submittedBy: 'Barr. Kalu Samuel (HOD Legal)', department: 'Legal & Compliance', departmentCode: 'LGC', status: 'Approved', date: '2026-09-28', summary: 'Full regulatory certification including FIRS tax compliance and SCUML accreditation.' },
+        { id: 'rep-ceo-3', title: 'Commercial Business Development & Client Pipeline Forecast', period: 'Q4 2026', submittedBy: 'Mrs. Ngozi Okafor (HOD BizDev)', department: 'Business Development', departmentCode: 'BIZ', status: 'Pending Review', date: '2026-10-05', summary: 'Quarterly review of enterprise training and bespoke cloud software client engagements.' },
         { id: 'rep-ceo-4', title: 'Academic Faculty Quality & Student Graduation Metric Summary', period: 'Semester 2', submittedBy: 'Dr. Aisha Bello (HOD HR)', department: 'Human Resource Management', departmentCode: 'HRM', status: 'Pending Review', date: '2026-10-04', summary: 'Evaluation of 26 faculty leads across 115 vocational tech disciplines.' }
       ];
 
       documents = [
-        { id: 'doc-ceo-1', title: 'CAC Certificate of Incorporation (RC-1849204)', category: 'Statutory', department: 'Executive', departmentCode: 'EXEC', lastUpdated: '2026-08-15', size: '2.4 MB', status: 'Active', referenceNo: 'CAC/RC-1849204', accessTier: 'Executive' },
+        { id: 'doc-ceo-1', title: 'CAC Certificate of Incorporation', category: 'Statutory', department: 'Executive', departmentCode: 'EXEC', lastUpdated: '2026-08-15', size: '2.4 MB', status: 'Active', referenceNo: 'CAC/STATUTORY', accessTier: 'Executive' },
         { id: 'doc-ceo-2', title: 'DS Tech Strategic Master Plan 2026-2028', category: 'Strategy', department: 'Executive', departmentCode: 'EXEC', lastUpdated: '2026-09-01', size: '4.8 MB', status: 'Active', referenceNo: 'DST/STRAT/2026/01', accessTier: 'Executive' },
         { id: 'doc-ceo-3', title: 'Board Resolutions & Executive Governance Charter', category: 'Governance', department: 'Executive', departmentCode: 'EXEC', lastUpdated: '2026-07-20', size: '1.9 MB', status: 'Active', referenceNo: 'DST/GOV/BR-09', accessTier: 'Executive' },
         { id: 'doc-ceo-4', title: 'Consolidated Financial Statements & Tax Returns', category: 'Finance', department: 'Finance', departmentCode: 'FIN', lastUpdated: '2026-09-30', size: '3.6 MB', status: 'Active', referenceNo: 'DST/FIN/FS-2026-Q3', accessTier: 'Executive' }
@@ -1178,7 +1169,7 @@ ${liveContext ? liveContext : ''}`;
       recentActivities = [
         { id: 'act-ceo-1', action: 'Approved Q4 Corporate Budget Allocations', user: 'Chief Executive Officer', role: 'CEO', department: 'Executive Leadership', timestamp: '2 hours ago', status: 'Authorized', category: 'executive', details: 'Transferred capital funds for Academy server upgrades and Yola campus setup.' },
         { id: 'act-ceo-2', action: 'Reviewed Legal Compliance Report', user: 'Barr. Kalu Samuel', role: 'HOD Legal', department: 'Legal & Compliance', timestamp: '5 hours ago', status: 'Under Review', category: 'compliance', details: 'Statutory returns verified with Corporate Affairs Commission.' },
-        { id: 'act-ceo-3', action: 'Paystack Tuition Ledger Reconciled', user: 'Mr. Babatunde Adeleke', role: 'HOD Finance', department: 'Accounting & Finance', timestamp: 'Yesterday', status: 'Verified', category: 'finance', details: 'Total ₦14.85M monthly student course tuition fees verified without discrepancies.' },
+        { id: 'act-ceo-3', action: 'Paystack Tuition Ledger Reconciled', user: 'Mr. Babatunde Adeleke', role: 'HOD Finance', department: 'Accounting & Finance', timestamp: 'Yesterday', status: 'Verified', category: 'finance', details: 'Monthly student course tuition fees verified without discrepancies.' },
         { id: 'act-ceo-4', action: 'AI Co-pilot Assistant V2 Successfully Deployed', user: 'Dr. Chioma Nnamdi', role: 'HOD AI Tech', department: 'AI & Creative Tech', timestamp: '2 days ago', status: 'Live', category: 'tech', details: 'Integrated Gemini 3.7 streaming responses with page-context grounding.' }
       ];
 
@@ -1211,13 +1202,6 @@ ${liveContext ? liveContext : ''}`;
       const deptCode = session.departmentCode;
 
       if (deptCode === 'HRM') {
-        stats = [
-          { id: 's-hr-1', label: 'Active Personnel', value: '68 Total', change: '100% Biometric Verified', trend: 'up', description: '42 Core Staff & 26 Faculty Instructors' },
-          { id: 's-hr-2', label: 'Open Vacancies', value: '6 Roles', change: 'Active recruitment', trend: 'neutral', description: 'Full-Stack Lead, UI/UX Tutor, Cyber Specialist' },
-          { id: 's-hr-3', label: 'Attendance Rate', value: '98.4%', change: '+1.2% this month', trend: 'up', description: 'Physical biometric & virtual punch-ins' },
-          { id: 's-hr-4', label: 'Faculty Accreditations', value: '24 Tracks', change: 'Full clearance', trend: 'up', description: 'DS Tech Academy Course Instructors' }
-        ];
-
         tasks = [
           { id: 't-hr-1', title: 'Issue Appointment Confirmation for 4 New Software Engineers', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'Dr. Aisha Bello', department: 'Human Resource Management', departmentCode: 'HRM' },
           { id: 't-hr-2', title: 'Review Q4 Faculty Teaching Retainers for 24 Course Tracks', priority: 'Urgent', status: 'Pending', dueDate: '2026-10-10', assignee: 'HR Lead', department: 'Human Resource Management', departmentCode: 'HRM' },
@@ -1263,13 +1247,6 @@ ${liveContext ? liveContext : ''}`;
           ]
         };
       } else if (deptCode === 'ADM') {
-        stats = [
-          { id: 's-adm-1', label: 'Facility Capacity', value: '94% Utilized', change: 'Optimal allocation', trend: 'up', description: 'Garki HQ Desks & Lecture Halls' },
-          { id: 's-adm-2', label: 'Verified Assets', value: '340 Units', change: '100% RFID Tagged', trend: 'up', description: 'Workstations, Servers, Hardware Kits' },
-          { id: 's-adm-3', label: 'Vendor Retainers', value: '12 Active', change: 'All SLAs in good standing', trend: 'neutral', description: 'Power, ISP, Facilities Maintenance' },
-          { id: 's-adm-4', label: 'Logistics SLA', value: '96.5%', change: '+3.1% this quarter', trend: 'up', description: 'Timely procurement fulfillment' }
-        ];
-
         tasks = [
           { id: 't-adm-1', title: 'Audit Physical Server Room Power Redundancy in Abuja HQ', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'Barr. Ibrahim Danladi', department: 'Administrative Services', departmentCode: 'ADM' },
           { id: 't-adm-2', title: 'Renew Annual Facility Tenancy & Utility Licenses', priority: 'Urgent', status: 'Pending', dueDate: '2026-10-12', assignee: 'Admin Lead', department: 'Administrative Services', departmentCode: 'ADM' },
@@ -1310,13 +1287,6 @@ ${liveContext ? liveContext : ''}`;
           ]
         };
       } else if (deptCode === 'BIZ') {
-        stats = [
-          { id: 's-biz-1', label: 'Active RFP Pipeline', value: '₦48.20M', change: '+22.4% MoM', trend: 'up', description: '5 Enterprise Proposals Pending' },
-          { id: 's-biz-2', label: 'Enterprise Retainers', value: '14 Clients', change: 'High retention rate', trend: 'up', description: 'Telecom, FinTech, Public Sector' },
-          { id: 's-biz-3', label: 'Corporate Lead Win Rate', value: '28.4%', change: '+4.2% YoY', trend: 'up', description: 'B2B Software & Marketing Pitches' },
-          { id: 's-biz-4', label: 'Institutional Sponsors', value: '8 Partners', change: 'CSR & Academy tuition grants', trend: 'neutral', description: 'Scholarship program benefactors' }
-        ];
-
         tasks = [
           { id: 't-biz-1', title: 'Submit Corporate Upskilling RFP for Commercial Banking Cohort', priority: 'Urgent', status: 'In Progress', dueDate: '2026-10-10', assignee: 'Mrs. Ngozi Okafor', department: 'Business Development', departmentCode: 'BIZ' },
           { id: 't-biz-2', title: 'Prepare Pitch Deck for Enterprise AI Workflow Retainer', priority: 'High', status: 'Pending', dueDate: '2026-10-13', assignee: 'BizDev Associate', department: 'Business Development', departmentCode: 'BIZ' },
@@ -1324,7 +1294,7 @@ ${liveContext ? liveContext : ''}`;
         ];
 
         reports = [
-          { id: 'rep-biz-1', title: 'Q3 Enterprise Revenue Growth & Pipeline Conversion Report', period: 'Q3 2026', submittedBy: 'Mrs. Ngozi Okafor', department: 'Business Development', departmentCode: 'BIZ', status: 'Approved', date: '2026-10-03', summary: 'Detailed performance breakdown of custom software sales and academy enterprise training.' }
+          { id: 'rep-biz-1', title: 'Q3 Enterprise Client Engagements & Pipeline Report', period: 'Q3 2026', submittedBy: 'Mrs. Ngozi Okafor', department: 'Business Development', departmentCode: 'BIZ', status: 'Approved', date: '2026-10-03', summary: 'Detailed performance breakdown of custom software sales and academy enterprise training.' }
         ];
 
         documents = [
@@ -1357,13 +1327,6 @@ ${liveContext ? liveContext : ''}`;
           ]
         };
       } else if (deptCode === 'FIN') {
-        stats = [
-          { id: 's-fin-1', label: 'Monthly Tuition Inflow', value: '₦14.85M', change: '+14.2% MoM', trend: 'up', description: 'Virtual, Physical & Hybrid Streams' },
-          { id: 's-fin-2', label: 'Operating Budget Variance', value: '-3.2%', change: 'Under budget limit', trend: 'up', description: 'Strict capital discipline maintained' },
-          { id: 's-fin-3', label: 'Tax & TIN Clearance', value: '100% Up to Date', change: 'FIRS / SCUML Verified', trend: 'neutral', description: 'Tax ID: 24892019-0001' },
-          { id: 's-fin-4', label: 'Payment Gateway SLA', value: '99.9%', change: 'Paystack automated ledger', trend: 'up', description: 'Zero un-reconciled transactions' }
-        ];
-
         tasks = [
           { id: 't-fin-1', title: 'Reconcile Paystack & Direct Bank Settlement Ledgers for September', priority: 'Urgent', status: 'Completed', dueDate: '2026-10-04', assignee: 'Mr. Babatunde Adeleke', department: 'Accounting and Finance', departmentCode: 'FIN' },
           { id: 't-fin-2', title: 'Disburse Q4 Faculty Honoraria & Teaching Retainers', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'Finance Lead', department: 'Accounting and Finance', departmentCode: 'FIN' },
@@ -1371,7 +1334,7 @@ ${liveContext ? liveContext : ''}`;
         ];
 
         reports = [
-          { id: 'rep-fin-1', title: 'Monthly Revenue, Expenditure & Cashflow Statement (Sept 2026)', period: 'September 2026', submittedBy: 'Mr. Babatunde Adeleke (FCA)', department: 'Accounting and Finance', departmentCode: 'FIN', status: 'Approved', date: '2026-10-03', summary: 'Reconciliation of student course fees, enterprise retainers, and operating expenses.' }
+          { id: 'rep-fin-1', title: 'Monthly Expenditure & Cashflow Operating Statement (Sept 2026)', period: 'September 2026', submittedBy: 'Mr. Babatunde Adeleke (FCA)', department: 'Accounting and Finance', departmentCode: 'FIN', status: 'Approved', date: '2026-10-03', summary: 'Reconciliation of student course fees, enterprise retainers, and operating expenses.' }
         ];
 
         documents = [
@@ -1404,13 +1367,6 @@ ${liveContext ? liveContext : ''}`;
           ]
         };
       } else if (deptCode === 'CMD') {
-        stats = [
-          { id: 's-cmd-1', label: 'Monthly Ad Impressions', value: '1.48M+', change: '+28.5% reach', trend: 'up', description: 'Meta, Google, TikTok Ads' },
-          { id: 's-cmd-2', label: 'Average Cost Per Lead', value: '₦620', change: '-12% improved ROAS', trend: 'up', description: 'Academy Course Registration Inbound' },
-          { id: 's-cmd-3', label: 'Total Digital Community', value: '84,500', change: '+3,400 new followers', trend: 'up', description: 'YouTube, LinkedIn, TikTok, X, FB' },
-          { id: 's-cmd-4', label: 'Active Ad Campaigns', value: '7 Live', change: 'High CTR', trend: 'neutral', description: 'AI for Kids, Full-Stack, Cyber Tracks' }
-        ];
-
         tasks = [
           { id: 't-cmd-1', title: 'Launch Targeted Meta Video Ad for AI for Kids Q4 Cohort', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'Mr. Emmanuel Eze', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD' },
           { id: 't-cmd-2', title: 'Produce High-Resolution Campus Tour Video for Garki Abuja HQ', priority: 'High', status: 'Pending', dueDate: '2026-10-12', assignee: 'Media Production Lead', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD' },
@@ -1418,7 +1374,7 @@ ${liveContext ? liveContext : ''}`;
         ];
 
         reports = [
-          { id: 'rep-cmd-1', title: 'Monthly Digital Advertising ROAS & Conversion Performance', period: 'September 2026', submittedBy: 'Mr. Emmanuel Eze', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD', status: 'Approved', date: '2026-10-02', summary: 'Analysis of 1,200+ course inquiries and paid student conversion funnels.' }
+          { id: 'rep-cmd-1', title: 'Monthly Digital Advertising ROAS & Conversion Performance', period: 'September 2026', submittedBy: 'Mr. Emmanuel Eze', department: 'Creative Media and Digital Marketing', departmentCode: 'CMD', status: 'Approved', date: '2026-10-02', summary: 'Analysis of course inquiries and paid student conversion funnels.' }
         ];
 
         documents = [
@@ -1451,13 +1407,6 @@ ${liveContext ? liveContext : ''}`;
           ]
         };
       } else if (deptCode === 'ITD') {
-        stats = [
-          { id: 's-it-1', label: 'Platform Core Uptime', value: '99.98%', change: 'Zero fatal incidents', trend: 'up', description: 'www.dstechagency.com & APIs' },
-          { id: 's-it-2', label: 'Average API Latency', value: '142ms', change: 'Optimized via Edge Cache', trend: 'up', description: 'Express Server & SQLite/Cloud DB' },
-          { id: 's-it-3', label: 'Cloud Infrastructure', value: '18 Nodes', change: 'Autoscaling enabled', trend: 'neutral', description: 'AWS/GCP Container Clusters' },
-          { id: 's-it-4', label: 'Resolved IT Tickets', value: '142 / 146', change: '97.2% first-contact fix', trend: 'up', description: 'Staff & Faculty IT Helpdesk' }
-        ];
-
         tasks = [
           { id: 't-it-1', title: 'Rotate Database Access Secrets & Audit S3 Storage Bucket ACLs', priority: 'High', status: 'Completed', dueDate: '2026-10-05', assignee: 'Engr. Faruq Mohammed', department: 'Information Technology', departmentCode: 'ITD' },
           { id: 't-it-2', title: 'Deploy Enhanced PWA Service Worker Cache Version 2.4', priority: 'High', status: 'In Progress', dueDate: '2026-10-08', assignee: 'DevOps Lead', department: 'Information Technology', departmentCode: 'ITD' },
@@ -1498,13 +1447,6 @@ ${liveContext ? liveContext : ''}`;
           ]
         };
       } else if (deptCode === 'AIC') {
-        stats = [
-          { id: 's-aic-1', label: 'Proprietary AI Models', value: '4 Agents', change: 'Gemini 3.7 Integrated', trend: 'up', description: 'Tutor, Screener, Copilot, Admin' },
-          { id: 's-aic-2', label: 'Monthly Prompt Queries', value: '320,000+', change: '+38% interaction rate', trend: 'up', description: 'Student Code Review & Guidance' },
-          { id: 's-aic-3', label: 'Agent Response Latency', value: '0.8s Avg', change: 'Server-Sent Events streaming', trend: 'up', description: 'Real-time instructional assistant' },
-          { id: 's-aic-4', label: 'Innovation R&D Sprints', value: '8 Sprints', change: 'On schedule', trend: 'neutral', description: 'Multimodal AI & Speech Tools' }
-        ];
-
         tasks = [
           { id: 't-aic-1', title: 'Refine Context-Grounding Prompts for DS Tech Academic Curriculum', priority: 'High', status: 'Completed', dueDate: '2026-10-04', assignee: 'Dr. Chioma Nnamdi', department: 'AI and Creative Technology', departmentCode: 'AIC' },
           { id: 't-aic-2', title: 'Benchmark Gemini 3.7 Flash vs Gemini 3.1 Flash-Lite Token Efficiencies', priority: 'High', status: 'In Progress', dueDate: '2026-10-09', assignee: 'AI Research Lead', department: 'AI and Creative Technology', departmentCode: 'AIC' },
@@ -1545,13 +1487,6 @@ ${liveContext ? liveContext : ''}`;
           ]
         };
       } else if (deptCode === 'LGC') {
-        stats = [
-          { id: 's-lgc-1', label: 'Active Commercial NDAs', value: '86 Signed', change: '100% digitally verified', trend: 'up', description: 'Enterprise clients, partners, staff' },
-          { id: 's-lgc-2', label: 'CAC Regulatory Standing', value: 'Incorporated & Active', change: 'RC-1849204', trend: 'neutral', description: 'Fully compliant with CAMA 2020' },
-          { id: 's-lgc-3', label: 'Data Privacy Compliance', value: 'NDPR Certified', change: 'Audit cleared', trend: 'up', description: 'Nigerian Data Protection Regulation' },
-          { id: 's-lgc-4', label: 'Contract Review SLA', value: '48 Hours', change: 'Fast legal clearance', trend: 'up', description: 'Service Agreements & Tenders' }
-        ];
-
         tasks = [
           { id: 't-lgc-1', title: 'Verify Corporate Affairs Commission (CAC) Annual Filing Documentation', priority: 'High', status: 'Completed', dueDate: '2026-10-03', assignee: 'Barr. Kalu Samuel', department: 'Legal and Compliance', departmentCode: 'LGC' },
           { id: 't-lgc-2', title: 'Draft Master Services Retainer for Federal Agency Tech Proposal', priority: 'Urgent', status: 'In Progress', dueDate: '2026-10-10', assignee: 'Barr. Kalu Samuel', department: 'Legal and Compliance', departmentCode: 'LGC' },
@@ -1559,11 +1494,11 @@ ${liveContext ? liveContext : ''}`;
         ];
 
         reports = [
-          { id: 'rep-lgc-1', title: 'Annual Corporate Governance & Statutory Compliance Audit', period: '2026 Statutory', submittedBy: 'Barr. Kalu Samuel', department: 'Legal and Compliance', departmentCode: 'LGC', status: 'Approved', date: '2026-09-25', summary: 'Validation of CAC RC-1849204 registration, TIN standing, and SCUML compliance.' }
+          { id: 'rep-lgc-1', title: 'Annual Corporate Governance & Statutory Compliance Audit', period: '2026 Statutory', submittedBy: 'Barr. Kalu Samuel', department: 'Legal and Compliance', departmentCode: 'LGC', status: 'Approved', date: '2026-09-25', summary: 'Validation of CAC RC registration, TIN standing, and SCUML compliance.' }
         ];
 
         documents = [
-          { id: 'doc-lgc-1', title: 'CAC Official Certificate of Incorporation (RC-1849204)', category: 'Statutory', department: 'Legal', departmentCode: 'LGC', lastUpdated: '2026-06-15', size: '2.4 MB', status: 'Active', referenceNo: 'CAC/RC-1849204', accessTier: 'Departmental' },
+          { id: 'doc-lgc-1', title: 'CAC Official Certificate of Incorporation', category: 'Statutory', department: 'Legal', departmentCode: 'LGC', lastUpdated: '2026-06-15', size: '2.4 MB', status: 'Active', referenceNo: 'CAC/STATUTORY', accessTier: 'Departmental' },
           { id: 'doc-lgc-2', title: 'Standard DS Tech Client Non-Disclosure Agreement (NDA)', category: 'Contracts', department: 'Legal', departmentCode: 'LGC', lastUpdated: '2026-08-01', size: '540 KB', status: 'Active', referenceNo: 'DST/LGC/NDA-V3', accessTier: 'Departmental' }
         ];
 
@@ -1579,7 +1514,7 @@ ${liveContext ? liveContext : ''}`;
           budgetYear: 'FY 2026 / 2027',
           activeProjects: 4,
           operationalStatus: 'Compliant & Certified',
-          description: 'Safeguards corporate legal standing, enforces regulatory compliance with Corporate Affairs Commission (CAC RC-1849204), drafts client agreements, and governs intellectual property protection.',
+          description: 'Safeguards corporate legal standing, enforces regulatory compliance with Corporate Affairs Commission, drafts client agreements, and governs intellectual property protection.',
           coreMandates: [
             'Maintaining full regulatory compliance with CAC, SCUML, FIRS, and the Federal Republic of Nigeria',
             'Drafting and negotiating enterprise MSAs, SLAs, NDAs, and employment covenants',
@@ -1594,6 +1529,46 @@ ${liveContext ? liveContext : ''}`;
         };
       }
     }
+
+    // Dynamic live operational stats strictly calculated from current workspace state
+    const pendingTasksCount = tasks.filter(t => t.status !== 'Completed').length;
+    const completedTasksCount = tasks.filter(t => t.status === 'Completed').length;
+    const completionRate = tasks.length > 0 ? Math.round((completedTasksCount / tasks.length) * 100) : 100;
+
+    stats = [
+      {
+        id: 'stat-active-tasks',
+        label: 'Pending Deliverables',
+        value: `${pendingTasksCount} Active`,
+        change: `${tasks.length} Total Assigned`,
+        trend: pendingTasksCount > 0 ? 'up' : 'neutral',
+        description: isCeo ? 'Organization-wide tasks' : 'Departmental deliverables'
+      },
+      {
+        id: 'stat-completed-tasks',
+        label: 'Completed Tasks',
+        value: `${completedTasksCount} Done`,
+        change: `${completionRate}% Completion Rate`,
+        trend: 'up',
+        description: 'Closed assignments'
+      },
+      {
+        id: 'stat-reports',
+        label: 'Official Reports',
+        value: `${reports.length} Filed`,
+        change: `${reports.filter(r => r.status === 'Approved').length} Approved`,
+        trend: 'up',
+        description: 'Submitted audit & operational records'
+      },
+      {
+        id: 'stat-documents',
+        label: 'Corporate Documents',
+        value: `${documents.length} Records`,
+        change: 'Active Vault',
+        trend: 'neutral',
+        description: 'Statutory and operational files'
+      }
+    ];
 
     const payload = {
       role: session.role,
@@ -1629,9 +1604,7 @@ ${liveContext ? liveContext : ''}`;
         totalDepartments: 9,
         totalStaff: 68,
         pendingExecutiveReports: 4,
-        scheduledBoardMeetings: 3,
-        averageKpiScore: 94.8,
-        annualRunRate: '₦142,500,000'
+        scheduledBoardMeetings: 3
       } : undefined
     };
 

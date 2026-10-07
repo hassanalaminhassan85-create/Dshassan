@@ -181,21 +181,22 @@ export const ManagementLandingView: React.FC<ManagementLandingViewProps> = ({
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 space-y-8 animate-fade-in text-left">
         
         {/* Only Back Navigation Remains + Real-Time CAC RC matching Main Home Footer */}
-        <div className="flex items-center justify-between gap-2 sm:gap-3 w-full">
+        <div className="flex items-center justify-between gap-2 w-full">
           <button
             type="button"
             onClick={onNavigateHome}
-            className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white border border-slate-200/80 dark:border-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer group shrink"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white border border-slate-200/80 dark:border-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer group shrink-0"
           >
             <ArrowLeft size={14} className="text-orange-500 group-hover:-translate-x-0.5 transition-transform shrink-0" />
-            <span className="truncate">Back <span className="hidden sm:inline">to Main Website</span></span>
+            <span>Back</span>
+            <span className="hidden sm:inline">to Main Website</span>
           </button>
 
           {/* Real-time CAC RC Badge (synchronized with Main Footer, fully mobile responsive) */}
-          <div className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-[10px] sm:text-[11px] font-mono text-slate-700 dark:text-slate-300 shadow-2xs shrink-0 whitespace-nowrap">
+          <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-xs font-mono text-slate-700 dark:text-slate-300 shadow-2xs shrink-0">
             <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
-            <span>CAC RC: <strong className="text-slate-950 dark:text-white font-bold">{rcNumber}</strong></span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5 shrink-0" />
+            <span className="whitespace-nowrap">RC: <strong className="text-slate-950 dark:text-white font-bold">{rcNumber}</strong></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
           </div>
         </div>
 
@@ -338,10 +339,20 @@ export const ManagementLandingView: React.FC<ManagementLandingViewProps> = ({
           </div>
         )}
 
-        {/* Footer Note with Real-time CAC RC */}
-        <div className="pt-6 pb-12 text-center text-[11px] text-slate-400 dark:text-slate-500 border-t border-slate-200/60 dark:border-slate-800 space-y-1">
-          <p>DS Tech & Digital Marketing Agency Limited · CAC RC: <strong className="font-mono text-slate-600 dark:text-slate-300 font-bold">{rcNumber}</strong> · Area 1, Garki, Abuja, FCT, Nigeria</p>
-          <p className="text-[10px] text-slate-400/80">SCUML & FIRS Compliant Corporate Management System</p>
+        {/* Footer Note with Real-time CAC RC - Stackable and responsive */}
+        <div className="pt-6 pb-12 text-center text-xs text-slate-500 dark:text-slate-400 border-t border-slate-200/60 dark:border-slate-800 space-y-1.5 px-2">
+          <p className="font-medium text-slate-600 dark:text-slate-300">
+            DS Tech & Digital Marketing Agency Limited
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[11px] font-mono text-slate-500 dark:text-slate-400">
+            <span className="inline-flex items-center gap-1 font-bold text-slate-800 dark:text-slate-200">
+              <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
+              CAC RC: {rcNumber}
+            </span>
+            <span aria-hidden="true" className="hidden sm:inline">·</span>
+            <span>Area 1, Garki, Abuja, FCT, Nigeria</span>
+          </div>
+          <p className="text-[10px] text-slate-400">SCUML & FIRS Compliant Corporate Management System</p>
         </div>
       </div>
     </div>

@@ -5979,16 +5979,16 @@ RESPONSE FORMATTING:
         const authHeader = request.headers.get('Authorization') || request.headers.get('authorization') || '';
         const token = authHeader.replace(/^Bearer\s+/i, '').trim();
 
-        // Standard Department Performance Table
+        // Standard Department Performance Overview
         const departmentPerformance = [
-          { department: 'Human Resource Management', code: 'HRM', head: 'Dr. Aisha Bello', kpiScore: 94.2, tasksCompleted: 18, totalTasks: 20, budgetUtilization: '88.5%', operationalHealth: 'Excellent', highlights: 'Faculty accredited across 24 disciplines; Q4 recruitment on track' },
-          { department: 'Administrative Services', code: 'ADM', head: 'Barr. Ibrahim Danladi', kpiScore: 91.5, tasksCompleted: 14, totalTasks: 15, budgetUtilization: '92.1%', operationalHealth: 'Excellent', highlights: 'Garki HQ facility optimization; physical desk allocation completed' },
-          { department: 'Business Development', code: 'BIZ', head: 'Mrs. Ngozi Okafor', kpiScore: 95.8, tasksCompleted: 22, totalTasks: 24, budgetUtilization: '84.0%', operationalHealth: 'Excellent', highlights: '₦48.2M active enterprise RFP pipeline across 5 institutional clients' },
-          { department: 'Accounting and Finance', code: 'FIN', head: 'Mr. Babatunde Adeleke (FCA)', kpiScore: 98.4, tasksCompleted: 19, totalTasks: 19, budgetUtilization: '96.8%', operationalHealth: 'Excellent', highlights: 'Paystack ledger reconciliation 100%; SCUML & FIRS filings active' },
-          { department: 'Creative Media and Digital Marketing', code: 'CMD', head: 'Mr. Emmanuel Eze', kpiScore: 92.0, tasksCompleted: 25, totalTasks: 28, budgetUtilization: '94.2%', operationalHealth: 'Good', highlights: '1.48M+ monthly digital ad impressions; 84.5K community followers' },
-          { department: 'Information Technology', code: 'ITD', head: 'Engr. Faruq Mohammed', kpiScore: 97.6, tasksCompleted: 31, totalTasks: 32, budgetUtilization: '90.4%', operationalHealth: 'Excellent', highlights: '99.98% platform uptime; zero security incidents in 180 days' },
-          { department: 'AI and Creative Technology', code: 'AIC', head: 'Dr. Chioma Nnamdi', kpiScore: 96.5, tasksCompleted: 16, totalTasks: 17, budgetUtilization: '89.1%', operationalHealth: 'Excellent', highlights: 'Proprietary student tutor co-pilot deployed with Gemini 3.7 integration' },
-          { department: 'Legal and Compliance', code: 'LGC', head: 'Barr. Kalu Samuel', kpiScore: 99.1, tasksCompleted: 12, totalTasks: 12, budgetUtilization: '91.0%', operationalHealth: 'Excellent', highlights: 'CAC RC-1849204 compliance affirmed; 86 executed commercial NDAs' }
+          { department: 'Human Resource Management', code: 'HRM', head: 'Dr. Aisha Bello', tasksCompleted: 18, totalTasks: 20, operationalHealth: 'Active', highlights: 'Faculty accredited across 24 disciplines; Q4 recruitment on track' },
+          { department: 'Administrative Services', code: 'ADM', head: 'Barr. Ibrahim Danladi', tasksCompleted: 14, totalTasks: 15, operationalHealth: 'Active', highlights: 'Garki HQ facility optimization; physical desk allocation completed' },
+          { department: 'Business Development', code: 'BIZ', head: 'Mrs. Ngozi Okafor', tasksCompleted: 22, totalTasks: 24, operationalHealth: 'Active', highlights: 'Enterprise institutional training client proposals and corporate partnerships' },
+          { department: 'Accounting and Finance', code: 'FIN', head: 'Mr. Babatunde Adeleke (FCA)', tasksCompleted: 19, totalTasks: 19, operationalHealth: 'Active', highlights: 'Paystack ledger reconciliation 100%; SCUML & FIRS statutory filings current' },
+          { department: 'Creative Media and Digital Marketing', code: 'CMD', head: 'Mr. Emmanuel Eze', tasksCompleted: 25, totalTasks: 28, operationalHealth: 'Active', highlights: 'Digital brand awareness campaigns and multi-channel creative storytelling' },
+          { department: 'Information Technology', code: 'ITD', head: 'Engr. Faruq Mohammed', tasksCompleted: 31, totalTasks: 32, operationalHealth: 'Active', highlights: '99.98% platform uptime; zero security incidents logged' },
+          { department: 'AI and Creative Technology', code: 'AIC', head: 'Dr. Chioma Nnamdi', tasksCompleted: 16, totalTasks: 17, operationalHealth: 'Active', highlights: 'Proprietary student tutor co-pilot deployed with Gemini models' },
+          { department: 'Legal and Compliance', code: 'LGC', head: 'Barr. Kalu Samuel', tasksCompleted: 12, totalTasks: 12, operationalHealth: 'Active', highlights: 'CAC corporate compliance affirmed; commercial agreements verified' }
         ];
 
         const payload = {
@@ -6009,12 +6009,10 @@ RESPONSE FORMATTING:
             permissions: ['ALL']
           },
           stats: [
-            { id: 's-1', label: 'Operating Units', value: '9 Divisions', change: '+12% capacity', trend: 'up', description: '8 Specialized Departments + Executive Office' },
-            { id: 's-2', label: 'Total Workforce', value: '68 Personnel', change: '100% verified', trend: 'up', description: '42 Core Staff & 26 Accredited Faculty' },
-            { id: 's-3', label: 'Corporate Revenue (Q3/Q4)', value: '₦84.65M', change: '+18.4% YoY', trend: 'up', description: 'Enterprise Solutions & Academy Tuition' },
-            { id: 's-4', label: 'Corporate Regulatory Standing', value: '100% Certified', change: 'CAC RC-1849204', trend: 'neutral', description: 'Active & SCUML/FIRS Compliant' },
-            { id: 's-5', label: 'Academy Student Body', value: '1,240 Enrolled', change: '+24% MoM', trend: 'up', description: '115+ Courses across 22 Tech Sectors' },
-            { id: 's-6', label: 'Infrastructure Reliability', value: '99.98% Uptime', change: 'Zero critical downtime', trend: 'up', description: 'Cloud Services & Systems Reliability' }
+            { id: 'stat-active-tasks', label: 'Pending Deliverables', value: '3 Active', change: '4 Total Assigned', trend: 'up', description: 'Organization-wide tasks' },
+            { id: 'stat-completed-tasks', label: 'Completed Tasks', value: '1 Done', change: '25% Completion Rate', trend: 'up', description: 'Closed assignments' },
+            { id: 'stat-reports', label: 'Official Reports', value: '4 Filed', change: '2 Approved', trend: 'up', description: 'Submitted audit & operational records' },
+            { id: 'stat-documents', label: 'Corporate Documents', value: '4 Records', change: 'Active Vault', trend: 'neutral', description: 'Statutory and operational files' }
           ],
           departmentInfo: {
             name: 'Executive Leadership & Board of Directors',
@@ -6056,9 +6054,7 @@ RESPONSE FORMATTING:
             totalDepartments: 9,
             totalStaff: 68,
             pendingExecutiveReports: 4,
-            scheduledBoardMeetings: 3,
-            averageKpiScore: 94.8,
-            annualRunRate: '₦142,500,000'
+            scheduledBoardMeetings: 3
           }
         };
 
