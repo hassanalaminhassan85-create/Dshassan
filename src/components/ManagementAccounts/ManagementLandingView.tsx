@@ -181,21 +181,21 @@ export const ManagementLandingView: React.FC<ManagementLandingViewProps> = ({
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-6 md:py-8 space-y-8 animate-fade-in text-left">
         
         {/* Only Back Navigation Remains + Real-Time CAC RC matching Main Home Footer */}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-2 sm:gap-3 w-full">
           <button
             type="button"
             onClick={onNavigateHome}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white border border-slate-200/80 dark:border-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer group shrink-0"
+            className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white border border-slate-200/80 dark:border-slate-800 text-xs font-bold transition-all shadow-2xs cursor-pointer group shrink"
           >
-            <ArrowLeft size={14} className="text-orange-500 group-hover:-translate-x-0.5 transition-transform" />
-            <span>Back to Main Website</span>
+            <ArrowLeft size={14} className="text-orange-500 group-hover:-translate-x-0.5 transition-transform shrink-0" />
+            <span className="truncate">Back <span className="hidden sm:inline">to Main Website</span></span>
           </button>
 
-          {/* Real-time CAC RC Badge (synchronized with Main Footer) */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-[11px] font-mono text-slate-700 dark:text-slate-300 shadow-2xs shrink-0">
-            <ShieldCheck size={14} className="text-emerald-500 shrink-0" />
+          {/* Real-time CAC RC Badge (synchronized with Main Footer, fully mobile responsive) */}
+          <div className="inline-flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-slate-100 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-[10px] sm:text-[11px] font-mono text-slate-700 dark:text-slate-300 shadow-2xs shrink-0 whitespace-nowrap">
+            <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
             <span>CAC RC: <strong className="text-slate-950 dark:text-white font-bold">{rcNumber}</strong></span>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5" />
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse ml-0.5 shrink-0" />
           </div>
         </div>
 
