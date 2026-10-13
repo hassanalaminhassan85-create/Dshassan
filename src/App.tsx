@@ -589,7 +589,7 @@ export default function App() {
           workflowState = 'In Management Dashboard';
           break;
         case 'attendance':
-          pageTitle = 'DS TECH ACADEMY Staff Attendance & Daily Report System';
+          pageTitle = 'DS TECH Staff Attendance & Daily Report System';
           section = 'Staff Attendance';
           workflowState = 'Submitting Attendance Report';
           break;

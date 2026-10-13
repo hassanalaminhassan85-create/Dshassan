@@ -1,17 +1,17 @@
 /**
- * DS TECH ACADEMY (DSTA) Staff Attendance & Daily Reporting Utilities
+ * DS TECH Staff Attendance & Daily Reporting Utilities
  * Timezone: Africa/Lagos (West Africa Time - UTC+1)
- * Official Recipient: Academy Director/CEO (+2349023489111)
+ * Official Recipient: Managing Director/CEO (+2349023489111)
  */
 
 export const OFFICIAL_MANAGEMENT_PHONE = '+2349023489111';
 export const OFFICIAL_MANAGEMENT_WHATSAPP_NUMBER = '2349023489111';
-export const OFFICIAL_RECIPIENT_TITLE = 'Academy Director/CEO';
+export const OFFICIAL_RECIPIENT_TITLE = 'Managing Director / CEO';
 
 export const APPROVED_DEPARTMENTS = [
   'IT & Software Engineering',
   'Artificial Intelligence & Emerging Tech',
-  'DS Tech Academy & Faculty',
+  'Web & Mobile App Engineering',
   'Creative Design & Digital Media',
   'Digital Growth & Media Campaigns',
   'Administrative Services',
@@ -20,7 +20,8 @@ export const APPROVED_DEPARTMENTS = [
   'Business Development',
   'Corporate Legal & Compliance',
   'Cyber Security & Vaults',
-  'Executive Leadership'
+  'Executive Leadership',
+  'Technical Training & Talent Development'
 ];
 
 export const APPROVED_POSITIONS = [
@@ -39,15 +40,14 @@ export const APPROVED_POSITIONS = [
   'UI/UX Product Designer',
   'Motion Graphics & Video Producer',
   'Creative Director',
-  'Lead IT Instructor / Academy Tutor',
-  'Academy Academic Coordinator',
+  'Lead Technical Instructor & Trainer',
+  'Technical Training Coordinator',
   'Operations & Project Coordinator',
   'Human Resources & Talent Specialist',
   'Executive Administrative Officer',
   'Legal & Compliance Consultant',
-  'Academy Director',
-  'Chief Executive Officer (CEO)',
-  'Other (Custom Role)'
+  'Operations Director',
+  'Chief Executive Officer (CEO)'
 ];
 
 export interface StaffProfile {
@@ -246,26 +246,29 @@ export function evaluateClosingSchedule(recordedTimestamp: number): {
  */
 export function formatResumptionWhatsAppMessage(report: ResumptionReport): string {
   const schedule = evaluateResumptionSchedule(report.recordedTimestamp);
+  const statusIcon = schedule.isLate ? '⚠️' : '✅';
   
   return [
-    `*DS TECH ACADEMY (DSTA) DAILY STAFF RESUMPTION REPORT*`,
-    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `🏛️ *DS TECH*`,
+    `📋 *DAILY STAFF RESUMPTION REPORT*`,
+    `──────────────────────────────`,
     `📅 *Day/Date:* ${report.dateStr}`,
     `👤 *Full Name:* ${report.fullName.trim()}`,
     `💼 *Position:* ${report.position.trim()}`,
     `🏢 *Department:* ${report.department.trim()}`,
-    `⏰ *Actual Resumption Time:* ${report.recordedTimeStr} (WAT - Africa/Lagos)`,
-    `📌 *Expected Resumption:* 8:00 AM (Approved Work Schedule)`,
-    `⏱️ *Attendance Status:* ${schedule.statusText}`,
-    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `✅ *Confirmation Statement:*`,
+    `──────────────────────────────`,
+    `⏰ *Actual Resumption Time:* ${report.recordedTimeStr} (WAT • Africa/Lagos)`,
+    `📌 *Scheduled Resumption:* 8:00 AM WAT`,
+    `⏱️ *Attendance Status:* ${statusIcon} ${schedule.statusText}`,
+    `──────────────────────────────`,
+    `✍️ *Confirmation Declaration:*`,
     `"I hereby confirm my resumption for duty today."`,
-    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `📋 *Submission Details:*`,
-    `• Submitted to: ${report.submissionTarget}`,
-    `• Official Contact: ${report.submissionContact}`,
-    `• Organization: DS TECH & DIGITAL MARKETING AGENCY LIMITED (CAC RC: 9550925)`,
-    `• Record Ref: #${report.id}`
+    `──────────────────────────────`,
+    `📩 *Submitted To:* ${report.submissionTarget}`,
+    `📞 *Official Contact:* ${report.submissionContact}`,
+    `🏢 *Organization:* DS TECH & DIGITAL MARKETING AGENCY LIMITED`,
+    `🏛️ *CAC RC No.:* 9550925 (Federal Republic of Nigeria)`,
+    `🔖 *Record Ref:* #${report.id}`
   ].join('\n');
 }
 
@@ -274,19 +277,22 @@ export function formatResumptionWhatsAppMessage(report: ResumptionReport): strin
  */
 export function formatClosingWhatsAppMessage(report: ClosingReport): string {
   const schedule = evaluateClosingSchedule(report.recordedTimestamp);
+  const statusIcon = schedule.isEarly ? '⚠️' : '✅';
 
   return [
-    `*DS TECH ACADEMY (DSTA) DAILY STAFF CLOSING AND ACTIVITY REPORT*`,
-    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `🏛️ *DS TECH*`,
+    `📊 *DAILY STAFF CLOSING AND ACTIVITY REPORT*`,
+    `──────────────────────────────`,
     `📅 *Day/Date:* ${report.dateStr}`,
     `👤 *Full Name:* ${report.fullName.trim()}`,
     `💼 *Position:* ${report.position.trim()}`,
     `🏢 *Department:* ${report.department.trim()}`,
-    `⏰ *Actual Signing-Out Time:* ${report.recordedTimeStr} (WAT - Africa/Lagos)`,
-    `📌 *Expected Closing Time:* 5:00 PM (Approved Work Schedule)`,
-    `⏱️ *Closing Status:* ${schedule.statusText}`,
-    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `📝 *ACTIVITIES PERFORMED FOR THE DAY:*`,
+    `──────────────────────────────`,
+    `⏰ *Actual Signing-Out Time:* ${report.recordedTimeStr} (WAT • Africa/Lagos)`,
+    `📌 *Scheduled Closing Time:* 5:00 PM WAT`,
+    `⏱️ *Shift Status:* ${statusIcon} ${schedule.statusText}`,
+    `──────────────────────────────`,
+    `📋 *ACTIVITIES PERFORMED TODAY:*`,
     `1️⃣ *Task/Activity 1:*`,
     `   • Description: ${report.activity1.description.trim()}`,
     `   • Outcome: ${report.activity1.outcome.trim()}`,
@@ -298,7 +304,7 @@ export function formatClosingWhatsAppMessage(report: ClosingReport): string {
     `3️⃣ *Task/Activity 3:*`,
     `   • Description: ${report.activity3.description.trim()}`,
     `   • Outcome: ${report.activity3.outcome.trim()}`,
-    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `──────────────────────────────`,
     `✅ *Tasks Completed:*`,
     `${report.tasksCompleted.trim() || 'None'}`,
     ``,
@@ -308,17 +314,17 @@ export function formatClosingWhatsAppMessage(report: ClosingReport): string {
     `⚠️ *Challenges Encountered:*`,
     `${report.challengesEncountered.trim() || 'None'}`,
     ``,
-    `🎯 *Plans for the Next Working Day:*`,
+    `🎯 *Plans for Next Working Day:*`,
     `${report.plansNextWorkingDay.trim()}`,
-    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `✅ *Confirmation Statement:*`,
+    `──────────────────────────────`,
+    `✍️ *Confirmation Declaration:*`,
     `"I hereby submit my daily closing and activity report for management review."`,
-    `━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `📋 *Submission Details:*`,
-    `• Submitted to: ${report.submissionTarget}`,
-    `• Official Contact: ${report.submissionContact}`,
-    `• Organization: DS TECH & DIGITAL MARKETING AGENCY LIMITED (CAC RC: 9550925)`,
-    `• Record Ref: #${report.id}`
+    `──────────────────────────────`,
+    `📩 *Submitted To:* ${report.submissionTarget}`,
+    `📞 *Official Contact:* ${report.submissionContact}`,
+    `🏢 *Organization:* DS TECH & DIGITAL MARKETING AGENCY LIMITED`,
+    `🏛️ *CAC RC No.:* 9550925 (Federal Republic of Nigeria)`,
+    `🔖 *Record Ref:* #${report.id}`
   ].join('\n');
 }
 

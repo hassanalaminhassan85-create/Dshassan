@@ -1,5 +1,5 @@
 /**
- * DS TECH ACADEMY - Staff Attendance Persistence & Storage Layer
+ * DS TECH - Staff Attendance Persistence & Storage Layer
  * Handles local profile retention, draft recovery, and persistent recording to backend / Firestore
  */
 
@@ -16,10 +16,10 @@ import {
 } from './attendanceUtils';
 
 const STORAGE_KEYS = {
-  PROFILE: 'dsta_staff_profile',
-  RESUMPTION_DRAFT: 'dsta_resumption_draft',
-  CLOSING_DRAFT: 'dsta_closing_draft',
-  SUBMISSIONS_HISTORY: 'dsta_attendance_history'
+  PROFILE: 'dst_staff_profile',
+  RESUMPTION_DRAFT: 'dst_resumption_draft',
+  CLOSING_DRAFT: 'dst_closing_draft',
+  SUBMISSIONS_HISTORY: 'dst_attendance_history'
 };
 
 export interface AttendanceSubmissionRecord {
@@ -133,7 +133,7 @@ export async function persistAttendanceRecord(
 ): Promise<{ success: boolean; backendSynced: boolean; firestoreSynced: boolean; recordId: string }> {
   let backendSynced = false;
   let firestoreSynced = false;
-  const recordId = report.id || `DSTA-${Date.now()}`;
+  const recordId = report.id || `DST-${Date.now()}`;
   const nowIso = new Date().toISOString();
 
   const payload = {
