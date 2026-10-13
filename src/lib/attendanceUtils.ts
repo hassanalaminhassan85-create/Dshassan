@@ -1,3 +1,5 @@
+import { COMPANY_NAME } from './companyConstants';
+
 /**
  * DS TECH Staff Attendance & Daily Reporting Utilities
  * Timezone: Africa/Lagos (West Africa Time - UTC+1)
@@ -172,7 +174,7 @@ export function getLagosTimeParts(dateInput?: Date | number | string): { hour: n
  */
 export function formatResumptionWhatsAppMessage(report: ResumptionReport): string {
   return [
-    `🏛️ *DS TECH*`,
+    `🏛️ *${COMPANY_NAME}*`,
     `📋 *DAILY STAFF RESUMPTION REPORT*`,
     `──────────────────────────────`,
     `📅 *Day/Date:* ${report.dateStr}`,
@@ -184,13 +186,7 @@ export function formatResumptionWhatsAppMessage(report: ResumptionReport): strin
     `📌 *Scheduled Resumption:* 8:00 AM WAT`,
     `──────────────────────────────`,
     `✍️ *Confirmation Declaration:*`,
-    `"I hereby confirm my resumption for duty today."`,
-    `──────────────────────────────`,
-    `📩 *Submitted To:* ${report.submissionTarget}`,
-    `📞 *Official Contact:* ${report.submissionContact}`,
-    `🏢 *Organization:* DS TECH & DIGITAL MARKETING AGENCY LIMITED`,
-    `🏛️ *CAC RC No.:* 9550925 (Federal Republic of Nigeria)`,
-    `🔖 *Record Ref:* #${report.id}`
+    `"I hereby confirm my resumption for duty today."`
   ].join('\n');
 }
 
@@ -199,7 +195,7 @@ export function formatResumptionWhatsAppMessage(report: ResumptionReport): strin
  */
 export function formatClosingWhatsAppMessage(report: ClosingReport): string {
   return [
-    `🏛️ *DS TECH*`,
+    `🏛️ *${COMPANY_NAME}*`,
     `📊 *DAILY STAFF CLOSING AND ACTIVITY REPORT*`,
     `──────────────────────────────`,
     `📅 *Day/Date:* ${report.dateStr}`,
@@ -236,13 +232,7 @@ export function formatClosingWhatsAppMessage(report: ClosingReport): string {
     `${report.plansNextWorkingDay.trim()}`,
     `──────────────────────────────`,
     `✍️ *Confirmation Declaration:*`,
-    `"I hereby submit my daily closing and activity report for management review."`,
-    `──────────────────────────────`,
-    `📩 *Submitted To:* ${report.submissionTarget}`,
-    `📞 *Official Contact:* ${report.submissionContact}`,
-    `🏢 *Organization:* DS TECH & DIGITAL MARKETING AGENCY LIMITED`,
-    `🏛️ *CAC RC No.:* 9550925 (Federal Republic of Nigeria)`,
-    `🔖 *Record Ref:* #${report.id}`
+    `"I hereby submit my daily closing and activity report for management review."`
   ].join('\n');
 }
 
