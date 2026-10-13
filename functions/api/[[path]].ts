@@ -38,6 +38,7 @@ function generateBackendSvgResponse(title: string, subtitle = 'DS Tech Digital W
 }
 
 // Temporary memory store for stateless fallback
+let inMemoryAttendance: any[] = [];
 let inMemoryNotifications: any[] = [
   {
     id: 'notif-1',
@@ -1228,6 +1229,86 @@ export async function onRequest(context: { request: Request; env: any; params: a
       errMessage = e.message || String(e);
     }
     return new Response(JSON.stringify({ dbStatus, tables, notificationsCount, errMessage, inMemoryCount: inMemoryNotifications.length }), { headers });
+  }
+
+  // ==========================================
+  // STAFF ATTENDANCE & DAILY REPORTING ENDPOINTS
+  // ==========================================
+  if (path === '/api/attendance/server-time' && method === 'GET') {
+    const now = new Date();
+    const lagosDate = new Intl.DateTimeFormat('en-GB', {
+      timeZone: 'Africa/Lagos',
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    }).format(now);
+    const lagosTime = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Africa/Lagos',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    }).format(now);
+
+    return new Response(JSON.stringify({
+      success: true,
+      serverTimeIso: now.toISOString(),
+      serverTimestamp: now.getTime(),
+      lagosDate,
+      lagosTime,
+      timezone: 'Africa/Lagos'
+    }), { headers });
+  }
+
+  if (path === '/api/attendance' && method === 'POST') {
+    try {
+      const body = await request.json() as any;
+      if (!body) {
+        return new Response(JSON.stringify({ success: false, error: "Request body is required" }), { status: 400, headers });
+      }
+      const now = new Date();
+      const serverTimeIso = now.toISOString();
+      const id = body.id || `DSTA-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+      const lagosDate = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Africa/Lagos',
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(now);
+      const lagosTime = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Africa/Lagos',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }).format(now);
+
+      const record = {
+        ...body,
+        id,
+        reportType: body.reportType || body.type || 'resumption',
+        fullName: (body.fullName || '').trim(),
+        position: (body.position || '').trim(),
+        department: (body.department || '').trim(),
+        serverReceivedAtIso: serverTimeIso,
+        serverVerifiedLagosDate: lagosDate,
+        serverVerifiedLagosTime: lagosTime,
+        status: 'recorded'
+      };
+
+      if (inMemoryAttendance) {
+        inMemoryAttendance.unshift(record);
+      }
+
+      return new Response(JSON.stringify({ success: true, id, record }), { headers });
+    } catch (e: any) {
+      return new Response(JSON.stringify({ success: false, error: e.message || "Failed to record attendance" }), { status: 500, headers });
+    }
+  }
+
+  if (path === '/api/attendance' && method === 'GET') {
+    return new Response(JSON.stringify({ success: true, reports: inMemoryAttendance || [] }), { headers });
   }
 
   // ==========================================

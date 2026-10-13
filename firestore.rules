@@ -131,6 +131,9 @@ service cloud.firestore {
     match /live_attendance/{attendanceId} {
       allow read, write: if true;
     }
+    match /staff_attendance_reports/{reportId} {
+      allow read, write: if true;
+    }
 
     // Client Projects, Invoices and Support Tickets (Enterprise Synchronization)
     match /client_projects/{projectId} {

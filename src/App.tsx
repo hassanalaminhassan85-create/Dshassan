@@ -32,6 +32,7 @@ import { PublicCertificateVerification } from './components/CertificateOfEmploym
 import { StudentDashboard } from './components/StudentDashboard';
 import { TutorDashboard } from './components/TutorDashboard';
 import { ManagementAccountsPortal } from './components/ManagementAccounts/ManagementAccountsPortal';
+import { StaffAttendanceSystem } from './components/StaffAttendanceSystem';
 import { PaystackPayButton, PaystackPaymentConfig } from './components/PaystackMotionCheckout';
 import { PaystackPaymentPage } from './components/PaystackPaymentPage';
 import { JobApplication } from './types';
@@ -243,7 +244,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
   ]
 };
 
-export type ActivePageType = 'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard' | 'verify-certificate' | 'management-accounts' | 'management-dashboard';
+export type ActivePageType = 'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard' | 'verify-certificate' | 'management-accounts' | 'management-dashboard' | 'attendance';
 
 export function resolvePathToState(rawPath: string): {
   path: string;
@@ -288,6 +289,18 @@ export function resolvePathToState(rawPath: string): {
   }
 
   const lowerPath = path.toLowerCase();
+
+  // Staff Attendance route (DIRECT & PRIORITY RESOLUTION - ZERO FLASH)
+  if (
+    lowerPath === '/attendance' ||
+    lowerPath === '/attendance/' ||
+    lowerPath === '/staff-attendance' ||
+    lowerPath === '/attendance-report' ||
+    lowerPath === '/staffattendance' ||
+    lowerPath.startsWith('/attendance')
+  ) {
+    return { path: '/attendance', activePage: 'attendance', isAdminView: false, appId: null };
+  }
 
   // Certificate Verification route (e.g. /verify-certificate/DST-VRF-12345 or /verify/DST-VRF-12345 or /verify-certificate)
   const certVerifyMatch = path.match(/^\/verify-certificate(?:\/([\w\-\/]+))?/i) || path.match(/^\/verify(?:\/([\w\-\/]+))?/i);
@@ -575,12 +588,17 @@ export default function App() {
           section = 'Leadership Suite';
           workflowState = 'In Management Dashboard';
           break;
+        case 'attendance':
+          pageTitle = 'DS TECH ACADEMY Staff Attendance & Daily Report System';
+          section = 'Staff Attendance';
+          workflowState = 'Submitting Attendance Report';
+          break;
       }
     }
 
     const role = isAdminView 
       ? 'Admin' 
-      : activePage === 'staff-portal' 
+      : activePage === 'staff-portal' || activePage === 'attendance'
         ? 'Staff' 
         : activePage === 'management-dashboard' || activePage === 'management-accounts'
           ? 'Management'
@@ -1610,6 +1628,20 @@ export default function App() {
                   }}
                 />
               </motion.div>
+             ) : activePage === 'attendance' ? (
+              <motion.div
+                key="attendance-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full"
+              >
+                <StaffAttendanceSystem
+                  theme={theme}
+                  setTheme={(th) => setTheme(th as 'light' | 'dark')}
+                  onNavigateHome={navigateToRoot}
+                />
+              </motion.div>
              ) : activePage === 'recognition' ? (
               <motion.div
                 key="recognition-section"
@@ -2005,11 +2037,11 @@ export default function App() {
       </main>
 
       {/* Document bottom footer info */}
-      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'student-dashboard', 'tutor-dashboard', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog', 'management-accounts', 'management-dashboard'].includes(activePage) && (
+      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'student-dashboard', 'tutor-dashboard', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog', 'management-accounts', 'management-dashboard', 'attendance'].includes(activePage) && (
         <MainFooter publishedCac={publishedCac} />
       )}
-      {/* Premium Circular Floating AI Assistant Launcher (Hidden on course-registration page per user specification) */}
-      {activePage !== 'course-registration' && (
+      {/* Premium Circular Floating AI Assistant Launcher (Hidden on course-registration & attendance pages per user specification) */}
+      {activePage !== 'course-registration' && activePage !== 'attendance' && (
         <FloatingAiLauncher
           onClick={() => setIsAiModalOpen(!isAiModalOpen)}
           isModalOpen={isAiModalOpen}
@@ -2018,7 +2050,7 @@ export default function App() {
       )}
 
       {/* Enterprise AI Assistant Workspace Modal */}
-      {activePage !== 'course-registration' && (
+      {activePage !== 'course-registration' && activePage !== 'attendance' && (
         <EnterpriseAiAssistantModal
           isOpen={isAiModalOpen}
           onClose={() => setIsAiModalOpen(false)}

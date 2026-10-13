@@ -298,9 +298,36 @@
         "verificationCode",
         "status"
       ]
+    },
+    "StaffAttendanceReport": {
+      "title": "Staff Attendance Report",
+      "description": "Daily resumption and closing activity reports submitted by DS Tech Academy staff members.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "reportType": { "type": "string", "enum": ["resumption", "closing"] },
+        "fullName": { "type": "string" },
+        "position": { "type": "string" },
+        "department": { "type": "string" },
+        "dateStr": { "type": "string" },
+        "dateIso": { "type": "string" },
+        "recordedTimeStr": { "type": "string" },
+        "recordedTimestamp": { "type": "number" },
+        "expectedTimeStr": { "type": "string" },
+        "confirmed": { "type": "boolean" },
+        "submissionTarget": { "type": "string" },
+        "submissionContact": { "type": "string" },
+        "submittedAtIso": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["fullName", "position", "department", "reportType"]
     }
   },
   "firestore": {
+    "/staff_attendance_reports/{reportId}": {
+      "schema": "StaffAttendanceReport",
+      "description": "Staff daily resumption and closing reports repository."
+    },
     "/employment_certificates/{certificateId}": {
       "schema": "EmploymentCertificate",
       "description": "Official Certificates of Employment registry."

@@ -16,6 +16,8 @@ async function startServer() {
   const conversationsStore = new Map<string, { id: string; title: string; user_role: string; updated_at: string; messages: Array<any> }>();
   // In-memory course registrations store
   const courseRegistrationsStore = new Map<string, any>();
+  // In-memory staff attendance and daily reporting store
+  const attendanceStore = new Map<string, any>();
 
   // Live DS Tech Backend Knowledge Base Helper
   function getLiveDsTechContext(message: string, userRole?: string, userData?: any, pageContext?: any): string {
@@ -635,6 +637,105 @@ ${liveContext ? liveContext : ''}`;
       return res.json({ success: true, message: `Certificate ${id} deleted successfully` });
     } catch (err: any) {
       return res.status(500).json({ success: false, error: err.message || 'Delete certificate error' });
+    }
+  });
+
+  // ==========================================
+  // DS TECH ACADEMY - Staff Attendance & Daily Reporting Backend
+  // Timezone: Africa/Lagos (West Africa Time UTC+1)
+  // ==========================================
+
+  // 1. Get official server time in Africa/Lagos
+  app.get('/api/attendance/server-time', (req, res) => {
+    try {
+      const now = new Date();
+      const lagosDate = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Africa/Lagos',
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(now);
+      const lagosTime = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Africa/Lagos',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }).format(now);
+
+      return res.json({
+        success: true,
+        serverTimeIso: now.toISOString(),
+        serverTimestamp: now.getTime(),
+        lagosDate,
+        lagosTime,
+        timezone: 'Africa/Lagos'
+      });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message || 'Failed to get server time' });
+    }
+  });
+
+  // 2. Submit Staff Attendance Report (Resumption or Closing)
+  app.post('/api/attendance', (req, res) => {
+    try {
+      const body = req.body;
+      if (!body) {
+        return res.status(400).json({ success: false, error: 'Request body is required' });
+      }
+
+      const { fullName, position, department, reportType } = body;
+      if (!fullName || !position || !department) {
+        return res.status(400).json({ success: false, error: 'Full name, position, and department are required' });
+      }
+
+      const now = new Date();
+      const serverTimeIso = now.toISOString();
+      const id = body.id || `DSTA-${Date.now()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+      const lagosDate = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Africa/Lagos',
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(now);
+      const lagosTime = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Africa/Lagos',
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      }).format(now);
+
+      const record = {
+        ...body,
+        id,
+        reportType: reportType || body.type || 'resumption',
+        fullName: fullName.trim(),
+        position: position.trim(),
+        department: department.trim(),
+        serverReceivedAtIso: serverTimeIso,
+        serverVerifiedLagosDate: lagosDate,
+        serverVerifiedLagosTime: lagosTime,
+        status: 'recorded'
+      };
+
+      attendanceStore.set(id, record);
+      return res.json({ success: true, id, record });
+    } catch (err: any) {
+      console.error('Error recording attendance:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Internal server error recording attendance' });
+    }
+  });
+
+  // 3. List Staff Attendance Reports (Sorted by date desc)
+  app.get('/api/attendance', (req, res) => {
+    try {
+      const list = Array.from(attendanceStore.values())
+        .sort((a, b) => new Date(b.serverReceivedAtIso || b.dateIso || 0).getTime() - new Date(a.serverReceivedAtIso || a.dateIso || 0).getTime());
+      return res.json({ success: true, count: list.length, reports: list });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message || 'Failed to list attendance records' });
     }
   });
 
