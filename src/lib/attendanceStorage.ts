@@ -69,14 +69,23 @@ export function clearStaffProfile(): void {
 export function loadResumptionDraft(): Partial<ResumptionReport> | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.RESUMPTION_DRAFT);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Never restore stale timestamp or old session ID
+      delete parsed.recordedTimestamp;
+      delete parsed.id;
+      return parsed;
+    }
   } catch {}
   return null;
 }
 
 export function saveResumptionDraft(draft: Partial<ResumptionReport>): void {
   try {
-    localStorage.setItem(STORAGE_KEYS.RESUMPTION_DRAFT, JSON.stringify(draft));
+    const toSave = { ...draft };
+    delete toSave.recordedTimestamp;
+    delete toSave.id;
+    localStorage.setItem(STORAGE_KEYS.RESUMPTION_DRAFT, JSON.stringify(toSave));
   } catch {}
 }
 
@@ -89,14 +98,23 @@ export function clearResumptionDraft(): void {
 export function loadClosingDraft(): Partial<ClosingReport> | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.CLOSING_DRAFT);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Never restore stale timestamp or old session ID
+      delete parsed.recordedTimestamp;
+      delete parsed.id;
+      return parsed;
+    }
   } catch {}
   return null;
 }
 
 export function saveClosingDraft(draft: Partial<ClosingReport>): void {
   try {
-    localStorage.setItem(STORAGE_KEYS.CLOSING_DRAFT, JSON.stringify(draft));
+    const toSave = { ...draft };
+    delete toSave.recordedTimestamp;
+    delete toSave.id;
+    localStorage.setItem(STORAGE_KEYS.CLOSING_DRAFT, JSON.stringify(toSave));
   } catch {}
 }
 

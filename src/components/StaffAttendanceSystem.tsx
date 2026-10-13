@@ -116,19 +116,12 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
   // ==========================================
   // RESUMPTION REPORT STATE
   // ==========================================
-  const initialResumptionTimestamp = useRef<number>(Date.now());
   const [resumptionRecordId, setResumptionRecordId] = useState<string>(() => {
-    const draft = loadResumptionDraft();
-    return draft?.id || `DST-RES-${Date.now().toString().slice(-6)}`;
+    return `DST-RES-${Date.now().toString().slice(-6)}`;
   });
-  const [resumptionCapturedTime, setResumptionCapturedTime] = useState<number>(() => {
-    const draft = loadResumptionDraft();
-    return draft?.recordedTimestamp || initialResumptionTimestamp.current;
-  });
-  const [resumptionConfirmed, setResumptionConfirmed] = useState<boolean>(() => {
-    const draft = loadResumptionDraft();
-    return draft?.confirmed ?? false;
-  });
+  // Always initialize to fresh current time when the user opens the page
+  const [resumptionCapturedTime, setResumptionCapturedTime] = useState<number>(() => Date.now());
+  const [resumptionConfirmed, setResumptionConfirmed] = useState<boolean>(false);
   const [resumptionValidationErrors, setResumptionValidationErrors] = useState<string[]>([]);
   const [isResumptionSubmitting, setIsResumptionSubmitting] = useState<boolean>(false);
 
@@ -139,14 +132,12 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
   // Auto-save resumption draft
   useEffect(() => {
     saveResumptionDraft({
-      id: resumptionRecordId,
       fullName,
       position,
       department,
-      recordedTimestamp: resumptionCapturedTime,
       confirmed: resumptionConfirmed
     });
-  }, [resumptionRecordId, fullName, position, department, resumptionCapturedTime, resumptionConfirmed]);
+  }, [fullName, position, department, resumptionConfirmed]);
 
   const handleResetResumptionSession = () => {
     const newTs = Date.now();
@@ -161,15 +152,11 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
   // ==========================================
   // CLOSING REPORT STATE
   // ==========================================
-  const initialClosingTimestamp = useRef<number>(Date.now());
   const [closingRecordId, setClosingRecordId] = useState<string>(() => {
-    const draft = loadClosingDraft();
-    return draft?.id || `DST-CLS-${Date.now().toString().slice(-6)}`;
+    return `DST-CLS-${Date.now().toString().slice(-6)}`;
   });
-  const [closingCapturedTime, setClosingCapturedTime] = useState<number>(() => {
-    const draft = loadClosingDraft();
-    return draft?.recordedTimestamp || initialClosingTimestamp.current;
-  });
+  // Always initialize to fresh current time when the user opens the page
+  const [closingCapturedTime, setClosingCapturedTime] = useState<number>(() => Date.now());
 
   const [closingActivities, setClosingActivities] = useState<{
     act1Desc: string;
@@ -220,11 +207,9 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
   // Auto-save closing draft
   useEffect(() => {
     saveClosingDraft({
-      id: closingRecordId,
       fullName,
       position,
       department,
-      recordedTimestamp: closingCapturedTime,
       activity1: { description: closingActivities.act1Desc, outcome: closingActivities.act1Outcome },
       activity2: { description: closingActivities.act2Desc, outcome: closingActivities.act2Outcome },
       activity3: { description: closingActivities.act3Desc, outcome: closingActivities.act3Outcome },
@@ -235,8 +220,8 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
       confirmed: closingConfirmed
     });
   }, [
-    closingRecordId, fullName, position, department, 
-    closingCapturedTime, closingActivities, tasksCompleted, pendingTasks, 
+    fullName, position, department, 
+    closingActivities, tasksCompleted, pendingTasks, 
     challengesEncountered, plansNextWorkingDay, closingConfirmed
   ]);
 
@@ -283,6 +268,44 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
 
   const refreshHistory = () => {
     setSubmissionHistory(loadAttendanceSubmissionsHistory());
+  };
+
+  // Synchronize arrival and closing timestamps to current time whenever the user opens or returns to the page
+  useEffect(() => {
+    const syncCurrentTime = () => {
+      const now = Date.now();
+      setResumptionCapturedTime(now);
+      setClosingCapturedTime(now);
+    };
+
+    // Ensure immediate sync on mount
+    syncCurrentTime();
+
+    const handleVisibilityOrFocus = () => {
+      if (document.visibilityState === 'visible') {
+        syncCurrentTime();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+    };
+  }, []);
+
+  const handleSelectTab = (tab: 'resumption' | 'closing' | 'history') => {
+    setActiveTab(tab);
+    const now = Date.now();
+    if (tab === 'resumption') {
+      setResumptionCapturedTime(now);
+    } else if (tab === 'closing') {
+      setClosingCapturedTime(now);
+    } else if (tab === 'history') {
+      refreshHistory();
+    }
   };
 
   // ==========================================
@@ -696,7 +719,7 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
           <div className="flex items-center gap-6">
             <button
               type="button"
-              onClick={() => setActiveTab('resumption')}
+              onClick={() => handleSelectTab('resumption')}
               className={`pb-3 text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer relative ${
                 activeTab === 'resumption'
                   ? 'text-orange-600 dark:text-orange-400'
@@ -715,7 +738,7 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
 
             <button
               type="button"
-              onClick={() => setActiveTab('closing')}
+              onClick={() => handleSelectTab('closing')}
               className={`pb-3 text-xs sm:text-sm font-bold transition-all flex items-center gap-2 cursor-pointer relative ${
                 activeTab === 'closing'
                   ? 'text-orange-600 dark:text-orange-400'
@@ -735,10 +758,7 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
 
           <button
             type="button"
-            onClick={() => {
-              setActiveTab('history');
-              refreshHistory();
-            }}
+            onClick={() => handleSelectTab('history')}
             className={`pb-3 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
               activeTab === 'history'
                 ? 'text-orange-600 dark:text-orange-400'
