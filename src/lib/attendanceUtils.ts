@@ -168,86 +168,9 @@ export function getLagosTimeParts(dateInput?: Date | number | string): { hour: n
 }
 
 /**
- * Evaluates resumption punctuality against expected 8:00 AM schedule
- */
-export function evaluateResumptionSchedule(recordedTimestamp: number): {
-  isLate: boolean;
-  minutesDiff: number;
-  badgeLabel: string;
-  statusText: string;
-} {
-  const { hour, minute } = getLagosTimeParts(recordedTimestamp);
-  const totalMinutes = hour * 60 + minute;
-  const expectedMinutes = 8 * 60; // 8:00 AM = 480 minutes
-
-  const diff = totalMinutes - expectedMinutes;
-  if (diff <= 0) {
-    return {
-      isLate: false,
-      minutesDiff: Math.abs(diff),
-      badgeLabel: 'On Schedule (8:00 AM Target)',
-      statusText: 'Punctual Resumption'
-    };
-  } else {
-    return {
-      isLate: true,
-      minutesDiff: diff,
-      badgeLabel: `Late Resumption (+${diff} min${diff === 1 ? '' : 's'})`,
-      statusText: `Late Resumption (+${diff} minutes after 8:00 AM)`
-    };
-  }
-}
-
-/**
- * Evaluates closing schedule against expected 5:00 PM schedule
- */
-export function evaluateClosingSchedule(recordedTimestamp: number): {
-  isEarly: boolean;
-  isAfterSchedule: boolean;
-  minutesDiff: number;
-  badgeLabel: string;
-  statusText: string;
-} {
-  const { hour, minute } = getLagosTimeParts(recordedTimestamp);
-  const totalMinutes = hour * 60 + minute;
-  const expectedMinutes = 17 * 60; // 5:00 PM = 1020 minutes
-
-  const diff = totalMinutes - expectedMinutes;
-  if (Math.abs(diff) <= 5) {
-    return {
-      isEarly: false,
-      isAfterSchedule: false,
-      minutesDiff: 0,
-      badgeLabel: 'On Schedule (5:00 PM Target)',
-      statusText: 'Scheduled Closing Time (5:00 PM)'
-    };
-  } else if (diff < -5) {
-    const earlyMin = Math.abs(diff);
-    return {
-      isEarly: true,
-      isAfterSchedule: false,
-      minutesDiff: earlyMin,
-      badgeLabel: `Early Sign-Out (-${earlyMin} min${earlyMin === 1 ? '' : 's'})`,
-      statusText: `Early Sign-Out (${earlyMin} minutes before 5:00 PM)`
-    };
-  } else {
-    return {
-      isEarly: false,
-      isAfterSchedule: true,
-      minutesDiff: diff,
-      badgeLabel: `Extended Shift (+${diff} min${diff === 1 ? '' : 's'})`,
-      statusText: `Extended Shift (+${diff} minutes after 5:00 PM)`
-    };
-  }
-}
-
-/**
  * Formats Resumption Report for WhatsApp transmission
  */
 export function formatResumptionWhatsAppMessage(report: ResumptionReport): string {
-  const schedule = evaluateResumptionSchedule(report.recordedTimestamp);
-  const statusIcon = schedule.isLate ? '⚠️' : '✅';
-  
   return [
     `🏛️ *DS TECH*`,
     `📋 *DAILY STAFF RESUMPTION REPORT*`,
@@ -259,7 +182,6 @@ export function formatResumptionWhatsAppMessage(report: ResumptionReport): strin
     `──────────────────────────────`,
     `⏰ *Actual Resumption Time:* ${report.recordedTimeStr} (WAT • Africa/Lagos)`,
     `📌 *Scheduled Resumption:* 8:00 AM WAT`,
-    `⏱️ *Attendance Status:* ${statusIcon} ${schedule.statusText}`,
     `──────────────────────────────`,
     `✍️ *Confirmation Declaration:*`,
     `"I hereby confirm my resumption for duty today."`,
@@ -276,9 +198,6 @@ export function formatResumptionWhatsAppMessage(report: ResumptionReport): strin
  * Formats Closing and Activity Report for WhatsApp transmission
  */
 export function formatClosingWhatsAppMessage(report: ClosingReport): string {
-  const schedule = evaluateClosingSchedule(report.recordedTimestamp);
-  const statusIcon = schedule.isEarly ? '⚠️' : '✅';
-
   return [
     `🏛️ *DS TECH*`,
     `📊 *DAILY STAFF CLOSING AND ACTIVITY REPORT*`,
@@ -290,7 +209,6 @@ export function formatClosingWhatsAppMessage(report: ClosingReport): string {
     `──────────────────────────────`,
     `⏰ *Actual Signing-Out Time:* ${report.recordedTimeStr} (WAT • Africa/Lagos)`,
     `📌 *Scheduled Closing Time:* 5:00 PM WAT`,
-    `⏱️ *Shift Status:* ${statusIcon} ${schedule.statusText}`,
     `──────────────────────────────`,
     `📋 *ACTIVITIES PERFORMED TODAY:*`,
     `1️⃣ *Task/Activity 1:*`,

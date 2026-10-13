@@ -19,8 +19,6 @@ import {
   ClosingReport,
   getLagosDateFormatted,
   getLagosTimeFormatted,
-  evaluateResumptionSchedule,
-  evaluateClosingSchedule,
   formatResumptionWhatsAppMessage,
   formatClosingWhatsAppMessage,
   generateWhatsAppUrl
@@ -137,7 +135,6 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
   // Formatted resumption date and time strings
   const resumptionDateStr = useMemo(() => getLagosDateFormatted(resumptionCapturedTime), [resumptionCapturedTime]);
   const resumptionTimeStr = useMemo(() => getLagosTimeFormatted(resumptionCapturedTime), [resumptionCapturedTime]);
-  const resumptionSchedule = useMemo(() => evaluateResumptionSchedule(resumptionCapturedTime), [resumptionCapturedTime]);
 
   // Auto-save resumption draft
   useEffect(() => {
@@ -219,7 +216,6 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
   // Formatted closing date and time strings
   const closingDateStr = useMemo(() => getLagosDateFormatted(closingCapturedTime), [closingCapturedTime]);
   const closingTimeStr = useMemo(() => getLagosTimeFormatted(closingCapturedTime), [closingCapturedTime]);
-  const closingSchedule = useMemo(() => evaluateClosingSchedule(closingCapturedTime), [closingCapturedTime]);
 
   // Auto-save closing draft
   useEffect(() => {
@@ -779,11 +775,21 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
                 </p>
               </div>
 
-              {/* CARD: ACTUAL CAPTURED RESUMPTION TIME (Exact design from Screenshot 3) */}
+              {/* CARD: ACTUAL CAPTURED RESUMPTION TIME */}
               <div className="bg-slate-50/90 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 rounded-2xl p-4 sm:p-5 space-y-3">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                  ACTUAL CAPTURED RESUMPTION TIME
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                    ACTUAL CAPTURED RESUMPTION TIME
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleResetResumptionSession}
+                    className="text-xs text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <RefreshCw size={12} />
+                    <span>Reset</span>
+                  </button>
+                </div>
 
                 <div className="flex items-center gap-2">
                   <Clock size={20} className="text-orange-500 shrink-0" />
@@ -804,25 +810,6 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
                   <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
                     8:00 AM WAT (Official Work Schedule)
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3 pt-1">
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    resumptionSchedule.isLate
-                      ? 'bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
-                      : 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
-                  }`}>
-                    {resumptionSchedule.badgeLabel}
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={handleResetResumptionSession}
-                    className="text-xs text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <RefreshCw size={12} />
-                    <span>Reset</span>
-                  </button>
                 </div>
               </div>
 
@@ -1046,11 +1033,21 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
                 </p>
               </div>
 
-              {/* CARD: ACTUAL CAPTURED SIGNING-OUT TIME (Exact design from Screenshot 2) */}
+              {/* CARD: ACTUAL CAPTURED SIGNING-OUT TIME */}
               <div className="bg-slate-50/90 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 rounded-2xl p-4 sm:p-5 space-y-3">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                  ACTUAL CAPTURED SIGNING-OUT TIME
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
+                    ACTUAL CAPTURED SIGNING-OUT TIME
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleResetClosingSession}
+                    className="text-xs text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <RefreshCw size={12} />
+                    <span>Reset</span>
+                  </button>
+                </div>
 
                 <div className="flex items-center gap-2">
                   <Clock size={20} className="text-orange-500 shrink-0" />
@@ -1071,21 +1068,6 @@ export const StaffAttendanceSystem: React.FC<StaffAttendanceSystemProps> = ({
                   <div className="text-xs font-bold text-slate-800 dark:text-slate-200">
                     5:00 PM WAT (Official Closing Time)
                   </div>
-                </div>
-
-                <div className="flex items-center gap-3 pt-1">
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-indigo-100 dark:bg-indigo-950/40 text-indigo-800 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800">
-                    {closingSchedule.badgeLabel}
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={handleResetClosingSession}
-                    className="text-xs text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center gap-1 cursor-pointer transition-colors"
-                  >
-                    <RefreshCw size={12} />
-                    <span>Reset</span>
-                  </button>
                 </div>
               </div>
 
