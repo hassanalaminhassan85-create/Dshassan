@@ -123,6 +123,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Course Registration Form", value: "course-registration" },
     { label: "Clients", value: "clients" },
     { label: "Recognition", value: "recognition" },
+    { label: "Attendance", value: "attendance" },
     { label: "Careers", value: "careers" }
   ],
   fr: [
@@ -136,6 +137,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Inscription Cours", value: "course-registration" },
     { label: "Clients", value: "clients" },
     { label: "Reconnaissance", value: "recognition" },
+    { label: "Présence", value: "attendance" },
     { label: "Carrières", value: "careers" }
   ],
   ha: [
@@ -149,6 +151,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Fom ɗin Rijistar Darussa", value: "course-registration" },
     { label: "Abokan Ciniki", value: "clients" },
     { label: "Yabo da Kyaututtuka", value: "recognition" },
+    { label: "Halarta", value: "attendance" },
     { label: "Ayyuka Buɗe", value: "careers" }
   ],
   yo: [
@@ -162,6 +165,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Fọọmu Iforukọsilẹ Ẹkọ", value: "course-registration" },
     { label: "Awọn alabara", value: "clients" },
     { label: "Idanimọ", value: "recognition" },
+    { label: "Iforukọsilẹ Wiwa", value: "attendance" },
     { label: "Iṣẹ-ṣiṣe", value: "careers" }
   ],
   es: [
@@ -175,6 +179,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Formulario de Cursos", value: "course-registration" },
     { label: "Clientes", value: "clients" },
     { label: "Reconocimientos", value: "recognition" },
+    { label: "Asistencia", value: "attendance" },
     { label: "Carreras", value: "careers" }
   ],
   ar: [
@@ -188,6 +193,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "استمارة تسجيل الدورات", value: "course-registration" },
     { label: "العملاء", value: "clients" },
     { label: "شهادات التقدير", value: "recognition" },
+    { label: "تسجيل الحضور", value: "attendance" },
     { label: "الوظائف", value: "careers" }
   ],
   de: [
@@ -201,6 +207,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Kursanmeldung", value: "course-registration" },
     { label: "Kunden", value: "clients" },
     { label: "Anerkennung", value: "recognition" },
+    { label: "Anwesenheit", value: "attendance" },
     { label: "Karriere", value: "careers" }
   ],
   ru: [
@@ -214,6 +221,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Регистрация на курс", value: "course-registration" },
     { label: "Клиенты", value: "clients" },
     { label: "Признание", value: "recognition" },
+    { label: "Посещаемость", value: "attendance" },
     { label: "Вакансии", value: "careers" }
   ],
   pt: [
@@ -227,6 +235,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Inscrição de Cursos", value: "course-registration" },
     { label: "Clientes", value: "clients" },
     { label: "Reconhecimento", value: "recognition" },
+    { label: "Presença", value: "attendance" },
     { label: "Carreiras", value: "careers" }
   ],
   zh: [
@@ -240,6 +249,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "课程注册表", value: "course-registration" },
     { label: "客户门户", value: "clients" },
     { label: "资质荣誉", value: "recognition" },
+    { label: "考勤签到", value: "attendance" },
     { label: "人才招聘", value: "careers" }
   ]
 };

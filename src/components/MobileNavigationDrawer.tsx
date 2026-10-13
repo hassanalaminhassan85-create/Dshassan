@@ -4,7 +4,7 @@ import {
   X, Home, Info, Briefcase, Image as ImageIcon, Users, Star, FileText, 
   GraduationCap, Award, UserCheck, Building2, ChevronRight, CreditCard, 
   ShieldAlert, BookOpen, Globe, Sun, Moon, Check, Search, 
-  Sparkles, Layers, UserPlus, ArrowUpRight, Download
+  Sparkles, Layers, UserPlus, ArrowUpRight, Download, Clock
 } from 'lucide-react';
 import { Logo } from './Logo';
 import { PaystackPayButton } from './PaystackMotionCheckout';
@@ -78,6 +78,7 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
   // Structured Menu Items Catalog
   const mainNavItems = [
     { label: 'Home', value: 'home', path: '/', icon: Home, category: 'main' },
+    { label: 'Attendance', value: 'attendance', path: '/attendance', icon: Clock, badge: 'Staff', category: 'main' },
     { label: 'Management Accounts', value: 'management-accounts', path: '/management-accounts', icon: Building2, badge: 'Executive', category: 'main' },
     { label: 'About Us', value: 'about', path: '/about', icon: Info, category: 'main' },
     { label: 'Services', value: 'services', path: '/services', icon: Layers, category: 'main' },
@@ -167,6 +168,7 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
   ];
 
   const systemPortals = [
+    { label: 'Attendance (Staff & Daily Reports)', value: 'attendance', path: '/attendance', icon: Clock, badge: 'Staff', category: 'portals' },
     { label: 'Management Accounts', value: 'management-accounts', path: '/management-accounts', icon: Building2, badge: 'Leadership', category: 'portals' },
     { label: 'Student Dashboard', value: 'student-dashboard', path: '/student-dashboard', icon: BookOpen, category: 'portals' },
     { label: 'Faculty / Tutor Portal', value: 'tutor-dashboard', path: '/tutor-dashboard', icon: Award, category: 'portals' },
