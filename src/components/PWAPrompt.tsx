@@ -16,7 +16,6 @@ export interface BeforeInstallPromptEvent extends Event {
 
 export function PWAPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [showPromptBanner, setShowPromptBanner] = useState(false);
   const [showFullModal, setShowFullModal] = useState(false);
   const [activeModalTab, setActiveModalTab] = useState<'overview' | 'control' | 'guide'>('overview');
   const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
@@ -48,25 +47,15 @@ export function PWAPrompt() {
     const isIOSDevice = /iphone|ipad|ipod/.test(userAgent) && !(window as any).MSStream;
     setIsIOS(isIOSDevice);
 
-    // 3. Listen for Chromium/Android install prompt
+    // 3. Listen for Chromium/Android install prompt (retained silently for voluntary actions only; never auto-pop banner)
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      
-      // Auto-display bottom installation prompt after a gentle delay for new visitors
-      const hasDismissed = sessionStorage.getItem('dstech_pwa_dismissed');
-      if (!hasDismissed) {
-        const timer = setTimeout(() => {
-          setShowPromptBanner(true);
-        }, 3500);
-        return () => clearTimeout(timer);
-      }
     };
 
     const handleAppInstalled = () => {
       setIsInstalled(true);
       setDeferredPrompt(null);
-      setShowPromptBanner(false);
       setShowFullModal(false);
       setInstallSuccess(true);
       setTimeout(() => setInstallSuccess(false), 6000);
@@ -137,18 +126,12 @@ export function PWAPrompt() {
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
         setIsInstalled(true);
-        setShowPromptBanner(false);
         setShowFullModal(false);
       }
       setDeferredPrompt(null);
     } catch (err) {
       console.error('PWA install prompt error:', err);
     }
-  };
-
-  const handleDismissBanner = () => {
-    setShowPromptBanner(false);
-    sessionStorage.setItem('dstech_pwa_dismissed', 'true');
   };
 
   const handleClearCache = async () => {
@@ -214,79 +197,7 @@ export function PWAPrompt() {
 
   return (
     <>
-      {/* 1. Floating Bottom Install Banner (With Official DS Tech Logo) */}
-      <AnimatePresence>
-        {showPromptBanner && !isInstalled && (
-          <motion.aside
-            aria-label="PWA Installation Banner"
-            initial={{ opacity: 0, y: 60, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 40, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 350, damping: 28 }}
-            className="fixed bottom-4 left-3 right-3 sm:left-auto sm:right-5 sm:w-[430px] bg-slate-950/95 dark:bg-slate-950/95 backdrop-blur-2xl border border-orange-500/30 text-white rounded-3xl shadow-[0_20px_60px_-15px_rgba(249,115,22,0.3)] p-5 z-[9990] overflow-hidden"
-          >
-            {/* Ambient Background Glows */}
-            <div className="absolute -top-12 -right-12 w-40 h-40 bg-orange-500/15 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-12 -left-12 w-40 h-40 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="relative z-10 flex items-start gap-4">
-              {/* Official DS Tech Circular Vector Logo */}
-              <div 
-                onClick={() => setShowFullModal(true)} 
-                className="shrink-0 p-1.5 rounded-2xl bg-slate-900/90 border border-slate-700/80 shadow-inner cursor-pointer hover:border-orange-500/50 transition-colors"
-                title="View DS TECH PWA details"
-              >
-                <Logo size="md" showText={false} variant="light" />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-1 mb-1">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-orange-400 flex items-center gap-1 font-mono">
-                    <ShieldCheck size={12} className="text-orange-400" />
-                    Official PWA Application
-                  </span>
-                  <button
-                    onClick={handleDismissBanner}
-                    className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-                    aria-label="Close install banner"
-                  >
-                    <X size={15} />
-                  </button>
-                </div>
-
-                <h4 className="text-sm font-extrabold text-white tracking-tight truncate">
-                  DS TECH AND DIGITAL
-                </h4>
-                <p className="text-[11px] text-slate-300 leading-snug mt-0.5 line-clamp-2">
-                  Install the official app on your device for lightning-fast offline loading, live notifications, and native speed.
-                </p>
-
-                <div className="flex items-center gap-2 mt-3.5">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleInstallClick}
-                    className="flex-1 py-2 px-3.5 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-600 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2 cursor-pointer transition-all"
-                  >
-                    <Download size={14} className="animate-bounce" />
-                    <span>Install Official App</span>
-                  </motion.button>
-                  
-                  <button
-                    onClick={() => {
-                      setShowPromptBanner(false);
-                      setShowFullModal(true);
-                    }}
-                    className="py-2 px-3 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
-                  >
-                    Control
-                  </button>
-                </div>
-              </div>
-            </div>
-          </motion.aside>
-        )}
-      </AnimatePresence>
+      {/* Floating install banner completely eliminated to ensure clean, uninterrupted UX */}
 
       {/* 2. Comprehensive PWA Installation & Verification Modal */}
       <AnimatePresence>
