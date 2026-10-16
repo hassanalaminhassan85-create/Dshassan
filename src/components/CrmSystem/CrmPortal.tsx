@@ -15,17 +15,10 @@ import {
   ShieldCheck,
   ShieldAlert,
   Settings,
-  LogOut,
-  Calendar,
   RefreshCw,
-  Search,
-  ExternalLink,
-  ChevronDown,
   Menu,
   X,
-  Lock,
   ArrowLeft,
-  Sparkles,
   Sun,
   Moon
 } from 'lucide-react';
@@ -53,26 +46,22 @@ interface CrmPortalProps {
   setTheme?: (theme: 'dark' | 'light') => void;
 }
 
-const CRM_TOKEN_KEY = 'dst_crm_auth_token';
+const DEFAULT_CRM_USER: CrmAuthUser = {
+  email: 'admin@dstechagency.com',
+  name: 'DS Tech Systems Administrator',
+  role: 'CRM_SUPERADMIN'
+};
+
+const DEFAULT_CRM_TOKEN = 'crm_direct_access';
 
 export const CrmPortal: React.FC<CrmPortalProps> = ({
   onBackToWebsite,
   theme = 'dark',
   setTheme
 }) => {
-  // Authentication State
-  const [authToken, setAuthToken] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem(CRM_TOKEN_KEY);
-    } catch {
-      return null;
-    }
-  });
-  const [authUser, setAuthUser] = useState<CrmAuthUser | null>(null);
-  const [authLoading, setAuthLoading] = useState(false);
-  const [loginEmail, setLoginEmail] = useState('admin@dstechagency.com');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginError, setLoginError] = useState<string | null>(null);
+  // Direct Authorized State (No login gate needed)
+  const [authToken] = useState<string>(DEFAULT_CRM_TOKEN);
+  const [authUser] = useState<CrmAuthUser>(DEFAULT_CRM_USER);
 
   // Active Navigation Tab
   const [activeTab, setActiveTab] = useState<CrmTab>('overview');
@@ -94,30 +83,10 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
 
   // Visitor Drawer State
   const [inspectVisitorId, setInspectVisitorId] = useState<string | null>(null);
-  const [inspectLeadId, setInspectLeadId] = useState<string | null>(null);
-
-  // Verify Auth on mount
-  useEffect(() => {
-    if (authToken) {
-      fetch('/api/crm/auth/me', {
-        headers: { Authorization: `Bearer ${authToken}` }
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.user) {
-            setAuthUser(data.user);
-          } else {
-            // Expired or invalid token
-            handleLogout();
-          }
-        })
-        .catch(() => handleLogout());
-    }
-  }, [authToken]);
+  const [, setInspectLeadId] = useState<string | null>(null);
 
   // Load Overview Data when Overview Tab is active or date range changes
   const loadOverviewData = async () => {
-    if (!authToken) return;
     try {
       setIsRefreshing(true);
       let startDate: string | undefined;
@@ -155,53 +124,10 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
   };
 
   useEffect(() => {
-    if (authToken && activeTab === 'overview') {
+    if (activeTab === 'overview') {
       loadOverviewData();
     }
-  }, [authToken, activeTab, dateRange]);
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoginError(null);
-    setAuthLoading(true);
-
-    try {
-      const res = await fetch('/api/crm/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: loginEmail, password: loginPassword })
-      });
-      const data = await res.json();
-
-      if (data.success && data.token) {
-        setAuthToken(data.token);
-        setAuthUser(data.user);
-        try {
-          localStorage.setItem(CRM_TOKEN_KEY, data.token);
-        } catch {}
-      } else {
-        setLoginError(data.error || 'Invalid administrative credentials');
-      }
-    } catch (err: any) {
-      setLoginError(err.message || 'Authentication server connection error');
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
-  const handleLogout = () => {
-    if (authToken) {
-      fetch('/api/crm/auth/logout', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${authToken}` }
-      }).catch(() => {});
-    }
-    setAuthToken(null);
-    setAuthUser(null);
-    try {
-      localStorage.removeItem(CRM_TOKEN_KEY);
-    } catch {}
-  };
+  }, [activeTab, dateRange]);
 
   const formatDuration = (sec: number): string => {
     if (!sec || sec < 60) return `${sec || 0}s`;
@@ -210,7 +136,7 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
     return remainSec > 0 ? `${mins}m ${remainSec}s` : `${mins}m`;
   };
 
-  // Nav Items
+  // Navigation Items Catalog (14 comprehensive sections)
   const navItems: Array<{ id: CrmTab; label: string; icon: React.ReactNode; badge?: string }> = [
     { id: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'live', label: 'Live Visitors', icon: <Radio className="w-4 h-4 text-emerald-400" />, badge: 'Live' },
@@ -229,127 +155,7 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
   ];
 
   // ==========================================
-  // Render Unauthenticated State (Login Guard)
-  // ==========================================
-  if (!authToken || !authUser) {
-    return (
-      <div className="min-h-screen w-full bg-[#070A11] text-slate-100 flex flex-col justify-between font-mono selection:bg-amber-500 selection:text-slate-950">
-        {/* Top Minimal Bar */}
-        <header className="p-4 sm:p-6 flex items-center justify-between border-b border-white/5">
-          <div className="flex items-center gap-3">
-            <Logo size="sm" showText={false} variant="light" />
-            <div>
-              <span className="text-xs font-bold text-white uppercase tracking-wider block">
-                DS Tech & Digital Marketing Agency
-              </span>
-              <span className="text-[10px] text-amber-500/90 tracking-widest uppercase">
-                Enterprise Intelligence Core
-              </span>
-            </div>
-          </div>
-
-          <button
-            onClick={onBackToWebsite}
-            className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 text-amber-400" />
-            <span>Public Website</span>
-          </button>
-        </header>
-
-        {/* Login Form Center Card */}
-        <div className="flex-1 flex items-center justify-center p-4">
-          <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-slate-900/95 border border-white/10 shadow-2xl space-y-6 relative overflow-hidden text-left"
-          >
-            {/* Subtle Gold Gradient Glow in background */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/10 rounded-full filter blur-3xl pointer-events-none" />
-
-            <div className="text-center space-y-2 relative z-10">
-              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto shadow-inner">
-                <Lock className="w-5 h-5" />
-              </div>
-              <h1 className="text-lg font-extrabold uppercase tracking-wide text-white">
-                DS Tech CRM & Analytics
-              </h1>
-              <p className="text-xs text-slate-400 font-sans leading-relaxed">
-                Enter authorized administrator credentials to access real-time visitor intelligence, lead funnels, and CRM records.
-              </p>
-            </div>
-
-            {loginError && (
-              <div className="p-3 rounded-xl bg-rose-950/60 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 shrink-0" />
-                <span>{loginError}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleLogin} className="space-y-4 relative z-10">
-              <div>
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
-                  Administrator Email / Account
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  placeholder="admin@dstechagency.com"
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50"
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] uppercase font-bold text-slate-400 block mb-1">
-                  Access Key / Passcode
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  placeholder="Enter administrator passcode"
-                  className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500/50"
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={authLoading}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-500 via-amber-600 to-amber-700 hover:from-amber-600 hover:to-amber-800 text-slate-950 font-extrabold text-xs uppercase tracking-wider transition-all duration-200 cursor-pointer disabled:opacity-50 shadow-xl shadow-amber-500/10 flex items-center justify-center gap-2"
-              >
-                {authLoading ? (
-                  <>
-                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                    <span>Validating Credentials...</span>
-                  </>
-                ) : (
-                  <>
-                    <ShieldCheck className="w-4 h-4" />
-                    <span>Authorize Dashboard Access</span>
-                  </>
-                )}
-              </button>
-            </form>
-
-            <div className="text-center pt-2 border-t border-white/5 text-[10px] text-slate-500">
-              Session is encrypted & protected under server-side token authorization.
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Bottom Bar */}
-        <footer className="p-4 text-center border-t border-white/5 text-[11px] text-slate-500">
-          CAC RC No. 9550925 · DS Tech & Digital Marketing Agency Limited · Protected CRM Environment
-        </footer>
-      </div>
-    );
-  }
-
-  // ==========================================
-  // Render Authenticated CRM Dashboard
+  // Render Direct CRM Dashboard
   // ==========================================
   return (
     <div className="min-h-screen w-full bg-[#070A11] text-slate-100 flex font-mono selection:bg-amber-500 selection:text-slate-950">
@@ -361,10 +167,10 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
             <Logo size="sm" showText={false} variant="light" />
             <div>
               <span className="text-xs font-bold text-white uppercase tracking-wider block">
-                DS TECH CRM
+                DS Tech CRM
               </span>
-              <span className="text-[9px] text-amber-400 font-bold tracking-widest uppercase block">
-                Visitor Intelligence
+              <span className="text-[10px] text-amber-400 font-mono tracking-widest block">
+                VISITOR INTELLIGENCE
               </span>
             </div>
           </div>
@@ -377,9 +183,9 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
                     isActive
-                      ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/10'
+                      ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
                       : 'text-slate-400 hover:text-white hover:bg-white/5'
                   }`}
                 >
@@ -400,20 +206,14 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
           </nav>
         </div>
 
-        {/* User Card & Logout Bottom */}
+        {/* User Card & Return to Website Bottom */}
         <div className="p-3 border-t border-white/10 space-y-2">
           <div className="p-2.5 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-between">
             <div className="truncate">
               <span className="text-xs font-bold text-white block truncate">{authUser.name}</span>
               <span className="text-[10px] text-amber-400 truncate block">{authUser.email}</span>
             </div>
-            <button
-              onClick={handleLogout}
-              className="p-1.5 rounded-lg bg-slate-800 hover:bg-rose-950/60 hover:text-rose-400 text-slate-400 cursor-pointer transition-colors"
-              title="Logout from CRM"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-xs shadow-emerald-400/50" title="Connected" />
           </div>
 
           <button
@@ -435,6 +235,7 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
             <button
               onClick={() => setIsMobileNavOpen(true)}
               className="lg:hidden p-2 rounded-xl bg-slate-900 text-slate-300 border border-white/10"
+              title="Open Navigation"
             >
               <Menu className="w-5 h-5" />
             </button>
@@ -493,22 +294,39 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
                 {theme === 'dark' ? <Sun className="w-3.5 h-3.5 text-amber-400" /> : <Moon className="w-3.5 h-3.5 text-blue-400" />}
               </button>
             )}
+
+            <button
+              onClick={onBackToWebsite}
+              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-white/10 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Website</span>
+            </button>
           </div>
         </header>
 
         {/* Main Content Body */}
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
-          {activeTab === 'overview' && overviewData && (
-            <CrmOverviewView
-              kpi={overviewData.kpi}
-              trafficTrends={overviewData.trafficTrends}
-              deviceBreakdown={overviewData.deviceBreakdown}
-              trafficSources={overviewData.trafficSources}
-              topPages={overviewData.topPages}
-              recentEvents={overviewData.recentEvents}
-              onNavigateTab={(tab) => setActiveTab(tab)}
-              formatDuration={formatDuration}
-            />
+          {activeTab === 'overview' && (
+            overviewData ? (
+              <CrmOverviewView
+                kpi={overviewData.kpi}
+                trafficTrends={overviewData.trafficTrends}
+                deviceBreakdown={overviewData.deviceBreakdown}
+                trafficSources={overviewData.trafficSources}
+                topPages={overviewData.topPages}
+                recentEvents={overviewData.recentEvents}
+                onNavigateTab={(tab) => setActiveTab(tab)}
+                formatDuration={formatDuration}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-3">
+                <RefreshCw className="w-8 h-8 text-amber-500 animate-spin" />
+                <span className="text-xs text-slate-400 font-mono uppercase tracking-wider">
+                  Loading Live Telemetry Intelligence...
+                </span>
+              </div>
+            )
           )}
 
           {activeTab === 'live' && (
@@ -557,8 +375,6 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
           {activeTab === 'leads' && (
             <CrmLeadsView
               authToken={authToken}
-              onSelectLeadId={inspectLeadId}
-              onClearSelectedLead={() => setInspectLeadId(null)}
             />
           )}
 
@@ -640,6 +456,7 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
                   <button
                     onClick={() => setIsMobileNavOpen(false)}
                     className="p-1 rounded-lg bg-slate-900 text-slate-400"
+                    title="Close"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -667,13 +484,6 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
               </div>
 
               <div className="pt-3 border-t border-white/10 space-y-2">
-                <button
-                  onClick={handleLogout}
-                  className="w-full py-2 rounded-xl bg-slate-900 text-rose-400 font-bold flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <LogOut className="w-4 h-4" />
-                  <span>Logout</span>
-                </button>
                 <button
                   onClick={onBackToWebsite}
                   className="w-full py-2 rounded-xl bg-slate-900 text-slate-300 font-bold flex items-center justify-center gap-2 cursor-pointer"

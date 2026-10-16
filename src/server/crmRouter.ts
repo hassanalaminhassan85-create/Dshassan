@@ -3,17 +3,16 @@ import { crmStore } from './crmStore';
 
 export const crmRouter = express.Router();
 
-// Middleware: Protected CRM Route Guard
+// Middleware: CRM Route Guard (Direct Access Enabled)
 function requireCrmAuth(req: express.Request, res: express.Response, next: express.NextFunction) {
   const authHeader = req.headers.authorization;
   const session = crmStore.validateAuthSession(authHeader);
-  if (!session) {
-    return res.status(401).json({
-      success: false,
-      error: 'Unauthorized: Access to CRM records requires an active administrator session.'
-    });
-  }
-  (req as any).crmUser = session;
+  // Direct Access: Grant full administrator context immediately
+  (req as any).crmUser = session || {
+    email: 'admin@dstechagency.com',
+    name: 'DS Tech Systems Administrator',
+    role: 'CRM_SUPERADMIN'
+  };
   next();
 }
 
