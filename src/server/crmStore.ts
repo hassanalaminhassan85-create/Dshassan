@@ -183,6 +183,7 @@ class CrmStore {
     this.initKnownIds();
     this.cleanExpiredSessions();
     this.seedInitialLeadsIfEmpty();
+    this.seedInitialTelemetryIfEmpty();
   }
 
   private loadDatabase(): CrmDatabase {
@@ -318,6 +319,420 @@ class CrmStore {
       for (const lead of initialLeads) {
         this.data.leads[lead.id] = lead;
       }
+      this.scheduleSave();
+    }
+  }
+
+  private seedInitialTelemetryIfEmpty() {
+    // Populate rich initial visitor analytics and active telemetry if empty
+    if (Object.keys(this.data.visitors).length <= 1) {
+      const now = Date.now();
+      const iso = (msAgo: number) => new Date(now - msAgo).toISOString();
+
+      const seedVisitors: CrmVisitor[] = [
+        {
+          id: 'vis_seed_01',
+          first_seen_at: iso(6 * 86400000),
+          last_seen_at: iso(25 * 60000),
+          total_sessions: 3,
+          total_page_views: 8,
+          total_events: 14,
+          landing_page: '/',
+          last_page: '/corporate-training',
+          country: 'Nigeria',
+          country_code: 'NG',
+          region: 'FCT Abuja',
+          city: 'Abuja',
+          timezone: 'Africa/Lagos',
+          device_category: 'Desktop',
+          browser: 'Chrome',
+          os: 'Windows',
+          traffic_source: 'Organic Search',
+          referrer: 'https://www.google.com/',
+          utm_source: '',
+          utm_medium: '',
+          utm_campaign: '',
+          utm_term: '',
+          utm_content: '',
+          lead_id: 'lead_initial_01',
+          is_returning: true,
+          created_at: iso(6 * 86400000),
+          updated_at: iso(25 * 60000)
+        },
+        {
+          id: 'vis_seed_02',
+          first_seen_at: iso(4 * 86400000),
+          last_seen_at: iso(45 * 60000),
+          total_sessions: 2,
+          total_page_views: 6,
+          total_events: 9,
+          landing_page: '/academy-overview',
+          last_page: '/course-registration',
+          country: 'Nigeria',
+          country_code: 'NG',
+          region: 'Lagos State',
+          city: 'Lagos',
+          timezone: 'Africa/Lagos',
+          device_category: 'Mobile',
+          browser: 'Chrome',
+          os: 'Android',
+          traffic_source: 'Social',
+          referrer: 'https://instagram.com/',
+          utm_source: 'instagram',
+          utm_medium: 'story_ad',
+          utm_campaign: 'academy_cohort',
+          utm_term: '',
+          utm_content: '',
+          lead_id: 'lead_initial_02',
+          is_returning: true,
+          created_at: iso(4 * 86400000),
+          updated_at: iso(45 * 60000)
+        },
+        {
+          id: 'vis_seed_03',
+          first_seen_at: iso(2 * 86400000),
+          last_seen_at: iso(10 * 60000),
+          total_sessions: 2,
+          total_page_views: 5,
+          total_events: 8,
+          landing_page: '/services',
+          last_page: '/services',
+          country: 'Nigeria',
+          country_code: 'NG',
+          region: 'Rivers State',
+          city: 'Port Harcourt',
+          timezone: 'Africa/Lagos',
+          device_category: 'Mobile',
+          browser: 'Safari',
+          os: 'iOS',
+          traffic_source: 'Referral',
+          referrer: '',
+          utm_source: '',
+          utm_medium: '',
+          utm_campaign: '',
+          utm_term: '',
+          utm_content: '',
+          lead_id: 'lead_initial_03',
+          is_returning: true,
+          created_at: iso(2 * 86400000),
+          updated_at: iso(10 * 60000)
+        },
+        {
+          id: 'vis_seed_04',
+          first_seen_at: iso(1 * 86400000),
+          last_seen_at: iso(5 * 60000),
+          total_sessions: 1,
+          total_page_views: 3,
+          total_events: 6,
+          landing_page: '/',
+          last_page: '/recognition',
+          country: 'United Kingdom',
+          country_code: 'GB',
+          region: 'Greater London',
+          city: 'London',
+          timezone: 'Europe/London',
+          device_category: 'Desktop',
+          browser: 'Safari',
+          os: 'macOS',
+          traffic_source: 'Direct',
+          referrer: '',
+          utm_source: '',
+          utm_medium: '',
+          utm_campaign: '',
+          utm_term: '',
+          utm_content: '',
+          is_returning: false,
+          created_at: iso(1 * 86400000),
+          updated_at: iso(5 * 60000)
+        },
+        {
+          id: 'vis_seed_05',
+          first_seen_at: iso(3 * 3600000),
+          last_seen_at: iso(3 * 60000),
+          total_sessions: 1,
+          total_page_views: 4,
+          total_events: 7,
+          landing_page: '/careers',
+          last_page: '/careers',
+          country: 'Nigeria',
+          country_code: 'NG',
+          region: 'Kano State',
+          city: 'Kano',
+          timezone: 'Africa/Lagos',
+          device_category: 'Mobile',
+          browser: 'Chrome',
+          os: 'Android',
+          traffic_source: 'Social',
+          referrer: 'https://www.linkedin.com/',
+          utm_source: 'linkedin',
+          utm_medium: 'post',
+          utm_campaign: 'tech_vacancies',
+          utm_term: '',
+          utm_content: '',
+          is_returning: false,
+          created_at: iso(3 * 3600000),
+          updated_at: iso(3 * 60000)
+        },
+        {
+          id: 'vis_seed_06',
+          first_seen_at: iso(15 * 60000),
+          last_seen_at: iso(1 * 60000),
+          total_sessions: 1,
+          total_page_views: 3,
+          total_events: 5,
+          landing_page: '/',
+          last_page: '/services',
+          country: 'United States',
+          country_code: 'US',
+          region: 'Georgia',
+          city: 'Atlanta',
+          timezone: 'America/New_York',
+          device_category: 'Desktop',
+          browser: 'Edge',
+          os: 'Windows',
+          traffic_source: 'Organic Search',
+          referrer: 'https://www.bing.com/',
+          utm_source: '',
+          utm_medium: '',
+          utm_campaign: '',
+          utm_term: '',
+          utm_content: '',
+          is_returning: false,
+          created_at: iso(15 * 60000),
+          updated_at: iso(1 * 60000)
+        }
+      ];
+
+      for (const v of seedVisitors) {
+        this.data.visitors[v.id] = v;
+      }
+
+      // Seed sessions
+      const seedSessions: CrmSession[] = [
+        {
+          id: 'ses_seed_01',
+          visitor_id: 'vis_seed_01',
+          started_at: iso(35 * 60000),
+          last_active_at: iso(25 * 60000),
+          ended_at: null,
+          is_active: false,
+          duration_seconds: 600,
+          entry_page: '/',
+          exit_page: '/corporate-training',
+          page_views_count: 4,
+          events_count: 6,
+          referrer: 'https://www.google.com/',
+          utm_source: '',
+          utm_medium: '',
+          utm_campaign: '',
+          utm_term: '',
+          utm_content: '',
+          country: 'Nigeria',
+          region: 'FCT Abuja',
+          city: 'Abuja',
+          device_category: 'Desktop',
+          browser: 'Chrome',
+          os: 'Windows',
+          is_bounce: false,
+          converted: true,
+          created_at: iso(35 * 60000),
+          updated_at: iso(25 * 60000)
+        },
+        {
+          id: 'ses_seed_02',
+          visitor_id: 'vis_seed_02',
+          started_at: iso(50 * 60000),
+          last_active_at: iso(45 * 60000),
+          ended_at: null,
+          is_active: false,
+          duration_seconds: 300,
+          entry_page: '/academy-overview',
+          exit_page: '/course-registration',
+          page_views_count: 3,
+          events_count: 5,
+          referrer: 'https://instagram.com/',
+          utm_source: 'instagram',
+          utm_medium: 'story_ad',
+          utm_campaign: 'academy_cohort',
+          utm_term: '',
+          utm_content: '',
+          country: 'Nigeria',
+          region: 'Lagos State',
+          city: 'Lagos',
+          device_category: 'Mobile',
+          browser: 'Chrome',
+          os: 'Android',
+          is_bounce: false,
+          converted: true,
+          created_at: iso(50 * 60000),
+          updated_at: iso(45 * 60000)
+        },
+        {
+          id: 'ses_seed_03',
+          visitor_id: 'vis_seed_03',
+          started_at: iso(18 * 60000),
+          last_active_at: iso(10 * 60000),
+          ended_at: null,
+          is_active: false,
+          duration_seconds: 480,
+          entry_page: '/services',
+          exit_page: '/services',
+          page_views_count: 2,
+          events_count: 4,
+          referrer: '',
+          utm_source: '',
+          utm_medium: '',
+          utm_campaign: '',
+          utm_term: '',
+          utm_content: '',
+          country: 'Nigeria',
+          region: 'Rivers State',
+          city: 'Port Harcourt',
+          device_category: 'Mobile',
+          browser: 'Safari',
+          os: 'iOS',
+          is_bounce: false,
+          converted: true,
+          created_at: iso(18 * 60000),
+          updated_at: iso(10 * 60000)
+        },
+        {
+          id: 'ses_seed_04',
+          visitor_id: 'vis_seed_04',
+          started_at: iso(8 * 60000),
+          last_active_at: iso(5 * 60000),
+          ended_at: null,
+          is_active: true,
+          duration_seconds: 180,
+          entry_page: '/',
+          exit_page: '/recognition',
+          page_views_count: 3,
+          events_count: 4,
+          referrer: '',
+          utm_source: '',
+          utm_medium: '',
+          utm_campaign: '',
+          utm_term: '',
+          utm_content: '',
+          country: 'United Kingdom',
+          region: 'Greater London',
+          city: 'London',
+          device_category: 'Desktop',
+          browser: 'Safari',
+          os: 'macOS',
+          is_bounce: false,
+          converted: false,
+          created_at: iso(8 * 60000),
+          updated_at: iso(5 * 60000)
+        },
+        {
+          id: 'ses_seed_05',
+          visitor_id: 'vis_seed_05',
+          started_at: iso(6 * 60000),
+          last_active_at: iso(3 * 60000),
+          ended_at: null,
+          is_active: true,
+          duration_seconds: 180,
+          entry_page: '/careers',
+          exit_page: '/careers',
+          page_views_count: 2,
+          events_count: 3,
+          referrer: 'https://www.linkedin.com/',
+          utm_source: 'linkedin',
+          utm_medium: 'post',
+          utm_campaign: 'tech_vacancies',
+          utm_term: '',
+          utm_content: '',
+          country: 'Nigeria',
+          region: 'Kano State',
+          city: 'Kano',
+          device_category: 'Mobile',
+          browser: 'Chrome',
+          os: 'Android',
+          is_bounce: false,
+          converted: false,
+          created_at: iso(6 * 60000),
+          updated_at: iso(3 * 60000)
+        },
+        {
+          id: 'ses_seed_06',
+          visitor_id: 'vis_seed_06',
+          started_at: iso(4 * 60000),
+          last_active_at: iso(1 * 60000),
+          ended_at: null,
+          is_active: true,
+          duration_seconds: 180,
+          entry_page: '/',
+          exit_page: '/services',
+          page_views_count: 2,
+          events_count: 3,
+          referrer: 'https://www.bing.com/',
+          utm_source: '',
+          utm_medium: '',
+          utm_campaign: '',
+          utm_term: '',
+          utm_content: '',
+          country: 'United States',
+          region: 'Georgia',
+          city: 'Atlanta',
+          device_category: 'Desktop',
+          browser: 'Edge',
+          os: 'Windows',
+          is_bounce: false,
+          converted: false,
+          created_at: iso(4 * 60000),
+          updated_at: iso(1 * 60000)
+        }
+      ];
+
+      for (const s of seedSessions) {
+        this.data.sessions[s.id] = s;
+      }
+
+      // Seed Page Views
+      const seedPageViews: CrmPageView[] = [
+        { id: 'pv_seed_01', visitor_id: 'vis_seed_01', session_id: 'ses_seed_01', path: '/', title: 'DS TECH Home & Agency Portal', referrer: 'https://www.google.com/', duration_seconds: 145, country: 'Nigeria', device_category: 'Desktop', created_at: iso(35 * 60000) },
+        { id: 'pv_seed_02', visitor_id: 'vis_seed_01', session_id: 'ses_seed_01', path: '/services', title: 'Digital Services & Engineering Catalog', referrer: '', duration_seconds: 180, country: 'Nigeria', device_category: 'Desktop', created_at: iso(32 * 60000) },
+        { id: 'pv_seed_03', visitor_id: 'vis_seed_01', session_id: 'ses_seed_01', path: '/corporate-training', title: 'Corporate Training RFP & Retainer Specs', referrer: '', duration_seconds: 275, country: 'Nigeria', device_category: 'Desktop', created_at: iso(28 * 60000) },
+        { id: 'pv_seed_04', visitor_id: 'vis_seed_02', session_id: 'ses_seed_02', path: '/academy-overview', title: 'DS TECH Vocational Academy', referrer: 'https://instagram.com/', duration_seconds: 160, country: 'Nigeria', device_category: 'Mobile', created_at: iso(50 * 60000) },
+        { id: 'pv_seed_05', visitor_id: 'vis_seed_02', session_id: 'ses_seed_02', path: '/course-registration', title: 'Course Registration & Enrollment', referrer: '', duration_seconds: 140, country: 'Nigeria', device_category: 'Mobile', created_at: iso(47 * 60000) },
+        { id: 'pv_seed_06', visitor_id: 'vis_seed_03', session_id: 'ses_seed_03', path: '/services', title: 'Digital Services & Engineering Catalog', referrer: '', duration_seconds: 480, country: 'Nigeria', device_category: 'Mobile', created_at: iso(18 * 60000) },
+        { id: 'pv_seed_07', visitor_id: 'vis_seed_04', session_id: 'ses_seed_04', path: '/', title: 'DS TECH Home & Agency Portal', referrer: '', duration_seconds: 80, country: 'United Kingdom', device_category: 'Desktop', created_at: iso(8 * 60000) },
+        { id: 'pv_seed_08', visitor_id: 'vis_seed_04', session_id: 'ses_seed_04', path: '/recognition', title: 'Corporate Recognition & CAC Verification', referrer: '', duration_seconds: 100, country: 'United Kingdom', device_category: 'Desktop', created_at: iso(6 * 60000) },
+        { id: 'pv_seed_09', visitor_id: 'vis_seed_05', session_id: 'ses_seed_05', path: '/careers', title: 'Careers & Technical Vacancies at DS TECH', referrer: 'https://www.linkedin.com/', duration_seconds: 180, country: 'Nigeria', device_category: 'Mobile', created_at: iso(6 * 60000) },
+        { id: 'pv_seed_10', visitor_id: 'vis_seed_06', session_id: 'ses_seed_06', path: '/', title: 'DS TECH Home & Agency Portal', referrer: 'https://www.bing.com/', duration_seconds: 110, country: 'United States', device_category: 'Desktop', created_at: iso(4 * 60000) },
+        { id: 'pv_seed_11', visitor_id: 'vis_seed_06', session_id: 'ses_seed_06', path: '/services', title: 'Digital Services & Engineering Catalog', referrer: '', duration_seconds: 70, country: 'United States', device_category: 'Desktop', created_at: iso(2 * 60000) }
+      ];
+
+      for (const pv of seedPageViews) {
+        this.data.page_views.push(pv);
+      }
+
+      // Seed Events
+      const seedEvents: CrmEvent[] = [
+        { id: 'evt_seed_01', visitor_id: 'vis_seed_01', session_id: 'ses_seed_01', event_name: 'cta_request_proposal', event_category: 'cta', path: '/corporate-training', element_text: 'Request Enterprise Proposal', is_conversion: true, is_test: false, country: 'Nigeria', city: 'Abuja', device_category: 'Desktop', created_at: iso(26 * 60000) },
+        { id: 'evt_seed_02', visitor_id: 'vis_seed_02', session_id: 'ses_seed_02', event_name: 'form_start', event_category: 'form', path: '/course-registration', element_id: 'course_reg_form', element_text: 'Form started: course_reg_form', is_conversion: false, is_test: false, country: 'Nigeria', city: 'Lagos', device_category: 'Mobile', created_at: iso(49 * 60000) },
+        { id: 'evt_seed_03', visitor_id: 'vis_seed_02', session_id: 'ses_seed_02', event_name: 'form_submit_success', event_category: 'form', path: '/course-registration', element_text: 'Submission confirmed: Data Science Course', is_conversion: true, is_test: false, country: 'Nigeria', city: 'Lagos', device_category: 'Mobile', created_at: iso(46 * 60000) },
+        { id: 'evt_seed_04', visitor_id: 'vis_seed_03', session_id: 'ses_seed_03', event_name: 'whatsapp_clicked', event_category: 'whatsapp', path: '/services', element_text: 'WhatsApp Chat: +234 902 348 9111', destination_url: 'https://wa.me/2349023489111', is_conversion: true, is_test: false, country: 'Nigeria', city: 'Port Harcourt', device_category: 'Mobile', created_at: iso(12 * 60000) },
+        { id: 'evt_seed_05', visitor_id: 'vis_seed_04', session_id: 'ses_seed_04', event_name: 'button_clicked', event_category: 'click', path: '/recognition', element_text: 'Verify CAC RC 9550925', is_conversion: false, is_test: false, country: 'United Kingdom', city: 'London', device_category: 'Desktop', created_at: iso(5 * 60000) },
+        { id: 'evt_seed_06', visitor_id: 'vis_seed_05', session_id: 'ses_seed_05', event_name: 'cta_apply_role', event_category: 'cta', path: '/careers', element_text: 'Apply for Full Stack Engineer', is_conversion: false, is_test: false, country: 'Nigeria', city: 'Kano', device_category: 'Mobile', created_at: iso(4 * 60000) },
+        { id: 'evt_seed_07', visitor_id: 'vis_seed_06', session_id: 'ses_seed_06', event_name: 'telephone_clicked', event_category: 'phone', path: '/services', element_text: 'Voice Call Hotline', destination_url: 'tel:+2348123456789', is_conversion: true, is_test: false, country: 'United States', city: 'Atlanta', device_category: 'Desktop', created_at: iso(1 * 60000) }
+      ];
+
+      for (const ev of seedEvents) {
+        this.data.events.push(ev);
+        this.knownEventIds.add(ev.id);
+      }
+
+      this.data.audit_logs.push({
+        id: `audit_seed_${Date.now()}`,
+        admin_email: 'admin@dstechagency.com',
+        action: 'INITIALIZE_TELEMETRY_ENGINE',
+        target_type: 'SYSTEM',
+        details: 'First-party website intelligence ledger active and tracking.',
+        created_at: new Date().toISOString()
+      });
+
       this.scheduleSave();
     }
   }

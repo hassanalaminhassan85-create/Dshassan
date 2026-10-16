@@ -22,7 +22,12 @@ function requireCrmAuth(req: express.Request, res: express.Response, next: expre
 // ==========================================
 crmRouter.post('/track', (req, res) => {
   try {
-    const body = req.body;
+    let body = req.body;
+    if (typeof body === 'string') {
+      try {
+        body = JSON.parse(body);
+      } catch {}
+    }
     if (!body) {
       return res.status(400).json({ success: false, error: 'Empty payload' });
     }
@@ -40,8 +45,13 @@ crmRouter.post('/track', (req, res) => {
 
     // Parse metadata from server headers (Cloudflare edge / standard proxy)
     const clientMeta = crmStore.parseMetadata(req.headers as any, req.headers['user-agent']);
+    const augmentedMeta = {
+      ...clientMeta,
+      visitor_id: body.visitor_id || undefined,
+      session_id: body.session_id || undefined
+    };
 
-    const result = crmStore.recordTrackingEvents(batch, clientMeta);
+    const result = crmStore.recordTrackingEvents(batch, augmentedMeta);
 
     return res.status(200).json({
       success: true,

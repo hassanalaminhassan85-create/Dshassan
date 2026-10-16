@@ -78,7 +78,6 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
   // Structured Menu Items Catalog
   const mainNavItems = [
     { label: 'Home', value: 'home', path: '/', icon: Home, category: 'main' },
-    { label: 'Visitor Intelligence & CRM', value: 'crm', path: '/crm', icon: Activity, badge: 'Pro', category: 'main' },
     { label: 'Attendance', value: 'attendance', path: '/attendance', icon: Clock, badge: 'Staff', category: 'main' },
     { label: 'Management Accounts', value: 'management-accounts', path: '/management-accounts', icon: Building2, badge: 'Executive', category: 'main' },
     { label: 'About Us', value: 'about', path: '/about', icon: Info, category: 'main' },

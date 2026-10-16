@@ -129,11 +129,18 @@ class WebsiteTracker {
     return params;
   }
 
+  private lastTracked: { path: string; time: number } = { path: '', time: 0 };
+
   public trackPageView(path: string, title?: string) {
     if (this.isOptedOut()) return;
 
-    // Calculate time spent on previous path if any
+    // Deduplicate identical rapid consecutive calls within 600ms
     const now = Date.now();
+    if (this.lastTracked.path === path && (now - this.lastTracked.time) < 600) {
+      return;
+    }
+    this.lastTracked = { path, time: now };
+
     const duration = Math.max(0, Math.round((now - this.pageEnterTimestamp) / 1000));
     this.pageEnterTimestamp = now;
     this.currentPath = path;
@@ -147,24 +154,24 @@ class WebsiteTracker {
       event_name: 'page_view',
       event_category: 'pageview',
       path: path,
-      title: title || document.title || path,
-      referrer: document.referrer || '',
+      title: title || (typeof document !== 'undefined' ? document.title : '') || path,
+      referrer: typeof document !== 'undefined' ? document.referrer || '' : '',
       duration_seconds: duration,
       ...utm
-    });
+    }, true);
 
     this.observeForms();
   }
 
-  public trackCustomEvent(payload: Omit<TrackEventPayload, 'visitor_id' | 'session_id'>) {
+  public trackCustomEvent(payload: Omit<TrackEventPayload, 'visitor_id' | 'session_id'>, immediate: boolean = false) {
     if (this.isOptedOut()) return;
     this.enqueue({
       ...payload,
       id: payload.id || `evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       visitor_id: this.visitorId,
       session_id: this.sessionId,
-      path: payload.path || this.currentPath || window.location.pathname || '/'
-    });
+      path: payload.path || this.currentPath || (typeof window !== 'undefined' ? window.location.pathname : '/') || '/'
+    }, immediate);
   }
 
   public trackClick(element: HTMLElement) {
@@ -178,7 +185,8 @@ class WebsiteTracker {
     if (!anchor && !button && !interactive) return;
 
     const href = anchor ? (anchor.getAttribute('href') || '') : '';
-    const text = (element.innerText || button?.innerText || interactive?.innerText || anchor?.title || '').trim().slice(0, 80);
+    const rawText = (element.innerText || button?.innerText || interactive?.innerText || element.textContent || button?.textContent || anchor?.title || '');
+    const text = String(rawText || '').trim().slice(0, 80);
     const trackAttr = (interactive || button || anchor)?.getAttribute('data-track');
     const trackName = (interactive || button || anchor)?.getAttribute('data-track-name');
 
@@ -199,13 +207,13 @@ class WebsiteTracker {
       isConversion = true;
     }
     // 2. Telephone call detection
-    else if (href.startsWith('tel:') || trackAttr === 'phone' || text.toLowerCase().includes('call hotline')) {
+    else if (href.startsWith('tel:') || trackAttr === 'phone' || text.toLowerCase().includes('call hotline') || text.toLowerCase().includes('phone')) {
       category = 'phone';
       name = 'telephone_clicked';
       isConversion = true;
     }
     // 3. Email mailto detection
-    else if (href.startsWith('mailto:') || trackAttr === 'email') {
+    else if (href.startsWith('mailto:') || trackAttr === 'email' || text.toLowerCase().includes('email')) {
       category = 'email';
       name = 'email_clicked';
       isConversion = true;
@@ -213,7 +221,7 @@ class WebsiteTracker {
     // 4. CTA detection
     else if (
       trackAttr === 'cta' ||
-      /apply|register|enroll|scholarship|internship|book|start|submit|download letter|sign offer/i.test(text)
+      /apply|register|enroll|scholarship|internship|book|start|submit|download letter|sign offer|hire/i.test(text)
     ) {
       category = 'cta';
       name = trackName || `cta_${text.toLowerCase().replace(/[^a-z0-9]+/g, '_').slice(0, 30)}`;
@@ -230,6 +238,8 @@ class WebsiteTracker {
                       element.closest('[data-section]')?.getAttribute('data-section') ||
                       'body';
 
+    const isImmediate = isConversion || category === 'cta' || category === 'navigation' || category === 'whatsapp' || category === 'phone' || category === 'email';
+
     this.trackCustomEvent({
       event_name: name,
       event_category: category,
@@ -239,7 +249,7 @@ class WebsiteTracker {
       placement,
       destination_url: href || undefined,
       is_conversion: isConversion
-    });
+    }, isImmediate);
   }
 
   // Auto-detect form starts and form submissions
@@ -291,7 +301,7 @@ class WebsiteTracker {
       element_text: `Submission confirmed: ${formName}`,
       is_conversion: true,
       metadata: metadata || {}
-    });
+    }, true);
   }
 
   public trackWhatsAppClick(numberOrUrl?: string) {
@@ -302,7 +312,7 @@ class WebsiteTracker {
       element_text: `WhatsApp Chat: ${numberOrUrl || '+2349023489111'}`,
       destination_url: numberOrUrl?.startsWith('http') ? numberOrUrl : `https://wa.me/${(numberOrUrl || '2349023489111').replace(/[^0-9]/g, '')}`,
       is_conversion: true
-    });
+    }, true);
   }
 
   public trackPhoneClick(phoneNumber?: string) {
@@ -313,7 +323,7 @@ class WebsiteTracker {
       element_text: `Voice Call: ${phoneNumber || '+2349023489111'}`,
       destination_url: `tel:${phoneNumber || '+2349023489111'}`,
       is_conversion: true
-    });
+    }, true);
   }
 
   public trackEmailClick(emailAddress?: string) {
@@ -324,7 +334,7 @@ class WebsiteTracker {
       element_text: `Email Contact: ${emailAddress || 'support@dstechagency.com'}`,
       destination_url: `mailto:${emailAddress || 'support@dstechagency.com'}`,
       is_conversion: true
-    });
+    }, true);
   }
 
   private attachEventListeners() {
@@ -347,12 +357,12 @@ class WebsiteTracker {
     // Page visibility change / page leave duration update
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'hidden') {
-        this.flush(true);
+        this.flush();
       }
     });
 
     window.addEventListener('pagehide', () => {
-      this.flush(true);
+      this.flush();
     });
   }
 
@@ -366,22 +376,22 @@ class WebsiteTracker {
     }
   }
 
-  private enqueue(payload: TrackEventPayload) {
+  private enqueue(payload: TrackEventPayload, immediate: boolean = false) {
     this.queue.push({
       ...payload,
       timestamp: payload.timestamp || new Date().toISOString()
     });
 
-    if (this.queue.length >= 5) {
+    if (immediate || this.queue.length >= 3) {
       this.flush();
     } else {
       if (!this.flushTimer) {
-        this.flushTimer = setTimeout(() => this.flush(), 2000);
+        this.flushTimer = setTimeout(() => this.flush(), 300);
       }
     }
   }
 
-  public flush(useBeacon = false) {
+  public flush() {
     if (this.flushTimer) {
       clearTimeout(this.flushTimer);
       this.flushTimer = null;
@@ -399,14 +409,6 @@ class WebsiteTracker {
 
     const endpoint = '/api/crm/track';
 
-    if (useBeacon && typeof navigator !== 'undefined' && navigator.sendBeacon) {
-      try {
-        const blob = new Blob([payload], { type: 'application/json' });
-        navigator.sendBeacon(endpoint, blob);
-        return;
-      } catch {}
-    }
-
     fetch(endpoint, {
       method: 'POST',
       headers: {
@@ -415,9 +417,10 @@ class WebsiteTracker {
       body: payload,
       keepalive: true
     }).catch(err => {
-      // Temporary network retry
       console.warn('[CRM Telemetry] Retrying failed batch:', err);
-      this.queue.push(...eventsToSend);
+      if (this.queue.length < 50) {
+        this.queue.push(...eventsToSend);
+      }
     });
   }
 
