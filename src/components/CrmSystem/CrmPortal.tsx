@@ -70,6 +70,7 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
   // Date Range Filter
   const [dateRange, setDateRange] = useState<'today' | 'yesterday' | '7d' | '30d' | 'all'>('7d');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [overviewError, setOverviewError] = useState<string | null>(null);
 
   // Overview Data Cache
   const [overviewData, setOverviewData] = useState<{
@@ -89,6 +90,7 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
   const loadOverviewData = async () => {
     try {
       setIsRefreshing(true);
+      setOverviewError(null);
       let startDate: string | undefined;
       const now = new Date();
 
@@ -109,15 +111,27 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
       const params = new URLSearchParams();
       if (startDate) params.set('startDate', startDate);
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout safety
+
       const res = await fetch(`/api/crm/overview?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${authToken}` }
-      });
+        headers: { Authorization: `Bearer ${authToken}` },
+        signal: controller.signal
+      }).finally(() => clearTimeout(timeoutId));
+
+      if (!res.ok) {
+        throw new Error(`Server status ${res.status}: ${res.statusText}`);
+      }
+
       const resJson = await res.json();
       if (resJson.success && resJson.data) {
         setOverviewData(resJson.data);
+      } else {
+        throw new Error(resJson.error || 'Unable to retrieve telemetry overview from server');
       }
-    } catch (err) {
+    } catch (err: any) {
       console.warn('Failed to load CRM overview data:', err);
+      setOverviewError(err.name === 'AbortError' ? 'Request timed out after 10s. Please retry.' : (err.message || 'Error communicating with analytics engine'));
     } finally {
       setIsRefreshing(false);
     }
@@ -308,7 +322,22 @@ export const CrmPortal: React.FC<CrmPortalProps> = ({
         {/* Main Content Body */}
         <main className="flex-1 p-4 sm:p-6 overflow-y-auto">
           {activeTab === 'overview' && (
-            overviewData ? (
+            overviewError ? (
+              <div className="p-8 rounded-2xl bg-rose-950/30 border border-rose-500/30 text-center font-mono space-y-4 max-w-lg mx-auto my-12">
+                <div className="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 mx-auto">
+                  <ShieldAlert className="w-6 h-6" />
+                </div>
+                <div className="text-white font-bold text-sm">Failed to Load CRM Overview Data</div>
+                <div className="text-slate-400 text-xs bg-slate-950/80 p-3 rounded-xl border border-white/5">{overviewError}</div>
+                <button
+                  onClick={loadOverviewData}
+                  className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs inline-flex items-center gap-2 cursor-pointer transition-colors"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Retry Overview Request</span>
+                </button>
+              </div>
+            ) : overviewData ? (
               <CrmOverviewView
                 kpi={overviewData.kpi}
                 trafficTrends={overviewData.trafficTrends}

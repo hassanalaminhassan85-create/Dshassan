@@ -5,6 +5,7 @@ import {
   generateAuthenticationOptions, 
   verifyAuthenticationResponse 
 } from '@simplewebauthn/server';
+import { handleCrmRequest } from "./crm_service";
 
 function generateBackendSvgResponse(title: string, subtitle = 'DS Tech Digital Workspace'): Response {
   const safeTitle = (title || 'DS Tech Asset').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -1209,6 +1210,14 @@ export async function onRequest(context: { request: Request; env: any; params: a
   // Immediate handling for CORS preflight options
   if (method === 'OPTIONS') {
     return new Response(null, { status: 204, headers });
+  }
+
+  // Handle all CRM visitor intelligence & analytics endpoints
+  if (path.startsWith('/api/crm')) {
+    const crmRes = await handleCrmRequest(request, env, path, method, headers);
+    if (crmRes) {
+      return crmRes;
+    }
   }
 
   if (path === '/api/debug/notifications') {
