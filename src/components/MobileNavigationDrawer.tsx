@@ -4,7 +4,7 @@ import {
   X, Home, Info, Briefcase, Image as ImageIcon, Users, Star, FileText, 
   GraduationCap, Award, UserCheck, Building2, ChevronRight, CreditCard, 
   ShieldAlert, BookOpen, Globe, Sun, Moon, Check, Search, 
-  Sparkles, Layers, UserPlus, ArrowUpRight, Download, Clock
+  Sparkles, Layers, UserPlus, ArrowUpRight, Download, Clock, Activity
 } from 'lucide-react';
 import { Logo } from './Logo';
 import { PaystackPayButton } from './PaystackMotionCheckout';
@@ -78,6 +78,7 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
   // Structured Menu Items Catalog
   const mainNavItems = [
     { label: 'Home', value: 'home', path: '/', icon: Home, category: 'main' },
+    { label: 'Visitor Intelligence & CRM', value: 'crm', path: '/crm', icon: Activity, badge: 'Pro', category: 'main' },
     { label: 'Attendance', value: 'attendance', path: '/attendance', icon: Clock, badge: 'Staff', category: 'main' },
     { label: 'Management Accounts', value: 'management-accounts', path: '/management-accounts', icon: Building2, badge: 'Executive', category: 'main' },
     { label: 'About Us', value: 'about', path: '/about', icon: Info, category: 'main' },

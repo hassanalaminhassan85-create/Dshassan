@@ -276,6 +276,15 @@ export const MainFooter: React.FC<MainFooterProps> = ({ onNavigate, publishedCac
               </li>
               <li>
                 <button 
+                  onClick={() => handleNavigate('/crm')} 
+                  className="hover:text-slate-100 transition-colors duration-150 cursor-pointer text-left py-0.5 text-amber-400 font-semibold flex items-center gap-1.5"
+                >
+                  <span>Visitor Intelligence & CRM</span>
+                  <span className="text-[9px] px-1.5 py-0.5 bg-amber-500/20 text-amber-300 rounded font-bold uppercase">PRO</span>
+                </button>
+              </li>
+              <li>
+                <button 
                   onClick={() => handleNavigate('/clients')} 
                   className="hover:text-slate-100 transition-colors duration-150 cursor-pointer text-left py-0.5"
                 >

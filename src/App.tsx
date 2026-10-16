@@ -33,6 +33,8 @@ import { StudentDashboard } from './components/StudentDashboard';
 import { TutorDashboard } from './components/TutorDashboard';
 import { ManagementAccountsPortal } from './components/ManagementAccounts/ManagementAccountsPortal';
 import { StaffAttendanceSystem } from './components/StaffAttendanceSystem';
+import { CrmPortal } from './components/CrmSystem/CrmPortal';
+import { useWebsiteTracker } from './hooks/useWebsiteTracker';
 import { PaystackPayButton, PaystackPaymentConfig } from './components/PaystackMotionCheckout';
 import { PaystackPaymentPage } from './components/PaystackPaymentPage';
 import { JobApplication } from './types';
@@ -254,7 +256,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
   ]
 };
 
-export type ActivePageType = 'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard' | 'verify-certificate' | 'management-accounts' | 'management-dashboard' | 'attendance';
+export type ActivePageType = 'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard' | 'verify-certificate' | 'management-accounts' | 'management-dashboard' | 'attendance' | 'crm';
 
 export function resolvePathToState(rawPath: string): {
   path: string;
@@ -299,6 +301,16 @@ export function resolvePathToState(rawPath: string): {
   }
 
   const lowerPath = path.toLowerCase();
+
+  // Dedicated Website Visitor Intelligence & CRM Route
+  if (
+    lowerPath === '/crm' ||
+    lowerPath === '/crm/' ||
+    lowerPath.startsWith('/crm/') ||
+    lowerPath.startsWith('/crm')
+  ) {
+    return { path, activePage: 'crm', isAdminView: false, appId: null };
+  }
 
   // Staff Attendance route (DIRECT & PRIORITY RESOLUTION - ZERO FLASH)
   if (
@@ -465,6 +477,9 @@ export default function App() {
 
   const [publishedCac, setPublishedCac] = useState<any>(null);
 
+  // Active website-wide visitor intelligence telemetry tracker
+  useWebsiteTracker(activePage, currentPath);
+
   // Dynamic Context-Aware Page State for DS TECH AI Copilot
   const currentPageContext: PageContext = React.useMemo(() => {
     let pageTitle = 'DS TECH Home & Agency Portal';
@@ -603,10 +618,15 @@ export default function App() {
           section = 'Staff Attendance';
           workflowState = 'Submitting Attendance Report';
           break;
+        case 'crm':
+          pageTitle = 'DS TECH Visitor Intelligence & CRM';
+          section = 'Analytics & CRM';
+          workflowState = 'Viewing CRM Portal';
+          break;
       }
     }
 
-    const role = isAdminView 
+    const role = (isAdminView || activePage === 'crm')
       ? 'Admin' 
       : activePage === 'staff-portal' || activePage === 'attendance'
         ? 'Staff' 
@@ -1652,6 +1672,23 @@ export default function App() {
                   onNavigateHome={navigateToRoot}
                 />
               </motion.div>
+             ) : activePage === 'crm' ? (
+              <motion.div
+                key="crm-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full min-h-screen bg-[#070A11]"
+              >
+                <CrmPortal
+                  onBackToWebsite={() => {
+                    setActivePage('home');
+                    safeNavigate('/');
+                  }}
+                  theme={theme as 'dark' | 'light'}
+                  setTheme={(th) => setTheme(th as 'dark' | 'light')}
+                />
+              </motion.div>
              ) : activePage === 'recognition' ? (
               <motion.div
                 key="recognition-section"
@@ -2047,11 +2084,11 @@ export default function App() {
       </main>
 
       {/* Document bottom footer info */}
-      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'student-dashboard', 'tutor-dashboard', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog', 'management-accounts', 'management-dashboard', 'attendance'].includes(activePage) && (
+      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'student-dashboard', 'tutor-dashboard', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog', 'management-accounts', 'management-dashboard', 'attendance', 'crm'].includes(activePage) && (
         <MainFooter publishedCac={publishedCac} />
       )}
-      {/* Premium Circular Floating AI Assistant Launcher (Hidden on course-registration & attendance pages per user specification) */}
-      {activePage !== 'course-registration' && activePage !== 'attendance' && (
+      {/* Premium Circular Floating AI Assistant Launcher (Hidden on course-registration, attendance, and crm pages) */}
+      {activePage !== 'course-registration' && activePage !== 'attendance' && activePage !== 'crm' && (
         <FloatingAiLauncher
           onClick={() => setIsAiModalOpen(!isAiModalOpen)}
           isModalOpen={isAiModalOpen}
@@ -2060,7 +2097,7 @@ export default function App() {
       )}
 
       {/* Enterprise AI Assistant Workspace Modal */}
-      {activePage !== 'course-registration' && activePage !== 'attendance' && (
+      {activePage !== 'course-registration' && activePage !== 'attendance' && activePage !== 'crm' && (
         <EnterpriseAiAssistantModal
           isOpen={isAiModalOpen}
           onClose={() => setIsAiModalOpen(false)}

@@ -4,6 +4,7 @@ import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import crypto from 'crypto';
 import { GoogleGenAI } from '@google/genai';
+import { crmRouter } from './src/server/crmRouter';
 
 async function startServer() {
   const app = express();
@@ -1847,6 +1848,9 @@ ${liveContext ? liveContext : ''}`;
       return res.status(500).json({ success: false, error: 'Authentication failed.' });
     }
   });
+
+  // Dedicated Website Visitor Intelligence & CRM API Endpoints
+  app.use('/api/crm', crmRouter);
 
   // Always use Vite middleware to support both React client and serverless /api routes in the local server
   const vite = await createViteServer({

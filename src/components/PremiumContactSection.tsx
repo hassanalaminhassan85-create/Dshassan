@@ -18,6 +18,7 @@ import {
   Send,
   Zap
 } from 'lucide-react';
+import { tracker } from '../lib/tracker';
 
 interface PremiumContactSectionProps {
   className?: string;
@@ -83,6 +84,7 @@ export const PremiumContactSection: React.FC<PremiumContactSectionProps> = ({ cl
   // Action: Copy email
   const handleCopyEmail = async () => {
     try {
+      tracker.trackEmailClick('dstechanddigitalmarketingltd@gmail.com');
       await navigator.clipboard.writeText('dstechanddigitalmarketingltd@gmail.com');
       setCopiedEmail(true);
       showToast('Email address copied to clipboard!');
@@ -601,6 +603,7 @@ export const PremiumContactSection: React.FC<PremiumContactSectionProps> = ({ cl
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
                   href="tel:+2349023489111"
+                  onClick={() => tracker.trackPhoneClick('+2349023489111')}
                   className="flex items-center justify-center gap-1.5 py-2 px-3 bg-[#000E32] hover:bg-indigo-950 text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm transition-colors"
                 >
                   <Phone size={11} />
@@ -613,6 +616,7 @@ export const PremiumContactSection: React.FC<PremiumContactSectionProps> = ({ cl
                   href="https://wa.me/2349023489111?text=Hello%20DS%20Tech%20HQ"
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => tracker.trackWhatsAppClick('+2349023489111')}
                   className="flex items-center justify-center gap-1.5 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider shadow-sm transition-all"
                 >
                   <MessageSquare size={11} className="fill-current" />
