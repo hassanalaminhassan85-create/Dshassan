@@ -188,3 +188,25 @@ export interface EmploymentCertificate {
   createdAt: string;
   updatedAt: string;
 }
+
+// ==========================================
+// OFFICIAL DS TECH PROPOSALS SYSTEM TYPES
+// ==========================================
+export type ProposalStatus = 'draft' | 'published';
+
+export interface ProposalRecord {
+  id: string;
+  title: string;
+  description?: string;
+  category?: string;
+  file_key: string;
+  original_filename: string;
+  mime_type: string;
+  file_size: number;
+  status: ProposalStatus;
+  created_at: string;
+  updated_at: string;
+  published_at?: string | null;
+  created_by?: string;
+}
+

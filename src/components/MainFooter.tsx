@@ -203,6 +203,14 @@ export const MainFooter: React.FC<MainFooterProps> = ({ onNavigate, publishedCac
               </li>
               <li>
                 <button 
+                  onClick={() => handleNavigate('/proposals')} 
+                  className="hover:text-slate-100 transition-colors duration-150 cursor-pointer text-left py-0.5 text-cyan-400 font-semibold"
+                >
+                  Our Proposals
+                </button>
+              </li>
+              <li>
+                <button 
                   onClick={() => handleNavigate('/recognition')} 
                   className="hover:text-slate-100 transition-colors duration-150 cursor-pointer text-left py-0.5"
                 >

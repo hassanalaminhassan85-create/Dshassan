@@ -86,6 +86,7 @@ export const MobileNavigationDrawer: React.FC<MobileNavigationDrawerProps> = ({
     { label: 'Our Team', value: 'team', path: '/team', icon: Users, category: 'main' },
     { label: 'Clients & Partners', value: 'clients', path: '/clients', icon: Star, category: 'main' },
     { label: 'Blog & News', value: 'blog', path: '/blog', icon: FileText, category: 'main' },
+    { label: 'Our Proposals', value: 'proposals', path: '/proposals', icon: FileText, badge: 'Official', category: 'main' },
     { label: 'Course Registration Form', value: 'course-registration', path: '/course-registration', icon: BookOpen, badge: 'Official', category: 'main' },
   ];
 

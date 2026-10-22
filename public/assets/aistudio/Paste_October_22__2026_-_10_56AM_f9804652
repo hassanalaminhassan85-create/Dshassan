@@ -1,0 +1,743 @@
+FULL IMPLEMENTATION PROMPT — OUR PROPOSALS
+
+Public Proposal Library + Admin Dashboard Management + Cloudflare Production Integration
+
+1. Project objective
+
+Implement a complete, production-ready Our Proposals feature within the existing website.
+
+The feature must have two fully integrated parts:
+
+1. Public Our Proposals page: A premium, compact, professional page where visitors can discover, search, read, preview, download, and share published proposals.
+2. Admin Dashboard — Proposal Management: A complete administrative interface where authorized administrators can upload proposal documents, enter their exact titles, edit metadata, manage publication, replace files, and delete proposals.
+
+Critical requirement: All administrative proposal management functions must be inside the existing Admin Dashboard. Do not place them inside the Business Development dashboard or create a separate dashboard.
+
+Study the existing codebase, routing, framework, design system, authentication, role permissions, database, Cloudflare bindings, file storage, and deployment configuration before implementing anything.
+
+Integrate this feature into the existing architecture. Do not create a disconnected application, replace existing systems unnecessarily, or break any existing functionality.
+
+Do not stop at a visual mockup. Every button, form, API endpoint, upload, database operation, and document action must work.
+
+---
+
+2. Public navigation integration
+
+Add Our Proposals to the existing public website navigation.
+
+Requirements:
+
+- Use the exact navigation label "Our Proposals".
+- Link to a dedicated public route, preferably "/proposals", following the project's existing routing conventions.
+- Place the item appropriately within the current navigation.
+- Preserve the existing navigation structure, mobile menu, branding, theme switcher, and responsive behavior.
+- Ensure the route works when opened directly, refreshed, bookmarked, or reached through browser back and forward navigation.
+- Make sure Cloudflare Pages correctly serves the page and its associated API requests.
+- Do not expose administrative upload or management controls to public visitors.
+
+The navigation item must open the actual proposals library connected to the backend, not a static demonstration page.
+
+---
+
+3. Public Our Proposals page design
+
+Create a highly polished, compact, enterprise-grade proposal library.
+
+The visual direction should feel professional and modern, comparable to Stripe, Vercel, and Notion. Respect the website's existing design system, including its premium black-and-gold identity where appropriate.
+
+Design requirements
+
+- Clean, compact layout with excellent visual hierarchy.
+- Professional typography and readable text.
+- Consistent spacing, restrained borders, subtle shadows, and appropriate icons.
+- Responsive design for Android phones, tablets, laptops, and desktop screens.
+- Proper light and dark theme support.
+- Excellent contrast and accessibility.
+- No excessive whitespace, oversized cards, unnecessary animations, or cartoonish graphics.
+- Consistent styling with the existing website.
+- Avoid introducing unnecessary dependencies or increasing page load time significantly.
+
+A. Page header
+
+Include:
+
+- Page title: Our Proposals
+- A short professional introduction explaining that visitors can explore available proposals and access their documents.
+- A proposal count calculated from actual published records.
+- A compact search and discovery toolbar.
+- Optional category filters and library statistics when useful and supported by actual data.
+
+Do not display fabricated counts, example proposals, or placeholder statistics in production.
+
+B. Search, filters, and sorting
+
+Implement fully functional:
+
+- Search by proposal title.
+- Search by description and category where applicable.
+- Category filtering when categories exist.
+- Sort by newest, oldest, title A–Z, and title Z–A.
+- Grid and list view switching.
+- Clear filters.
+- Pagination or efficient incremental loading for large libraries.
+- An informative empty state when no published proposals exist.
+- A distinct empty state when a search returns no matches.
+- Loading, error, and retry states.
+
+Search and sorting must use actual proposal records. Filters must work together correctly.
+
+Preserve the entered search query and selected filters during ordinary interface interactions.
+
+C. Proposal cards
+
+Display each published proposal in a compact, elegant card or list item.
+
+Show:
+
+- The exact title entered by the administrator.
+- Document type, such as PDF or DOCX.
+- A document icon or genuine thumbnail where appropriate.
+- Optional description.
+- Category, if available.
+- Publication date or last-updated date when relevant.
+- Actual file size when available.
+- Clear, useful action controls.
+
+Do not generate titles from filenames when an administrator-entered title exists. Preserve capitalization, spelling, punctuation, and the original title exactly as stored.
+
+D. Required proposal actions
+
+Every applicable action must work.
+
+1. Read Online
+
+- Open a dedicated document reader.
+- Load the exact document associated with the selected proposal.
+- Support PDF viewing with page navigation, page count, zoom controls, and fit-to-width where supported.
+- Provide fullscreen where supported.
+- Include a visible download option.
+- Display loading and error states.
+- Work on desktop and mobile browsers.
+- Provide an accessible fallback if the embedded viewer is unsupported.
+
+2. Download
+
+- Download the original uploaded document.
+- Preserve the original file contents and format.
+- Use a safe, appropriate filename.
+- Set the correct content type and download headers.
+- Ensure the download corresponds to the selected proposal, not another file with a similar name.
+
+3. View Details
+
+- Open a polished details page, panel, or modal.
+- Display the exact proposal title, description, category, file type, and other available metadata.
+- Provide the applicable document actions.
+- Support direct access to a proposal detail URL if the project's routing architecture permits it.
+
+4. Share
+
+- Generate a stable public link to the correct published proposal.
+- Provide a working copy-link action with success or failure feedback.
+- Use the browser's native share capability where supported, with a copy-link fallback.
+- Do not share temporary administrative URLs or expiring links that break immediately.
+
+5. Open Original
+
+- Allow the visitor to open the original document in a new browser tab when supported.
+- If inline viewing is not supported for the format, clearly offer download and open-original options.
+
+Never display a button that appears functional but does nothing. If an action cannot be supported for a particular file format, explain that limitation and offer an appropriate alternative.
+
+---
+
+4. Document viewer implementation
+
+Implement a reliable document-reading experience compatible with the existing framework and Cloudflare runtime.
+
+For PDFs:
+
+- Use a maintained, compatible PDF viewing solution, such as PDF.js if suitable for the project.
+- Preserve the original uploaded PDF; do not regenerate or modify its contents.
+- Support page navigation and accurate page counts.
+- Support zoom in/out and fit-to-width where feasible.
+- Make controls usable on small mobile screens.
+- Prevent document overflow from breaking the page layout.
+- Display loading indicators for large documents.
+- Handle unavailable, corrupted, unsupported, or inaccessible files gracefully.
+- Provide a download action and an option to open the original.
+- Handle HTTP byte-range requests where required by the chosen PDF viewer.
+
+For DOCX and other explicitly supported formats:
+
+- Preserve the original file for download.
+- Provide online previews only when a reliable compatible viewer or conversion process is available.
+- Do not claim that every format can be previewed natively in every browser.
+- If online reading is unavailable, show a professional message and provide working download/open-original options.
+
+Do not render uploaded HTML, scripts, or other active content as trusted website content.
+
+---
+
+5. Admin Dashboard integration
+
+Add a dedicated Proposal Management section to the existing Admin Dashboard.
+
+This is the only dashboard location for proposal administration.
+
+Do not add proposal-upload or proposal-management functionality to the Business Development dashboard.
+
+Follow the existing Admin Dashboard layout, navigation, permissions, theme, and component conventions. Keep the section compact and professional.
+
+The section should include:
+
+- A proposal management overview.
+- A create/upload proposal form.
+- A proposal management table.
+- Search and filters.
+- Draft and published status indicators.
+- Document preview.
+- Edit, replace, publish, unpublish, and delete actions.
+- Useful loading, validation, success, and failure states.
+
+Any dashboard statistics must come from actual database records.
+
+A. Create and upload proposal form
+
+Provide these fields:
+
+1. Proposal Title — required.
+2. Proposal Document — required.
+3. Description — optional.
+4. Category — optional, if supported.
+5. Publication Status — Draft or Published, subject to the user's permissions.
+
+The administrator must be able to upload a file from their phone, tablet, or computer.
+
+Support PDF and any other explicitly approved document formats.
+
+The form must include:
+
+- File picker.
+- Drag-and-drop upload where supported.
+- Selected filename.
+- File size.
+- Supported-format validation.
+- File-size validation.
+- Upload progress.
+- Clear field-level validation errors.
+- Cancel or retry where practical.
+- Prevention of accidental duplicate submissions.
+- A success notification only after the server confirms that the required storage and database operations succeeded.
+
+Allow an administrator to save a draft without publishing it.
+
+Where a user selects immediate publication, validate the entire submission and publish only after the required persistence steps succeed.
+
+Do not display success merely because a file has been selected in the browser.
+
+B. Exact title-to-file association
+
+This is a mandatory integrity requirement.
+
+When an administrator enters a title and uploads a document:
+
+- Save the exact title in the database.
+- Save the uploaded document in persistent storage.
+- Generate a unique file-storage key.
+- Store that key in the corresponding proposal record.
+- Associate the proposal with that exact document using a stable identifier.
+- Preserve the original filename separately from the public proposal title.
+
+The public page must display the exact saved title and retrieve the file associated with that specific database record.
+
+Never:
+
+- Derive the public title from the filename when a custom title exists.
+- Match files only by filename.
+- Assume file order corresponds to database record order.
+- Substitute one proposal's document for another.
+- Use mock data or generated documents when a real file is missing.
+- Silently return a different file when a request fails.
+
+C. Proposal management table
+
+Display:
+
+- Proposal title.
+- Document type.
+- File size.
+- Category, if applicable.
+- Draft or published status.
+- Creation date.
+- Last-updated date.
+- Creator, if available.
+- Available row actions.
+
+Implement working actions for:
+
+- Preview.
+- Edit metadata.
+- Replace document.
+- Publish.
+- Unpublish.
+- Download.
+- Delete.
+
+Include:
+
+- Search.
+- Sorting.
+- Pagination when needed.
+- Confirmation dialogs for destructive or consequential actions.
+- Clear feedback after each operation.
+
+The table must update from confirmed backend results rather than assuming that an action succeeded.
+
+D. Edit proposal
+
+Allow authorized administrators to edit:
+
+- Title.
+- Description.
+- Category.
+- Other supported metadata.
+
+Editing metadata must not unintentionally replace or alter the original document.
+
+Preserve the exact updated title after refreshing the dashboard and public page.
+
+When a proposal is already published, metadata changes must be reflected publicly after the backend confirms the update.
+
+E. Replace document
+
+Allow an authorized administrator to replace an existing proposal's document without unnecessarily creating a duplicate proposal record.
+
+Requirements:
+
+- Validate the replacement.
+- Upload the new file successfully before switching the active file association.
+- Keep the old document available until the replacement is confirmed.
+- Update the proposal record safely.
+- Verify that public viewing and downloading now return the new file.
+- Remove the old stored object only after successful replacement and only if it is no longer referenced.
+- Handle failure without leaving the proposal pointing to a missing document.
+
+F. Publish and unpublish
+
+Publishing must update the database and public API.
+
+Unpublishing must:
+
+- Remove the proposal from the public listing.
+- Prevent public retrieval of its document through application-controlled routes.
+- Preserve the proposal and document for authorized administrators.
+- Update relevant caches or invalidate them as needed.
+
+A draft or unpublished proposal must never become publicly available merely because someone knows its URL or storage key.
+
+G. Delete proposal
+
+Implement a confirmation dialog that identifies the proposal being deleted.
+
+On confirmation:
+
+- Verify administrative permission.
+- Safely remove or deactivate the database record according to the existing application conventions.
+- Remove the stored file only when safe and no other record references it.
+- Handle partial failures without silently claiming that deletion is complete.
+- Update the dashboard after the server confirms the result.
+
+Do not delete unrelated records or files.
+
+---
+
+6. Cloudflare D1 and R2 integration
+
+Use the existing Cloudflare infrastructure.
+
+Inspect the current configuration before changing it. Reuse the existing D1 database, R2 bucket bindings, application services, and naming conventions wherever appropriate.
+
+A. Cloudflare D1
+
+Store proposal metadata in the existing canonical D1 database.
+
+Adapt the schema to the existing architecture. A proposal record should contain fields equivalent to:
+
+- "id"
+- "title"
+- "description"
+- "category"
+- "file_key"
+- "original_filename"
+- "mime_type"
+- "file_size"
+- "status"
+- "created_at"
+- "updated_at"
+- "published_at"
+- "created_by"
+
+Use appropriate IDs, timestamps, indexes, and constraints. Add additional fields only when needed by the existing architecture.
+
+Requirements:
+
+- Use safe, additive migrations.
+- Do not reset, recreate, truncate, reseed, or overwrite the existing database.
+- Do not modify unrelated records.
+- Use parameterized SQL statements.
+- Apply existing database-access conventions.
+- Enforce valid status values.
+- Prevent duplicate submission problems where practical.
+- Return meaningful errors when database operations fail.
+- Do not use hardcoded proposal arrays or local JSON files as the source of truth.
+
+Use indexes appropriate for publication filtering, sorting, and other common queries.
+
+B. Cloudflare R2
+
+Use the existing R2 bucket if available. If no suitable binding exists, add the required binding using the project's established configuration and deployment conventions.
+
+Requirements:
+
+- Store original uploaded documents in R2.
+- Use unique, collision-resistant object keys.
+- Preserve original file contents.
+- Store relevant metadata in D1.
+- Do not rely on local filesystem persistence.
+- Do not expose credentials, secret keys, or private bucket configuration to the browser.
+- Apply reasonable upload size limits.
+- Validate files on the server.
+- Avoid loading unnecessarily large files entirely into memory.
+- Clean up orphaned files safely.
+- Handle storage and database failures with reliable compensation logic.
+
+The implementation must continue working after a new Cloudflare deployment.
+
+C. Cross-service consistency
+
+D1 and R2 operations must be designed to avoid inconsistent records.
+
+Because D1 and R2 do not share a single atomic transaction, implement safe sequencing and compensating cleanup.
+
+For example:
+
+1. Validate the request and permissions.
+2. Upload the document to R2.
+3. Save the proposal metadata and exact storage key in D1.
+4. Confirm success only after the required operations complete.
+5. If the database write fails, attempt safe cleanup of the newly uploaded object.
+6. If cleanup fails, record an actionable diagnostic for later recovery.
+
+For replacement and deletion, preserve the previous valid state until the replacement or deletion process has been safely completed as far as the architecture permits.
+
+---
+
+7. Backend APIs and permissions
+
+Implement actual server-side endpoints or handlers following the project's existing routing conventions.
+
+Public operations
+
+Provide the equivalent of:
+
+- List published proposals.
+- Retrieve details of an individual published proposal.
+- Resolve or stream the document for reading.
+- Download the original file.
+
+Only public metadata and published documents may be accessible without authentication.
+
+Administrative operations
+
+Provide the equivalent of:
+
+- List proposals, including drafts.
+- Upload a proposal.
+- Update proposal metadata.
+- Replace a document.
+- Publish a proposal.
+- Unpublish a proposal.
+- Delete a proposal.
+- Preview a draft through authorized access.
+
+Use the existing authentication system and role-permission model.
+
+Every administrative API must verify permissions on the server. Hiding a button in the frontend is not sufficient.
+
+Apply:
+
+- Server-side input validation.
+- Authentication and authorization checks.
+- Appropriate HTTP status codes.
+- Safe SQL queries.
+- File-type and size validation.
+- Consistent response structures.
+- Actionable error handling.
+- CSRF protections where relevant to the existing authentication approach.
+- Rate limiting or abuse controls appropriate to the application.
+- Safe handling of concurrent edits and repeated submissions.
+
+Never expose internal stack traces, secrets, private document keys, or sensitive administrative details to public visitors.
+
+---
+
+8. Document delivery and HTTP behavior
+
+Choose a secure delivery method that works with the existing Cloudflare architecture.
+
+For published proposals, public document reading and downloading must work without requiring administrator authentication.
+
+For unpublished proposals, require authorized access.
+
+If documents are served through application routes:
+
+- Confirm publication status before serving a public file.
+- Resolve the storage key through the relevant database record.
+- Never accept an arbitrary storage key from a public request as permission to retrieve any object.
+- Set correct "Content-Type" and "Content-Disposition" headers.
+- Sanitize filenames.
+- Support byte-range requests when needed by the PDF reader.
+- Configure suitable cache headers.
+- Prevent path traversal and arbitrary object access.
+
+If signed URLs are used, ensure they work with the viewer, download flow, and chosen expiry policy. Do not expose long-lived administrative access links.
+
+Ensure unpublishing or deleting a proposal prevents further access through application-controlled routes. Account for caching so that an unpublished document is not inadvertently kept publicly available through a stale application response.
+
+---
+
+9. Stable public links and sharing
+
+Every published proposal should have a stable, shareable URL, preferably a route such as "/proposals/:id" or the equivalent supported by the existing router.
+
+The public detail route must:
+
+- Retrieve the correct proposal from the backend.
+- Display the exact saved title.
+- Show the document's correct metadata.
+- Provide working reading and download actions.
+- Handle invalid IDs and unpublished records appropriately.
+- Work after refreshing the browser.
+- Work when opened from a shared link.
+
+Never expose draft details through public proposal routes.
+
+If the application supports public metadata previews or social sharing cards, generate them using actual proposal metadata. Do not include confidential information.
+
+---
+
+10. Security and file validation
+
+Treat uploaded documents as untrusted files.
+
+Implement:
+
+- An explicit allowlist of supported extensions and file formats.
+- Server-side MIME and file-signature validation where practical.
+- Configurable maximum file sizes.
+- Safe filename handling.
+- Unique object keys.
+- Appropriate authentication and authorization.
+- Protection against path traversal and header injection.
+- Secure content-delivery headers.
+- Restricted access to unpublished documents.
+- Safe document rendering and previewing.
+- Error handling for corrupted or unsupported documents.
+
+Do not execute uploaded files.
+
+Do not render arbitrary uploaded HTML or JavaScript inside the website.
+
+If a format cannot be validated or safely previewed, reject it or preserve it for controlled downloading only if the format is explicitly permitted by the system's security policy.
+
+---
+
+11. Responsive behavior and accessibility
+
+The feature must work correctly on:
+
+- Android mobile browsers.
+- iPhones and tablets.
+- Desktop browsers.
+- Narrow screens and landscape orientation.
+
+Implement:
+
+- Mobile-friendly cards and toolbars.
+- A usable alternative to wide desktop tables on small screens.
+- Readable document-reader controls.
+- Keyboard navigation.
+- Visible focus indicators.
+- Proper labels and accessible dialog behavior.
+- Screen-reader-friendly loading and status messages.
+- Sufficient color contrast in both themes.
+- Touch-friendly buttons.
+- Confirmation before destructive actions.
+
+Test for horizontal overflow, clipped controls, oversized headings, and broken layouts on small screens.
+
+---
+
+12. Performance and deployment compatibility
+
+Ensure the feature is compatible with the existing Cloudflare Pages and Workers/Functions deployment architecture.
+
+Verify:
+
+- Correct production routes.
+- Correct D1 binding.
+- Correct R2 binding.
+- Correct production environment configuration.
+- Runtime-compatible libraries and APIs.
+- No reliance on local file persistence.
+- No hardcoded localhost URLs.
+- No exposed environment secrets.
+- Efficient queries and pagination.
+- Appropriate cache behavior.
+- Reliable document delivery.
+- PDF viewer asset compatibility.
+- Correct content-type and range responses.
+- Proper handling of large uploads and downloads.
+
+Follow the project's actual deployment model rather than assuming it uses a particular framework.
+
+Update configuration only as required. If a binding, environment variable, migration, or deployment setting requires a manual action, identify it explicitly.
+
+Do not claim that a deployment succeeded unless the deployment actually completed.
+
+---
+
+13. Error handling and user feedback
+
+Provide clear states for:
+
+- Initial page loading.
+- Empty proposal library.
+- No search results.
+- Upload in progress.
+- Upload success.
+- Upload failure.
+- Invalid file type.
+- File too large.
+- Authentication failure.
+- Permission denied.
+- Missing proposal.
+- Unavailable document.
+- Failed PDF rendering.
+- Failed download.
+- Failed database operation.
+- Failed replacement.
+- Failed publishing or unpublishing.
+- Failed deletion.
+- Network interruption.
+
+Allow retrying recoverable operations.
+
+Never silently replace failed data with an empty list, zero counts, fabricated success, or placeholder proposals.
+
+Log useful technical diagnostics on the server while returning safe, understandable messages to users.
+
+---
+
+14. Testing and verification
+
+Implement automated tests where the project's existing test infrastructure permits, and perform practical end-to-end testing.
+
+Test at least the following:
+
+1. The public navigation item opens the correct proposals page.
+2. Direct navigation and browser refresh work on the deployed route.
+3. Authorized administrators can access Proposal Management.
+4. Unauthorized users cannot upload, edit, publish, replace, or delete proposals.
+5. A valid PDF can be uploaded.
+6. Unsupported file formats are rejected.
+7. Oversized uploads are rejected.
+8. The administrator-entered title is preserved exactly.
+9. The uploaded document is associated with the correct proposal.
+10. Published proposals appear publicly.
+11. Draft and unpublished proposals remain private.
+12. Search, filters, sorting, and view switching work.
+13. PDF reading works on supported desktop and mobile browsers.
+14. Downloaded files match the original uploaded content.
+15. Share links open the correct proposal.
+16. Metadata changes persist after refreshing.
+17. Replacing a document updates the correct proposal.
+18. Failed replacements preserve the previous valid document association.
+19. Unpublishing removes public visibility and application-controlled document access.
+20. Deletion requires confirmation and handles file cleanup safely.
+21. Database and R2 failures produce accurate feedback.
+22. Repeated submissions do not unintentionally create duplicate records.
+23. Existing website navigation, authentication, dashboard features, and unrelated pages continue to work.
+24. The application builds successfully for the actual Cloudflare deployment target.
+
+Use a real test document and verify actual backend requests where authorized.
+
+Do not mark a workflow as verified based solely on inspecting the UI or successfully building the frontend.
+
+---
+
+15. Implementation rules
+
+Before coding:
+
+- Inspect the existing architecture.
+- Identify the current Admin Dashboard and its authentication requirements.
+- Identify existing D1 and R2 bindings.
+- Check for reusable upload, storage, document, and UI components.
+- Identify the correct public navigation and routing files.
+- Review existing deployment and migration conventions.
+
+During implementation:
+
+- Make minimal, focused changes.
+- Reuse existing infrastructure.
+- Keep the Admin Dashboard as the only location for proposal management.
+- Preserve all existing data and features.
+- Do not reset or recreate the database.
+- Do not introduce mock proposals as production data.
+- Do not add nonfunctional controls.
+- Do not silently swallow backend errors.
+- Do not introduce unnecessary dependencies.
+- Do not claim unverified features are complete.
+
+After implementation:
+
+- Run the appropriate build, type checks, linting, and tests.
+- Fix regressions introduced by the changes.
+- Apply only necessary additive migrations.
+- Document required Cloudflare bindings and environment settings.
+- Deploy through the existing workflow if deployment access is available.
+- Verify the deployed application and document workflows.
+- Report any manual steps or limitations honestly.
+
+---
+
+16. Final acceptance criteria
+
+The feature is complete only when all of the following are true:
+
+- Navigation: Our Proposals appears in the existing public navigation and opens the correct page.
+- Public experience: The proposals page is compact, polished, responsive, accessible, and consistent with the existing branding.
+- Administration: All proposal management functions exist inside the existing Admin Dashboard, not the Business Development dashboard.
+- Upload: Administrators can upload supported documents from their devices.
+- Title integrity: The public title matches the exact administrator-entered title.
+- File integrity: Each proposal always points to its correct original document.
+- Persistence: Documents survive redeployments because they are stored in persistent storage.
+- Database: Metadata is stored in the existing D1 database without destructive database changes.
+- Reading: Supported PDFs can be read online with useful viewer controls.
+- Downloading: Original documents download correctly.
+- Sharing: Public links open the correct published proposals.
+- Security: Administrative operations are authorized server-side and drafts remain private.
+- Management: Editing, replacing, publishing, unpublishing, and deleting work correctly.
+- Error handling: Failures are reported honestly without corrupting proposal records.
+- Deployment: The complete workflow is compatible with the actual Cloudflare production configuration.
+- Regression safety: Existing pages, dashboard functions, records, and permissions remain intact.
+
+Final instruction
+
+Implement the complete Our Proposals feature in the existing project, from the public navigation to the Admin Dashboard, database, file storage, document viewer, and production deployment.
+
+Prioritize correctness, security, document integrity, premium UI/UX, and actual functionality.
+
+Do not stop after creating the page design. Do not use simulated uploads, hardcoded proposals, placeholder APIs, or nonfunctional buttons. Do not claim successful production deployment or verification unless it has actually been completed.

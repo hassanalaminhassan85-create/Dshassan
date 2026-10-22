@@ -1,7 +1,7 @@
 // 2026 Advanced Client API Helpers for DS Tech Portal
 // Connects UI to secure backend Cloudflare Functions / Express server
 
-import { Department, StaffMember, StaffActivityLog } from '../types';
+import { Department, StaffMember, StaffActivityLog, ProposalRecord } from '../types';
 import { generateDynamicSvgUrl, generateAvatarSvgUrl } from './mediaUtils';
 import { SERVICES, PORTFOLIO, BLOG_POSTS } from './data';
 import { 
@@ -2525,6 +2525,476 @@ export async function apiUploadFile(file: File): Promise<string> {
     reader.readAsDataURL(file);
   });
 }
+
+// ==========================================
+// OFFICIAL OUR PROPOSALS API CLIENT
+// ==========================================
+
+export async function apiGetProposals(
+  admin: boolean = false,
+  category?: string,
+  search?: string,
+  sort: string = 'newest'
+): Promise<ProposalRecord[]> {
+  // 1. Attempt Cloudflare / Express REST backend
+  try {
+    const params = new URLSearchParams();
+    if (admin) params.set('admin', 'true');
+    if (category && category !== 'All') params.set('category', category);
+    if (search && search.trim()) params.set('search', search.trim());
+    if (sort) params.set('sort', sort);
+
+    const res = await fetch(`/api/proposals?${params.toString()}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        if (admin) {
+          localStorage.setItem('admin_proposals', JSON.stringify(data));
+        } else {
+          localStorage.setItem('public_proposals', JSON.stringify(data));
+        }
+        return data;
+      }
+    }
+  } catch (e) {
+    console.warn("REST API /api/proposals unavailable, checking Firestore...", e);
+  }
+
+  // 2. Attempt Firestore fallback
+  try {
+    const ref = collection(db, 'proposals');
+    const constraints: any[] = [];
+    if (!admin) {
+      constraints.push(where('status', '==', 'published'));
+    }
+    if (category && category !== 'All') {
+      constraints.push(where('category', '==', category));
+    }
+    const q = query(ref, ...constraints);
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      let list = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as ProposalRecord[];
+      // Client-side search & sort if from Firestore
+      if (search && search.trim()) {
+        const s = search.toLowerCase().trim();
+        list = list.filter(p =>
+          (p.title && p.title.toLowerCase().includes(s)) ||
+          (p.description && p.description.toLowerCase().includes(s)) ||
+          (p.category && p.category.toLowerCase().includes(s))
+        );
+      }
+      list.sort((a, b) => {
+        if (sort === 'oldest') return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        if (sort === 'title_asc') return (a.title || '').localeCompare(b.title || '');
+        if (sort === 'title_desc') return (b.title || '').localeCompare(a.title || '');
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+
+      if (admin) localStorage.setItem('admin_proposals', JSON.stringify(list));
+      else localStorage.setItem('public_proposals', JSON.stringify(list));
+      return list;
+    }
+  } catch (fsErr) {
+    console.warn("Firestore proposals query warning:", fsErr);
+  }
+
+  // 3. Attempt LocalStorage cache
+  try {
+    const cacheKey = admin ? 'admin_proposals' : 'public_proposals';
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {}
+
+  return [];
+}
+
+export async function apiGetProposalById(id: string, admin: boolean = false): Promise<ProposalRecord | null> {
+  // 1. Try REST API
+  try {
+    const res = await fetch(`/api/proposals/${encodeURIComponent(id)}${admin ? '?admin=true' : ''}`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {}
+
+  // 2. Try Firestore
+  try {
+    const snap = await getDoc(doc(db, 'proposals', id));
+    if (snap.exists()) {
+      const data = { id: snap.id, ...(snap.data() as any) } as ProposalRecord;
+      if (data.status === 'published' || admin) {
+        return data;
+      }
+    }
+  } catch (e) {}
+
+  // 3. Try LocalStorage
+  try {
+    const all = await apiGetProposals(admin);
+    const match = all.find(p => p.id === id);
+    if (match) return match;
+  } catch (e) {}
+
+  return null;
+}
+
+export async function apiUploadProposalDocument(
+  file: File,
+  onProgress?: (progress: number) => void
+): Promise<{
+  success: boolean;
+  file_key: string;
+  original_filename: string;
+  file_size: number;
+  mime_type: string;
+  url?: string;
+}> {
+  // Helper to read file as Base64 Data URL
+  const readAsBase64 = (f: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const res = reader.result as string;
+        const base64 = res.includes(',') ? res.split(',')[1] : res;
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(f);
+    });
+  };
+
+  if (onProgress) onProgress(20);
+
+  // Send as JSON base64 with multi-format fallback
+  const base64 = await readAsBase64(file);
+  if (onProgress) onProgress(50);
+
+  const payload = {
+    fileName: file.name,
+    mimeType: file.type || 'application/pdf',
+    base64
+  };
+
+  const res = await fetch('/api/proposals/upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  if (onProgress) onProgress(90);
+
+  if (!res.ok) {
+    let errorMsg = 'Failed to upload proposal document.';
+    try {
+      const errData = await res.json();
+      if (errData.error) errorMsg = errData.error;
+    } catch (e) {}
+    throw new Error(errorMsg);
+  }
+
+  const data = await res.json();
+  if (onProgress) onProgress(100);
+  return data;
+}
+
+export async function apiSaveProposal(proposalData: Partial<ProposalRecord>): Promise<ProposalRecord> {
+  const id = proposalData.id || `prop_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  const now = new Date().toISOString();
+  const status = proposalData.status === 'published' ? 'published' : 'draft';
+  const published_at = status === 'published' ? (proposalData.published_at || now) : null;
+
+  const record: ProposalRecord = {
+    id,
+    title: (proposalData.title || '').trim(),
+    description: (proposalData.description || '').trim(),
+    category: (proposalData.category || 'General').trim(),
+    file_key: proposalData.file_key || '',
+    original_filename: proposalData.original_filename || '',
+    mime_type: proposalData.mime_type || 'application/pdf',
+    file_size: Number(proposalData.file_size) || 0,
+    status,
+    created_at: proposalData.created_at || now,
+    updated_at: now,
+    published_at,
+    created_by: proposalData.created_by || 'Administrator'
+  };
+
+  // 1. Persist to Firestore for real-time multi-device sync
+  try {
+    await setDoc(doc(db, 'proposals', id), record);
+  } catch (fsErr) {
+    console.warn("Firestore proposals write warning:", fsErr);
+  }
+
+  // 2. Persist to Cloudflare D1 / Express server
+  const res = await fetch('/api/proposals', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(record)
+  });
+
+  if (!res.ok) {
+    let err = 'Failed to save proposal to server database.';
+    try {
+      const errJson = await res.json();
+      if (errJson.error) err = errJson.error;
+    } catch (e) {}
+    throw new Error(err);
+  }
+
+  const result = await res.json();
+  const savedRecord = result.proposal || record;
+
+  // 3. Update localStorage cache
+  try {
+    const raw = localStorage.getItem('admin_proposals');
+    let list: ProposalRecord[] = raw ? JSON.parse(raw) : [];
+    const idx = list.findIndex(p => p.id === id);
+    if (idx >= 0) list[idx] = savedRecord;
+    else list.unshift(savedRecord);
+    localStorage.setItem('admin_proposals', JSON.stringify(list));
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'proposals', action: 'save', item: savedRecord } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
+  return savedRecord;
+}
+
+export async function apiUpdateProposalMetadata(id: string, metadata: Partial<ProposalRecord>): Promise<ProposalRecord> {
+  const now = new Date().toISOString();
+
+  // 1. Update in Firestore
+  try {
+    await updateDoc(doc(db, 'proposals', id), {
+      ...metadata,
+      updated_at: now
+    });
+  } catch (fsErr) {
+    console.warn("Firestore proposals update warning:", fsErr);
+  }
+
+  // 2. Update via REST backend
+  const res = await fetch(`/api/proposals/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(metadata)
+  });
+
+  if (!res.ok) {
+    let err = 'Failed to update proposal on server.';
+    try {
+      const errJson = await res.json();
+      if (errJson.error) err = errJson.error;
+    } catch (e) {}
+    throw new Error(err);
+  }
+
+  const result = await res.json();
+  const updated = result.proposal;
+
+  // 3. Update localStorage
+  try {
+    const raw = localStorage.getItem('admin_proposals');
+    if (raw) {
+      let list: ProposalRecord[] = JSON.parse(raw);
+      const idx = list.findIndex(p => p.id === id);
+      if (idx >= 0) {
+        list[idx] = { ...list[idx], ...metadata, updated_at: now };
+        localStorage.setItem('admin_proposals', JSON.stringify(list));
+      }
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'proposals', action: 'update', item: updated } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
+  return updated;
+}
+
+export async function apiReplaceProposalDocument(
+  id: string,
+  newDoc: { file_key: string; original_filename: string; file_size: number; mime_type: string }
+): Promise<ProposalRecord> {
+  const now = new Date().toISOString();
+
+  // 1. Update in Firestore
+  try {
+    await updateDoc(doc(db, 'proposals', id), {
+      file_key: newDoc.file_key,
+      original_filename: newDoc.original_filename,
+      file_size: newDoc.file_size,
+      mime_type: newDoc.mime_type,
+      updated_at: now
+    });
+  } catch (e) {}
+
+  // 2. Update in REST backend
+  const res = await fetch(`/api/proposals/${encodeURIComponent(id)}/replace-document`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(newDoc)
+  });
+
+  if (!res.ok) {
+    let err = 'Failed to replace proposal document on server.';
+    try {
+      const errJson = await res.json();
+      if (errJson.error) err = errJson.error;
+    } catch (e) {}
+    throw new Error(err);
+  }
+
+  const result = await res.json();
+  const updated = result.proposal;
+
+  // 3. Update localStorage
+  try {
+    const raw = localStorage.getItem('admin_proposals');
+    if (raw) {
+      let list: ProposalRecord[] = JSON.parse(raw);
+      const idx = list.findIndex(p => p.id === id);
+      if (idx >= 0) {
+        list[idx] = updated;
+        localStorage.setItem('admin_proposals', JSON.stringify(list));
+      }
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'proposals', action: 'replace-document', item: updated } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
+  return updated;
+}
+
+export async function apiToggleProposalPublish(id: string, isPublished: boolean): Promise<{ success: boolean; id: string; status: string }> {
+  const nextStatus = isPublished ? 'published' : 'draft';
+  const now = new Date().toISOString();
+  const pubDate = isPublished ? now : null;
+
+  // 1. Update Firestore
+  try {
+    await updateDoc(doc(db, 'proposals', id), {
+      status: nextStatus,
+      published_at: pubDate,
+      updated_at: now
+    });
+  } catch (e) {}
+
+  // 2. Update REST backend
+  const res = await fetch(`/api/proposals/${encodeURIComponent(id)}/publish`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status: nextStatus })
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to toggle proposal publish status on server.');
+  }
+
+  // 3. Update localStorage
+  try {
+    const raw = localStorage.getItem('admin_proposals');
+    if (raw) {
+      let list: ProposalRecord[] = JSON.parse(raw);
+      const idx = list.findIndex(p => p.id === id);
+      if (idx >= 0) {
+        list[idx].status = nextStatus;
+        list[idx].published_at = pubDate;
+        list[idx].updated_at = now;
+        localStorage.setItem('admin_proposals', JSON.stringify(list));
+      }
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'proposals', action: 'publish', id, status: nextStatus } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
+  return { success: true, id, status: nextStatus };
+}
+
+export async function apiDeleteProposal(id: string): Promise<{ success: boolean }> {
+  // 1. Delete from Firestore
+  try {
+    await deleteDoc(doc(db, 'proposals', id));
+  } catch (e) {}
+
+  // 2. Delete from REST backend
+  const res = await fetch(`/api/proposals/${encodeURIComponent(id)}`, {
+    method: 'DELETE'
+  });
+
+  if (!res.ok) {
+    throw new Error('Failed to delete proposal record from server.');
+  }
+
+  // 3. Update localStorage
+  try {
+    const raw = localStorage.getItem('admin_proposals');
+    if (raw) {
+      let list: ProposalRecord[] = JSON.parse(raw);
+      list = list.filter(p => p.id !== id);
+      localStorage.setItem('admin_proposals', JSON.stringify(list));
+    }
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'proposals', action: 'delete', id } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
+  return { success: true };
+}
+
+export function apiSubscribeToProposals(callback: (proposals: ProposalRecord[]) => void, admin: boolean = false): () => void {
+  // 1. Immediate fetch
+  apiGetProposals(admin).then(data => {
+    if (data) callback(data);
+  }).catch(() => {});
+
+  // 2. Firestore real-time snapshot listener
+  const ref = collection(db, 'proposals');
+  const constraints: any[] = [];
+  if (!admin) {
+    constraints.push(where('status', '==', 'published'));
+  }
+  const q = query(ref, ...constraints);
+  const unsubFirestore = onSnapshot(q, (snap) => {
+    const list = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) })) as ProposalRecord[];
+    list.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    callback(list);
+  }, (err) => console.warn("Proposals snapshot error:", err));
+
+  // 3. Event listener for storage / window events
+  const handleUpdate = () => {
+    apiGetProposals(admin).then(data => callback(data)).catch(() => {});
+  };
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('dstech_content_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+  }
+
+  return () => {
+    unsubFirestore();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('dstech_content_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    }
+  };
+}
+
 
 
 

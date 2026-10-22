@@ -671,6 +671,26 @@ async function ensureDatabaseTables(db: any) {
     `CREATE INDEX IF NOT EXISTS idx_recognition_category ON recognition_certificates (category);`,
     `CREATE INDEX IF NOT EXISTS idx_recognition_published ON recognition_certificates (is_published);`,
 
+    `CREATE TABLE IF NOT EXISTS proposals (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      description TEXT,
+      category TEXT,
+      file_key TEXT NOT NULL,
+      original_filename TEXT NOT NULL,
+      mime_type TEXT NOT NULL,
+      file_size INTEGER NOT NULL,
+      status TEXT NOT NULL DEFAULT 'draft',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      published_at TEXT,
+      created_by TEXT
+    );`,
+
+    `CREATE INDEX IF NOT EXISTS idx_proposals_status ON proposals (status);`,
+    `CREATE INDEX IF NOT EXISTS idx_proposals_created ON proposals (created_at);`,
+    `CREATE INDEX IF NOT EXISTS idx_proposals_category ON proposals (category);`,
+
     `CREATE TABLE IF NOT EXISTS ongoing_projects (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
@@ -3435,6 +3455,537 @@ export async function onRequest(context: { request: Request; env: any; params: a
           }
         } catch (e: any) {
           return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+    }
+
+    // ==========================================
+    // OFFICIAL DS TECH PROPOSALS API
+    // ==========================================
+
+    // 1. Upload proposal document
+    if (path === '/api/proposals/upload' && method === 'POST') {
+      try {
+        let fileBuffer: ArrayBuffer | null = null;
+        let fileName = 'proposal_document.pdf';
+        let mimeType = 'application/pdf';
+        let fileSize = 0;
+
+        const contentType = request.headers.get('content-type') || '';
+        if (contentType.includes('multipart/form-data')) {
+          const formData = await request.formData();
+          const file = formData.get('file') as File;
+          if (!file) {
+            return new Response(JSON.stringify({ success: false, error: "No document file was provided in the upload." }), { status: 400, headers });
+          }
+          fileName = file.name;
+          mimeType = file.type || 'application/pdf';
+          fileSize = file.size;
+          fileBuffer = await file.arrayBuffer();
+        } else {
+          // JSON base64 upload fallback
+          const body = await request.json();
+          if (!body || (!body.base64 && !body.dataUrl)) {
+            return new Response(JSON.stringify({ success: false, error: "No document data provided." }), { status: 400, headers });
+          }
+          fileName = body.fileName || body.name || 'proposal_document.pdf';
+          mimeType = body.mimeType || body.type || 'application/pdf';
+
+          let rawBase64 = body.base64 || '';
+          if (body.dataUrl) {
+            const parsed = parseBase64Data(body.dataUrl);
+            if (parsed) {
+              mimeType = parsed.mimeType;
+              rawBase64 = parsed.base64Data;
+            }
+          }
+          const binaryStr = atob(rawBase64);
+          fileSize = binaryStr.length;
+          const bytes = new Uint8Array(fileSize);
+          for (let i = 0; i < fileSize; i++) {
+            bytes[i] = binaryStr.charCodeAt(i);
+          }
+          fileBuffer = bytes.buffer;
+        }
+
+        // Validate allowed file extensions & MIME types
+        const allowedMimes = [
+          'application/pdf',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'application/msword'
+        ];
+        const lowerName = fileName.toLowerCase();
+        const hasValidExt = lowerName.endsWith('.pdf') || lowerName.endsWith('.docx') || lowerName.endsWith('.doc');
+
+        if (!hasValidExt && !allowedMimes.includes(mimeType)) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: "Unsupported file format. Only PDF (.pdf) and Word (.docx, .doc) documents are accepted for proposals."
+          }), { status: 400, headers });
+        }
+
+        // Limit maximum file size (25MB)
+        const maxBytes = 25 * 1024 * 1024;
+        if (fileSize > maxBytes) {
+          return new Response(JSON.stringify({
+            success: false,
+            error: `File size exceeds the 25MB limit (Provided: ${(fileSize / (1024 * 1024)).toFixed(1)}MB).`
+          }), { status: 400, headers });
+        }
+
+        // Generate collision-resistant unique storage key
+        const safeBaseName = fileName.replace(/[^a-zA-Z0-9.-]/g, '_');
+        const randUid = Math.random().toString(36).substring(2, 10);
+        const objectKey = `proposals/${Date.now()}_${randUid}_${safeBaseName}`;
+
+        const saved = await saveUploadedFile(env, objectKey, fileBuffer, mimeType);
+        if (!saved) {
+          return new Response(JSON.stringify({ success: false, error: "Failed to persist document to R2 storage." }), { status: 500, headers });
+        }
+
+        return new Response(JSON.stringify({
+          success: true,
+          file_key: objectKey,
+          original_filename: fileName,
+          file_size: fileSize,
+          mime_type: mimeType,
+          url: `/api/proposals/file?key=${encodeURIComponent(objectKey)}`
+        }), { headers });
+
+      } catch (err: any) {
+        console.error("Proposal upload error:", err);
+        return new Response(JSON.stringify({ success: false, error: err.message || "Failed to process proposal upload." }), { status: 500, headers });
+      }
+    }
+
+    // 2. Stream / Serve proposal document
+    if (path === '/api/proposals/file' && method === 'GET') {
+      try {
+        const idParam = url.searchParams.get('id');
+        const keyParam = url.searchParams.get('key');
+        const isDownload = url.searchParams.get('download') === 'true';
+
+        let targetKey = keyParam;
+        let proposalTitle = 'Proposal_Document';
+        let originalFileName = 'Proposal_Document.pdf';
+        let detectedMime = 'application/pdf';
+
+        if (idParam && env.DB) {
+          const res = await env.DB.prepare('SELECT * FROM proposals WHERE id = ?').bind(idParam).all();
+          const p = res.results?.[0];
+          if (!p) {
+            return new Response(JSON.stringify({ error: "Proposal record not found." }), { status: 404, headers });
+          }
+          // Public access security check: Drafts cannot be retrieved publicly
+          const isAdmin = url.searchParams.get('admin') === 'true';
+          if (p.status !== 'published' && !isAdmin) {
+            return new Response(JSON.stringify({ error: "Access denied. This proposal is currently in draft status." }), { status: 403, headers });
+          }
+          targetKey = p.file_key;
+          proposalTitle = p.title;
+          originalFileName = p.original_filename || `${p.title.replace(/[^a-zA-Z0-9.-]/g, '_')}.pdf`;
+          detectedMime = p.mime_type || 'application/pdf';
+        } else if (keyParam && env.DB) {
+          // Verify that this key belongs to a published proposal if not admin
+          const isAdmin = url.searchParams.get('admin') === 'true';
+          if (!isAdmin) {
+            const check = await env.DB.prepare('SELECT status, original_filename, mime_type, title FROM proposals WHERE file_key = ?').bind(keyParam).all();
+            const found = check.results?.[0];
+            if (found && found.status !== 'published') {
+              return new Response(JSON.stringify({ error: "Access denied to unpublished proposal document." }), { status: 403, headers });
+            }
+            if (found) {
+              originalFileName = found.original_filename || originalFileName;
+              detectedMime = found.mime_type || detectedMime;
+              proposalTitle = found.title || proposalTitle;
+            }
+          }
+        }
+
+        if (!targetKey) {
+          return new Response(JSON.stringify({ error: "Missing document reference (id or key parameter required)." }), { status: 400, headers });
+        }
+
+        const fileRes = await getUploadedFile(env, targetKey);
+        if (!fileRes.success || !fileRes.data) {
+          return generateBackendSvgResponse('Proposal Document Not Found', originalFileName);
+        }
+
+        const totalBytes = fileRes.data.byteLength;
+        const finalMime = fileRes.mimeType || detectedMime;
+
+        // Clean safe filename for Content-Disposition header
+        const safeDownloadName = originalFileName.replace(/["\r\n\t]/g, '_');
+        const disposition = isDownload ? 'attachment' : 'inline';
+
+        // Check for HTTP Range Header (for PDF viewer page streaming)
+        const rangeHeader = request.headers.get('Range');
+        if (rangeHeader && rangeHeader.startsWith('bytes=')) {
+          const parts = rangeHeader.replace('bytes=', '').split('-');
+          const start = parseInt(parts[0], 10);
+          const end = parts[1] ? parseInt(parts[1], 10) : totalBytes - 1;
+
+          if (start >= totalBytes || end >= totalBytes || start > end) {
+            return new Response(null, {
+              status: 416,
+              headers: {
+                'Content-Range': `bytes */${totalBytes}`,
+                'Access-Control-Allow-Origin': '*'
+              }
+            });
+          }
+
+          const slicedData = fileRes.data.subarray(start, end + 1);
+          return new Response(slicedData, {
+            status: 206,
+            headers: {
+              'Content-Type': finalMime,
+              'Content-Range': `bytes ${start}-${end}/${totalBytes}`,
+              'Content-Length': slicedData.byteLength.toString(),
+              'Accept-Ranges': 'bytes',
+              'Access-Control-Allow-Origin': '*',
+              'Cache-Control': 'public, max-age=3600',
+              'Content-Disposition': `${disposition}; filename="${safeDownloadName}"`
+            }
+          });
+        }
+
+        // Full content delivery
+        const deliveryHeaders = new Headers();
+        deliveryHeaders.set('Content-Type', finalMime);
+        deliveryHeaders.set('Content-Length', totalBytes.toString());
+        deliveryHeaders.set('Accept-Ranges', 'bytes');
+        deliveryHeaders.set('Access-Control-Allow-Origin', '*');
+        deliveryHeaders.set('Cache-Control', 'public, max-age=3600');
+        deliveryHeaders.set('Content-Disposition', `${disposition}; filename="${safeDownloadName}"`);
+
+        return new Response(fileRes.data, {
+          status: 200,
+          headers: deliveryHeaders
+        });
+
+      } catch (err: any) {
+        return new Response(JSON.stringify({ error: err.message || "Failed to retrieve proposal file." }), { status: 500, headers });
+      }
+    }
+
+    // 3. List proposals (GET /api/proposals) & Create proposal (POST /api/proposals)
+    if (path === '/api/proposals') {
+      if (method === 'GET') {
+        const adminParam = url.searchParams.get('admin');
+        const categoryParam = url.searchParams.get('category');
+        const searchParam = url.searchParams.get('search');
+        const sortParam = url.searchParams.get('sort') || 'newest';
+
+        try {
+          if (env.DB) {
+            let queryStr = 'SELECT * FROM proposals';
+            const params: any[] = [];
+            const conditions: string[] = [];
+
+            // Public visitors only see published proposals
+            if (adminParam !== 'true') {
+              conditions.push("status = 'published'");
+            }
+
+            if (categoryParam && categoryParam !== 'All') {
+              conditions.push("category = ?");
+              params.push(categoryParam);
+            }
+
+            if (searchParam && searchParam.trim()) {
+              const term = `%${searchParam.trim()}%`;
+              conditions.push("(title LIKE ? OR description LIKE ? OR category LIKE ?)");
+              params.push(term, term, term);
+            }
+
+            if (conditions.length > 0) {
+              queryStr += ' WHERE ' + conditions.join(' AND ');
+            }
+
+            // Sorting
+            switch (sortParam) {
+              case 'oldest':
+                queryStr += ' ORDER BY created_at ASC';
+                break;
+              case 'title_asc':
+                queryStr += ' ORDER BY title ASC';
+                break;
+              case 'title_desc':
+                queryStr += ' ORDER BY title DESC';
+                break;
+              case 'newest':
+              default:
+                queryStr += ' ORDER BY created_at DESC';
+                break;
+            }
+
+            const results = await env.DB.prepare(queryStr).bind(...params).all();
+            return new Response(JSON.stringify(results.results || []), { headers });
+          }
+          return new Response(JSON.stringify([]), { headers });
+        } catch (e: any) {
+          console.error("GET /api/proposals error:", e);
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+
+      if (method === 'POST') {
+        try {
+          const body = await request.json();
+          if (!body || !body.title || !body.title.trim()) {
+            return new Response(JSON.stringify({ success: false, error: "Proposal title is required." }), { status: 400, headers });
+          }
+          if (!body.file_key || !body.original_filename) {
+            return new Response(JSON.stringify({ success: false, error: "Proposal document file is required." }), { status: 400, headers });
+          }
+
+          const id = body.id || ('prop_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now());
+          const title = body.title.trim();
+          const description = body.description ? body.description.trim() : '';
+          const category = body.category ? body.category.trim() : 'General';
+          const file_key = body.file_key.trim();
+          const original_filename = body.original_filename.trim();
+          const mime_type = body.mime_type || 'application/pdf';
+          const file_size = Number(body.file_size) || 0;
+          const status = body.status === 'published' ? 'published' : 'draft';
+          const now = new Date().toISOString();
+          const published_at = status === 'published' ? (body.published_at || now) : null;
+          const created_by = body.created_by || 'Administrator';
+
+          if (env.DB) {
+            await env.DB.prepare(`
+              INSERT OR REPLACE INTO proposals (
+                id, title, description, category, file_key, original_filename,
+                mime_type, file_size, status, created_at, updated_at, published_at, created_by
+              ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `).bind(
+              id, title, description, category, file_key, original_filename,
+              mime_type, file_size, status, now, now, published_at, created_by
+            ).run();
+
+            const record = {
+              id, title, description, category, file_key, original_filename,
+              mime_type, file_size, status, created_at: now, updated_at: now, published_at, created_by
+            };
+
+            broadcastSyncEvent({
+              type: 'PROPOSAL_SAVED',
+              record,
+              message: `Proposal saved: "${title}" (${status})`
+            });
+
+            return new Response(JSON.stringify({ success: true, proposal: record }), { headers });
+          }
+
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        } catch (e: any) {
+          console.error("POST /api/proposals error:", e);
+          return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers });
+        }
+      }
+
+      if (method === 'DELETE') {
+        const idParam = url.searchParams.get('id');
+        if (!idParam) {
+          return new Response(JSON.stringify({ error: "Missing id query parameter" }), { status: 400, headers });
+        }
+        try {
+          if (env.DB) {
+            await env.DB.prepare('DELETE FROM proposals WHERE id = ?').bind(idParam).run();
+            broadcastSyncEvent({
+              type: 'PROPOSAL_DELETED',
+              id: idParam,
+              message: `Proposal deleted`
+            });
+            return new Response(JSON.stringify({ success: true, id: idParam }), { headers });
+          }
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+    }
+
+    // 4. Individual proposal routes (/api/proposals/:id)
+    if (path.startsWith('/api/proposals/')) {
+      const rest = path.replace('/api/proposals/', '');
+      const parts = rest.split('/');
+      const propId = parts[0];
+      const action = parts[1];
+
+      // Replace proposal document action: POST /api/proposals/:id/replace-document
+      if (action === 'replace-document' && method === 'POST') {
+        try {
+          const body = await request.json();
+          const { file_key, original_filename, file_size, mime_type } = body;
+          if (!file_key || !original_filename) {
+            return new Response(JSON.stringify({ success: false, error: "New document details (file_key, original_filename) required." }), { status: 400, headers });
+          }
+
+          if (env.DB) {
+            const check = await env.DB.prepare('SELECT * FROM proposals WHERE id = ?').bind(propId).all();
+            const existing = check.results?.[0];
+            if (!existing) {
+              return new Response(JSON.stringify({ success: false, error: "Proposal not found." }), { status: 404, headers });
+            }
+
+            const now = new Date().toISOString();
+            await env.DB.prepare(`
+              UPDATE proposals SET
+                file_key = ?,
+                original_filename = ?,
+                file_size = ?,
+                mime_type = ?,
+                updated_at = ?
+              WHERE id = ?
+            `).bind(file_key, original_filename, Number(file_size) || 0, mime_type || 'application/pdf', now, propId).run();
+
+            const updatedRecord = {
+              ...existing,
+              file_key,
+              original_filename,
+              file_size: Number(file_size) || 0,
+              mime_type: mime_type || 'application/pdf',
+              updated_at: now
+            };
+
+            broadcastSyncEvent({
+              type: 'PROPOSAL_DOCUMENT_REPLACED',
+              record: updatedRecord,
+              message: `Document replaced for proposal: "${existing.title}"`
+            });
+
+            return new Response(JSON.stringify({ success: true, proposal: updatedRecord }), { headers });
+          }
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers });
+        }
+      }
+
+      // Publish/Unpublish toggle action: PATCH /api/proposals/:id/publish
+      if (action === 'publish' && method === 'PATCH') {
+        try {
+          const body = await request.json();
+          const nextStatus = body.status === 'published' ? 'published' : 'draft';
+          const now = new Date().toISOString();
+          const pubDate = nextStatus === 'published' ? now : null;
+
+          if (env.DB) {
+            await env.DB.prepare(`
+              UPDATE proposals SET
+                status = ?,
+                published_at = ?,
+                updated_at = ?
+              WHERE id = ?
+            `).bind(nextStatus, pubDate, now, propId).run();
+
+            broadcastSyncEvent({
+              type: 'PROPOSAL_PUBLISH_TOGGLED',
+              id: propId,
+              status: nextStatus,
+              published_at: pubDate,
+              message: `Proposal publish status set to ${nextStatus}`
+            });
+
+            return new Response(JSON.stringify({ success: true, id: propId, status: nextStatus, published_at: pubDate }), { headers });
+          }
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers });
+        }
+      }
+
+      // GET /api/proposals/:id
+      if (!action && method === 'GET') {
+        try {
+          if (env.DB) {
+            const check = await env.DB.prepare('SELECT * FROM proposals WHERE id = ?').bind(propId).all();
+            const record = check.results?.[0];
+            if (!record) {
+              return new Response(JSON.stringify({ error: "Proposal not found" }), { status: 404, headers });
+            }
+            const isAdmin = url.searchParams.get('admin') === 'true';
+            if (record.status !== 'published' && !isAdmin) {
+              return new Response(JSON.stringify({ error: "Proposal is in draft status" }), { status: 403, headers });
+            }
+            return new Response(JSON.stringify(record), { headers });
+          }
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+        }
+      }
+
+      // PUT /api/proposals/:id (Update metadata)
+      if (!action && method === 'PUT') {
+        try {
+          const body = await request.json();
+          if (env.DB) {
+            const check = await env.DB.prepare('SELECT * FROM proposals WHERE id = ?').bind(propId).all();
+            const existing = check.results?.[0];
+            if (!existing) {
+              return new Response(JSON.stringify({ success: false, error: "Proposal not found" }), { status: 404, headers });
+            }
+
+            const now = new Date().toISOString();
+            const title = body.title !== undefined ? body.title.trim() : existing.title;
+            const description = body.description !== undefined ? body.description.trim() : existing.description;
+            const category = body.category !== undefined ? body.category.trim() : existing.category;
+            const status = body.status !== undefined ? (body.status === 'published' ? 'published' : 'draft') : existing.status;
+            const published_at = status === 'published' ? (existing.published_at || now) : null;
+
+            await env.DB.prepare(`
+              UPDATE proposals SET
+                title = ?,
+                description = ?,
+                category = ?,
+                status = ?,
+                published_at = ?,
+                updated_at = ?
+              WHERE id = ?
+            `).bind(title, description, category, status, published_at, now, propId).run();
+
+            const updatedRecord = {
+              ...existing,
+              title,
+              description,
+              category,
+              status,
+              published_at,
+              updated_at: now
+            };
+
+            broadcastSyncEvent({
+              type: 'PROPOSAL_UPDATED',
+              record: updatedRecord,
+              message: `Proposal metadata updated: "${title}"`
+            });
+
+            return new Response(JSON.stringify({ success: true, proposal: updatedRecord }), { headers });
+          }
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers });
+        }
+      }
+
+      // DELETE /api/proposals/:id
+      if (!action && method === 'DELETE') {
+        try {
+          if (env.DB) {
+            await env.DB.prepare('DELETE FROM proposals WHERE id = ?').bind(propId).run();
+            broadcastSyncEvent({
+              type: 'PROPOSAL_DELETED',
+              id: propId,
+              message: `Proposal deleted`
+            });
+            return new Response(JSON.stringify({ success: true, id: propId }), { headers });
+          }
+          return new Response(JSON.stringify({ error: "Database not available" }), { status: 500, headers });
+        } catch (e: any) {
+          return new Response(JSON.stringify({ success: false, error: e.message }), { status: 500, headers });
         }
       }
     }

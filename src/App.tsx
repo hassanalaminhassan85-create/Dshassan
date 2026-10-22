@@ -34,6 +34,7 @@ import { TutorDashboard } from './components/TutorDashboard';
 import { ManagementAccountsPortal } from './components/ManagementAccounts/ManagementAccountsPortal';
 import { StaffAttendanceSystem } from './components/StaffAttendanceSystem';
 import { CrmPortal } from './components/CrmSystem/CrmPortal';
+import { OurProposalsSection } from './components/Proposals/OurProposalsSection';
 import { useWebsiteTracker } from './hooks/useWebsiteTracker';
 import { PaystackPayButton, PaystackPaymentConfig } from './components/PaystackMotionCheckout';
 import { PaystackPaymentPage } from './components/PaystackPaymentPage';
@@ -121,6 +122,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Portfolio", value: "portfolio" },
     { label: "Our Team", value: "team" },
     { label: "Blog", value: "blog" },
+    { label: "Our Proposals", value: "proposals" },
     { label: "Academy", value: "training" },
     { label: "Course Registration Form", value: "course-registration" },
     { label: "Clients", value: "clients" },
@@ -135,6 +137,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Portfolio", value: "portfolio" },
     { label: "Notre Équipe", value: "team" },
     { label: "Blog", value: "blog" },
+    { label: "Nos Propositions", value: "proposals" },
     { label: "Académie", value: "training" },
     { label: "Inscription Cours", value: "course-registration" },
     { label: "Clients", value: "clients" },
@@ -149,6 +152,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Ayyukan Baya", value: "portfolio" },
     { label: "Kungiyarmu", value: "team" },
     { label: "Blog", value: "blog" },
+    { label: "Shawarwarinmu", value: "proposals" },
     { label: "Makaranta", value: "training" },
     { label: "Fom ɗin Rijistar Darussa", value: "course-registration" },
     { label: "Abokan Ciniki", value: "clients" },
@@ -163,6 +167,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Awọn iṣẹ Atijọ", value: "portfolio" },
     { label: "Ẹgbẹ Wa", value: "team" },
     { label: "Blog", value: "blog" },
+    { label: "Awọn Igbero Wa", value: "proposals" },
     { label: "Ile-ẹkọ", value: "training" },
     { label: "Fọọmu Iforukọsilẹ Ẹkọ", value: "course-registration" },
     { label: "Awọn alabara", value: "clients" },
@@ -177,6 +182,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Portafolio", value: "portfolio" },
     { label: "Equipo", value: "team" },
     { label: "Blog", value: "blog" },
+    { label: "Nuestras Propuestas", value: "proposals" },
     { label: "Academia", value: "training" },
     { label: "Formulario de Cursos", value: "course-registration" },
     { label: "Clientes", value: "clients" },
@@ -191,6 +197,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "أعمالنا", value: "portfolio" },
     { label: "فريقنا", value: "team" },
     { label: "المدونة", value: "blog" },
+    { label: "عروضنا ومقترحاتنا", value: "proposals" },
     { label: "الأكاديمية", value: "training" },
     { label: "استمارة تسجيل الدورات", value: "course-registration" },
     { label: "العملاء", value: "clients" },
@@ -205,6 +212,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Portfolio", value: "portfolio" },
     { label: "Unser Team", value: "team" },
     { label: "Blog", value: "blog" },
+    { label: "Unsere Angebote", value: "proposals" },
     { label: "Akademie", value: "training" },
     { label: "Kursanmeldung", value: "course-registration" },
     { label: "Kunden", value: "clients" },
@@ -219,6 +227,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Портфолио", value: "portfolio" },
     { label: "Наша команда", value: "team" },
     { label: "Блог", value: "blog" },
+    { label: "Наши предложения", value: "proposals" },
     { label: "Академия", value: "training" },
     { label: "Регистрация на курс", value: "course-registration" },
     { label: "Клиенты", value: "clients" },
@@ -233,6 +242,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "Portfólio", value: "portfolio" },
     { label: "Nossa Equipe", value: "team" },
     { label: "Blog", value: "blog" },
+    { label: "Nossas Propostas", value: "proposals" },
     { label: "Academia", value: "training" },
     { label: "Inscrição de Cursos", value: "course-registration" },
     { label: "Clientes", value: "clients" },
@@ -247,6 +257,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
     { label: "成功案例", value: "portfolio" },
     { label: "我们的团队", value: "team" },
     { label: "博客资讯", value: "blog" },
+    { label: "项目提案", value: "proposals" },
     { label: "培训学院", value: "training" },
     { label: "课程注册表", value: "course-registration" },
     { label: "客户门户", value: "clients" },
@@ -256,7 +267,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
   ]
 };
 
-export type ActivePageType = 'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard' | 'verify-certificate' | 'management-accounts' | 'management-dashboard' | 'attendance' | 'crm';
+export type ActivePageType = 'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard' | 'verify-certificate' | 'management-accounts' | 'management-dashboard' | 'attendance' | 'crm' | 'proposals';
 
 export function resolvePathToState(rawPath: string): {
   path: string;
@@ -310,6 +321,26 @@ export function resolvePathToState(rawPath: string): {
     lowerPath.startsWith('/crm')
   ) {
     return { path, activePage: 'crm', isAdminView: false, appId: null };
+  }
+
+  // Our Proposals route (DIRECT & PRIORITY RESOLUTION - ZERO FLASH)
+  if (
+    lowerPath === '/proposals' ||
+    lowerPath === '/proposals/' ||
+    lowerPath === '/our-proposals' ||
+    lowerPath.startsWith('/proposals/') ||
+    lowerPath.startsWith('/our-proposals/') ||
+    lowerPath.startsWith('/proposals')
+  ) {
+    let propId: string | null = null;
+    const propMatch = path.match(/^\/(?:proposals|our-proposals)\/([\w\-]+)/i);
+    if (propMatch && propMatch[1]) {
+      propId = propMatch[1];
+    } else if (typeof window !== 'undefined' && window.location?.search) {
+      const searchParams = new URLSearchParams(window.location.search);
+      propId = searchParams.get('id') || searchParams.get('proposal') || searchParams.get('proposalId');
+    }
+    return { path, activePage: 'proposals', isAdminView: false, appId: propId };
   }
 
   // Staff Attendance route (DIRECT & PRIORITY RESOLUTION - ZERO FLASH)
@@ -623,6 +654,11 @@ export default function App() {
           section = 'Analytics & CRM';
           workflowState = 'Viewing CRM Portal';
           break;
+        case 'proposals':
+          pageTitle = 'DS TECH Our Proposals — Strategic Blueprints & Corporate RFPs';
+          section = 'Our Proposals';
+          workflowState = 'Browsing Strategic Proposals';
+          break;
       }
     }
 
@@ -809,7 +845,7 @@ export default function App() {
         setIsAdminView(false);
       }
 
-      if (resolved.appId) {
+      if (resolved.appId && resolved.activePage !== 'proposals' && resolved.activePage !== 'verify-certificate') {
         setCurrentAppId(resolved.appId);
         setLoading(true);
         setErrorMsg(null);
@@ -823,7 +859,11 @@ export default function App() {
           setLoading(false);
         }
       } else {
-        setCurrentAppId(null);
+        if (resolved.activePage === 'proposals' || resolved.activePage === 'verify-certificate') {
+          setCurrentAppId(resolved.appId);
+        } else {
+          setCurrentAppId(null);
+        }
         setApplication(null);
         setActivePage(resolved.activePage);
       }
@@ -1687,6 +1727,20 @@ export default function App() {
                   }}
                   theme={theme as 'dark' | 'light'}
                   setTheme={(th) => setTheme(th as 'dark' | 'light')}
+                />
+              </motion.div>
+             ) : activePage === 'proposals' ? (
+              <motion.div
+                key="proposals-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full"
+              >
+                <OurProposalsSection
+                  initialProposalId={currentAppId}
+                  onNavigateHome={navigateToRoot}
+                  theme={theme}
                 />
               </motion.div>
              ) : activePage === 'recognition' ? (

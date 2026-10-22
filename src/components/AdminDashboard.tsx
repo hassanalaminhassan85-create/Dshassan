@@ -63,6 +63,8 @@ import { BlogCMS } from './BlogCMS';
 import { TrainingCMS } from './TrainingCMS';
 import { RecruitmentCMS } from './RecruitmentCMS';
 import { AdminCertificateOfEmploymentManager } from './CertificateOfEmployment/AdminCertificateOfEmploymentManager';
+import { AdminProposalsManager } from './Proposals/AdminProposalsManager';
+import { apiSubscribeToProposals } from '../lib/api';
 
 import { 
   SERVICES, 
@@ -330,7 +332,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   
 
   // Super Admin Control Center State
-  const [adminModule, setAdminModule] = useState<'dashboard' | 'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'staff-certificates' | 'client-projects' | 'about' | 'diagnostics' | 'sync-logs' | 'ai-knowledge'>('dashboard');
+  const [adminModule, setAdminModule] = useState<'dashboard' | 'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'staff-certificates' | 'client-projects' | 'about' | 'diagnostics' | 'sync-logs' | 'ai-knowledge' | 'proposals'>('dashboard');
   
   // Custom navigation header states
   const [isThreeDotsOpen, setIsThreeDotsOpen] = useState<boolean>(false);
@@ -390,6 +392,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [adminProjects, setAdminProjects] = useState<any[]>([]);
   const [adminBlogs, setAdminBlogs] = useState<any[]>([]);
   const [adminCourses, setAdminCourses] = useState<any[]>([]);
+  const [adminProposals, setAdminProposals] = useState<any[]>([]);
 
   const [adminStaffList, setAdminStaffList] = useState<any[]>([]);
   const [adminStudentsList, setAdminStudentsList] = useState<any[]>([]);
@@ -437,6 +440,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       if (data) setAdminStaffList(data);
     });
 
+    const unsubProposals = apiSubscribeToProposals((data) => {
+      if (data) setAdminProposals(data);
+    }, true);
+
     return () => {
       unsubServices();
       unsubPortfolio();
@@ -447,6 +454,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       unsubTutors();
       unsubEnrollments();
       unsubStaff();
+      unsubProposals();
     };
   }, []);
 
@@ -2181,6 +2189,7 @@ export default {
         { id: 'website', label: 'Services Catalog', icon: Layers, count: adminServices.length },
         { id: 'portfolio', label: 'Portfolio Projects', icon: FolderOpen, count: adminProjects.length },
         { id: 'blog', label: 'Insights Blog', icon: BookOpen, count: adminBlogs.length },
+        { id: 'proposals', label: 'Proposal Management', icon: FileSpreadsheet, count: adminProposals.length },
         { id: 'recognition', label: 'Recognition Certs', icon: Award },
         { id: 'ongoing-projects', label: 'Ongoing Projects', icon: Clock },
         { id: 'diagnostics', label: 'Image Verification Gallery', icon: Camera },
@@ -2232,6 +2241,7 @@ export default {
       case 'website': return 'Services Catalog';
       case 'portfolio': return 'Portfolio Projects';
       case 'blog': return 'Insights Blog';
+      case 'proposals': return 'Proposal Management';
       case 'recognition': return 'Recognition Certs';
       case 'ongoing-projects': return 'Ongoing Projects';
       case 'diagnostics': return 'Image Verification Gallery';
@@ -3657,6 +3667,10 @@ export default {
 
       {adminModule === 'sync-logs' && (
         <AdminSyncDiagnostics />
+      )}
+
+      {adminModule === 'proposals' && (
+        <AdminProposalsManager theme={theme} />
       )}
 
 

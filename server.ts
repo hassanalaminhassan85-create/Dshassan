@@ -11,7 +11,8 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(cors());
-  app.use(express.json());
+  app.use(express.json({ limit: '50mb' }));
+  app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
   // In-memory conversation store for threads
   const conversationsStore = new Map<string, { id: string; title: string; user_role: string; updated_at: string; messages: Array<any> }>();
@@ -1846,6 +1847,469 @@ ${liveContext ? liveContext : ''}`;
       return res.status(401).json({ success: false, error: 'Incorrect admin secret key.' });
     } catch {
       return res.status(500).json({ success: false, error: 'Authentication failed.' });
+    }
+  });
+
+  // ==========================================
+  // OFFICIAL DS TECH PROPOSALS SYSTEM BACKEND
+  // ==========================================
+  const fs = await import('fs');
+  const uploadsDir = path.join(process.cwd(), 'uploads');
+  if (!fs.existsSync(uploadsDir)) {
+    try { fs.mkdirSync(uploadsDir, { recursive: true }); } catch (e) {}
+  }
+
+  const proposalsStore = new Map<string, any>();
+  const localD1Path = path.join(process.cwd(), 'local_d1.json');
+
+  // Load existing proposals from local_d1.json
+  try {
+    if (fs.existsSync(localD1Path)) {
+      const d1Data = JSON.parse(fs.readFileSync(localD1Path, 'utf8'));
+      if (Array.isArray(d1Data.proposals)) {
+        d1Data.proposals.forEach((p: any) => proposalsStore.set(p.id, p));
+      }
+    }
+  } catch (e) {
+    console.warn("Could not read local_d1.json for proposals:", e);
+  }
+
+  function persistLocalD1Proposals() {
+    try {
+      if (fs.existsSync(localD1Path)) {
+        const d1Data = JSON.parse(fs.readFileSync(localD1Path, 'utf8'));
+        d1Data.proposals = Array.from(proposalsStore.values());
+        fs.writeFileSync(localD1Path, JSON.stringify(d1Data, null, 2), 'utf8');
+      }
+    } catch (e) {
+      console.warn("Failed to persist proposals to local_d1.json:", e);
+    }
+  }
+
+  // 1. Upload Proposal Document
+  app.post('/api/proposals/upload', (req, res) => {
+    try {
+      const body = req.body;
+      if (!body || (!body.base64 && !body.dataUrl)) {
+        return res.status(400).json({ success: false, error: 'Document data (base64 or dataUrl) is required.' });
+      }
+
+      const original_filename = body.fileName || body.name || 'proposal_document.pdf';
+      let mime_type = body.mimeType || body.type || 'application/pdf';
+
+      let base64Data = body.base64 || '';
+      if (body.dataUrl) {
+        const matches = body.dataUrl.match(/^data:([^;]+);base64,(.+)$/);
+        if (matches) {
+          mime_type = matches[1];
+          base64Data = matches[2];
+        }
+      }
+
+      const fileBuffer = Buffer.from(base64Data, 'base64');
+      const file_size = fileBuffer.length;
+
+      // Validate allowed file extensions & MIME
+      const allowedMimes = [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/msword'
+      ];
+      const lowerName = original_filename.toLowerCase();
+      const hasValidExt = lowerName.endsWith('.pdf') || lowerName.endsWith('.docx') || lowerName.endsWith('.doc');
+
+      if (!hasValidExt && !allowedMimes.includes(mime_type)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Unsupported file format. Only PDF (.pdf) and Word (.docx, .doc) documents are allowed for proposals.'
+        });
+      }
+
+      // 25MB max size check
+      const maxBytes = 25 * 1024 * 1024;
+      if (file_size > maxBytes) {
+        return res.status(400).json({
+          success: false,
+          error: `File size exceeds the 25MB limit (Provided: ${(file_size / (1024 * 1024)).toFixed(1)}MB).`
+        });
+      }
+
+      const safeBaseName = original_filename.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const randUid = Math.random().toString(36).substring(2, 10);
+      const file_key = `proposals/${Date.now()}_${randUid}_${safeBaseName}`;
+      const diskSafeName = file_key.replace(/[^a-zA-Z0-9.-]/g, '_');
+
+      // Save to disk in uploads
+      const diskPath = path.join(uploadsDir, diskSafeName);
+      fs.writeFileSync(diskPath, fileBuffer);
+      fs.writeFileSync(diskPath + '.meta', JSON.stringify({ mimeType: mime_type, originalFileName: original_filename }));
+
+      return res.json({
+        success: true,
+        file_key,
+        original_filename,
+        file_size,
+        mime_type,
+        url: `/api/proposals/file?key=${encodeURIComponent(file_key)}`
+      });
+    } catch (err: any) {
+      console.error('Error in /api/proposals/upload:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Failed to upload proposal document.' });
+    }
+  });
+
+  // 2. Stream / Serve Proposal Document
+  app.get(['/api/proposals/file', '/api/proposals/:id/file'], (req, res) => {
+    try {
+      const idParam = req.query.id || req.params.id;
+      const keyParam = req.query.key as string | undefined;
+      const isDownload = req.query.download === 'true';
+
+      let targetKey = keyParam;
+      let proposalTitle = 'Proposal_Document';
+      let originalFileName = 'Proposal_Document.pdf';
+      let detectedMime = 'application/pdf';
+
+      if (idParam) {
+        const p = proposalsStore.get(String(idParam));
+        if (!p) {
+          return res.status(404).json({ error: 'Proposal record not found.' });
+        }
+        const isAdmin = req.query.admin === 'true';
+        if (p.status !== 'published' && !isAdmin) {
+          return res.status(403).json({ error: 'Access denied. This proposal is currently unpublished.' });
+        }
+        targetKey = p.file_key;
+        proposalTitle = p.title;
+        originalFileName = p.original_filename || `${p.title.replace(/[^a-zA-Z0-9.-]/g, '_')}.pdf`;
+        detectedMime = p.mime_type || 'application/pdf';
+      }
+
+      if (!targetKey) {
+        return res.status(400).json({ error: 'Missing document key or id parameter.' });
+      }
+
+      const diskSafeName = targetKey.replace(/[^a-zA-Z0-9.-]/g, '_');
+      const diskPath = path.join(uploadsDir, diskSafeName);
+
+      if (!fs.existsSync(diskPath)) {
+        return res.status(404).send('Document not found on storage server.');
+      }
+
+      const metaPath = diskPath + '.meta';
+      if (fs.existsSync(metaPath)) {
+        try {
+          const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+          if (meta.mimeType) detectedMime = meta.mimeType;
+          if (meta.originalFileName) originalFileName = meta.originalFileName;
+        } catch (e) {}
+      }
+
+      const stat = fs.statSync(diskPath);
+      const totalBytes = stat.size;
+      const safeDownloadName = originalFileName.replace(/["\r\n\t]/g, '_');
+      const disposition = isDownload ? 'attachment' : 'inline';
+
+      // Support Byte-Range requests for PDF.js page-by-page streaming
+      const range = req.headers.range;
+      if (range && range.startsWith('bytes=')) {
+        const parts = range.replace('bytes=', '').split('-');
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : totalBytes - 1;
+
+        if (start >= totalBytes || end >= totalBytes || start > end) {
+          res.setHeader('Content-Range', `bytes */${totalBytes}`);
+          return res.status(416).end();
+        }
+
+        const chunksize = (end - start) + 1;
+        const fileStream = fs.createReadStream(diskPath, { start, end });
+
+        res.writeHead(206, {
+          'Content-Range': `bytes ${start}-${end}/${totalBytes}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunksize,
+          'Content-Type': detectedMime,
+          'Content-Disposition': `${disposition}; filename="${encodeURIComponent(safeDownloadName)}"`
+        });
+
+        return fileStream.pipe(res);
+      }
+
+      res.writeHead(200, {
+        'Content-Length': totalBytes,
+        'Content-Type': detectedMime,
+        'Accept-Ranges': 'bytes',
+        'Cache-Control': 'public, max-age=3600',
+        'Content-Disposition': `${disposition}; filename="${encodeURIComponent(safeDownloadName)}"`
+      });
+
+      const fullStream = fs.createReadStream(diskPath);
+      return fullStream.pipe(res);
+    } catch (err: any) {
+      console.error('Error serving proposal file:', err);
+      return res.status(500).json({ error: 'Failed to stream proposal document.' });
+    }
+  });
+
+  // 3. List Proposals (GET /api/proposals)
+  app.get('/api/proposals', (req, res) => {
+    try {
+      const isAdmin = req.query.admin === 'true';
+      const category = req.query.category as string | undefined;
+      const search = (req.query.search as string | undefined)?.toLowerCase().trim();
+      const sort = req.query.sort || 'newest';
+
+      let list = Array.from(proposalsStore.values());
+
+      // If not admin, only show published
+      if (!isAdmin) {
+        list = list.filter(p => p.status === 'published');
+      }
+
+      // Filter by category
+      if (category && category !== 'All') {
+        list = list.filter(p => p.category?.toLowerCase() === category.toLowerCase());
+      }
+
+      // Search
+      if (search) {
+        list = list.filter(p =>
+          (p.title && p.title.toLowerCase().includes(search)) ||
+          (p.description && p.description.toLowerCase().includes(search)) ||
+          (p.category && p.category.toLowerCase().includes(search))
+        );
+      }
+
+      // Sort
+      list.sort((a, b) => {
+        if (sort === 'oldest') {
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        }
+        if (sort === 'title_asc') {
+          return (a.title || '').localeCompare(b.title || '');
+        }
+        if (sort === 'title_desc') {
+          return (b.title || '').localeCompare(a.title || '');
+        }
+        // newest
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+
+      return res.json(list);
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to list proposals.' });
+    }
+  });
+
+  // 4. Create Proposal (POST /api/proposals)
+  app.post('/api/proposals', (req, res) => {
+    try {
+      const body = req.body;
+      if (!body || !body.title || !body.title.trim()) {
+        return res.status(400).json({ success: false, error: 'Proposal title is required.' });
+      }
+      if (!body.file_key || !body.original_filename) {
+        return res.status(400).json({ success: false, error: 'Uploaded proposal document is required.' });
+      }
+
+      const id = body.id || `prop_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      const now = new Date().toISOString();
+      const status = body.status === 'published' ? 'published' : 'draft';
+      const published_at = status === 'published' ? (body.published_at || now) : null;
+
+      const record = {
+        id,
+        title: body.title.trim(),
+        description: body.description ? body.description.trim() : '',
+        category: body.category ? body.category.trim() : 'General',
+        file_key: body.file_key.trim(),
+        original_filename: body.original_filename.trim(),
+        mime_type: body.mime_type || 'application/pdf',
+        file_size: Number(body.file_size) || 0,
+        status,
+        created_at: body.created_at || now,
+        updated_at: now,
+        published_at,
+        created_by: body.created_by || 'Administrator'
+      };
+
+      proposalsStore.set(id, record);
+      persistLocalD1Proposals();
+
+      return res.json({ success: true, proposal: record });
+    } catch (err: any) {
+      console.error('Error creating proposal:', err);
+      return res.status(500).json({ success: false, error: err.message || 'Failed to create proposal.' });
+    }
+  });
+
+  // 5. Replace Proposal Document (POST /api/proposals/:id/replace-document)
+  app.post('/api/proposals/:id/replace-document', (req, res) => {
+    try {
+      const id = req.params.id;
+      const existing = proposalsStore.get(id);
+      if (!existing) {
+        return res.status(404).json({ success: false, error: 'Proposal not found.' });
+      }
+
+      const { file_key, original_filename, file_size, mime_type } = req.body;
+      if (!file_key || !original_filename) {
+        return res.status(400).json({ success: false, error: 'New document details required.' });
+      }
+
+      const oldKey = existing.file_key;
+      const now = new Date().toISOString();
+
+      const updated = {
+        ...existing,
+        file_key,
+        original_filename,
+        file_size: Number(file_size) || 0,
+        mime_type: mime_type || 'application/pdf',
+        updated_at: now
+      };
+
+      proposalsStore.set(id, updated);
+      persistLocalD1Proposals();
+
+      // Safely cleanup old file on disk if different and not used by other proposals
+      if (oldKey && oldKey !== file_key) {
+        const othersUsingOld = Array.from(proposalsStore.values()).some(p => p.id !== id && p.file_key === oldKey);
+        if (!othersUsingOld) {
+          try {
+            const oldDiskName = oldKey.replace(/[^a-zA-Z0-9.-]/g, '_');
+            const oldPath = path.join(uploadsDir, oldDiskName);
+            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+            if (fs.existsSync(oldPath + '.meta')) fs.unlinkSync(oldPath + '.meta');
+          } catch (e) {}
+        }
+      }
+
+      return res.json({ success: true, proposal: updated });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message || 'Failed to replace document.' });
+    }
+  });
+
+  // 6. Toggle Publish (PATCH /api/proposals/:id/publish)
+  app.patch('/api/proposals/:id/publish', (req, res) => {
+    try {
+      const id = req.params.id;
+      const existing = proposalsStore.get(id);
+      if (!existing) {
+        return res.status(404).json({ success: false, error: 'Proposal not found.' });
+      }
+
+      const nextStatus = req.body.status === 'published' ? 'published' : 'draft';
+      const now = new Date().toISOString();
+      const pubDate = nextStatus === 'published' ? now : null;
+
+      const updated = {
+        ...existing,
+        status: nextStatus,
+        published_at: pubDate,
+        updated_at: now
+      };
+
+      proposalsStore.set(id, updated);
+      persistLocalD1Proposals();
+
+      return res.json({ success: true, id, status: nextStatus, published_at: pubDate });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message || 'Failed to toggle publish status.' });
+    }
+  });
+
+  // 7. Get Proposal By ID (GET /api/proposals/:id)
+  app.get('/api/proposals/:id', (req, res) => {
+    try {
+      const id = req.params.id;
+      const record = proposalsStore.get(id);
+      if (!record) {
+        return res.status(404).json({ error: 'Proposal not found.' });
+      }
+
+      const isAdmin = req.query.admin === 'true';
+      if (record.status !== 'published' && !isAdmin) {
+        return res.status(403).json({ error: 'Proposal is in draft status.' });
+      }
+
+      return res.json(record);
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || 'Failed to get proposal.' });
+    }
+  });
+
+  // 8. Update Proposal Metadata (PUT /api/proposals/:id)
+  app.put('/api/proposals/:id', (req, res) => {
+    try {
+      const id = req.params.id;
+      const existing = proposalsStore.get(id);
+      if (!existing) {
+        return res.status(404).json({ success: false, error: 'Proposal not found.' });
+      }
+
+      const body = req.body;
+      const now = new Date().toISOString();
+      const title = body.title !== undefined ? body.title.trim() : existing.title;
+      const description = body.description !== undefined ? body.description.trim() : existing.description;
+      const category = body.category !== undefined ? body.category.trim() : existing.category;
+      const status = body.status !== undefined ? (body.status === 'published' ? 'published' : 'draft') : existing.status;
+      const published_at = status === 'published' ? (existing.published_at || now) : null;
+
+      const updated = {
+        ...existing,
+        title,
+        description,
+        category,
+        status,
+        published_at,
+        updated_at: now
+      };
+
+      proposalsStore.set(id, updated);
+      persistLocalD1Proposals();
+
+      return res.json({ success: true, proposal: updated });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message || 'Failed to update proposal metadata.' });
+    }
+  });
+
+  // 9. Delete Proposal (DELETE /api/proposals/:id or DELETE /api/proposals?id=...)
+  app.delete(['/api/proposals/:id', '/api/proposals'], (req, res) => {
+    try {
+      const id = req.params.id || req.query.id;
+      if (!id || typeof id !== 'string') {
+        return res.status(400).json({ success: false, error: 'Proposal id is required.' });
+      }
+
+      const existing = proposalsStore.get(id);
+      if (!existing) {
+        return res.status(404).json({ success: false, error: 'Proposal not found.' });
+      }
+
+      const fileKey = existing.file_key;
+      proposalsStore.delete(id);
+      persistLocalD1Proposals();
+
+      // Clean up file if not referenced
+      if (fileKey) {
+        const othersUsing = Array.from(proposalsStore.values()).some(p => p.file_key === fileKey);
+        if (!othersUsing) {
+          try {
+            const diskSafeName = fileKey.replace(/[^a-zA-Z0-9.-]/g, '_');
+            const diskPath = path.join(uploadsDir, diskSafeName);
+            if (fs.existsSync(diskPath)) fs.unlinkSync(diskPath);
+            if (fs.existsSync(diskPath + '.meta')) fs.unlinkSync(diskPath + '.meta');
+          } catch (e) {}
+        }
+      }
+
+      return res.json({ success: true, id, message: 'Proposal deleted successfully.' });
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message || 'Failed to delete proposal.' });
     }
   });
 
