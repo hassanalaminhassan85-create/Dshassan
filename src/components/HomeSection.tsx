@@ -4,59 +4,8 @@ import {
   Sparkles, ArrowRight, BarChart3, Users, Star, ArrowUpRight, 
   ChevronRight, Calendar, Heart, ShieldCheck, Mail, MessageSquare, Phone,
   Shield, Target, Smile, Briefcase, TrendingUp, Zap, Award, CheckCircle2,
-  FileText, X, ExternalLink, Globe
+  FileText, X, ExternalLink, Globe, ShoppingBag, Send, Layers
 } from 'lucide-react';
-
-const OrbitalVisualNode: React.FC = () => {
-  return (
-    <div className="relative w-full aspect-square max-w-[280px] sm:max-w-[340px] lg:max-w-[380px] mx-auto flex items-center justify-center select-none pointer-events-none">
-      {/* Background Ambient Radial Glow */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-blue-600/25 via-orange-500/20 to-transparent rounded-full filter blur-3xl opacity-80 animate-pulse" />
-
-      {/* Orbit Ring 1 - Blue Outer Ring */}
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
-        className="absolute w-[88%] h-[88%] rounded-full border border-blue-500/25 shadow-[0_0_15px_rgba(59,130,246,0.15)]"
-      >
-        <div className="absolute -top-1.5 left-1/2 w-3.5 h-3.5 rounded-full bg-gradient-to-r from-blue-400 to-indigo-500 shadow-[0_0_12px_#3b82f6]" />
-      </motion.div>
-
-      {/* Orbit Ring 2 - Orange Middle Ring */}
-      <motion.div
-        animate={{ rotate: -360 }}
-        transition={{ duration: 32, repeat: Infinity, ease: "linear" }}
-        className="absolute w-[72%] h-[72%] rounded-full border border-orange-500/30 rotate-45 shadow-[0_0_15px_rgba(249,115,22,0.15)]"
-      >
-        <div className="absolute -bottom-2 right-1/4 w-4 h-4 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 shadow-[0_0_14px_#f97316]" />
-      </motion.div>
-
-      {/* Orbit Ring 3 - Inner Subtle Ring */}
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
-        className="absolute w-[56%] h-[56%] rounded-full border border-blue-400/30 -rotate-12"
-      >
-        <div className="absolute top-1/4 -left-1.5 w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-[0_0_8px_#818cf8]" />
-      </motion.div>
-
-      {/* Center Sphere Emblem */}
-      <motion.div 
-        animate={{ y: [-5, 5, -5] }}
-        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="relative w-36 h-36 sm:w-44 sm:h-44 rounded-full bg-slate-950/90 border-2 border-blue-500/60 shadow-[0_0_50px_rgba(37,99,235,0.4),inset_0_0_20px_rgba(249,115,22,0.25)] flex flex-col items-center justify-center text-center backdrop-blur-xl z-10"
-      >
-        <div className="absolute inset-1 rounded-full border border-orange-500/30 pointer-events-none" />
-        <span className="text-3xl sm:text-4xl font-extrabold tracking-wider text-white font-sans drop-shadow-[0_2px_10px_rgba(255,255,255,0.3)]">
-          DS
-        </span>
-        <span className="text-[10px] sm:text-[11px] font-black tracking-[0.3em] text-slate-300 uppercase mt-0.5">
-          TECH
-        </span>
-      </motion.div>
-    </div>
-  );
-};
 
 import { SERVICES, TESTIMONIALS, ServiceItem } from '../lib/data';
 import { COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
@@ -65,6 +14,7 @@ import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
 import { CacTrustSection } from './CacTrustSection';
 import { CustomQuoteModal } from './CustomQuoteModal';
 import { resolveImageUrl, apiSubscribeToServices } from '../lib/api';
+import { getPolishedServiceImage } from '../lib/mediaUtils';
 
 interface HomeSectionProps {
   onNavigate: (path: string) => void;
@@ -83,25 +33,47 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
   const [bookingEmail, setBookingEmail] = useState('');
   const [bookingService, setBookingService] = useState('Digital Marketing');
   const [bookingSubmitted, setBookingSubmitted] = useState(false);
+  const [isCacModalOpen, setIsCacModalOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
 
+  // Custom Quote Modal State
+  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
+  const [quoteModalService, setQuoteModalService] = useState<ServiceItem | null>(null);
+
+  const [imgErrorMap, setImgErrorMap] = useState<Record<string, boolean>>({});
+
+  // Dynamic Realtime Services Sync with fresh image fallback
   const [services, setServices] = useState<ServiceItem[]>(() => {
     try {
       const saved = localStorage.getItem('admin_services');
-      return saved ? JSON.parse(saved) : SERVICES;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.map((svc: ServiceItem) => {
+          const defaultSvc = SERVICES.find(s => s.id === svc.id);
+          if (defaultSvc && (!svc.image || svc.image.includes('data:image/svg+xml'))) {
+            return { ...svc, image: defaultSvc.image };
+          }
+          return svc;
+        });
+      }
+      return SERVICES;
     } catch (e) {
       return SERVICES;
     }
   });
 
-  const [quoteModalService, setQuoteModalService] = useState<any | null>(null);
-  const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
-  const [isCacModalOpen, setIsCacModalOpen] = useState(false);
-
   useEffect(() => {
-    const unsubscribe = apiSubscribeToServices((fetchedServices) => {
-      if (fetchedServices && fetchedServices.length > 0) {
-        setServices(fetchedServices);
-        localStorage.setItem('admin_services', JSON.stringify(fetchedServices));
+    const unsubscribe = apiSubscribeToServices((data) => {
+      if (data && data.length > 0) {
+        const merged = data.map((svc: ServiceItem) => {
+          const defaultSvc = SERVICES.find(s => s.id === svc.id);
+          if (defaultSvc && (!svc.image || svc.image.includes('data:image/svg+xml'))) {
+            return { ...svc, image: defaultSvc.image };
+          }
+          return svc;
+        });
+        setServices(merged);
+        localStorage.setItem('admin_services', JSON.stringify(merged));
       }
     });
     return () => unsubscribe();
@@ -109,93 +81,30 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
 
   const t = HOME_TRANSLATIONS[language] || HOME_TRANSLATIONS.en;
 
-  const getTranslatedFeatures = () => {
-    switch (language) {
-      case 'fr':
-        return [
-          {
-            icon: <BarChart3 className="text-orange-500 w-5 h-5" />,
-            title: "Décisions Basées sur les Données",
-            desc: "Chaque campagne, entonnoir de conversion et application est modélisé et optimisé pour un rendement maximal."
-          },
-          {
-            icon: <ShieldCheck className="text-indigo-500 w-5 h-5" />,
-            title: "100% Légal & Conforme",
-            desc: "Nous relions le déploiement de logiciels aux autorisations d'entreprise (CAC, TIN, SCUML) pour une opération légale."
-          },
-          {
-            icon: <Sparkles className="text-amber-500 w-5 h-5" />,
-            title: "Intégrations d'IA de Nouvelle Génération",
-            desc: "Déployez de manière autonome des systèmes intelligents Gemini, bots WhatsApp et enchères publicitaires."
-          }
-        ];
-      case 'ha':
-        return [
-          {
-            icon: <BarChart3 className="text-orange-500 w-5 h-5" />,
-            title: "Yanke Shawara Dangane da Bayanai",
-            desc: "Kowane kamfen, hanyar canzawa, da aikace-aikace ana bin diddigin su don matsakaicin amfani."
-          },
-          {
-            icon: <ShieldCheck className="text-indigo-500 w-5 h-5" />,
-            title: "100% Halal & Masu Kiyaye Dokoki",
-            desc: "Muna haɗa tura sassan software tare da izinin kamfanoni (CAC, TIN, SCUML) don aiki cikin izini."
-          },
-          {
-            icon: <Sparkles className="text-amber-500 w-5 h-5" />,
-            title: "Haɗin gwiwar AI Na Gaba",
-            desc: "Tura tsarin Gemini mai hankali, bots na WhatsApp, da tsarin tallan talla ta atomatik."
-          }
-        ];
-      default:
-        return [
-          {
-            icon: <BarChart3 className="text-orange-500 w-5 h-5" />,
-            title: "Data-Driven Decisions",
-            desc: "Every campaign, conversion funnel, and application node is tracked, modeled, and optimized for maximum yield."
-          },
-          {
-            icon: <ShieldCheck className="text-indigo-500 w-5 h-5" />,
-            title: "100% Legal & Compliant",
-            desc: "We bridge software deployment with corporate clearances (CAC, TIN, SCUML) so you operate fully authorized."
-          },
-          {
-            icon: <Sparkles className="text-amber-500 w-5 h-5" />,
-            title: "Next-Gen AI Integrations",
-            desc: "Deploy smart Gemini-powered systems, custom WhatsApp bots, and programmatic ad flows autonomously."
-          }
-        ];
-    }
-  };
+  const stats = [
+    { value: '500+', label: t.statProjectsExecuted || 'Projects Completed' },
+    { value: '99.4%', label: t.statClientSatisfaction || 'Client Retention' },
+    { value: '10+', label: t.statYearsExperience || 'Years in Tech' },
+    { value: 'RC 9550925', label: t.statCacRegistration || 'CAC Verified' }
+  ];
 
-  const getTranslatedStats = () => {
-    switch (language) {
-      case 'fr':
-        return [
-          { value: "500+", label: "Campagnes Réussies" },
-          { value: "98%", label: "Satisfaction Client" },
-          { value: "10+", label: "Ans d'Expérience" },
-          { value: "₦1.2B+", label: "Revenus Publicitaires" }
-        ];
-      case 'zh':
-        return [
-          { value: "500+", label: "个成功商业项目" },
-          { value: "98%", label: "真实客户满意度" },
-          { value: "10+", label: "年行业深耕经验" },
-          { value: "₦12亿+", label: "广告销售收益" }
-        ];
-      default:
-        return [
-          { value: "500+", label: "Successful Campaigns" },
-          { value: "98%", label: "Client Satisfaction" },
-          { value: "10+", label: "Years Experience" },
-          { value: "₦1.2B+", label: "Ad Revenue Generated" }
-        ];
+  const features = [
+    {
+      title: t.feature1Title || 'End-to-End Execution',
+      desc: t.feature1Desc || 'From strategic blueprinting to high-scale digital rollout.',
+      icon: <Target className="w-5 h-5 text-indigo-500" />
+    },
+    {
+      title: t.feature2Title || 'Data-Driven ROI',
+      desc: t.feature2Desc || 'Transparent metrics, performance analytics, and lead optimization.',
+      icon: <TrendingUp className="w-5 h-5 text-orange-500" />
+    },
+    {
+      title: t.feature3Title || 'CAC & Legal Compliance',
+      desc: t.feature3Desc || 'Incorporated agency providing verified corporate governance.',
+      icon: <ShieldCheck className="w-5 h-5 text-emerald-500" />
     }
-  };
-
-  const stats = getTranslatedStats();
-  const features = getTranslatedFeatures();
+  ];
 
   const handleBookingSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -208,105 +117,88 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
     }, 4000);
   };
 
+  const filteredServices = services.filter(svc => {
+    if (activeCategory === 'all') return true;
+    if (activeCategory === 'web') return svc.category === 'web' || svc.category === 'software';
+    if (activeCategory === 'marketing') return svc.category === 'marketing';
+    if (activeCategory === 'ai') return svc.category === 'ai';
+    if (activeCategory === 'branding') return svc.category === 'branding' || svc.category === 'ict';
+    return true;
+  });
+
   return (
-    <div className="w-full space-y-12 sm:space-y-16 pb-12 animate-fade-in">
+    <div className="w-full space-y-12 sm:space-y-16 pb-12 animate-fade-in text-slate-900 dark:text-slate-100">
       
-      {/* 1. HERO SECTION */}
-      <section className="relative overflow-hidden bg-[#020817] text-white rounded-2xl sm:rounded-3xl mx-3 sm:mx-5 lg:mx-8 p-6 sm:p-8 lg:p-10 border border-slate-800/80 shadow-2xl mt-2">
-        {/* Subtle Background Radial Lights */}
-        <div className="absolute -top-24 -right-24 w-[400px] h-[400px] bg-blue-600/15 rounded-full filter blur-[100px] pointer-events-none" />
-        <div className="absolute bottom-0 -left-24 w-[350px] h-[350px] bg-orange-500/10 rounded-full filter blur-[100px] pointer-events-none" />
-
-        {/* Top Split: Hero Content & Orbital Art */}
-        <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+      {/* 1. CLEAN AGENCY HERO SECTION (NO DARK CARD CONTAINER WRAPPER) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 text-left">
+        <div className="space-y-6">
           
-          {/* Left Column Content */}
-          <div className="lg:col-span-7 space-y-5 text-left">
-            {/* Small Eyebrow Badge */}
-            <div className="inline-flex items-center gap-2 bg-blue-950/70 border border-blue-500/30 px-3 py-1 rounded-full shadow-inner">
-              <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
-              <span className="text-[10px] sm:text-[11px] font-semibold text-blue-300 tracking-wider uppercase font-mono">
-                {t.heroBadge || "DIGITAL EXCELLENCE. MEASURABLE IMPACT."}
-              </span>
-            </div>
-
-            {/* Headline */}
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-[1.1] text-white font-sans">
-              {t.heroTitlePrefix || "We Build Brands That Lead"}{" "}
-              <span className="text-orange-500 block sm:inline">
-                {t.heroTitleSuffix || "and Scale."}
-              </span>
-            </h1>
-
-            {/* Description */}
-            <p className="text-slate-300/90 text-sm md:text-base leading-relaxed max-w-xl font-normal">
-              {t.heroDesc}
-            </p>
-
-            {/* Primary & Secondary CTAs */}
-            <div className="flex flex-wrap items-center gap-3 pt-1">
-              <motion.button
-                whileHover={{ scale: 1.02, y: -1 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => onNavigate('/services')}
-                className="px-5 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-lg shadow-blue-600/25 flex items-center gap-2 cursor-pointer shrink-0"
-              >
-                <span>{t.exploreServices}</span>
-                <ArrowRight size={15} />
-              </motion.button>
-
-              <motion.button
-                whileHover={{ scale: 1.02, y: -1 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => onNavigate('/portfolio')}
-                className="px-5 py-3 bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-700/80 font-semibold text-xs sm:text-sm rounded-xl transition-all flex items-center gap-2 cursor-pointer shrink-0"
-              >
-                <span>{t.clientDashboard || "View Case Studies"}</span>
-                <ArrowUpRight size={15} />
-              </motion.button>
-
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 shrink-0">
-                <Shield size={14} className="text-emerald-400" />
-                <span className="text-[11px] text-slate-300 font-medium">
-                  {t.trustedByTag || "Trusted across West Africa"}
-                </span>
-              </div>
-            </div>
+          {/* Eyebrow Badge */}
+          <div className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/80 px-3.5 py-1.5 rounded-full shadow-xs">
+            <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+            <span className="text-[10px] sm:text-[11px] font-extrabold text-indigo-700 dark:text-indigo-300 tracking-wider uppercase font-mono">
+              DIGITAL EXCELLENCE • MEASURABLE IMPACT
+            </span>
           </div>
 
-          {/* Right Column Orbital Graphic */}
-          <div className="lg:col-span-5 flex justify-center items-center py-2 lg:py-0">
-            <OrbitalVisualNode />
-          </div>
-        </div>
+          {/* Headline */}
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] text-slate-900 dark:text-white font-sans">
+            We Build Brands That Lead{" "}
+            <span className="text-orange-500 font-serif italic block sm:inline">
+              and Scale.
+            </span>
+          </h1>
 
-        {/* Integrated Partner Logos & Statistics Bar */}
-        <div className="relative z-10 pt-8 mt-8 border-t border-slate-800/80 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-          
-          {/* Partner Brand Logos (Left 5 Cols) */}
-          <div className="md:col-span-5 space-y-2 text-left">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">
-              {t.brandsTrustText || "Trusted Technology & Media Partners"}
-            </p>
-            <div className="flex flex-wrap items-center gap-4 text-slate-300 text-xs font-bold opacity-85">
-              <span className="hover:text-white transition-colors">Meta</span>
-              <span className="text-slate-600">•</span>
-              <span className="hover:text-white transition-colors">Google Partner</span>
-              <span className="text-slate-600">•</span>
-              <span className="hover:text-white transition-colors">AWS</span>
-              <span className="text-slate-600">•</span>
-              <span className="hover:text-white transition-colors">Paystack</span>
-            </div>
+          {/* Description */}
+          <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl font-normal">
+            DS Tech & Digital Marketing Agency delivers enterprise software engineering, high-ROI sponsored ad campaigns, AI workflow automation, and CAC regulatory clearance across West Africa.
+          </p>
+
+          {/* Main Action CTAs: Explore Services, View Case Studies, Request Custom Quote */}
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => onNavigate('/services')}
+              className="px-6 py-3.5 bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-full transition-all shadow-lg hover:shadow-orange-500/25 flex items-center gap-2 cursor-pointer border border-orange-400/40"
+            >
+              <span>Explore Our Services</span>
+              <ArrowRight size={16} className="text-white" />
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => onNavigate('/portfolio')}
+              className="px-6 py-3.5 bg-[#0B132B] hover:bg-slate-800 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-full border border-slate-700/80 shadow-md flex items-center gap-2 cursor-pointer"
+            >
+              <span>View Case Studies</span>
+              <ArrowUpRight size={16} className="text-orange-400" />
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              type="button"
+              onClick={() => {
+                setQuoteModalService(null);
+                setIsQuoteModalOpen(true);
+              }}
+              className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-full shadow-md hover:shadow-emerald-500/20 transition-all cursor-pointer flex items-center gap-2 border border-emerald-400/40"
+            >
+              <MessageSquare size={16} className="text-emerald-100" />
+              <span>Request Custom Quote</span>
+            </motion.button>
           </div>
 
-          {/* Key Metrics Grid (Right 7 Cols) */}
-          <div className="md:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-4 text-left bg-slate-900/50 p-4 rounded-xl border border-slate-800/80">
+          {/* Key Metrics Bar */}
+          <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 text-left border-t border-slate-200 dark:border-slate-800/80">
             {stats.map((st, i) => (
               <div key={i} className="space-y-0.5">
-                <span className="text-xl sm:text-2xl font-black text-white tracking-tight font-sans block">
+                <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight font-sans block">
                   {st.value}
                 </span>
-                <span className="text-[10px] text-slate-400 font-medium leading-tight block">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">
                   {st.label}
                 </span>
               </div>
@@ -316,8 +208,112 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
         </div>
       </section>
 
-      {/* 2. ENTERPRISE CAC ACCREDITATION TRUST BANNER */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6">
+      {/* 2. CORE SERVICE DISCOVERY CATALOGUE (NO DARK BOX CONTAINER) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 text-left">
+        
+        {/* Section Heading */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
+          <div className="space-y-2">
+            <span className="text-orange-500 text-[11px] font-extrabold uppercase tracking-widest font-mono flex items-center gap-1.5">
+              <ShoppingBag size={14} className="text-orange-500" />
+              <span>PROFESSIONAL SERVICE MARKETPLACE</span>
+            </span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold uppercase font-serif tracking-tight text-slate-900 dark:text-white">
+              EXPLORE OUR PROFESSIONAL SERVICE CATALOG AND MAKE YOUR SELECTION
+            </h2>
+            <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-3xl font-normal leading-relaxed">
+              Browse our core professional services below. Click any service card to inspect deliverables, view transparent pricing, and submit a custom project brief.
+            </p>
+          </div>
+
+          <button 
+            type="button"
+            onClick={() => onNavigate('/services')}
+            className="px-5 py-2.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors border border-indigo-200/60 dark:border-indigo-800/60 shrink-0 cursor-pointer"
+          >
+            <span>View Full 16-Service Catalogue</span>
+            <ChevronRight size={14} />
+          </button>
+        </div>
+
+        {/* Category Pills Filter */}
+        <div className="flex flex-wrap gap-2 pt-1">
+          {[
+            { id: 'all', label: 'All Core Services' },
+            { id: 'web', label: 'Web & Mobile Apps' },
+            { id: 'marketing', label: 'Ads & Digital Marketing' },
+            { id: 'ai', label: 'AI & Automation' },
+            { id: 'branding', label: 'Branding & ICT' },
+          ].map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCategory(cat.id)}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer ${
+                activeCategory === cat.id
+                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm'
+                  : 'bg-slate-100 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Core Services Responsive Grid (2 cols mobile, 3 tablet, 4 desktop) */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4 lg:gap-5">
+          {filteredServices.map((svc) => (
+            <motion.div 
+              key={svc.id}
+              whileHover={{ y: -3 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => onSelectService(svc.id)}
+              className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 shadow-sm hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group text-left"
+            >
+              <div>
+                <div className="relative h-28 sm:h-36 overflow-hidden bg-slate-950">
+                  <img 
+                    src={getPolishedServiceImage(svc)} 
+                    alt={svc.name} 
+                    referrerPolicy="no-referrer"
+                    onError={() => setImgErrorMap(prev => ({ ...prev, [svc.id]: true }))}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+                  
+                  <div className="absolute top-2 left-2 bg-slate-950/90 px-2 py-0.5 rounded-lg text-[9px] font-mono font-extrabold text-orange-400 border border-slate-800">
+                    {svc.price}
+                  </div>
+                </div>
+
+                <div className="p-3 sm:p-4 space-y-1.5">
+                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
+                    {svc.category}
+                  </span>
+                  <h3 className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm leading-tight sm:leading-snug break-words group-hover:text-orange-500 transition-colors uppercase font-serif">
+                    {svc.name}
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed line-clamp-2 font-normal">
+                    {svc.description}
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-3 sm:p-4 pt-0">
+                <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                  <span className="text-[10px] font-extrabold text-orange-500 uppercase tracking-wider flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                    <span>View Service</span>
+                    <ArrowRight size={11} />
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+      </section>
+
+      {/* 3. ENTERPRISE CAC ACCREDITATION TRUST BANNER */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="bg-gradient-to-r from-slate-900 via-[#031338] to-slate-900 text-white rounded-2xl p-5 sm:p-6 border border-indigo-900/60 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4 text-left">
             <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
@@ -351,8 +347,8 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
         </div>
       </section>
 
-      {/* 3. COMPANY OVERVIEW ("WHO WE ARE") */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6">
+      {/* 4. COMPANY OVERVIEW ("WHO WE ARE") */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl sm:rounded-3xl p-6 sm:p-8 shadow-sm">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
             
@@ -425,8 +421,8 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
         </div>
       </section>
 
-      {/* 4. WHY CHOOSE US (3 CORE PILLARS) */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
+      {/* 5. WHY CHOOSE US (3 CORE PILLARS) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
         <div className="text-center max-w-xl mx-auto space-y-2">
           <span className="text-orange-500 text-[11px] font-extrabold uppercase tracking-widest font-mono">
             {t.whyBrandsTrustSub}
@@ -464,104 +460,6 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
         </div>
       </section>
 
-      {/* 5. FEATURED SOLUTIONS PREVIEW */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6 text-left">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
-          <div>
-            <span className="text-orange-500 text-[11px] uppercase tracking-widest font-extrabold font-mono flex items-center gap-1.5">
-              <Sparkles size={13} className="text-amber-400" />
-              {t.featuredSolutionsSub}
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white uppercase font-serif tracking-tight mt-1">
-              {t.featuredSolutions}
-            </h2>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                setQuoteModalService(null);
-                setIsQuoteModalOpen(true);
-              }}
-              className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all"
-            >
-              <MessageSquare size={13} />
-              <span>Custom Quote</span>
-            </button>
-
-            <button 
-              onClick={() => onNavigate('/services')}
-              className="px-3.5 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1 transition-colors border border-indigo-200/50 dark:border-indigo-900/50"
-            >
-              <span>{t.viewAllServicesBtn}</span>
-              <ChevronRight size={13} />
-            </button>
-          </div>
-        </div>
-
-        {/* Top 3 Core Featured Service Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {services.slice(0, 3).map((svc) => (
-            <div 
-              key={svc.id}
-              onClick={() => onSelectService(svc.id)}
-              className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-orange-500/80 transition-all flex flex-col justify-between cursor-pointer group"
-            >
-              <div>
-                <div className="relative h-40 overflow-hidden bg-slate-950">
-                  <img 
-                    src={resolveImageUrl(svc.image)} 
-                    alt={svc.name} 
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
-                  <div className="absolute top-2.5 left-2.5 bg-slate-950/90 px-2.5 py-1 rounded-lg text-[9px] uppercase font-mono font-bold text-orange-400 border border-slate-800">
-                    {svc.price}
-                  </div>
-                  <div className="absolute top-2.5 right-2.5 bg-white/10 backdrop-blur-md px-2 py-0.5 rounded-lg text-[9px] uppercase font-bold text-white border border-white/20">
-                    {svc.category}
-                  </div>
-                </div>
-
-                <div className="p-4 space-y-2 text-left">
-                  <span className="text-[9px] font-mono tracking-widest uppercase text-indigo-600 dark:text-indigo-400 font-extrabold block">
-                    {svc.category}
-                  </span>
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-sm line-clamp-1 group-hover:text-orange-500 transition-colors uppercase font-serif">
-                    {svc.name}
-                  </h3>
-                  <p className="text-slate-600 dark:text-slate-300 text-xs leading-relaxed line-clamp-2">
-                    {svc.description}
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-4 pt-0">
-                <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800/80">
-                  <span className="text-[10px] font-bold text-orange-500 uppercase tracking-wider flex items-center gap-1">
-                    <span>Learn Details ➔</span>
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setQuoteModalService(svc);
-                      setIsQuoteModalOpen(true);
-                    }}
-                    className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 transition-all flex items-center gap-1"
-                  >
-                    <MessageSquare size={10} />
-                    <span>Quote</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* Custom Quote Modal */}
       <CustomQuoteModal 
         isOpen={isQuoteModalOpen} 
@@ -572,7 +470,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
       />
 
       {/* 6. CAREERS PREVIEW GATEWAY */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 text-white p-6 sm:p-8 rounded-2xl border border-indigo-900/60 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6 text-left">
           <div className="space-y-2 max-w-xl">
             <span className="text-orange-400 text-[10px] uppercase tracking-widest font-extrabold font-mono">
@@ -599,7 +497,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
       </section>
 
       {/* 7. CLIENT TESTIMONIALS */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 space-y-6">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 space-y-6">
         <div className="text-center space-y-2">
           <span className="text-orange-500 text-[11px] uppercase tracking-widest font-extrabold font-mono">
             {t.verifiedSuccessStoriesSub}
@@ -648,7 +546,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
       </section>
 
       {/* 8. CONSULTATION BOOKING CTA */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6">
+      <section className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="bg-white dark:bg-slate-900 p-6 sm:p-8 rounded-2xl sm:rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-lg text-left grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
           
           <div className="md:col-span-7 space-y-3">

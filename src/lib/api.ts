@@ -2995,6 +2995,183 @@ export function apiSubscribeToProposals(callback: (proposals: ProposalRecord[]) 
   };
 }
 
+// ---------------------------------------------------------
+// SERVICE REQUEST MARKETPLACE API HELPERS
+// ---------------------------------------------------------
+export interface ServiceRequestRecord {
+  id: string;
+  referenceCode: string;
+  serviceId: string;
+  serviceName: string;
+  fullName: string;
+  company?: string;
+  email: string;
+  phone: string;
+  country: string;
+  projectTitle: string;
+  projectBrief: string;
+  expectedDeliverables?: string;
+  budgetRange: string;
+  completionDate?: string;
+  referenceLink?: string;
+  additionalNotes?: string;
+  paymentMethod?: 'bank_transfer' | 'paystack' | 'consultation';
+  paymentStatus: 'pending' | 'partially_paid' | 'fully_paid' | 'verified';
+  paymentPlan?: 'full' | '70_percent_upfront' | 'quote_only';
+  status: 'new' | 'reviewing' | 'quoted' | 'approved' | 'in_progress' | 'completed' | 'cancelled';
+  quotedPrice?: string;
+  adminNotes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function apiGetServiceRequests(): Promise<ServiceRequestRecord[]> {
+  try {
+    const raw = localStorage.getItem('dstech_service_requests');
+    let localList: ServiceRequestRecord[] = raw ? JSON.parse(raw) : [];
+
+    try {
+      const snap = await getDocs(collection(db, 'service_requests'));
+      if (!snap.empty) {
+        const firestoreList = snap.docs.map(docSnap => ({
+          id: docSnap.id,
+          ...docSnap.data()
+        })) as ServiceRequestRecord[];
+
+        const map = new Map<string, ServiceRequestRecord>();
+        localList.forEach(item => map.set(item.id, item));
+        firestoreList.forEach(item => map.set(item.id, item));
+        const merged = Array.from(map.values()).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        localStorage.setItem('dstech_service_requests', JSON.stringify(merged));
+        return merged;
+      }
+    } catch (fsErr) {
+      console.warn('Firestore service_requests get error:', fsErr);
+    }
+
+    return localList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  } catch (err) {
+    console.error('Error fetching service requests:', err);
+    return [];
+  }
+}
+
+export async function apiSaveServiceRequest(requestData: Omit<ServiceRequestRecord, 'id' | 'referenceCode' | 'createdAt' | 'updatedAt' | 'status' | 'paymentStatus'> & Partial<ServiceRequestRecord>): Promise<ServiceRequestRecord> {
+  const now = new Date().toISOString();
+  const id = requestData.id || 'req_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now().toString().substring(8);
+  const referenceCode = requestData.referenceCode || 'DSR-' + Math.floor(100000 + Math.random() * 900000);
+
+  const fullRecord: ServiceRequestRecord = {
+    id,
+    referenceCode,
+    serviceId: requestData.serviceId || 'svc_custom',
+    serviceName: requestData.serviceName || 'Custom Service Brief',
+    fullName: requestData.fullName || 'Client',
+    company: requestData.company || '',
+    email: requestData.email || '',
+    phone: requestData.phone || '',
+    country: requestData.country || 'Nigeria',
+    projectTitle: requestData.projectTitle || 'Service Request',
+    projectBrief: requestData.projectBrief || '',
+    expectedDeliverables: requestData.expectedDeliverables || '',
+    budgetRange: requestData.budgetRange || 'Flexible',
+    completionDate: requestData.completionDate || '',
+    referenceLink: requestData.referenceLink || '',
+    additionalNotes: requestData.additionalNotes || '',
+    paymentMethod: requestData.paymentMethod || 'bank_transfer',
+    paymentStatus: requestData.paymentStatus || 'pending',
+    paymentPlan: requestData.paymentPlan || 'quote_only',
+    status: requestData.status || 'new',
+    quotedPrice: requestData.quotedPrice || '',
+    adminNotes: requestData.adminNotes || '',
+    createdAt: requestData.createdAt || now,
+    updatedAt: now
+  };
+
+  try {
+    const raw = localStorage.getItem('dstech_service_requests');
+    const list: ServiceRequestRecord[] = raw ? JSON.parse(raw) : [];
+    const existingIndex = list.findIndex(r => r.id === id);
+    if (existingIndex >= 0) {
+      list[existingIndex] = fullRecord;
+    } else {
+      list.unshift(fullRecord);
+    }
+    localStorage.setItem('dstech_service_requests', JSON.stringify(list));
+  } catch (e) {}
+
+  try {
+    await setDoc(doc(db, 'service_requests', id), fullRecord, { merge: true });
+  } catch (fsErr) {
+    console.warn('Firestore setDoc failed for service request:', fsErr);
+  }
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'service_requests', action: 'save', record: fullRecord } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
+  return fullRecord;
+}
+
+export async function apiUpdateServiceRequestStatus(id: string, updates: Partial<ServiceRequestRecord>): Promise<ServiceRequestRecord | null> {
+  const now = new Date().toISOString();
+  let updatedRecord: ServiceRequestRecord | null = null;
+
+  try {
+    const raw = localStorage.getItem('dstech_service_requests');
+    const list: ServiceRequestRecord[] = raw ? JSON.parse(raw) : [];
+    const idx = list.findIndex(r => r.id === id);
+    if (idx >= 0) {
+      list[idx] = { ...list[idx], ...updates, updatedAt: now };
+      updatedRecord = list[idx];
+      localStorage.setItem('dstech_service_requests', JSON.stringify(list));
+    }
+  } catch (e) {}
+
+  try {
+    await updateDoc(doc(db, 'service_requests', id), {
+      ...updates,
+      updatedAt: now
+    });
+  } catch (e) {}
+
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('dstech_content_updated', { detail: { module: 'service_requests', action: 'update', id } }));
+    window.dispatchEvent(new Event('storage'));
+  }
+
+  return updatedRecord;
+}
+
+export function apiSubscribeToServiceRequests(callback: (requests: ServiceRequestRecord[]) => void): () => void {
+  apiGetServiceRequests().then(data => callback(data)).catch(() => {});
+
+  const ref = collection(db, 'service_requests');
+  const unsubFs = onSnapshot(ref, (snap) => {
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() })) as ServiceRequestRecord[];
+    list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    callback(list);
+  }, (err) => console.warn('Service requests snapshot error:', err));
+
+  const handleUpdate = () => {
+    apiGetServiceRequests().then(data => callback(data)).catch(() => {});
+  };
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('dstech_content_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+  }
+
+  return () => {
+    unsubFs();
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('dstech_content_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    }
+  };
+}
+
 
 
 

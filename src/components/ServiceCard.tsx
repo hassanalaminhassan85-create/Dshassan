@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles, TrendingUp, Gauge, Zap, Brain, X, Check, CreditCard } from 'lucide-react';
 import { ServiceItem, parsePriceToNumeric } from '../lib/data';
+import { getPolishedServiceImage } from '../lib/mediaUtils';
 import { LanguageCode } from '../lib/translations';
 import { PaystackPayButton } from './PaystackMotionCheckout';
 
@@ -113,7 +114,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
               <div className="absolute inset-0 bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-slate-800 dark:via-slate-700 dark:to-slate-800 animate-pulse" />
             )}
             <img 
-              src={getServiceImage(svc)} 
+              src={getPolishedServiceImage(svc)} 
               alt={svc.name} 
               loading="lazy"
               referrerPolicy="no-referrer"
@@ -231,7 +232,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
           <span className="text-[10px] font-mono tracking-widest uppercase text-indigo-600 dark:text-indigo-400 font-extrabold block">
             {svc.category}
           </span>
-          <h3 className="font-extrabold text-slate-900 dark:text-white text-base md:text-lg line-clamp-2 leading-snug font-display tracking-tight group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">
+          <h3 className="font-extrabold text-slate-900 dark:text-white text-base md:text-lg leading-snug break-words font-display tracking-tight group-hover:text-orange-500 dark:group-hover:text-orange-400 transition-colors">
             {svc.name}
           </h3>
           <p className="text-slate-600 dark:text-slate-300 text-xs md:text-[13px] leading-relaxed font-normal line-clamp-3">

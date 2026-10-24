@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { motion } from 'motion/react';
 import { 
   ArrowLeft, MessageSquare, CheckCircle2, ShieldCheck, 
-  Sparkles, Calendar, Award, Phone, Mail, Clock, DollarSign, FileText, CreditCard
+  Sparkles, Calendar, Award, Phone, Mail, Clock, DollarSign, FileText, CreditCard,
+  Building2, Globe, Link as LinkIcon, Check, Copy, Send, HelpCircle
 } from 'lucide-react';
 import { ServiceItem, parsePriceToNumeric } from '../lib/data';
-import { resolveImageUrl } from '../lib/api';
-import { generateDynamicSvgUrl } from '../lib/mediaUtils';
+import { resolveImageUrl, apiSaveServiceRequest, ServiceRequestRecord } from '../lib/api';
+import { generateDynamicSvgUrl, getPolishedServiceImage } from '../lib/mediaUtils';
 import { LanguageCode } from '../lib/translations';
 import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
 import { PaystackPayButton } from './PaystackMotionCheckout';
@@ -22,14 +23,37 @@ interface ServiceDetailViewProps {
 export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, language, onBack }) => {
   const agencyPhone = '2349023489111';
 
+  // Bank transfer details
+  const bankDetails = {
+    bankName: 'Wema Bank',
+    accountName: 'DS Tech & Digital Marketing Agency Limited',
+    accountNumber: '9023489111'
+  };
+
+  // Form State (13 Comprehensive Fields)
   const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [company, setCompany] = useState('');
   const [email, setEmail] = useState('');
-  const [budget, setBudget] = useState('₦300,000 - ₦1,000,000');
+  const [phone, setPhone] = useState('');
+  const [country, setCountry] = useState('Nigeria');
+  const [projectTitle, setProjectTitle] = useState('');
+  const [projectBrief, setProjectBrief] = useState('');
+  const [expectedDeliverables, setExpectedDeliverables] = useState('');
+  const [budgetRange, setBudgetRange] = useState('₦300,000 – ₦1,000,000');
   const [customBudget, setCustomBudget] = useState('');
-  const [timeline, setTimeline] = useState('Immediate (1-2 Weeks)');
-  const [notes, setNotes] = useState('');
-  const [submitted, setSubmitted] = useState(false);
+  const [completionDate, setCompletionDate] = useState('');
+  const [referenceLink, setReferenceLink] = useState('');
+  const [additionalNotes, setAdditionalNotes] = useState('');
+
+  // Payment Option State
+  const [paymentPlan, setPaymentPlan] = useState<'quote_only' | '70_percent_upfront' | 'full'>('quote_only');
+  const [paymentMethod, setPaymentMethod] = useState<'bank_transfer' | 'paystack' | 'consultation'>('bank_transfer');
+  const [showBankInfo, setShowBankInfo] = useState(false);
+  const [copiedAcc, setCopiedAcc] = useState(false);
+
+  // Submission State
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submittedRecord, setSubmittedRecord] = useState<ServiceRequestRecord | null>(null);
 
   React.useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -39,367 +63,620 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, l
     }
   }, [service.id]);
 
-  const t = HOME_TRANSLATIONS[language] || HOME_TRANSLATIONS.en;
+  const handleCopyAccount = () => {
+    navigator.clipboard.writeText(bankDetails.accountNumber);
+    setCopiedAcc(true);
+    setTimeout(() => setCopiedAcc(false), 2000);
+  };
 
-  // Custom highlights based on category
   const getHighlights = (category: string) => {
     switch (category) {
       case 'marketing':
         return [
-          language === 'zh' ? '全渠道广告投放与转化监测像素配置' : 'Full-funnel ad targeting & conversion pixel tracking',
-          language === 'zh' ? '高点击率视频创意策划与文案撰写' : 'High-CTR video creatives & persuasive copywriting',
-          language === 'zh' ? '每周多维度精准数据分析与ROI优化报告' : 'Weekly multi-dimensional reports & continuous ROI optimization',
-          language === 'zh' ? '官方Meta与Google代理账户快速开通' : 'Direct Meta & Google agency ad-account onboarding'
+          'Full-funnel ad targeting & conversion pixel tracking',
+          'High-CTR video creatives & persuasive copywriting',
+          'Weekly multi-dimensional reports & continuous ROI optimization',
+          'Direct Meta & Google agency ad-account onboarding'
         ];
       case 'web':
       case 'software':
         return [
-          language === 'zh' ? '响应式移动端优先高精度页面排版' : 'Blazing-fast mobile-first responsive architecture',
-          language === 'zh' ? '企业级双端数字加密签名及信息录入节点' : 'Enterprise dual digital encryption signatures',
-          language === 'zh' ? '秒级数据库检索响应与安全后端部署' : 'Sub-second database query rendering & robust server API',
-          language === 'zh' ? '12个月官方技术安全维护与升级服务保障' : '12-month security patch guarantees & tech maintenance'
+          'Blazing-fast mobile-first responsive architecture',
+          'Enterprise dual digital encryption signatures',
+          'Sub-second database query rendering & robust server API',
+          '12-month security patch guarantees & tech maintenance'
         ];
       case 'ai':
         return [
-          language === 'zh' ? '高智能大语言模型知识库本地微调与整合' : 'Intelligent LLM direct local knowledge fine-tuning',
-          language === 'zh' ? 'WhatsApp及网页端自动客服聊天机器人搭建' : 'Automated WhatsApp & Web chatbot CRM deployment',
-          language === 'zh' ? '语义相似度智能意图检索与精准工单路由' : 'Semantic intent mapping & immediate customer help desks',
-          language === 'zh' ? '数据隐私完全隔离，确保企业机密不泄露' : 'Complete data privacy isolation & secure local keys encryption'
+          'Intelligent LLM direct local knowledge fine-tuning',
+          'Automated WhatsApp & Web chatbot CRM deployment',
+          'Semantic intent mapping & immediate customer help desks',
+          'Complete data privacy isolation & secure local keys encryption'
         ];
       case 'compliance':
         return [
-          language === 'zh' ? 'CAC公司注册一站式快速电子档案归档' : 'CAC incorporation fast e-filing node submission',
-          language === 'zh' ? 'SCUML反洗钱合规证书申请专项指导' : 'SCUML anti-money laundering certifications guidance',
-          language === 'zh' ? 'FIRS企业税号与官方税收减免核验' : 'FIRS corporate tax registration (TIN) processing',
-          language === 'zh' ? '100%全权代理，5个工作日内完成注册闭环' : '100% legal agent representation with 5-day delivery'
+          'CAC incorporation fast e-filing node submission',
+          'SCUML anti-money laundering certifications guidance',
+          'FIRS corporate tax registration (TIN) processing',
+          '100% legal agent representation with 5-day delivery'
         ];
       default:
         return [
-          language === 'zh' ? '专业商业模式可行性论证与流程设计' : 'Custom high-performance workflow diagnostics',
-          language === 'zh' ? '西非及全球化运营资质核准协助' : 'West-African regional operational clearance audits',
-          language === 'zh' ? '1对1专属高级项目经理策略推进跟进' : '1-on-1 strategic advisor oversight & progress updates',
-          language === 'zh' ? '官方合规证书及多部门备案绿色通道' : 'Official registration clearance & digital licensing keys'
+          'Custom high-performance workflow diagnostics',
+          'West-African regional operational clearance audits',
+          '1-on-1 strategic advisor oversight & progress updates',
+          'Official registration clearance & digital licensing keys'
         ];
     }
   };
 
-  const handleSendToWhatsApp = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !phone) {
-      alert('Please fill in your name and phone number.');
+    if (!fullName || !email || !phone || !projectTitle || !projectBrief) {
+      alert('Please fill in all required fields marked with (*).');
       return;
     }
 
-    const finalBudget = budget === 'Custom Amount' ? (customBudget ? `Custom (₦${customBudget})` : 'Custom Budget') : budget;
+    setIsSubmitting(true);
 
-    const message = `*DS TECH AGENCY - SERVICE INQUIRY & BRIEF*
+    const finalBudget = budgetRange === 'Custom Amount' ? (customBudget ? `Custom (₦${customBudget})` : 'Custom Budget') : budgetRange;
 
-*Service Name:* ${service.name}
-*Price Range:* ${service.price}
-*Category:* ${service.category}
+    try {
+      const record = await apiSaveServiceRequest({
+        serviceId: service.id,
+        serviceName: service.name,
+        fullName,
+        company,
+        email,
+        phone,
+        country,
+        projectTitle,
+        projectBrief,
+        expectedDeliverables,
+        budgetRange: finalBudget,
+        completionDate,
+        referenceLink,
+        additionalNotes,
+        paymentPlan,
+        paymentMethod,
+        paymentStatus: paymentPlan === 'quote_only' ? 'pending' : 'pending'
+      });
 
-*Client Name:* ${fullName}
-*Phone/WhatsApp:* ${phone}
-${email ? `*Email:* ${email}\n` : ''}*Target Budget:* ${finalBudget}
-*Timeline:* ${timeline}
+      setSubmittedRecord(record);
 
-*Custom Description & Requirements:*
-${notes || 'Client requested consultation for this service.'}
+      // WhatsApp format
+      const waMsg = `*DS TECH AGENCY - OFFICIAL SERVICE BRIEF REQUEST*
+*Ref Code:* ${record.referenceCode}
+
+*Service:* ${service.name}
+*Project Title:* ${projectTitle}
+
+*Client Details:*
+• Name: ${fullName}
+• Company: ${company || 'N/A'}
+• Email: ${email}
+• Phone: ${phone}
+• Country: ${country}
+
+*Project Brief:*
+${projectBrief}
+
+*Deliverables:* ${expectedDeliverables || 'Standard Service Package'}
+*Budget Range:* ${finalBudget}
+*Target Date:* ${completionDate || 'Flexible'}
+*Ref Link:* ${referenceLink || 'None'}
+
+*Payment Option Selected:* ${paymentPlan === 'quote_only' ? 'Request Official Quote First' : paymentPlan === '70_percent_upfront' ? '70% Upfront Commitment Deposit' : 'Full Payment'}
+${additionalNotes ? `\n*Additional Notes:*\n${additionalNotes}` : ''}
 
 ----------------------------------------
-*Sent via DS Tech Digital Platform*`;
+*Submitted via DS Tech Service Marketplace*`;
 
-    const whatsappUrl = `https://wa.me/${agencyPhone}?text=${encodeURIComponent(message)}`;
-    
-    setSubmitted(true);
-    setTimeout(() => {
-      window.open(whatsappUrl, '_blank');
-      setSubmitted(false);
-    }, 1000);
+      const whatsappUrl = `https://wa.me/${agencyPhone}?text=${encodeURIComponent(waMsg)}`;
+      
+      setTimeout(() => {
+        window.open(whatsappUrl, '_blank');
+      }, 1200);
+
+    } catch (err) {
+      console.error('Failed to submit service brief:', err);
+      alert('Something went wrong saving your brief. Please try again or message us directly on WhatsApp.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const highlights = getHighlights(service.category);
-
-  // Motion Font Word Variants for Title
   const titleWords = (service.name || '').split(' ');
-  const titleContainerVariants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.08 } }
-  };
-  const wordVariants = {
-    hidden: { opacity: 0, y: 18, filter: 'blur(4px)' },
-    visible: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { type: 'spring' as const, stiffness: 300, damping: 20 } }
-  };
 
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.96, y: 25 }}
+      initial={{ opacity: 0, scale: 0.98, y: 15 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.96, y: -25 }}
+      exit={{ opacity: 0, scale: 0.98, y: -15 }}
       transition={{ type: "spring", stiffness: 220, damping: 20 }}
-      className="max-w-5xl mx-auto px-4 sm:px-6 py-8 space-y-8 text-left text-slate-900 dark:text-slate-100"
+      className="max-w-6xl mx-auto px-4 sm:px-6 py-6 md:py-10 space-y-8 text-left text-slate-900 dark:text-slate-100"
     >
       {/* Back Button */}
       <button 
         onClick={onBack}
-        className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-600 hover:text-orange-500 transition-colors"
+        className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 hover:text-orange-500 transition-colors"
         type="button"
       >
         <ArrowLeft size={16} />
-        <span>{language === 'zh' ? '返回上一页' : 'Back to Listings'}</span>
+        <span>{language === 'zh' ? '返回服务目录' : 'Back to Service Catalogue'}</span>
       </button>
 
-      {/* Hero Section */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-md">
+      {/* Hero Service Card */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-md">
         {/* Service Image */}
-        <div className="md:col-span-5 relative rounded-2xl overflow-hidden h-64 md:h-80 shadow-md bg-slate-950">
+        <div className="lg:col-span-5 relative rounded-2xl overflow-hidden min-h-[260px] lg:min-h-[340px] shadow-md bg-slate-950">
           <img 
-            src={resolveImageUrl(service.image) || generateDynamicSvgUrl(service.name, service.category, "service")} 
+            src={getPolishedServiceImage(service)} 
             alt={service.name} 
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover"
           />
-          <div className="absolute top-4 left-4 bg-orange-600 px-3.5 py-1 rounded-xl text-xs font-black text-white tracking-wider border border-orange-500 shadow-lg">
+          <div className="absolute top-4 left-4 bg-orange-600/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl text-xs font-black text-white tracking-wider border border-orange-400 shadow-lg">
             {service.price}
           </div>
         </div>
 
         {/* Core Content */}
-        <div className="md:col-span-7 space-y-6">
+        <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
           <div className="space-y-3">
-            <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 px-3.5 py-1.5 rounded-full inline-block border border-indigo-200/50 dark:border-indigo-800/40">
-              {service.category}
+            <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-3.5 py-1.5 rounded-full inline-block border border-indigo-200/60 dark:border-indigo-800/60">
+              {service.category} Service
             </span>
 
-            {/* Motion Font Staggered Title */}
-            <motion.h1 
-              variants={titleContainerVariants}
-              initial="hidden"
-              animate="visible"
-              className="text-2xl sm:text-3xl md:text-4xl font-extrabold font-display text-slate-900 dark:text-white leading-tight flex flex-wrap gap-2 tracking-tight"
-            >
-              {titleWords.map((w, idx) => (
-                <motion.span key={idx} variants={wordVariants} className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-800 dark:from-white dark:via-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
-                  {w}
-                </motion.span>
-              ))}
-            </motion.h1>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-display text-slate-900 dark:text-white leading-tight tracking-tight">
+              {service.name}
+            </h1>
 
-            <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base leading-relaxed font-normal">
+            <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
               {service.description}
             </p>
           </div>
 
-          {/* Deliverables / Highlights */}
-          <div className="space-y-4 border-t border-slate-100 dark:border-slate-800/80 pt-6">
-            <h3 className="text-xs font-bold uppercase font-display tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+          {/* Service Highlights */}
+          <div className="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-5">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2 font-mono">
               <Award size={15} className="text-orange-500" />
-              <span>{language === 'zh' ? '核心交付标准' : 'Core Service Highlights'}</span>
+              <span>Core Service Features & Deliverables</span>
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {highlights.map((highlight, index) => (
-                <div key={index} className="flex gap-2.5 items-start bg-slate-50 dark:bg-slate-800/30 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/50">
+                <div key={index} className="flex gap-2 items-start bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/50">
                   <CheckCircle2 size={15} className="text-emerald-500 shrink-0 mt-0.5" />
-                  <span className="text-slate-800 dark:text-slate-200 text-xs sm:text-[13px] leading-snug font-medium">{highlight}</span>
+                  <span className="text-slate-800 dark:text-slate-200 text-xs leading-snug font-medium">{highlight}</span>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Direct Actions: WhatsApp Brief + High Motion Paystack Checkout */}
-          <div className="flex flex-wrap gap-3 pt-2 items-center">
-            <PaystackPayButton
-              amount={parsePriceToNumeric(service.price, 30000)}
-              email={email || 'client@dstechagency.com'}
-              customerName={fullName || 'Valued Client'}
-              title={`Service Retainer: ${service.name}`}
-              description={`30% Initial Retainer Deposit for ${service.name} (${service.category})`}
-              metadata={{
-                service_id: service.id,
-                category: service.category
-              }}
-              variant="emerald"
-            >
-              <CreditCard size={15} />
-              <span>{language === 'zh' ? '通过 Paystack 极速支付预付款' : 'Pay Deposit via Custom Paystack'}</span>
-            </PaystackPayButton>
-
+          {/* Quick Action Buttons */}
+          <div className="flex flex-wrap gap-3 pt-2">
             <button
               onClick={() => {
-                const el = document.getElementById('brief-form');
+                const el = document.getElementById('brief-form-section');
                 if (el) el.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="px-5 py-3 bg-slate-900 border border-slate-700 hover:border-emerald-500/50 text-slate-200 hover:text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-md flex items-center gap-2"
+              className="px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-lg flex items-center gap-2 cursor-pointer"
             >
-              <MessageSquare size={15} className="text-emerald-400" />
-              <span>{language === 'zh' ? '在 WhatsApp 沟通提交需求' : 'Submit Custom Brief on WhatsApp'}</span>
+              <Send size={15} />
+              <span>Fill Project Brief Form</span>
+            </button>
+
+            <button
+              onClick={() => setShowBankInfo(!showBankInfo)}
+              className="px-5 py-3 bg-slate-900 dark:bg-slate-800 border border-slate-700 hover:border-emerald-500 text-slate-200 hover:text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
+            >
+              <CreditCard size={15} className="text-emerald-400" />
+              <span>{showBankInfo ? 'Hide Bank Details' : 'View Bank Transfer Info'}</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Booking / Custom Brief Form Card */}
-      <div id="brief-form" className="bg-gradient-to-br from-[#000E32] to-slate-950 text-white rounded-3xl p-6 md:p-8 border border-indigo-950 relative overflow-hidden shadow-xl">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none" />
-        <div className="relative z-10 space-y-6">
-          
-          <div className="space-y-2 border-b border-white/10 pb-4">
-            <span className="text-orange-400 text-xs uppercase tracking-widest font-black flex items-center gap-1.5 font-mono">
-              <Sparkles size={14} className="animate-pulse text-amber-400" />
-              <span>{t.instantBookingSub}</span>
+      {/* Manual Bank Details Collapsible Card */}
+      {showBankInfo && (
+        <motion.div 
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="bg-slate-900 text-white rounded-3xl p-6 border border-emerald-500/40 shadow-xl space-y-4"
+        >
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm uppercase tracking-wider">
+              <Building2 size={18} />
+              <span>Official Agency Bank Account Details</span>
+            </div>
+            <span className="text-[10px] bg-emerald-500/10 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30">
+              Manual Transfer Option
             </span>
-            <h2 className="text-xl md:text-2xl font-extrabold uppercase font-serif tracking-tight leading-tight text-white">
-              Request Custom Brief & WhatsApp Consultation
+          </div>
+
+          <p className="text-xs text-slate-300 leading-relaxed">
+            Payment is <strong>optional at the brief stage</strong>. If you wish to pay your deposit or project fee upfront via direct bank transfer, please use our verified company account below:
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-950 p-4 rounded-2xl border border-slate-800">
+            <div>
+              <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono block">Bank Name</span>
+              <span className="text-sm font-bold text-white">{bankDetails.bankName}</span>
+            </div>
+            <div>
+              <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono block">Account Name</span>
+              <span className="text-sm font-bold text-white">{bankDetails.accountName}</span>
+            </div>
+            <div className="flex items-center justify-between sm:justify-start gap-3">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono block">Account Number</span>
+                <span className="text-base font-extrabold text-emerald-400 font-mono tracking-wider">{bankDetails.accountNumber}</span>
+              </div>
+              <button 
+                type="button"
+                onClick={handleCopyAccount}
+                className="p-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 rounded-xl transition-all border border-emerald-500/30"
+                title="Copy Account Number"
+              >
+                {copiedAcc ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Comprehensive 13-Field Service Request Form */}
+      <div id="brief-form-section" className="bg-gradient-to-br from-[#020b1e] via-[#04122d] to-slate-950 text-white rounded-3xl p-6 sm:p-8 md:p-10 border border-indigo-900/60 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-8">
+          
+          <div className="space-y-2 border-b border-white/10 pb-6">
+            <div className="flex items-center gap-2 text-orange-400 text-xs uppercase tracking-widest font-black font-mono">
+              <Sparkles size={16} className="animate-pulse text-amber-400" />
+              <span>Dedicated Service Brief & Project Request Form</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold uppercase tracking-tight text-white font-serif">
+              Submit Your Requirements for {service.name}
             </h2>
-            <p className="text-slate-300 text-xs leading-relaxed font-medium max-w-2xl">
-              Fill in your project specifics, custom budget range, and requirements below. Your brief will be formatted instantly and routed directly to our senior project lead on WhatsApp.
+            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-normal max-w-3xl">
+              Complete the brief below with your specific business goals, scope, and timeline. Payment is <strong>optional</strong> at this stage — you may request an official proposal first or select an upfront deposit option.
             </p>
           </div>
 
-          <div>
-            {submitted ? (
-              <motion.div 
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="text-center py-12 space-y-3"
-              >
-                <div className="w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/30">
-                  <CheckCircle2 size={28} />
-                </div>
-                <h3 className="font-extrabold text-white text-base uppercase tracking-wide">Opening WhatsApp...</h3>
-                <p className="text-slate-300 text-xs font-light max-w-md mx-auto">
-                  Your brief for <strong className="text-orange-400">{service.name}</strong> is pre-filled. You are being redirected to chat on WhatsApp.
-                </p>
-              </motion.div>
-            ) : (
-              <form onSubmit={handleSendToWhatsApp} className="space-y-5">
-                
-                {/* 1. Personal Info */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {submittedRecord ? (
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="bg-emerald-950/40 border border-emerald-500/40 rounded-3xl p-8 text-center space-y-4"
+            >
+              <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/40">
+                <CheckCircle2 size={32} />
+              </div>
+              <h3 className="text-xl font-extrabold text-white">Service Brief Submitted Successfully!</h3>
+              <p className="text-slate-300 text-xs sm:text-sm max-w-xl mx-auto">
+                Your request reference code is <span className="text-emerald-400 font-mono font-bold">{submittedRecord.referenceCode}</span>. Our engineering team and project manager have received your brief and will review it immediately.
+              </p>
+
+              <div className="pt-2 flex flex-wrap justify-center gap-4">
+                <button
+                  type="button"
+                  onClick={() => setSubmittedRecord(null)}
+                  className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider"
+                >
+                  Submit Another Request
+                </button>
+                <button
+                  type="button"
+                  onClick={onBack}
+                  className="px-6 py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider"
+                >
+                  Return to Catalogue
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            <form onSubmit={handleFormSubmit} className="space-y-6">
+              
+              {/* SECTION 1: Client Information */}
+              <div className="space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-orange-400 font-mono flex items-center gap-2 border-b border-white/5 pb-2">
+                  <span>1. Contact & Identity Information</span>
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {/* Field 1: Full Name */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1">
-                      <Mail size={11} className="text-orange-400" />
-                      Full Name *
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                      Full Name <span className="text-orange-400">*</span>
                     </label>
                     <input 
-                      type="text" 
+                      type="text"
                       required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      placeholder="e.g. Alex Morgan"
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors font-medium"
+                      placeholder="e.g. Dr. Samuel Adebayo"
+                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
                     />
                   </div>
 
+                  {/* Field 2: Company Name */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1">
-                      <Phone size={11} className="text-emerald-400" />
-                      WhatsApp Phone Number *
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                      Company / Organization (Optional)
                     </label>
                     <input 
-                      type="tel" 
+                      type="text"
+                      value={company}
+                      onChange={(e) => setCompany(e.target.value)}
+                      placeholder="e.g. Apex Global Ventures Ltd"
+                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    />
+                  </div>
+
+                  {/* Field 3: Email */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                      Email Address <span className="text-orange-400">*</span>
+                    </label>
+                    <input 
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="e.g. samuel@company.com"
+                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    />
+                  </div>
+
+                  {/* Field 4: Phone Number */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                      Phone / WhatsApp <span className="text-orange-400">*</span>
+                    </label>
+                    <input 
+                      type="tel"
                       required
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="e.g. +234 812 345 6789"
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors font-mono"
+                      placeholder="e.g. +234 802 123 4567"
+                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 font-mono transition-colors"
                     />
                   </div>
 
+                  {/* Field 5: Country */}
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1">
-                      <Mail size={11} className="text-indigo-400" />
-                      Email Address (Optional)
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                      Country <span className="text-orange-400">*</span>
+                    </label>
+                    <select
+                      value={country}
+                      onChange={(e) => setCountry(e.target.value)}
+                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    >
+                      <option value="Nigeria">Nigeria</option>
+                      <option value="Ghana">Ghana</option>
+                      <option value="United Kingdom">United Kingdom</option>
+                      <option value="United States">United States</option>
+                      <option value="Canada">Canada</option>
+                      <option value="South Africa">South Africa</option>
+                      <option value="Other International">Other International</option>
+                    </select>
+                  </div>
+
+                  {/* Field 6: Selected Service (Pre-filled Read-Only Display) */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                      Selected Service
                     </label>
                     <input 
-                      type="email" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@company.com"
-                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors font-medium"
+                      type="text"
+                      readOnly
+                      value={service.name}
+                      className="w-full bg-slate-950 border border-slate-800 text-orange-400 font-bold rounded-xl px-4 py-2.5 text-xs cursor-not-allowed"
                     />
                   </div>
                 </div>
+              </div>
 
-                {/* 2. Budget Selection */}
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1">
-                    <DollarSign size={11} className="text-emerald-400" />
-                    Target Budget Range *
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[
-                      '₦100,000 - ₦300,000',
-                      '₦300,000 - ₦1,000,000',
-                      '₦1,000,000 - ₦5,000,000',
-                      'Custom Amount'
-                    ].map((opt) => (
-                      <button
-                        key={opt}
-                        type="button"
-                        onClick={() => setBudget(opt)}
-                        className={`px-3 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all text-center ${
-                          budget === opt 
-                            ? 'bg-orange-600 text-white border-orange-500 shadow-md' 
-                            : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
-                        }`}
-                      >
-                        {opt}
-                      </button>
-                    ))}
+              {/* SECTION 2: Project Specifications */}
+              <div className="space-y-4 pt-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-orange-400 font-mono flex items-center gap-2 border-b border-white/5 pb-2">
+                  <span>2. Scope & Requirement Details</span>
+                </h3>
+
+                <div className="space-y-4">
+                  {/* Field 7: Project Title */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                      Project Title / Working Name <span className="text-orange-400">*</span>
+                    </label>
+                    <input 
+                      type="text"
+                      required
+                      value={projectTitle}
+                      onChange={(e) => setProjectTitle(e.target.value)}
+                      placeholder="e.g. Corporate Rebranding & Multi-channel Performance Ads"
+                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    />
                   </div>
 
-                  {budget === 'Custom Amount' && (
-                    <div className="pt-2">
+                  {/* Field 8: Project Brief */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                      Project Brief & Overview <span className="text-orange-400">*</span>
+                    </label>
+                    <textarea 
+                      required
+                      rows={4}
+                      value={projectBrief}
+                      onChange={(e) => setProjectBrief(e.target.value)}
+                      placeholder="Provide a concise overview of what you want us to build, market, or execute for your business..."
+                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl p-4 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors leading-relaxed resize-none"
+                    />
+                  </div>
+
+                  {/* Field 9: Expected Deliverables */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                      Expected Deliverables (Optional)
+                    </label>
+                    <input 
+                      type="text"
+                      value={expectedDeliverables}
+                      onChange={(e) => setExpectedDeliverables(e.target.value)}
+                      placeholder="e.g. Website source code, 5 short video ads, logo vector files..."
+                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {/* Field 10: Budget Range */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                        Target Budget Range <span className="text-orange-400">*</span>
+                      </label>
+                      <select
+                        value={budgetRange}
+                        onChange={(e) => setBudgetRange(e.target.value)}
+                        className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                      >
+                        <option value="₦100,000 – ₦300,000">₦100,000 – ₦300,000</option>
+                        <option value="₦300,000 – ₦1,000,000">₦300,000 – ₦1,000,000</option>
+                        <option value="₦1,000,000 – ₦5,000,000">₦1,000,000 – ₦5,000,000</option>
+                        <option value="₦5,000,000+">₦5,000,000+ (Enterprise)</option>
+                        <option value="Custom Amount">Custom Amount</option>
+                      </select>
+                      {budgetRange === 'Custom Amount' && (
+                        <input 
+                          type="text"
+                          value={customBudget}
+                          onChange={(e) => setCustomBudget(e.target.value)}
+                          placeholder="Enter custom budget in ₦"
+                          className="w-full mt-2 bg-slate-900 border border-orange-500 rounded-xl px-3.5 py-2 text-xs font-mono text-white focus:outline-none"
+                        />
+                      )}
+                    </div>
+
+                    {/* Field 11: Completion Date */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                        Expected Completion Date
+                      </label>
                       <input 
-                        type="text"
-                        value={customBudget}
-                        onChange={(e) => setCustomBudget(e.target.value)}
-                        placeholder="Enter specific budget in ₦ (e.g., 850,000)"
-                        className="w-full bg-slate-900 border border-orange-500 rounded-xl px-3.5 py-2 text-xs font-mono text-white focus:outline-none"
+                        type="date"
+                        value={completionDate}
+                        onChange={(e) => setCompletionDate(e.target.value)}
+                        className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
                       />
                     </div>
-                  )}
-                </div>
 
-                {/* 3. Custom Description */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase tracking-wider text-slate-300 font-bold flex items-center gap-1">
-                    <FileText size={11} className="text-orange-400" />
-                    Custom Description & Specific Project Requirements
-                  </label>
-                  <textarea 
-                    rows={3}
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    placeholder="Tell us about key features, target timeline, branding preferences, or custom questions..."
-                    className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors leading-relaxed resize-none"
-                  />
-                </div>
-
-                {/* Action Submit Button */}
-                <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 text-[10px] text-slate-400 font-mono">
-                    <span className="flex items-center gap-1">
-                      <Clock size={11} className="text-orange-400" /> Instant WhatsApp Connect
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <ShieldCheck size={11} className="text-indigo-400" /> Encrypted Direct Channel
-                    </span>
+                    {/* Field 12: Reference Link */}
+                    <div className="space-y-1.5">
+                      <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                        Reference Link / Inspiration URL
+                      </label>
+                      <input 
+                        type="url"
+                        value={referenceLink}
+                        onChange={(e) => setReferenceLink(e.target.value)}
+                        placeholder="https://example.com"
+                        className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                      />
+                    </div>
                   </div>
 
-                  <button 
-                    type="submit"
-                    className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer shrink-0 border border-emerald-400/30"
+                  {/* Field 13: Additional Notes */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                      Additional Notes or Special Instructions (Optional)
+                    </label>
+                    <textarea 
+                      rows={2}
+                      value={additionalNotes}
+                      onChange={(e) => setAdditionalNotes(e.target.value)}
+                      placeholder="Any specific tech stack preferences, branding guidelines, or existing domain details..."
+                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors leading-relaxed resize-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 3: Payment & Engagement Preferences */}
+              <div className="space-y-4 pt-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-orange-400 font-mono flex items-center gap-2 border-b border-white/5 pb-2">
+                  <span>3. Payment & Engagement Preference</span>
+                  <span className="text-[10px] text-slate-400 font-normal normal-case">(Payment is optional at initial brief submission)</span>
+                </h3>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPaymentPlan('quote_only')}
+                    className={`p-4 rounded-2xl border text-left transition-all ${
+                      paymentPlan === 'quote_only'
+                        ? 'bg-orange-600/20 border-orange-500 text-white shadow-lg'
+                        : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                    }`}
                   >
-                    <MessageSquare size={16} />
-                    <span>Send Custom Brief to WhatsApp ➔</span>
+                    <div className="font-extrabold text-xs uppercase tracking-wide">Request Official Quote First</div>
+                    <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                      We review your brief and send a detailed itemized quote before any payment.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentPlan('70_percent_upfront')}
+                    className={`p-4 rounded-2xl border text-left transition-all ${
+                      paymentPlan === '70_percent_upfront'
+                        ? 'bg-emerald-600/20 border-emerald-500 text-white shadow-lg'
+                        : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="font-extrabold text-xs uppercase tracking-wide">70% Upfront Retainer</div>
+                    <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                      Commit with 70% upfront payment to fast-track immediate project start.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentPlan('full')}
+                    className={`p-4 rounded-2xl border text-left transition-all ${
+                      paymentPlan === 'full'
+                        ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg'
+                        : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="font-extrabold text-xs uppercase tracking-wide">Full Payment</div>
+                    <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                      Full upfront clearance with high-priority sprint execution and dedicated lead.
+                    </p>
                   </button>
                 </div>
+              </div>
 
-              </form>
-            )}
-          </div>
+              {/* Submit Button */}
+              <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/10">
+                <div className="text-[11px] text-slate-400 flex items-center gap-2">
+                  <ShieldCheck size={16} className="text-emerald-400 shrink-0" />
+                  <span>Brief recorded securely to agency database & WhatsApp channel</span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-500 hover:from-orange-500 hover:to-amber-500 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <Send size={16} />
+                  <span>{isSubmitting ? 'Saving Brief...' : 'Submit Service Brief & Connect'}</span>
+                </button>
+              </div>
+
+            </form>
+          )}
 
         </div>
       </div>

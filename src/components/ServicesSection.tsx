@@ -11,6 +11,7 @@ import { ServiceDetailView } from './ServiceDetailView';
 import { ServiceCard } from './ServiceCard';
 import { CustomQuoteModal } from './CustomQuoteModal';
 import { apiGetServices, apiInitializeServices, resolveImageUrl, apiSubscribeToServices } from '../lib/api';
+import { getPolishedServiceImage } from '../lib/mediaUtils';
 import { Logo } from './Logo';
 
 interface ServicesSectionProps {
@@ -50,7 +51,17 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
   const [services, setServices] = useState<ServiceItem[]>(() => {
     try {
       const saved = localStorage.getItem('admin_services');
-      return saved ? JSON.parse(saved) : SERVICES;
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return parsed.map((svc: ServiceItem) => {
+          const defaultSvc = SERVICES.find(s => s.id === svc.id);
+          if (defaultSvc && (!svc.image || svc.image.includes('data:image/svg+xml'))) {
+            return { ...svc, image: defaultSvc.image };
+          }
+          return svc;
+        });
+      }
+      return SERVICES;
     } catch (e) {
       console.error('Failed to parse admin_services from localStorage:', e);
       return SERVICES;
@@ -59,9 +70,16 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
 
   useEffect(() => {
     const unsubscribe = apiSubscribeToServices((data) => {
-      if (data) {
-        setServices(data);
-        localStorage.setItem('admin_services', JSON.stringify(data));
+      if (data && data.length > 0) {
+        const merged = data.map((svc: ServiceItem) => {
+          const defaultSvc = SERVICES.find(s => s.id === svc.id);
+          if (defaultSvc && (!svc.image || svc.image.includes('data:image/svg+xml'))) {
+            return { ...svc, image: defaultSvc.image };
+          }
+          return svc;
+        });
+        setServices(merged);
+        localStorage.setItem('admin_services', JSON.stringify(merged));
       }
     });
     return () => unsubscribe();
@@ -79,16 +97,10 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
   };
 
   const getServiceImage = (svc: ServiceItem) => {
-    if (svc.image) return resolveImageUrl(svc.image);
-    const categoryImages: Record<string, string> = {
-      development: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500&auto=format&fit=crop&q=60",
-      data: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&auto=format&fit=crop&q=60",
-      marketing: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=500&auto=format&fit=crop&q=60",
-      ai: "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=500&auto=format&fit=crop&q=60",
-      security: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=500&auto=format&fit=crop&q=60"
-    };
-    return categoryImages[svc.category] || "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=500&auto=format&fit=crop&q=60";
+    return getPolishedServiceImage(svc);
   };
+
+
 
   const selectedService = useMemo(() => {
     return services.find(s => s.id === selectedId) || null;

@@ -1,7 +1,7 @@
 // Extended Ecosystem Datasets for DS Tech & Digital Marketing Agency
 // Maps the full 26 services catalog, portfolio projects, blog posts, courses, and client portal states.
 
-import { generateDynamicSvgUrl, generateAvatarSvgUrl } from './mediaUtils';
+import { generateDynamicSvgUrl, generateAvatarSvgUrl, getPolishedServiceImage } from './mediaUtils';
 export * from './companyConstants';
 import { COMPANY_RC_NUMBER, COMPANY_CAC_RC_LABEL } from './companyConstants';
 
@@ -201,248 +201,158 @@ export interface SupportTicket {
 }
 
 // ---------------------------------------------------------
-// 1. THE 26 SERVICE CATALOG DATASET
+// 1. THE 16 PROFESSIONAL SERVICE MARKETPLACE CATALOGUE
 // ---------------------------------------------------------
 const RAW_SERVICES: ServiceItem[] = [
   {
-    id: "svc_01",
-    name: "Sponsored Ads Campaign Management Price List",
-    price: "₦20,000 – ₦1,000,000+",
-    description: "Professional sponsored ads campaign management for Facebook, Instagram, Google, and TikTok to maximize leads, sales, and ROI.",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/25850225841340268/2349023489111",
-    category: "marketing"
-  },
-  {
-    id: "svc_02",
-    name: "Digital Marketing Monthly Packages",
-    price: "₦50,000 – ₦1,000,000+",
-    description: "Monthly digital marketing packages including social media marketing, search engine optimization, content creation, and weekly performance reporting.",
-    image: "https://images.unsplash.com/photo-1533750349088-cd871a92f311?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/26382467731420705/2349023489111",
-    category: "marketing"
-  },
-  {
-    id: "svc_03",
-    name: "Professional Training & Consultancy",
-    price: "₦30,000 – ₦250,000+",
-    description: "Professional training and consultancy services in digital advertising, sales funnels, visual branding, and enterprise technology integrations.",
-    image: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/25542672705411157/2349023489111",
-    category: "training"
-  },
-  {
-    id: "svc_04",
-    name: "Content Creation and Presentation Price List",
-    price: "₦20,000 – ₦1,000,000+",
-    description: "Professional content creation, presentation, and video editing for social media campaigns, YouTube, product launches, and corporate documentaries.",
-    image: "https://images.unsplash.com/photo-1542435503-956c469947f6?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/27413518328335319/2349023489111",
-    category: "marketing"
-  },
-  {
-    id: "svc_05",
-    name: "Social Media Management Price List",
-    price: "₦50,000 – ₦5,000,000+",
-    description: "Comprehensive social media management services for various brands, incorporating graphic designs, copy writing, community moderation, and scheduled postings.",
-    image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/36346113405034532/2349023489111",
-    category: "marketing"
-  },
-  {
-    id: "svc_06",
-    name: "Website Design and Development Price List",
-    price: "₦100,000 – ₦5,000,000+",
-    description: "Modern, responsive, and secure website design and development for corporate bodies, blogs, institutions, landing pages, and e-commerce platforms.",
-    image: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600&auto=format&fit=crop&q=60",
+    id: "svc_web_dev",
+    name: "Web Development",
+    price: "₦150,000 – ₦5,000,000+",
+    description: "Professional, responsive websites tailored to business needs, customer acquisition, and online growth.",
+    image: "https://images.unsplash.com/photo-1547658719-da2b51169166?w=800&auto=format&fit=crop&q=80",
     url: "https://wa.me/p/25279439215065803/2349023489111",
     category: "web"
   },
   {
-    id: "svc_07",
-    name: "Software and Mobile App Design and Development Price List",
-    price: "₦100,000 – ₦50,000,000+",
-    description: "Custom software and mobile app development for businesses, including e-commerce platforms, SaaS portals, logistics systems, and custom database APIs.",
-    image: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&auto=format&fit=crop&q=60",
+    id: "svc_mobile_software",
+    name: "Software & Mobile App Development",
+    price: "₦250,000 – ₦50,000,000+",
+    description: "Custom software solutions and mobile applications designed around specific business requirements.",
+    image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&auto=format&fit=crop&q=80",
     url: "https://wa.me/p/26225498943742627/2349023489111",
     category: "software"
   },
   {
-    id: "svc_08",
-    name: "Project Design, Management and Development Packages",
-    price: "₦50,000 – ₦10,000,000+",
-    description: "Professional project planning, management, and development packages matching creative concepts, timeline scoping, budget optimization, and sprint delivery.",
-    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/26167607822850385/2349023489111",
-    category: "business"
-  },
-  {
-    id: "svc_09",
-    name: "Content Creation and Presentation Portfolio Suite",
-    price: "₦20,000 – ₦1,000,000+",
-    description: "Professional content creation, presentation, and video editing for branding, strategic reviews, sales pitches, and viral video presentations.",
-    image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/26597769666481362/2349023489111",
-    category: "marketing"
-  },
-  {
-    id: "svc_10",
-    name: "Software and Mobile App Enterprise Architecture",
-    price: "₦100,000 – ₦50,000,000+",
-    description: "Custom enterprise software and mobile app development including backend systems, payment gateways, CRM integrations, and admin dashboards.",
-    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/24624570223908004/2349023489111",
-    category: "software"
-  },
-  {
-    id: "svc_11",
-    name: "Web Portals and Systems Architecture Price List",
-    price: "₦100,000 – ₦5,000,000+",
-    description: "E-commerce, educational management portals, real estate directories, booking platforms, and secure customized web portals.",
-    image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/26128542710120929/2349023489111",
+    id: "svc_landing_pages",
+    name: "Landing Page Design and Integration",
+    price: "₦80,000 – ₦1,500,000+",
+    description: "Conversion-focused landing pages integrated with forms, analytics, marketing tools, and other relevant services.",
+    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80",
+    url: "https://wa.me/p/25850225841340268/2349023489111",
     category: "web"
   },
   {
-    id: "svc_12",
-    name: "Portfolio Design Package",
+    id: "svc_portfolio_design",
+    name: "Portfolio Design",
     price: "₦100,000 – ₦700,000+",
-    description: "Professional portfolio website design for individuals, corporate profiles, public figures, models, and agency representation.",
-    image: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=600&auto=format&fit=crop&q=60",
+    description: "Professional online portfolios that showcase skills, projects, achievements, and business capabilities.",
+    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop&q=80",
     url: "https://wa.me/p/26668195106121616/2349023489111",
     category: "web"
   },
   {
-    id: "svc_13",
-    name: "Strategic Project Blueprinting and Consultancy",
-    price: "₦50,000 – ₦10,000,000+",
-    description: "Professional project planning, management, and development packages focusing on structural CAC milestones and tech rollout.",
-    image: "https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/26743797038538261/2349023489111",
-    category: "business"
-  },
-  {
-    id: "svc_14",
-    name: "Business Plan Design and Development Strategy Package",
-    price: "₦30,000 – ₦5,000,000+",
-    description: "Professional business planning, investment proposals, financial modeling, and growth strategy services tailored for VC pitches or bank loans.",
-    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/25954683467492812/2349023489111",
-    category: "business"
-  },
-  {
-    id: "svc_15",
-    name: "Social Media Campaigns Mastery Pricing",
-    price: "₦50,000 – ₦5,000,000+",
-    description: "Viral marketing strategies, sponsored influencer placements, community moderation, and scheduled high-frequency brand campaigns.",
-    image: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/26368015026143477/2349023489111",
-    category: "marketing"
-  },
-  {
-    id: "svc_16",
-    name: "Beginners Training",
-    price: "₦30,000 per Session",
-    description: "Digital marketing and business growth training for individuals and groups. Basics of social ads, setup, and copywriting.",
-    image: "https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/26297518699844284/2349023489111",
-    category: "training"
-  },
-  {
-    id: "svc_17",
-    name: "Exclusive and Advanced Trainings",
-    price: "₦80,000 per Session",
-    description: "Advanced digital marketing, programmatic ads, server-side tracking, full-stack React framework deployment, and algorithmic bidding.",
-    image: "https://images.unsplash.com/photo-1516534775068-ba3e84589d90?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/25982764844679627/2349023489111",
-    category: "training"
-  },
-  {
-    id: "svc_18",
-    name: "Customer Care Service Management",
-    price: "Contact for pricing",
-    description: "Online customer service management activities for brands, including CRM desks, WhatsApp help lines, chat agents, and email support setups.",
-    image: "https://images.unsplash.com/photo-1549923746-c502d488b3ea?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/26202659736068290/2349023489111",
-    category: "business"
-  },
-  {
-    id: "svc_19",
-    name: "DS ICT SUPPORT & SMART TECHNOLOGY SERVICES",
-    price: "Contact for pricing",
-    description: "Professional solar installation, high-definition CCTV security nodes, DSTV mapping, intercom setups, smart switches, and smart technology automation.",
-    image: "https://images.unsplash.com/photo-1558002038-1055907df827?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/27071233869154664/2349023489111",
-    category: "ict"
-  },
-  {
-    id: "svc_20",
-    name: "DS BRANDING AND GRAPHIC DESIGNS SERVICES",
-    price: "Contact for pricing",
-    description: "Brand identity development, premium vector graphics design, logos, corporate banners, flyers, packaging designs, and company stationery bundles.",
-    image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/27195191726837563/2349023489111",
-    category: "branding"
-  },
-  {
-    id: "svc_21",
-    name: "DS SOFTWARE APP DESIGNING AND DEVELOPMENT SERVICES",
-    price: "Contact for pricing",
-    description: "Development of mobile apps (Android/iOS), web apps (React), robust databases, systems architecture, and API integration for local and international markets.",
-    image: "https://images.unsplash.com/photo-1508921912186-1d1a45ebb3c1?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/26866563059619529/2349023489111",
-    category: "software"
-  },
-  {
-    id: "svc_22",
-    name: "AI Content Creation Packages",
-    price: "₦100,000 – ₦5,000,000+",
-    description: "Smart, automated content creation powered by state-of-the-art Artificial Intelligence (Gemini/GPT models) tailored for dynamic social channels.",
-    image: "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/26682737784737815/2349023489111",
-    category: "ai"
-  },
-  {
-    id: "svc_23",
-    name: "AI Chatbot Development Package",
+    id: "svc_ai_automation",
+    name: "AI Integration and Workflow Automation",
     price: "₦150,000 – ₦10,000,000+",
-    description: "Intelligent conversational AI-powered chatbots for automated business responses, CRM automation, lead capturing, and support routing on WhatsApp and Web.",
-    image: "https://images.unsplash.com/photo-1531746790731-6c087fecd50a?w=600&auto=format&fit=crop&q=60",
+    description: "Practical AI solutions and automated workflows that reduce repetitive work and improve operational efficiency.",
+    image: "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=800&auto=format&fit=crop&q=80",
     url: "https://wa.me/p/27016836764677969/2349023489111",
     category: "ai"
   },
   {
-    id: "svc_24",
-    name: "Business Data Analytics Services",
-    price: "₦70,000 – ₦5,000,000+",
-    description: "Transforming raw numbers and operational logs into actionable business insights with beautiful dashboards, predictive graphs, and charts.",
-    image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/26946847588347983/2349023489111",
+    id: "svc_ads_management",
+    name: "Ads Management",
+    price: "₦50,000 – ₦1,000,000+",
+    description: "Campaign setup, targeting, optimization, and performance monitoring across supported advertising platforms.",
+    image: "https://images.unsplash.com/photo-1533750349088-cd871a92f311?w=800&auto=format&fit=crop&q=80",
+    url: "https://wa.me/p/25850225841340268/2349023489111",
+    category: "marketing"
+  },
+  {
+    id: "svc_seo",
+    name: "Search Engine Optimization (SEO)",
+    price: "₦60,000 – ₦2,000,000+",
+    description: "Website optimization to improve search visibility, technical performance, and organic discovery.",
+    image: "https://images.unsplash.com/photo-1571721795195-a2ca2d3370a9?w=800&auto=format&fit=crop&q=80",
+    url: "https://wa.me/p/26382467731420705/2349023489111",
+    category: "marketing"
+  },
+  {
+    id: "svc_content_presentation",
+    name: "Content Creation and Presentation",
+    price: "₦40,000 – ₦1,000,000+",
+    description: "Professional business content, presentations, and communication materials tailored to specific audiences.",
+    image: "https://images.unsplash.com/photo-1542435503-956c469947f6?w=800&auto=format&fit=crop&q=80",
+    url: "https://wa.me/p/27413518328335319/2349023489111",
+    category: "marketing"
+  },
+  {
+    id: "svc_ai_content",
+    name: "AI Generated Content Creation",
+    price: "₦70,000 – ₦1,500,000+",
+    description: "AI-assisted creation of relevant text, visuals, and other digital content with appropriate quality review.",
+    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80",
+    url: "https://wa.me/p/26682737784737815/2349023489111",
+    category: "ai"
+  },
+  {
+    id: "svc_video_editing",
+    name: "Video Editing",
+    price: "₦35,000 – ₦2,000,000+",
+    description: "Professional video editing, post-production, transitions, subtitles, and platform-ready exports.",
+    image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop&q=80",
+    url: "https://wa.me/p/27413518328335319/2349023489111",
+    category: "marketing"
+  },
+  {
+    id: "svc_digital_marketing",
+    name: "Digital Marketing",
+    price: "₦80,000 – ₦3,000,000+",
+    description: "Strategic online marketing to build awareness, reach potential customers, and support business growth.",
+    image: "https://images.unsplash.com/photo-1432888622747-4eb9a8f2c293?w=800&auto=format&fit=crop&q=80",
+    url: "https://wa.me/p/26382467731420705/2349023489111",
+    category: "marketing"
+  },
+  {
+    id: "svc_social_media_mgmt",
+    name: "Social Media Management",
+    price: "₦70,000 – ₦2,500,000+",
+    description: "Social media planning, publishing, account management, and audience engagement.",
+    image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&auto=format&fit=crop&q=80",
+    url: "https://wa.me/p/36346113405034532/2349023489111",
+    category: "marketing"
+  },
+  {
+    id: "svc_graphic_branding",
+    name: "Graphic Designs and Corporate Branding",
+    price: "₦50,000 – ₦2,000,000+",
+    description: "Brand identity design, corporate assets, promotional materials, and consistent visual guidelines.",
+    image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=800&auto=format&fit=crop&q=80",
+    url: "https://wa.me/p/27195191726837563/2349023489111",
+    category: "branding"
+  },
+  {
+    id: "svc_project_mgmt",
+    name: "Project Management",
+    price: "₦100,000 – ₦10,000,000+",
+    description: "End-to-end project planning, coordination, resource alignment, and delivery monitoring.",
+    image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=800&auto=format&fit=crop&q=80",
+    url: "https://wa.me/p/26167607822850385/2349023489111",
     category: "business"
   },
   {
-    id: "svc_25",
-    name: "CYBERSECURITY SERVICES",
-    price: "₦100,000 – ₦10,000,000+",
-    description: "Cybersecurity vulnerability assessments, corporate penetration testing, employee security awareness training, and network configuration hardening.",
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=600&auto=format&fit=crop&q=60",
+    id: "svc_cybersecurity",
+    name: "CyberSecurity Services",
+    price: "₦150,000 – ₦15,000,000+",
+    description: "Essential security assessments, threat monitoring, data protection, and vulnerability management.",
+    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop&q=80",
     url: "https://wa.me/p/28514091548192000/2349023489111",
     category: "ict"
   },
   {
-    id: "svc_26",
-    name: "CAC, Tax and SCUML Certificate Registration Services",
-    price: "₦30,000 – ₦1,000,000+",
-    description: "Business registration with CAC, tax clearance (TIN/FIRS) certifications, and SCUML regulatory compliance solutions for Nigerian corporations and agencies.",
-    image: "https://images.unsplash.com/photo-1450133064473-71024230f91b?w=600&auto=format&fit=crop&q=60",
-    url: "https://wa.me/p/26539806062359802/2349023489111",
-    category: "compliance"
+    id: "svc_event_videography",
+    name: "Event Coverage and Videography",
+    price: "₦100,000 – ₦5,000,000+",
+    description: "High-quality visual documentation, media coverage, and video recording for corporate or public events.",
+    image: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80",
+    url: "https://wa.me/p/27413518328335319/2349023489111",
+    category: "marketing"
   }
 ];
 
 export const SERVICES: ServiceItem[] = RAW_SERVICES.map(svc => ({
   ...svc,
-  image: generateDynamicSvgUrl(svc.name, svc.category, 'service')
+  image: getPolishedServiceImage(svc)
 }));
 
 // ---------------------------------------------------------

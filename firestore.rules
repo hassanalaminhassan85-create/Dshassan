@@ -145,5 +145,8 @@ service cloud.firestore {
     match /support_tickets/{ticketId} {
       allow read, write: if true;
     }
+    match /service_requests/{id} {
+      allow read, write: if true;
+    }
   }
 }

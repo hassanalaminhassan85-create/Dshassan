@@ -7,7 +7,7 @@ import {
   Edit3, ArrowLeft, Heart, BarChart3, Users, Landmark, UserMinus, ShieldAlert, LogOut,
   QrCode, MessageSquare, Send, FileText, Printer, Layers, FolderOpen, BookOpen,
   Video, Plus, PlusCircle, Check, MoreVertical, Settings, Sliders, Database, ArrowUp, Camera,
-  Sun, Moon, Globe, ChevronDown, Copy, X, Code, Bell, ShieldCheck, Award, FolderKanban, Info, LayoutDashboard, Activity, Bot
+  Sun, Moon, Globe, ChevronDown, Copy, X, Code, Bell, ShieldCheck, Award, FolderKanban, Info, LayoutDashboard, Activity, Bot, ShoppingBag
 } from 'lucide-react';
 import { JobApplication } from '../types';
 import { useNotifications } from './NotificationProvider';
@@ -35,7 +35,10 @@ import {
   apiSubscribeToServices,
   apiSubscribeToPortfolio,
   apiSubscribeToBlogs,
-  apiSubscribeToCourses
+  apiSubscribeToCourses,
+  apiSubscribeToServiceRequests,
+  apiUpdateServiceRequestStatus,
+  ServiceRequestRecord
 } from '../lib/api';
 import { ApplicationQRScanner } from './ApplicationQRScanner';
 import { ApplicationView } from './ApplicationView';
@@ -273,6 +276,360 @@ const AdminClientProjectsManager: React.FC = () => {
   );
 };
 
+const AdminServiceRequestsManager: React.FC = () => {
+  const [requests, setRequests] = useState<ServiceRequestRecord[]>([]);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedReq, setSelectedReq] = useState<ServiceRequestRecord | null>(null);
+
+  // Edit fields
+  const [editStatus, setEditStatus] = useState<ServiceRequestRecord['status']>('new');
+  const [editQuotedPrice, setEditQuotedPrice] = useState('');
+  const [editPaymentStatus, setEditPaymentStatus] = useState<ServiceRequestRecord['paymentStatus']>('pending');
+  const [editAdminNotes, setEditAdminNotes] = useState('');
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  useEffect(() => {
+    const unsub = apiSubscribeToServiceRequests((data) => {
+      if (data) setRequests(data);
+    });
+    return () => unsub();
+  }, []);
+
+  const openModal = (req: ServiceRequestRecord) => {
+    setSelectedReq(req);
+    setEditStatus(req.status);
+    setEditQuotedPrice(req.quotedPrice || '');
+    setEditPaymentStatus(req.paymentStatus || 'pending');
+    setEditAdminNotes(req.adminNotes || '');
+  };
+
+  const handleSaveUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedReq) return;
+    setIsUpdating(true);
+
+    try {
+      const updated = await apiUpdateServiceRequestStatus(selectedReq.id, {
+        status: editStatus,
+        quotedPrice: editQuotedPrice,
+        paymentStatus: editPaymentStatus,
+        adminNotes: editAdminNotes
+      });
+      if (updated) {
+        setSelectedReq(updated);
+        alert('Service Request brief updated successfully!');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update service request.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const filteredRequests = requests.filter(r => {
+    const matchSearch = (r.referenceCode || '').toLowerCase().includes(search.toLowerCase()) ||
+                        (r.fullName || '').toLowerCase().includes(search.toLowerCase()) ||
+                        (r.serviceName || '').toLowerCase().includes(search.toLowerCase()) ||
+                        (r.email || '').toLowerCase().includes(search.toLowerCase());
+    const matchStatus = statusFilter === 'all' || r.status === statusFilter;
+    return matchSearch && matchStatus;
+  });
+
+  const totalCount = requests.length;
+  const newCount = requests.filter(r => r.status === 'new').length;
+  const quotedCount = requests.filter(r => r.status === 'quoted').length;
+  const activeCount = requests.filter(r => r.status === 'in_progress' || r.status === 'approved').length;
+
+  return (
+    <div className="space-y-6 text-left">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-3xl shadow-sm">
+        <div>
+          <h2 className="text-xl font-extrabold text-slate-900 dark:text-white uppercase font-serif tracking-tight flex items-center gap-2">
+            <ShoppingBag className="text-orange-500" size={20} />
+            Service Requests & Briefs Desk
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Review client project submissions, update quotations, manage bank transfer verifications, and track project status.
+          </p>
+        </div>
+      </div>
+
+      {/* Stats row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block font-mono">Total Briefs</span>
+          <span className="text-2xl font-black text-slate-900 dark:text-white mt-1 block">{totalCount}</span>
+        </div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
+          <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest block font-mono">New Unreviewed</span>
+          <span className="text-2xl font-black text-amber-500 mt-1 block">{newCount}</span>
+        </div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
+          <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block font-mono">Quoted Sent</span>
+          <span className="text-2xl font-black text-indigo-400 mt-1 block">{quotedCount}</span>
+        </div>
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
+          <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest block font-mono">Active In Progress</span>
+          <span className="text-2xl font-black text-emerald-500 mt-1 block">{activeCount}</span>
+        </div>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
+        <div className="relative flex-1 max-w-md">
+          <Search size={14} className="absolute left-3.5 top-3 text-slate-400" />
+          <input 
+            type="text" 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by Ref Code, Client Name, Email, or Service..."
+            className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pl-9 pr-4 py-2 text-xs text-slate-900 dark:text-slate-100 focus:outline-none focus:border-orange-500"
+          />
+        </div>
+
+        <div className="flex flex-wrap gap-1">
+          {['all', 'new', 'reviewing', 'quoted', 'approved', 'in_progress', 'completed'].map((st) => (
+            <button
+              key={st}
+              onClick={() => setStatusFilter(st)}
+              className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider transition-all ${
+                statusFilter === st 
+                  ? 'bg-orange-600 text-white shadow-sm' 
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              }`}
+            >
+              {st}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Service Requests Table */}
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden shadow-sm">
+        {filteredRequests.length === 0 ? (
+          <div className="py-16 text-center space-y-3">
+            <ShoppingBag size={36} className="text-slate-300 dark:text-slate-700 mx-auto" />
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">No service requests found matching your filter</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold text-[10px] uppercase tracking-wider font-mono">
+                  <th className="p-4">Ref Code & Date</th>
+                  <th className="p-4">Service & Project</th>
+                  <th className="p-4">Client Contact</th>
+                  <th className="p-4">Budget & Plan</th>
+                  <th className="p-4">Status</th>
+                  <th className="p-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {filteredRequests.map((r) => (
+                  <tr key={r.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                    <td className="p-4">
+                      <span className="font-mono font-extrabold text-orange-500 block">{r.referenceCode}</span>
+                      <span className="text-[10px] text-slate-400 block">{new Date(r.createdAt).toLocaleDateString()}</span>
+                    </td>
+                    <td className="p-4">
+                      <span className="font-extrabold text-slate-900 dark:text-white block uppercase">{r.serviceName}</span>
+                      <span className="text-[11px] text-slate-500 line-clamp-1">{r.projectTitle}</span>
+                    </td>
+                    <td className="p-4">
+                      <span className="font-bold text-slate-900 dark:text-white block">{r.fullName}</span>
+                      <span className="text-[10px] text-slate-400 block">{r.email} • {r.phone}</span>
+                    </td>
+                    <td className="p-4">
+                      <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold block">{r.budgetRange}</span>
+                      <span className="text-[10px] text-slate-400 uppercase font-mono block">Plan: {r.paymentPlan || 'quote_only'}</span>
+                    </td>
+                    <td className="p-4">
+                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                        r.status === 'new' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' :
+                        r.status === 'quoted' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300' :
+                        r.status === 'in_progress' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' :
+                        'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300'
+                      }`}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <button
+                        onClick={() => openModal(r)}
+                        className="px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white rounded-lg text-[10px] font-extrabold uppercase tracking-wider shadow-sm transition-all cursor-pointer"
+                      >
+                        Inspect & Review
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Inspect & Review Brief Modal */}
+      {selectedReq && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-slate-900 border border-slate-800 text-white rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto text-left shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <div>
+                <span className="text-orange-400 text-[10px] font-mono font-bold uppercase tracking-wider block">
+                  Reference Code: {selectedReq.referenceCode}
+                </span>
+                <h3 className="text-lg font-extrabold text-white uppercase font-serif">
+                  {selectedReq.serviceName} Brief Review
+                </h3>
+              </div>
+              <button 
+                onClick={() => setSelectedReq(null)}
+                className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Brief Content Readout */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-mono block">Client Name</span>
+                <span className="font-bold text-white">{selectedReq.fullName}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-mono block">Company</span>
+                <span className="font-bold text-white">{selectedReq.company || 'None'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-mono block">Email</span>
+                <span className="font-mono text-emerald-400">{selectedReq.email}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-mono block">Phone</span>
+                <span className="font-mono text-emerald-400">{selectedReq.phone} ({selectedReq.country})</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-mono block">Budget Range</span>
+                <span className="font-bold text-orange-400">{selectedReq.budgetRange}</span>
+              </div>
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-mono block">Target Completion Date</span>
+                <span className="font-bold text-white">{selectedReq.completionDate || 'Flexible'}</span>
+              </div>
+            </div>
+
+            <div className="space-y-2 bg-slate-950 p-4 rounded-2xl border border-slate-800 text-xs">
+              <span className="text-[10px] text-slate-400 uppercase font-mono block">Project Title</span>
+              <p className="font-bold text-white text-sm">{selectedReq.projectTitle}</p>
+              
+              <span className="text-[10px] text-slate-400 uppercase font-mono block pt-2">Project Brief Description</span>
+              <p className="text-slate-300 leading-relaxed font-normal whitespace-pre-wrap">{selectedReq.projectBrief}</p>
+
+              {selectedReq.expectedDeliverables && (
+                <>
+                  <span className="text-[10px] text-slate-400 uppercase font-mono block pt-2">Expected Deliverables</span>
+                  <p className="text-slate-300">{selectedReq.expectedDeliverables}</p>
+                </>
+              )}
+
+              {selectedReq.referenceLink && (
+                <>
+                  <span className="text-[10px] text-slate-400 uppercase font-mono block pt-2">Reference Link</span>
+                  <a href={selectedReq.referenceLink} target="_blank" rel="noopener noreferrer" className="text-indigo-400 underline font-mono">
+                    {selectedReq.referenceLink}
+                  </a>
+                </>
+              )}
+            </div>
+
+            {/* Admin Management & Quotation Entry Form */}
+            <form onSubmit={handleSaveUpdate} className="space-y-4 border-t border-slate-800 pt-4">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-orange-400 font-mono">
+                Admin Quotation & Status Control
+              </h4>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="text-[10px] text-slate-300 uppercase font-bold block mb-1">Request Status</label>
+                  <select
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value as any)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500"
+                  >
+                    <option value="new">New</option>
+                    <option value="reviewing">Reviewing</option>
+                    <option value="quoted">Quoted</option>
+                    <option value="approved">Approved</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-300 uppercase font-bold block mb-1">Official Quoted Price (₦)</label>
+                  <input 
+                    type="text"
+                    value={editQuotedPrice}
+                    onChange={(e) => setEditQuotedPrice(e.target.value)}
+                    placeholder="e.g. ₦450,000"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500 font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-300 uppercase font-bold block mb-1">Payment Status</label>
+                  <select
+                    value={editPaymentStatus}
+                    onChange={(e) => setEditPaymentStatus(e.target.value as any)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-orange-500"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="partially_paid">Partially Paid (70%)</option>
+                    <option value="fully_paid">Fully Paid</option>
+                    <option value="verified">Bank Transfer Verified</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] text-slate-300 uppercase font-bold block mb-1">Internal Admin Notes</label>
+                <textarea 
+                  rows={2}
+                  value={editAdminNotes}
+                  onChange={(e) => setEditAdminNotes(e.target.value)}
+                  placeholder="Record internal developer assignments, meeting logs, or payment verification receipt..."
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-orange-500 resize-none"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedReq(null)}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold uppercase cursor-pointer"
+                >
+                  Close
+                </button>
+                <button
+                  type="submit"
+                  disabled={isUpdating}
+                  className="px-6 py-2 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-extrabold uppercase tracking-wider cursor-pointer"
+                >
+                  {isUpdating ? 'Saving...' : 'Save Updates'}
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface AdminDashboardProps {
   onBackToPortal: () => void;
   onViewApplicant: (id: string) => void;
@@ -332,7 +689,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   
 
   // Super Admin Control Center State
-  const [adminModule, setAdminModule] = useState<'dashboard' | 'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'staff-certificates' | 'client-projects' | 'about' | 'diagnostics' | 'sync-logs' | 'ai-knowledge' | 'proposals'>('dashboard');
+  const [adminModule, setAdminModule] = useState<'dashboard' | 'recruitment' | 'website' | 'portfolio' | 'blog' | 'training' | 'clients' | 'analytics' | 'notifications' | 'chat' | 'trust' | 'recognition' | 'ongoing-projects' | 'staff' | 'staff-certificates' | 'client-projects' | 'about' | 'diagnostics' | 'sync-logs' | 'ai-knowledge' | 'proposals' | 'service-requests'>('dashboard');
   
   // Custom navigation header states
   const [isThreeDotsOpen, setIsThreeDotsOpen] = useState<boolean>(false);
@@ -2200,6 +2557,7 @@ export default {
       items: [
         { id: 'clients', label: 'Clients CRM', icon: Landmark, count: CLIENT_INVOICES.length + CLIENT_TICKETS.length },
         { id: 'client-projects', label: 'Client Projects & Staff', icon: FolderKanban },
+        { id: 'service-requests', label: 'Service Request Briefs', icon: ShoppingBag },
       ]
     },
     {
@@ -2247,6 +2605,7 @@ export default {
       case 'diagnostics': return 'Image Verification Gallery';
       case 'clients': return 'Clients CRM';
       case 'client-projects': return 'Client Projects & Staff';
+      case 'service-requests': return 'Service Request Briefs Desk';
       case 'ai-knowledge': return 'AI Knowledge & Analytics';
       case 'analytics': return 'Intelligence Charts';
       case 'trust': return 'Trust & Compliance';
@@ -3350,6 +3709,11 @@ export default {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ================= SERVICE REQUEST BRIEFS DESK ================= */}
+      {adminModule === 'service-requests' && (
+        <AdminServiceRequestsManager />
       )}
 
       {/* ================= ANALYTICS MODULE ================= */}

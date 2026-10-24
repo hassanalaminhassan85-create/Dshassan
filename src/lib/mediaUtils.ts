@@ -117,3 +117,46 @@ export function generateAvatarSvgUrl(name: string, role: string = 'Team Member',
 
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
+
+// Service Niche High-Resolution Photographic Unsplash Image Dictionary (16 distinct, verified photos)
+export const SERVICE_NICHE_IMAGES: Record<string, string> = {
+  svc_web_dev: "https://images.unsplash.com/photo-1547658719-da2b51169166?w=800&auto=format&fit=crop&q=80",
+  svc_mobile_software: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=80",
+  svc_landing_pages: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80",
+  svc_portfolio_design: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop&q=80",
+  svc_ai_automation: "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=800&auto=format&fit=crop&q=80",
+  svc_ads_management: "https://images.unsplash.com/photo-1533750349088-cd871a92f311?w=800&auto=format&fit=crop&q=80",
+  svc_seo: "https://images.unsplash.com/photo-1571721795195-a2ca2d3370a9?w=800&auto=format&fit=crop&q=80",
+  svc_content_presentation: "https://images.unsplash.com/photo-1542435503-956c469947f6?w=800&auto=format&fit=crop&q=80",
+  svc_ai_content: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80",
+  svc_video_editing: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop&q=80",
+  svc_digital_marketing: "https://images.unsplash.com/photo-1432888622747-4eb9a8f2c293?w=800&auto=format&fit=crop&q=80",
+  svc_social_media_mgmt: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&auto=format&fit=crop&q=80",
+  svc_graphic_branding: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=800&auto=format&fit=crop&q=80",
+  svc_project_mgmt: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=800&auto=format&fit=crop&q=80",
+  svc_cybersecurity: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop&q=80",
+  svc_event_videography: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80"
+};
+
+export const CATEGORY_NICHE_IMAGES: Record<string, string> = {
+  web: "https://images.unsplash.com/photo-1547658719-da2b51169166?w=800&auto=format&fit=crop&q=80",
+  software: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&auto=format&fit=crop&q=80",
+  marketing: "https://images.unsplash.com/photo-1432888622747-4eb9a8f2c293?w=800&auto=format&fit=crop&q=80",
+  ai: "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=800&auto=format&fit=crop&q=80",
+  branding: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=800&auto=format&fit=crop&q=80",
+  business: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=800&auto=format&fit=crop&q=80",
+  ict: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop&q=80"
+};
+
+export function getPolishedServiceImage(service: { id?: string; name?: string; category?: string; image?: string }): string {
+  if (service?.image && service.image.startsWith('http') && !service.image.includes('data:image/svg') && !service.image.includes('aistudio')) {
+    return service.image;
+  }
+  if (service?.id && SERVICE_NICHE_IMAGES[service.id]) {
+    return SERVICE_NICHE_IMAGES[service.id];
+  }
+  if (service?.category && CATEGORY_NICHE_IMAGES[service.category]) {
+    return CATEGORY_NICHE_IMAGES[service.category];
+  }
+  return "https://images.unsplash.com/photo-1547658719-da2b51169166?w=800&auto=format&fit=crop&q=80";
+}
