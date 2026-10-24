@@ -1,7 +1,159 @@
-// Dynamic Media & SVG Visual Generator Utility
-// Eliminates external/Unsplash image dependencies by generating high-quality vector artwork & avatars.
+// Dynamic Media & Visual Generator Utility
+// High-Resolution Local Static Service Images + Bespoke Vectors
+// Ensures 100% instant load speed on Cloudflare Pages, zero loading delays, zero broken images.
+import { getServiceBespokeSvgUrl, SERVICE_SVGS } from './serviceSvgs';
 
-// Color themes based on category
+// Local High-Performance Static Images Dictionary (100% Cloudflare Edge Cached)
+export const SERVICE_NICHE_IMAGES: Record<string, string> = {
+  // Services from Firestore (svc_01 to svc_26)
+  svc_01: "/assets/services/svc_01.jpg", // Sponsored Ads Campaign Management
+  svc_02: "/assets/services/svc_02.jpg", // Digital Marketing Monthly Packages
+  svc_03: "/assets/services/svc_03.jpg", // Professional Training & Consultancy
+  svc_04: "/assets/services/svc_04.jpg", // Content Creation and Presentation
+  svc_05: "/assets/services/svc_05.jpg", // Social Media Management
+  svc_06: "/assets/services/svc_06.jpg", // Website Design and Development
+  svc_07: "/assets/services/svc_07.jpg", // Software and Mobile App Design
+  svc_08: "/assets/services/svc_08.jpg", // Project Design and Management
+  svc_09: "/assets/services/svc_09.jpg", // Content Creation & Presentation Portfolio
+  svc_10: "/assets/services/svc_10.jpg", // Software & Mobile App Architecture
+  svc_11: "/assets/services/svc_11.jpg", // Web Portals and Systems Architecture
+  svc_12: "/assets/services/svc_12.jpg", // Portfolio Design Package
+  svc_13: "/assets/services/svc_13.jpg", // Strategic Project Blueprinting
+  svc_14: "/assets/services/svc_14.jpg", // Business Plan Design
+  svc_15: "/assets/services/svc_15.jpg", // Social Media Campaigns Mastery
+  svc_16: "/assets/services/svc_16.jpg", // Beginners Training
+  svc_17: "/assets/services/svc_17.jpg", // Exclusive and Advanced Trainings
+  svc_18: "/assets/services/svc_18.jpg", // Customer Care Service Management
+  svc_19: "/assets/services/svc_19.jpg", // DS ICT SUPPORT & SMART TECH
+  svc_20: "/assets/services/svc_20.jpg", // DS BRANDING AND GRAPHIC DESIGNS
+  svc_21: "/assets/services/svc_21.jpg", // DS SOFTWARE APP DESIGNING
+  svc_22: "/assets/services/svc_22.jpg", // AI Content Creation Packages
+  svc_23: "/assets/services/svc_23.jpg", // AI Chatbot Development Package
+  svc_24: "/assets/services/svc_24.jpg", // Business Data Analytics
+  svc_25: "/assets/services/svc_25.jpg", // CYBERSECURITY SERVICES
+  svc_26: "/assets/services/svc_26.jpg", // CAC, Tax and SCUML Certificate Registration
+
+  // Named Service IDs (svc_web_dev, etc.)
+  svc_web_dev: "/assets/services/svc_web_dev.jpg",
+  svc_mobile_software: "/assets/services/svc_mobile_software.jpg",
+  svc_landing_pages: "/assets/services/svc_landing_pages.jpg",
+  svc_portfolio_design: "/assets/services/svc_portfolio_design.jpg",
+  svc_ai_automation: "/assets/services/svc_ai_automation.jpg",
+  svc_ads_management: "/assets/services/svc_ads_management.jpg",
+  svc_seo: "/assets/services/svc_seo.jpg",
+  svc_content_presentation: "/assets/services/svc_content_presentation.jpg",
+  svc_ai_content: "/assets/services/svc_ai_content.jpg",
+  svc_video_editing: "/assets/services/svc_video_editing.jpg",
+  svc_digital_marketing: "/assets/services/svc_digital_marketing.jpg",
+  svc_social_media_mgmt: "/assets/services/svc_social_media_mgmt.jpg",
+  svc_graphic_branding: "/assets/services/svc_graphic_branding.jpg",
+  svc_project_mgmt: "/assets/services/svc_project_mgmt.jpg",
+  svc_cybersecurity: "/assets/services/svc_cybersecurity.jpg",
+  svc_event_videography: "/assets/services/svc_event_videography.jpg"
+};
+
+// Fallback images per category (all served from local edge assets)
+export const CATEGORY_NICHE_IMAGES: Record<string, string> = {
+  marketing: "/assets/services/svc_01.jpg",
+  web: "/assets/services/svc_06.jpg",
+  software: "/assets/services/svc_07.jpg",
+  ai: "/assets/services/svc_23.jpg",
+  branding: "/assets/services/svc_20.jpg",
+  business: "/assets/services/svc_08.jpg",
+  training: "/assets/services/svc_03.jpg",
+  ict: "/assets/services/svc_25.jpg",
+  compliance: "/assets/services/svc_26.jpg",
+  default: "/assets/services/svc_02.jpg"
+};
+
+// Returns an instant, high-res local image aligned directly to the service
+export function getPolishedServiceImage(service: { id?: string; name?: string; category?: string; image?: string }): string {
+  // 1. If an actual custom file was uploaded locally (/uploads/ or /assets/services/), use it
+  if (service?.image && (service.image.startsWith('/uploads/') || service.image.startsWith('/assets/services/'))) {
+    return service.image;
+  }
+
+  // 2. Direct ID Match in our local static photo registry
+  if (service?.id && SERVICE_NICHE_IMAGES[service.id]) {
+    return SERVICE_NICHE_IMAGES[service.id];
+  }
+
+  // 3. Intelligent Semantic Title Keyword Match
+  const nameLower = (service?.name || '').toLowerCase();
+
+  if (nameLower.includes('sponsored') || nameLower.includes('ads') || nameLower.includes('campaign management')) {
+    return SERVICE_NICHE_IMAGES.svc_01;
+  }
+  if (nameLower.includes('digital marketing') || nameLower.includes('monthly package')) {
+    return SERVICE_NICHE_IMAGES.svc_02;
+  }
+  if (nameLower.includes('consultancy') || nameLower.includes('professional training') || nameLower.includes('trainings')) {
+    return SERVICE_NICHE_IMAGES.svc_03;
+  }
+  if (nameLower.includes('presentation') || nameLower.includes('content creation')) {
+    return SERVICE_NICHE_IMAGES.svc_04;
+  }
+  if (nameLower.includes('social media')) {
+    return SERVICE_NICHE_IMAGES.svc_05;
+  }
+  if (nameLower.includes('website design') || nameLower.includes('web dev')) {
+    return SERVICE_NICHE_IMAGES.svc_06;
+  }
+  if (nameLower.includes('mobile app') || nameLower.includes('app design') || nameLower.includes('software and mobile')) {
+    return SERVICE_NICHE_IMAGES.svc_07;
+  }
+  if (nameLower.includes('project design') || nameLower.includes('project management')) {
+    return SERVICE_NICHE_IMAGES.svc_08;
+  }
+  if (nameLower.includes('portfolio')) {
+    return SERVICE_NICHE_IMAGES.svc_12;
+  }
+  if (nameLower.includes('business plan')) {
+    return SERVICE_NICHE_IMAGES.svc_14;
+  }
+  if (nameLower.includes('customer care')) {
+    return SERVICE_NICHE_IMAGES.svc_18;
+  }
+  if (nameLower.includes('ict') || nameLower.includes('smart technology')) {
+    return SERVICE_NICHE_IMAGES.svc_19;
+  }
+  if (nameLower.includes('branding') || nameLower.includes('graphic design')) {
+    return SERVICE_NICHE_IMAGES.svc_20;
+  }
+  if (nameLower.includes('ai content')) {
+    return SERVICE_NICHE_IMAGES.svc_22;
+  }
+  if (nameLower.includes('chatbot') || nameLower.includes('ai chat') || nameLower.includes('ai automation')) {
+    return SERVICE_NICHE_IMAGES.svc_23;
+  }
+  if (nameLower.includes('analytics') || nameLower.includes('data analytics')) {
+    return SERVICE_NICHE_IMAGES.svc_24;
+  }
+  if (nameLower.includes('cyber') || nameLower.includes('cybersecurity') || nameLower.includes('security')) {
+    return SERVICE_NICHE_IMAGES.svc_25;
+  }
+  if (nameLower.includes('cac') || nameLower.includes('scuml') || nameLower.includes('tax') || nameLower.includes('registration')) {
+    return SERVICE_NICHE_IMAGES.svc_26;
+  }
+  if (nameLower.includes('video') || nameLower.includes('videography') || nameLower.includes('editing')) {
+    return SERVICE_NICHE_IMAGES.svc_video_editing;
+  }
+  if (nameLower.includes('seo') || nameLower.includes('search engine')) {
+    return SERVICE_NICHE_IMAGES.svc_seo;
+  }
+
+  // 4. Category-specific local fallback image
+  const cat = (service?.category || '').toLowerCase();
+  return CATEGORY_NICHE_IMAGES[cat] || CATEGORY_NICHE_IMAGES.default;
+}
+
+// Fallback emergency image in case an asset fails to load
+export function getEmergencyFallbackImage(category?: string): string {
+  const cat = (category || '').toLowerCase();
+  return CATEGORY_NICHE_IMAGES[cat] || CATEGORY_NICHE_IMAGES.default;
+}
+
+// Color themes based on category for avatars & certificates
 const CATEGORY_THEMES: Record<string, { bg1: string; bg2: string; text: string; badgeBg: string; accent: string }> = {
   marketing: { bg1: '#0f172a', bg2: '#be123c', text: '#fecdd3', badgeBg: '#881337', accent: '#fb7185' },
   web: { bg1: '#0f172a', bg2: '#0284c7', text: '#e0f2fe', badgeBg: '#0369a1', accent: '#38bdf8' },
@@ -46,29 +198,17 @@ export function generateDynamicSvgUrl(
   
   <!-- Base Gradient Background -->
   <rect width="100%" height="100%" fill="url(#bgGrad)" />
-  
-  <!-- Tech Grid Overlay -->
   <rect width="100%" height="100%" fill="url(#grid)" />
-  
-  <!-- Geometric Accent Circles & Glowing Nodes -->
   <circle cx="${width * 0.85}" cy="${height * 0.25}" r="140" fill="${theme.accent}" opacity="0.12" />
   <circle cx="${width * 0.85}" cy="${height * 0.25}" r="80" stroke="${theme.accent}" stroke-width="2" fill="none" opacity="0.25" />
   <circle cx="${width * 0.15}" cy="${height * 0.85}" r="100" fill="${theme.bg2}" opacity="0.2" />
-  
-  <!-- Tech Lines / Abstract Art -->
-  <path d="M ${width * 0.5} 0 L ${width} ${height * 0.5}" stroke="${theme.accent}" stroke-width="1.5" stroke-dasharray="4 4" opacity="0.3" />
-  <path d="M 0 ${height * 0.3} L ${width * 0.6} ${height}" stroke="${theme.accent}" stroke-width="1" opacity="0.2" />
-  
-  <!-- Bottom Shadow Gradient -->
   <rect width="100%" height="100%" fill="url(#overlayGrad)" />
 
-  <!-- Badge Pillar -->
   <g transform="translate(36, 40)">
     <rect width="${Math.max(100, badgeLabel.length * 9 + 20)}" height="26" rx="13" fill="${theme.badgeBg}" opacity="0.9" />
     <text x="${(Math.max(100, badgeLabel.length * 9 + 20)) / 2}" y="17" fill="${theme.text}" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" text-anchor="middle" letter-spacing="1">${badgeLabel}</text>
   </g>
   
-  <!-- Title & Branding -->
   <g transform="translate(36, ${height - 60})">
     <text x="0" y="0" fill="#ffffff" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="800" opacity="0.98">${safeTitle.length > 42 ? safeTitle.substring(0, 40) + '...' : safeTitle}</text>
     <text x="0" y="24" fill="${theme.text}" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="600" letter-spacing="1.5" opacity="0.85">DS TECH DIGITAL ENTERPRISE HUB</text>
@@ -88,7 +228,6 @@ export function generateAvatarSvgUrl(name: string, role: string = 'Team Member',
     .map(n => n[0].toUpperCase())
     .join('') || 'DS';
 
-  // Deterministic color palette pick based on name hash
   const colors = [
     { bg1: '#1e1b4b', bg2: '#4338ca', accent: '#818cf8', text: '#e0e7ff' },
     { bg1: '#064e3b', bg2: '#047857', accent: '#34d399', text: '#d1fae5' },
@@ -118,45 +257,4 @@ export function generateAvatarSvgUrl(name: string, role: string = 'Team Member',
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
-// Service Niche High-Resolution Photographic Unsplash Image Dictionary (16 distinct, verified photos)
-export const SERVICE_NICHE_IMAGES: Record<string, string> = {
-  svc_web_dev: "https://images.unsplash.com/photo-1547658719-da2b51169166?w=800&auto=format&fit=crop&q=80",
-  svc_mobile_software: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&auto=format&fit=crop&q=80",
-  svc_landing_pages: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80",
-  svc_portfolio_design: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop&q=80",
-  svc_ai_automation: "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=800&auto=format&fit=crop&q=80",
-  svc_ads_management: "https://images.unsplash.com/photo-1533750349088-cd871a92f311?w=800&auto=format&fit=crop&q=80",
-  svc_seo: "https://images.unsplash.com/photo-1571721795195-a2ca2d3370a9?w=800&auto=format&fit=crop&q=80",
-  svc_content_presentation: "https://images.unsplash.com/photo-1542435503-956c469947f6?w=800&auto=format&fit=crop&q=80",
-  svc_ai_content: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80",
-  svc_video_editing: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop&q=80",
-  svc_digital_marketing: "https://images.unsplash.com/photo-1432888622747-4eb9a8f2c293?w=800&auto=format&fit=crop&q=80",
-  svc_social_media_mgmt: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&auto=format&fit=crop&q=80",
-  svc_graphic_branding: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=800&auto=format&fit=crop&q=80",
-  svc_project_mgmt: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=800&auto=format&fit=crop&q=80",
-  svc_cybersecurity: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop&q=80",
-  svc_event_videography: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80"
-};
-
-export const CATEGORY_NICHE_IMAGES: Record<string, string> = {
-  web: "https://images.unsplash.com/photo-1547658719-da2b51169166?w=800&auto=format&fit=crop&q=80",
-  software: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&auto=format&fit=crop&q=80",
-  marketing: "https://images.unsplash.com/photo-1432888622747-4eb9a8f2c293?w=800&auto=format&fit=crop&q=80",
-  ai: "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=800&auto=format&fit=crop&q=80",
-  branding: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=800&auto=format&fit=crop&q=80",
-  business: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=800&auto=format&fit=crop&q=80",
-  ict: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop&q=80"
-};
-
-export function getPolishedServiceImage(service: { id?: string; name?: string; category?: string; image?: string }): string {
-  if (service?.image && service.image.startsWith('http') && !service.image.includes('data:image/svg') && !service.image.includes('aistudio')) {
-    return service.image;
-  }
-  if (service?.id && SERVICE_NICHE_IMAGES[service.id]) {
-    return SERVICE_NICHE_IMAGES[service.id];
-  }
-  if (service?.category && CATEGORY_NICHE_IMAGES[service.category]) {
-    return CATEGORY_NICHE_IMAGES[service.category];
-  }
-  return "https://images.unsplash.com/photo-1547658719-da2b51169166?w=800&auto=format&fit=crop&q=80";
-}
+export { getServiceBespokeSvgUrl };

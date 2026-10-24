@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { ServiceItem, parsePriceToNumeric } from '../lib/data';
 import { resolveImageUrl, apiSaveServiceRequest, ServiceRequestRecord } from '../lib/api';
-import { generateDynamicSvgUrl, getPolishedServiceImage } from '../lib/mediaUtils';
+import { generateDynamicSvgUrl, getPolishedServiceImage, getEmergencyFallbackImage } from '../lib/mediaUtils';
 import { LanguageCode } from '../lib/translations';
 import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
 import { PaystackPayButton } from './PaystackMotionCheckout';
@@ -214,11 +214,19 @@ ${additionalNotes ? `\n*Additional Notes:*\n${additionalNotes}` : ''}
           <img 
             src={getPolishedServiceImage(service)} 
             alt={service.name} 
+            loading="lazy"
             referrerPolicy="no-referrer"
+            onError={(e) => {
+              const fallback = getEmergencyFallbackImage(service.category);
+              if (e.currentTarget.src !== fallback) {
+                e.currentTarget.src = fallback;
+              }
+            }}
             className="w-full h-full object-cover"
           />
-          <div className="absolute top-4 left-4 bg-orange-600/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl text-xs font-black text-white tracking-wider border border-orange-400 shadow-lg">
-            {service.price}
+          <div className="absolute top-4 left-4 bg-slate-950/95 backdrop-blur-md px-4 py-2 rounded-xl text-sm sm:text-base font-black text-white tracking-tight border border-orange-500/80 shadow-xl flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-orange-500" />
+            <span className="text-orange-400">{service.price}</span>
           </div>
         </div>
 

@@ -14,7 +14,7 @@ import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
 import { CacTrustSection } from './CacTrustSection';
 import { CustomQuoteModal } from './CustomQuoteModal';
 import { resolveImageUrl, apiSubscribeToServices } from '../lib/api';
-import { getPolishedServiceImage } from '../lib/mediaUtils';
+import { getPolishedServiceImage, getEmergencyFallbackImage } from '../lib/mediaUtils';
 
 interface HomeSectionProps {
   onNavigate: (path: string) => void;
@@ -49,9 +49,8 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
       if (saved) {
         const parsed = JSON.parse(saved);
         return parsed.map((svc: ServiceItem) => {
-          const defaultSvc = SERVICES.find(s => s.id === svc.id);
-          if (defaultSvc && (!svc.image || svc.image.includes('data:image/svg+xml'))) {
-            return { ...svc, image: defaultSvc.image };
+          if (!svc.image || svc.image.startsWith('data:image/svg+xml') || svc.image.includes('svg')) {
+            return { ...svc, image: getPolishedServiceImage(svc) };
           }
           return svc;
         });
@@ -65,15 +64,14 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
   useEffect(() => {
     const unsubscribe = apiSubscribeToServices((data) => {
       if (data && data.length > 0) {
-        const merged = data.map((svc: ServiceItem) => {
-          const defaultSvc = SERVICES.find(s => s.id === svc.id);
-          if (defaultSvc && (!svc.image || svc.image.includes('data:image/svg+xml'))) {
-            return { ...svc, image: defaultSvc.image };
+        const cleaned = data.map((svc: ServiceItem) => {
+          if (!svc.image || svc.image.startsWith('data:image/svg+xml') || svc.image.includes('svg')) {
+            return { ...svc, image: getPolishedServiceImage(svc) };
           }
           return svc;
         });
-        setServices(merged);
-        localStorage.setItem('admin_services', JSON.stringify(merged));
+        setServices(cleaned);
+        localStorage.setItem('admin_services', JSON.stringify(cleaned));
       }
     });
     return () => unsubscribe();
@@ -82,26 +80,25 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
   const t = HOME_TRANSLATIONS[language] || HOME_TRANSLATIONS.en;
 
   const stats = [
-    { value: '500+', label: t.statProjectsExecuted || 'Projects Completed' },
-    { value: '99.4%', label: t.statClientSatisfaction || 'Client Retention' },
-    { value: '10+', label: t.statYearsExperience || 'Years in Tech' },
-    { value: 'RC 9550925', label: t.statCacRegistration || 'CAC Verified' }
+    { value: '500+', label: t.statsSuccessfulCampaigns || 'Successful Campaigns' },
+    { value: '99.4%', label: t.statsClientSatisfaction || 'Client Satisfaction' },
+    { value: 'RC 9550925', label: 'CAC Verified Entity' }
   ];
 
   const features = [
     {
-      title: t.feature1Title || 'End-to-End Execution',
-      desc: t.feature1Desc || 'From strategic blueprinting to high-scale digital rollout.',
+      title: t.missionTitle || 'End-to-End Execution',
+      desc: t.missionDesc || 'From strategic blueprinting to high-scale digital rollout.',
       icon: <Target className="w-5 h-5 text-indigo-500" />
     },
     {
-      title: t.feature2Title || 'Data-Driven ROI',
-      desc: t.feature2Desc || 'Transparent metrics, performance analytics, and lead optimization.',
+      title: t.visionTitle || 'Data-Driven ROI',
+      desc: t.visionDesc || 'Transparent metrics, performance analytics, and lead optimization.',
       icon: <TrendingUp className="w-5 h-5 text-orange-500" />
     },
     {
-      title: t.feature3Title || 'CAC & Legal Compliance',
-      desc: t.feature3Desc || 'Incorporated agency providing verified corporate governance.',
+      title: t.whyBrandsTrust || 'CAC & Legal Compliance',
+      desc: t.whyBrandsTrustSub || 'Incorporated agency providing verified corporate governance.',
       icon: <ShieldCheck className="w-5 h-5 text-emerald-500" />
     }
   ];
@@ -155,50 +152,50 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
           </p>
 
           {/* Main Action CTAs: Explore Services, View Case Studies, Request Custom Quote */}
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-1">
             <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => onNavigate('/services')}
-              className="px-6 py-3.5 bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-full transition-all shadow-lg hover:shadow-orange-500/25 flex items-center gap-2 cursor-pointer border border-orange-400/40"
+              className="px-4.5 py-2.5 sm:px-5 sm:py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-semibold text-xs sm:text-sm rounded-xl transition-all shadow-xs flex items-center gap-2 cursor-pointer border border-orange-600"
             >
               <span>Explore Our Services</span>
-              <ArrowRight size={16} className="text-white" />
+              <ArrowRight size={15} className="text-white" />
             </motion.button>
 
             <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => onNavigate('/portfolio')}
-              className="px-6 py-3.5 bg-[#0B132B] hover:bg-slate-800 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-full border border-slate-700/80 shadow-md flex items-center gap-2 cursor-pointer"
+              className="px-4.5 py-2.5 sm:px-5 sm:py-2.5 bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white font-semibold text-xs sm:text-sm rounded-xl border border-slate-900 dark:border-slate-700 transition-all shadow-xs flex items-center gap-2 cursor-pointer"
             >
               <span>View Case Studies</span>
-              <ArrowUpRight size={16} className="text-orange-400" />
+              <ArrowUpRight size={15} className="text-slate-300 dark:text-slate-400" />
             </motion.button>
 
             <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ y: -1 }}
+              whileTap={{ scale: 0.98 }}
               type="button"
               onClick={() => {
                 setQuoteModalService(null);
                 setIsQuoteModalOpen(true);
               }}
-              className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-full shadow-md hover:shadow-emerald-500/20 transition-all cursor-pointer flex items-center gap-2 border border-emerald-400/40"
+              className="px-4.5 py-2.5 sm:px-5 sm:py-2.5 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 font-semibold text-xs sm:text-sm rounded-xl border border-slate-300 dark:border-slate-700 shadow-2xs transition-all cursor-pointer flex items-center gap-2"
             >
-              <MessageSquare size={16} className="text-emerald-100" />
+              <MessageSquare size={15} className="text-slate-500 dark:text-slate-400" />
               <span>Request Custom Quote</span>
             </motion.button>
           </div>
 
           {/* Key Metrics Bar */}
-          <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 text-left border-t border-slate-200 dark:border-slate-800/80">
+          <div className="pt-5 grid grid-cols-3 gap-3 sm:gap-6 text-left border-t border-slate-200/80 dark:border-slate-800/80">
             {stats.map((st, i) => (
               <div key={i} className="space-y-0.5">
-                <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight font-sans block">
+                <span className="text-base sm:text-lg md:text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans block">
                   {st.value}
                 </span>
-                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium block">
+                <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium block leading-snug">
                   {st.label}
                 </span>
               </div>
@@ -270,39 +267,66 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
               className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 shadow-sm hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group text-left"
             >
               <div>
-                <div className="relative h-28 sm:h-36 overflow-hidden bg-slate-950">
+                <div className="relative h-36 sm:h-44 overflow-hidden bg-slate-950">
                   <img 
                     src={getPolishedServiceImage(svc)} 
                     alt={svc.name} 
+                    loading="lazy"
                     referrerPolicy="no-referrer"
-                    onError={() => setImgErrorMap(prev => ({ ...prev, [svc.id]: true }))}
+                    onError={(e) => {
+                      const fallback = getEmergencyFallbackImage(svc.category);
+                      if (e.currentTarget.src !== fallback) {
+                        e.currentTarget.src = fallback;
+                      }
+                    }}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
                   
-                  <div className="absolute top-2 left-2 bg-slate-950/90 px-2 py-0.5 rounded-lg text-[9px] font-mono font-extrabold text-orange-400 border border-slate-800">
-                    {svc.price}
+                  <div className="absolute top-2.5 left-2.5 bg-slate-950/95 backdrop-blur-md px-3 py-1 rounded-xl text-xs sm:text-sm font-black text-white border border-orange-500/70 shadow-lg flex items-center gap-1.5 z-10">
+                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
+                    <span className="font-extrabold text-orange-400 font-sans tracking-tight">{svc.price}</span>
                   </div>
                 </div>
 
-                <div className="p-3 sm:p-4 space-y-1.5">
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
-                    {svc.category}
-                  </span>
+                <div className="p-3 sm:p-4 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
+                      {svc.category}
+                    </span>
+                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-800/60">
+                      Active
+                    </span>
+                  </div>
+
                   <h3 className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm leading-tight sm:leading-snug break-words group-hover:text-orange-500 transition-colors uppercase font-serif">
                     {svc.name}
                   </h3>
+
                   <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed line-clamp-2 font-normal">
                     {svc.description}
                   </p>
+
+                  {/* Bold Prominent Pricing Row */}
+                  <div className="pt-2 pb-0.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                      Price:
+                    </span>
+                    <span className="text-xs sm:text-sm font-black text-orange-600 dark:text-orange-400 tracking-tight font-sans">
+                      {svc.price}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               <div className="p-3 sm:p-4 pt-0">
                 <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800">
-                  <span className="text-[10px] font-extrabold text-orange-500 uppercase tracking-wider flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                  <span className="text-[11px] font-extrabold text-orange-500 uppercase tracking-wider flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
                     <span>View Service</span>
-                    <ArrowRight size={11} />
+                    <ArrowRight size={12} />
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                    SLA Guaranteed
                   </span>
                 </div>
               </div>

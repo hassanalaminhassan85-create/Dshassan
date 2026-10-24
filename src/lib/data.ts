@@ -28,6 +28,7 @@ export interface ServiceItem {
   image: string;
   url: string;
   category: 'marketing' | 'web' | 'software' | 'ai' | 'business' | 'branding' | 'ict' | 'training' | 'compliance';
+  deliverables?: string[];
 }
 
 export interface PortfolioProject {
@@ -209,144 +210,160 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "Web Development",
     price: "₦150,000 – ₦5,000,000+",
     description: "Professional, responsive websites tailored to business needs, customer acquisition, and online growth.",
-    image: "https://images.unsplash.com/photo-1547658719-da2b51169166?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/25279439215065803/2349023489111",
-    category: "web"
+    category: "web",
+    deliverables: ["React / Next.js Architecture", "Mobile-First Responsive", "SEO & Speed Optimized", "Secure CMS Setup"]
   },
   {
     id: "svc_mobile_software",
     name: "Software & Mobile App Development",
     price: "₦250,000 – ₦50,000,000+",
     description: "Custom software solutions and mobile applications designed around specific business requirements.",
-    image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/26225498943742627/2349023489111",
-    category: "software"
+    category: "software",
+    deliverables: ["iOS & Android Apps", "Cloud API & Database", "Offline-Ready Storage", "App Store Deployment"]
   },
   {
     id: "svc_landing_pages",
     name: "Landing Page Design and Integration",
     price: "₦80,000 – ₦1,500,000+",
     description: "Conversion-focused landing pages integrated with forms, analytics, marketing tools, and other relevant services.",
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/25850225841340268/2349023489111",
-    category: "web"
+    category: "web",
+    deliverables: ["High-Converting Hero & Wireframe", "Lead Form & WhatsApp Sync", "Pixel & Analytics Tracking", "A/B Testing Ready"]
   },
   {
     id: "svc_portfolio_design",
     name: "Portfolio Design",
     price: "₦100,000 – ₦700,000+",
     description: "Professional online portfolios that showcase skills, projects, achievements, and business capabilities.",
-    image: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/26668195106121616/2349023489111",
-    category: "web"
+    category: "web",
+    deliverables: ["Curated Project Gallery", "Custom Domain & SSL", "Interactive Case Studies", "Mobile-Optimized Layout"]
   },
   {
     id: "svc_ai_automation",
     name: "AI Integration and Workflow Automation",
     price: "₦150,000 – ₦10,000,000+",
     description: "Practical AI solutions and automated workflows that reduce repetitive work and improve operational efficiency.",
-    image: "https://images.unsplash.com/photo-1677442136019-21780efad99a?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/27016836764677969/2349023489111",
-    category: "ai"
+    category: "ai",
+    deliverables: ["Custom AI Assistants & Chatbots", "Workflow Automation Triggers", "WhatsApp & CRM Pipeline Sync", "Zero-Manual Operations"]
   },
   {
     id: "svc_ads_management",
     name: "Ads Management",
     price: "₦50,000 – ₦1,000,000+",
     description: "Campaign setup, targeting, optimization, and performance monitoring across supported advertising platforms.",
-    image: "https://images.unsplash.com/photo-1533750349088-cd871a92f311?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/25850225841340268/2349023489111",
-    category: "marketing"
+    category: "marketing",
+    deliverables: ["Meta & Google Ads Campaign", "Precision Audience Retargeting", "High-CTR Ad Copywriting", "Weekly ROAS & ROI Reports"]
   },
   {
     id: "svc_seo",
     name: "Search Engine Optimization (SEO)",
     price: "₦60,000 – ₦2,000,000+",
     description: "Website optimization to improve search visibility, technical performance, and organic discovery.",
-    image: "https://images.unsplash.com/photo-1571721795195-a2ca2d3370a9?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/26382467731420705/2349023489111",
-    category: "marketing"
+    category: "marketing",
+    deliverables: ["Technical SEO & Speed Audit", "Keyword Research & Ranking", "Backlink & Authority Blueprint", "Google Search Console Indexing"]
   },
   {
     id: "svc_content_presentation",
     name: "Content Creation and Presentation",
     price: "₦40,000 – ₦1,000,000+",
     description: "Professional business content, presentations, and communication materials tailored to specific audiences.",
-    image: "https://images.unsplash.com/photo-1542435503-956c469947f6?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/27413518328335319/2349023489111",
-    category: "marketing"
+    category: "marketing",
+    deliverables: ["Executive Pitch Decks", "Corporate Whitepapers", "Persuasive Storytelling", "Investor Presentation Design"]
   },
   {
     id: "svc_ai_content",
     name: "AI Generated Content Creation",
     price: "₦70,000 – ₦1,500,000+",
     description: "AI-assisted creation of relevant text, visuals, and other digital content with appropriate quality review.",
-    image: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/26682737784737815/2349023489111",
-    category: "ai"
+    category: "ai",
+    deliverables: ["Multi-Channel Ad Copy", "High-Resolution AI Visuals", "Localized Editorial Copy", "Human Editorial QA Review"]
   },
   {
     id: "svc_video_editing",
     name: "Video Editing",
     price: "₦35,000 – ₦2,000,000+",
     description: "Professional video editing, post-production, transitions, subtitles, and platform-ready exports.",
-    image: "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/27413518328335319/2349023489111",
-    category: "marketing"
+    category: "marketing",
+    deliverables: ["4K Post-Production Editing", "Dynamic Motion Graphics", "Audio Mastering & Subtitles", "Multi-Platform Aspect Exports"]
   },
   {
     id: "svc_digital_marketing",
     name: "Digital Marketing",
     price: "₦80,000 – ₦3,000,000+",
     description: "Strategic online marketing to build awareness, reach potential customers, and support business growth.",
-    image: "https://images.unsplash.com/photo-1432888622747-4eb9a8f2c293?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/26382467731420705/2349023489111",
-    category: "marketing"
+    category: "marketing",
+    deliverables: ["Full-Funnel Growth Strategy", "Email Marketing Setup", "Conversion Funnel Optimization", "Omnichannel Lead Capture"]
   },
   {
     id: "svc_social_media_mgmt",
     name: "Social Media Management",
     price: "₦70,000 – ₦2,500,000+",
     description: "Social media planning, publishing, account management, and audience engagement.",
-    image: "https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/36346113405034532/2349023489111",
-    category: "marketing"
+    category: "marketing",
+    deliverables: ["Monthly Content Calendar", "Scheduled Daily Publishing", "Community Moderation", "Monthly Engagement Reports"]
   },
   {
     id: "svc_graphic_branding",
     name: "Graphic Designs and Corporate Branding",
     price: "₦50,000 – ₦2,000,000+",
     description: "Brand identity design, corporate assets, promotional materials, and consistent visual guidelines.",
-    image: "https://images.unsplash.com/photo-1626785774573-4b799315345d?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/27195191726837563/2349023489111",
-    category: "branding"
+    category: "branding",
+    deliverables: ["Vector Logo & Icon Mark", "Pantone & Typography Guide", "Brand Collateral Assets", "Social & Stationery Templates"]
   },
   {
     id: "svc_project_mgmt",
     name: "Project Management",
     price: "₦100,000 – ₦10,000,000+",
     description: "End-to-end project planning, coordination, resource alignment, and delivery monitoring.",
-    image: "https://images.unsplash.com/photo-1531403009284-440f080d1e12?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/26167607822850385/2349023489111",
-    category: "business"
+    category: "business",
+    deliverables: ["Agile Sprint Governance", "Milestone Tracking & Gantt", "Risk Mitigation Audits", "On-Schedule Delivery Guarantee"]
   },
   {
     id: "svc_cybersecurity",
     name: "CyberSecurity Services",
     price: "₦150,000 – ₦15,000,000+",
     description: "Essential security assessments, threat monitoring, data protection, and vulnerability management.",
-    image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/28514091548192000/2349023489111",
-    category: "ict"
+    category: "ict",
+    deliverables: ["Vulnerability & Pen Testing", "SSL / TLS & WAF Setup", "Data Encryption Protocols", "Zero-Trust Architecture"]
   },
   {
     id: "svc_event_videography",
     name: "Event Coverage and Videography",
     price: "₦100,000 – ₦5,000,000+",
     description: "High-quality visual documentation, media coverage, and video recording for corporate or public events.",
-    image: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=800&auto=format&fit=crop&q=80",
+    image: "",
     url: "https://wa.me/p/27413518328335319/2349023489111",
-    category: "marketing"
+    category: "marketing",
+    deliverables: ["4K Multi-Camera Rig", "Live Stream Broadcasting", "Highlight Reel (48hr Delivery)", "Studio-Grade Mastered Audio"]
   }
 ];
 
@@ -354,6 +371,7 @@ export const SERVICES: ServiceItem[] = RAW_SERVICES.map(svc => ({
   ...svc,
   image: getPolishedServiceImage(svc)
 }));
+
 
 // ---------------------------------------------------------
 // 2. PORTFOLIO DATASET (CASE STUDIES & SHOWCASE)

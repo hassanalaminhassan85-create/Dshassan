@@ -54,9 +54,8 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
       if (saved) {
         const parsed = JSON.parse(saved);
         return parsed.map((svc: ServiceItem) => {
-          const defaultSvc = SERVICES.find(s => s.id === svc.id);
-          if (defaultSvc && (!svc.image || svc.image.includes('data:image/svg+xml'))) {
-            return { ...svc, image: defaultSvc.image };
+          if (!svc.image || svc.image.startsWith('data:image/svg+xml') || svc.image.includes('svg')) {
+            return { ...svc, image: getPolishedServiceImage(svc) };
           }
           return svc;
         });
@@ -71,15 +70,14 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
   useEffect(() => {
     const unsubscribe = apiSubscribeToServices((data) => {
       if (data && data.length > 0) {
-        const merged = data.map((svc: ServiceItem) => {
-          const defaultSvc = SERVICES.find(s => s.id === svc.id);
-          if (defaultSvc && (!svc.image || svc.image.includes('data:image/svg+xml'))) {
-            return { ...svc, image: defaultSvc.image };
+        const cleaned = data.map((svc: ServiceItem) => {
+          if (!svc.image || svc.image.startsWith('data:image/svg+xml') || svc.image.includes('svg')) {
+            return { ...svc, image: getPolishedServiceImage(svc) };
           }
           return svc;
         });
-        setServices(merged);
-        localStorage.setItem('admin_services', JSON.stringify(merged));
+        setServices(cleaned);
+        localStorage.setItem('admin_services', JSON.stringify(cleaned));
       }
     });
     return () => unsubscribe();
@@ -87,12 +85,22 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
 
   const getCategoryIcon = (catId: string) => {
     switch (catId) {
-      case 'development': return <Laptop className="w-4 h-4 text-indigo-500" />;
-      case 'data': return <Database className="w-4 h-4 text-emerald-500" />;
-      case 'marketing': return <LineChart className="w-4 h-4 text-orange-500" />;
-      case 'ai': return <Bot className="w-4 h-4 text-purple-500" />;
-      case 'security': return <Fingerprint className="w-4 h-4 text-rose-500" />;
-      default: return <Cpu className="w-4 h-4 text-slate-500" />;
+      case 'web':
+      case 'software':
+      case 'development': 
+        return <Laptop className="w-4 h-4 text-sky-500" />;
+      case 'marketing': 
+        return <LineChart className="w-4 h-4 text-orange-500" />;
+      case 'ai': 
+        return <Bot className="w-4 h-4 text-teal-500" />;
+      case 'branding':
+      case 'business': 
+        return <Layers className="w-4 h-4 text-purple-500" />;
+      case 'ict':
+      case 'security': 
+        return <Fingerprint className="w-4 h-4 text-emerald-500" />;
+      default: 
+        return <Cpu className="w-4 h-4 text-slate-400" />;
     }
   };
 
@@ -100,27 +108,31 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
     return getPolishedServiceImage(svc);
   };
 
-
-
   const selectedService = useMemo(() => {
     return services.find(s => s.id === selectedId) || null;
   }, [selectedId, services]);
 
   const categories = useMemo(() => {
     const defaultCats = [
-      { id: 'all', label: language === 'zh' ? 'Gbogbo' : 'All Areas' },
-      { id: 'development', label: 'Development' },
-      { id: 'data', label: 'Data & Infra' },
-      { id: 'marketing', label: 'Marketing' },
-      { id: 'ai', label: 'AI Solutions' },
-      { id: 'security', label: 'Security' }
+      { id: 'all', label: language === 'zh' ? '全部' : 'All Services' },
+      { id: 'web', label: 'Web & Apps' },
+      { id: 'marketing', label: 'Marketing & SEO' },
+      { id: 'ai', label: 'AI & Automation' },
+      { id: 'branding', label: 'Branding & Media' },
+      { id: 'ict', label: 'CyberSecurity & IT' }
     ];
     return defaultCats;
   }, [language]);
 
   const filteredServices = useMemo(() => {
     return services.filter(svc => {
-      const matchCat = activeCategory === 'all' || svc.category === activeCategory;
+      let matchCat = activeCategory === 'all';
+      if (activeCategory === 'web') matchCat = svc.category === 'web' || svc.category === 'software';
+      else if (activeCategory === 'marketing') matchCat = svc.category === 'marketing';
+      else if (activeCategory === 'ai') matchCat = svc.category === 'ai';
+      else if (activeCategory === 'branding') matchCat = svc.category === 'branding' || svc.category === 'business';
+      else if (activeCategory === 'ict') matchCat = svc.category === 'ict';
+      
       const matchSearch = (svc.name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (svc.description || '').toLowerCase().includes(searchQuery.toLowerCase());
       return matchCat && matchSearch;
@@ -130,7 +142,11 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
   const categoryCounts = useMemo(() => {
     const counts: Record<string, number> = { all: services.length };
     services.forEach(svc => {
-      counts[svc.category] = (counts[svc.category] || 0) + 1;
+      if (svc.category === 'web' || svc.category === 'software') counts['web'] = (counts['web'] || 0) + 1;
+      if (svc.category === 'marketing') counts['marketing'] = (counts['marketing'] || 0) + 1;
+      if (svc.category === 'ai') counts['ai'] = (counts['ai'] || 0) + 1;
+      if (svc.category === 'branding' || svc.category === 'business') counts['branding'] = (counts['branding'] || 0) + 1;
+      if (svc.category === 'ict') counts['ict'] = (counts['ict'] || 0) + 1;
     });
     return counts;
   }, [services]);
@@ -148,20 +164,6 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
   }
 
   const displayedServices = filteredServices.slice(0, visibleCount);
-
-  const getBentoSpan = (index: number) => {
-    const pattern = [
-      "md:col-span-2 md:row-span-2",
-      "md:col-span-1 md:row-span-1",
-      "md:col-span-1 md:row-span-1",
-      "md:col-span-1 md:row-span-2",
-      "md:col-span-2 md:row-span-1",
-      "md:col-span-1 md:row-span-1",
-      "md:col-span-1 md:row-span-1",
-      "md:col-span-1 md:row-span-1",
-    ];
-    return pattern[index % pattern.length];
-  };
 
   const uiText = {
     en: {
@@ -338,27 +340,23 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
             <p className="text-slate-400 dark:text-slate-500 text-[11px]">{currentUi.noFoundDesc}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
             <AnimatePresence mode="popLayout">
-              {displayedServices.map((svc, index) => {
-                const bentoSpan = getBentoSpan(index);
-                return (
-                  <ServiceCard 
-                    key={svc.id}
-                    svc={svc}
-                    index={index}
-                    language={language}
-                    onSelect={onSelectId}
-                    bentoSpan={bentoSpan}
-                    getCategoryIcon={getCategoryIcon}
-                    getServiceImage={getServiceImage}
-                    onCustomQuote={(s) => {
-                      setQuoteModalService(s);
-                      setIsQuoteModalOpen(true);
-                    }}
-                  />
-                );
-              })}
+              {displayedServices.map((svc, index) => (
+                <ServiceCard 
+                  key={svc.id}
+                  svc={svc}
+                  index={index}
+                  language={language}
+                  onSelect={onSelectId}
+                  getCategoryIcon={getCategoryIcon}
+                  getServiceImage={getServiceImage}
+                  onCustomQuote={(s) => {
+                    setQuoteModalService(s);
+                    setIsQuoteModalOpen(true);
+                  }}
+                />
+              ))}
             </AnimatePresence>
           </div>
         )}
