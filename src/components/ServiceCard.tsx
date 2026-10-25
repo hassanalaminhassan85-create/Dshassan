@@ -80,10 +80,10 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
 
-          {/* Prominent Pricing Tag */}
-          <div className="absolute top-2.5 left-2.5 bg-slate-950/95 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black text-white border border-orange-500/70 shadow-lg flex items-center gap-1.5 z-10">
+          {/* Prominent Pricing Tag (Bottom left to avoid collision with top controls) */}
+          <div className="absolute bottom-2.5 left-2.5 max-w-[calc(100%-1rem)] bg-slate-950/90 backdrop-blur-md px-3 py-1.5 rounded-xl text-xs sm:text-sm font-black text-white border border-orange-500/70 shadow-lg flex items-center gap-1.5 z-10">
             <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
-            <span className="font-extrabold text-orange-400 font-sans tracking-tight">{svc.price}</span>
+            <span className="font-extrabold text-orange-400 font-sans tracking-tight break-words whitespace-normal">{svc.price}</span>
           </div>
 
           {/* Quick Quote Pill & Category Icon */}
@@ -91,7 +91,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
             <button
               type="button"
               onClick={handleOpenQuote}
-              className="bg-orange-600 hover:bg-orange-500 text-white px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-md backdrop-blur-md transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+              className="bg-orange-600 hover:bg-orange-500 text-white px-2.5 py-1 rounded-lg text-[9.5px] font-black uppercase tracking-wider shadow-md backdrop-blur-md transition-all cursor-pointer flex items-center gap-1 active:scale-95 border border-orange-400/40"
               title={`Request Quote for ${svc.name}`}
             >
               <FileText size={10} className="shrink-0" />
@@ -121,12 +121,12 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
             {svc.description}
           </p>
 
-          {/* Bold Prominent Pricing Row */}
-          <div className="pt-2 pb-1 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-1">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          {/* Bold Prominent Pricing Row - Non-truncating */}
+          <div className="pt-2 pb-1 border-t border-slate-100 dark:border-slate-800 flex items-baseline justify-between gap-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 shrink-0">
               Pricing:
             </span>
-            <span className="text-sm sm:text-base font-black text-orange-600 dark:text-orange-400 tracking-tight font-sans">
+            <span className="text-xs sm:text-sm font-black text-orange-600 dark:text-orange-400 tracking-tight font-sans text-right leading-tight break-words whitespace-normal">
               {svc.price}
             </span>
           </div>
@@ -151,7 +151,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
       {/* 4. Action Row */}
       <div className="p-4 sm:p-5 pt-0">
         <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
-          <span className="text-[11px] font-extrabold text-orange-600 dark:text-orange-400 uppercase tracking-wider flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+          <span className="text-[11px] font-extrabold text-orange-600 dark:text-orange-400 uppercase tracking-wider flex items-center gap-1 group-hover:translate-x-0.5 transition-transform whitespace-nowrap shrink-0">
             <span>{language === 'zh' ? '查看详情' : 'Inspect Service'}</span>
             <ArrowRight size={12} />
           </span>
@@ -160,7 +160,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
             <button
               type="button"
               onClick={handleOpenQuote}
-              className="text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400 bg-orange-500/10 hover:bg-orange-500 hover:text-white dark:bg-orange-500/20 dark:hover:bg-orange-500 dark:hover:text-white px-3 py-1.5 rounded-lg transition-all border border-orange-500/30 cursor-pointer flex items-center gap-1 shadow-xs"
+              className="text-[10px] font-black uppercase tracking-wider bg-orange-600 hover:bg-orange-500 text-white px-3 py-1.5 rounded-lg transition-all cursor-pointer flex items-center gap-1 shadow-xs active:scale-95 border border-orange-500/50"
               title={`Request Quote for ${svc.name}`}
             >
               <FileText size={11} className="shrink-0" />

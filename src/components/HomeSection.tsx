@@ -299,13 +299,13 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
                   
-                  {/* Price Tag */}
-                  <div className="absolute top-2.5 left-2.5 bg-slate-950/95 backdrop-blur-md px-2.5 sm:px-3 py-1 rounded-xl text-xs sm:text-sm font-black text-white border border-orange-500/70 shadow-lg flex items-center gap-1.5 z-10">
+                  {/* Price Tag (Positioned at bottom-left with dedicated width to prevent collision) */}
+                  <div className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] bg-slate-950/90 backdrop-blur-md px-2.5 py-1 rounded-xl text-xs sm:text-sm font-black text-white border border-orange-500/70 shadow-lg flex items-center gap-1.5 z-10">
                     <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
-                    <span className="font-extrabold text-orange-400 font-sans tracking-tight text-[11px] sm:text-xs md:text-sm">{svc.price}</span>
+                    <span className="font-extrabold text-orange-400 font-sans tracking-tight text-[11px] sm:text-xs md:text-sm break-words whitespace-normal">{svc.price}</span>
                   </div>
 
-                  {/* Quick Quote Pill on Image */}
+                  {/* Quick Quote Button on Image Top-Right */}
                   <button
                     type="button"
                     onClick={(e) => {
@@ -313,7 +313,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                       setQuoteModalService(svc);
                       setIsQuoteModalOpen(true);
                     }}
-                    className="absolute top-2.5 right-2.5 bg-orange-600 hover:bg-orange-500 text-white px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-md backdrop-blur-md transition-all z-10 flex items-center gap-1 cursor-pointer active:scale-95"
+                    className="absolute top-2.5 right-2.5 bg-orange-600 hover:bg-orange-500 text-white px-2.5 py-1 rounded-lg text-[9.5px] font-black uppercase tracking-wider shadow-md backdrop-blur-md transition-all z-10 flex items-center gap-1 cursor-pointer active:scale-95 border border-orange-400/40"
                     title={`Request Quote for ${svc.name}`}
                   >
                     <FileText size={10} className="shrink-0" />
@@ -339,12 +339,12 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                     {svc.description}
                   </p>
 
-                  {/* Bold Prominent Pricing Row */}
-                  <div className="pt-2 pb-0.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                  {/* Bold Prominent Pricing Row - Absolutely No Truncation */}
+                  <div className="pt-2 pb-0.5 border-t border-slate-100 dark:border-slate-800 flex items-baseline justify-between gap-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 shrink-0">
                       Price:
                     </span>
-                    <span className="text-xs sm:text-sm font-black text-orange-600 dark:text-orange-400 tracking-tight font-sans truncate">
+                    <span className="text-xs sm:text-sm font-black text-orange-600 dark:text-orange-400 font-sans tracking-tight text-right leading-tight break-words whitespace-normal">
                       {svc.price}
                     </span>
                   </div>
@@ -353,9 +353,10 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
 
               <div className="p-3 sm:p-4 pt-0">
                 <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800 gap-1.5">
-                  <span className="text-[11px] font-extrabold text-orange-500 uppercase tracking-wider flex items-center gap-1 group-hover:translate-x-0.5 transition-transform truncate">
-                    <span>View Service</span>
-                    <ArrowRight size={12} className="shrink-0" />
+                  <span className="text-[10.5px] sm:text-[11px] font-extrabold text-orange-500 uppercase tracking-wider flex items-center gap-1 group-hover:translate-x-0.5 transition-transform whitespace-nowrap shrink-0">
+                    <span className="inline sm:hidden">Details</span>
+                    <span className="hidden sm:inline">View Details</span>
+                    <ArrowRight size={11} className="shrink-0" />
                   </span>
 
                   {/* Dedicated Quote Button on Card Action Row */}
@@ -366,10 +367,10 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                       setQuoteModalService(svc);
                       setIsQuoteModalOpen(true);
                     }}
-                    className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-orange-500/10 hover:bg-orange-500 text-orange-600 hover:text-white dark:bg-orange-500/20 dark:hover:bg-orange-500 dark:text-orange-400 dark:hover:text-white border border-orange-500/30 transition-all flex items-center gap-1 cursor-pointer shrink-0 shadow-xs"
+                    className="px-2.5 py-1 rounded-lg text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider bg-orange-600 hover:bg-orange-500 text-white shadow-xs transition-all flex items-center gap-1 cursor-pointer shrink-0 active:scale-95 border border-orange-500/50"
                     title={`Request Quote for ${svc.name}`}
                   >
-                    <FileText size={11} className="shrink-0" />
+                    <FileText size={10} className="shrink-0" />
                     <span>Quote</span>
                   </button>
                 </div>
