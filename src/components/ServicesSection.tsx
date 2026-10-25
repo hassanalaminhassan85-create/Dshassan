@@ -19,34 +19,60 @@ interface ServicesSectionProps {
   selectedId: string | null;
   onSelectId: (id: string | null) => void;
   onBackToMain?: () => void;
+  theme?: 'light' | 'dark';
+  onToggleTheme?: () => void;
 }
 
 export const ServicesSection: React.FC<ServicesSectionProps> = ({ 
   language, 
   selectedId, 
   onSelectId,
-  onBackToMain
+  onBackToMain,
+  theme,
+  onToggleTheme
 }) => {
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    if (theme) return theme === 'dark';
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('theme');
+        if (saved) return saved === 'dark';
+      } catch (e) {}
+      return document.documentElement.classList.contains('dark');
+    }
+    return false;
+  });
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [visibleCount, setVisibleCount] = useState(8);
   const [quoteModalService, setQuoteModalService] = useState<ServiceItem | null>(null);
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
 
-  // Sync theme with document root
+  // Sync theme with parent prop
   useEffect(() => {
-    const isRootDark = document.documentElement.classList.contains('dark');
-    setIsDarkMode(isRootDark);
-  }, []);
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
+    if (theme) {
+      setIsDarkMode(theme === 'dark');
     }
-  }, [isDarkMode]);
+  }, [theme]);
+
+  const handleToggleTheme = () => {
+    if (onToggleTheme) {
+      onToggleTheme();
+    } else {
+      setIsDarkMode(prev => {
+        const next = !prev;
+        if (next) {
+          document.documentElement.classList.add('dark');
+          try { localStorage.setItem('theme', 'dark'); } catch (e) {}
+        } else {
+          document.documentElement.classList.remove('dark');
+          try { localStorage.setItem('theme', 'light'); } catch (e) {}
+        }
+        return next;
+      });
+    }
+  };
 
   const [services, setServices] = useState<ServiceItem[]>(() => {
     try {
@@ -199,7 +225,20 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button 
+            type="button"
+            onClick={() => {
+              setQuoteModalService(services[0] || null);
+              setIsQuoteModalOpen(true);
+            }}
+            className="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+          >
+            <MessageSquare size={13} />
+            <span className="hidden sm:inline">Request Quote</span>
+            <span className="sm:hidden">Quote</span>
+          </button>
+
           {onBackToMain && (
             <button
               type="button"
@@ -214,8 +253,9 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
 
           <button
             type="button"
-            onClick={() => setIsDarkMode(!isDarkMode)}
+            onClick={handleToggleTheme}
             className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:scale-105 transition-all cursor-pointer shadow-sm"
+            title="Toggle Light / Dark Mode"
           >
             {isDarkMode ? <Sun size={15} className="text-orange-400" /> : <Moon size={15} className="text-indigo-500" />}
           </button>

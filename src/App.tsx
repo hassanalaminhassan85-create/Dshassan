@@ -1251,6 +1251,8 @@ export default function App() {
                   language={language}
                   selectedId={selectedServiceId}
                   onSelectId={setSelectedServiceId}
+                  theme={theme}
+                  onToggleTheme={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
                   onBackToMain={() => {
                     setActivePage('home');
                     window.scrollTo(0, 0);

@@ -10,7 +10,7 @@ import { resolveImageUrl, apiSaveServiceRequest, ServiceRequestRecord } from '..
 import { generateDynamicSvgUrl, getPolishedServiceImage, getEmergencyFallbackImage } from '../lib/mediaUtils';
 import { LanguageCode } from '../lib/translations';
 import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
-import { PaystackPayButton } from './PaystackMotionCheckout';
+import { COMPANY_BANK_NAME, COMPANY_BANK_ACCOUNT_NUMBER, COMPANY_BANK_ACCOUNT_NAME } from '../lib/companyConstants';
 
 interface ServiceDetailViewProps {
   service: ServiceItem;
@@ -25,9 +25,9 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, l
 
   // Bank transfer details
   const bankDetails = {
-    bankName: 'Wema Bank',
-    accountName: 'DS Tech & Digital Marketing Agency Limited',
-    accountNumber: '9023489111'
+    bankName: COMPANY_BANK_NAME,
+    accountName: COMPANY_BANK_ACCOUNT_NAME,
+    accountNumber: COMPANY_BANK_ACCOUNT_NUMBER
   };
 
   // Form State (13 Comprehensive Fields)

@@ -223,14 +223,28 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
             </p>
           </div>
 
-          <button 
-            type="button"
-            onClick={() => onNavigate('/services')}
-            className="px-5 py-2.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors border border-indigo-200/60 dark:border-indigo-800/60 shrink-0 cursor-pointer"
-          >
-            <span>View Full 16-Service Catalogue</span>
-            <ChevronRight size={14} />
-          </button>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button 
+              type="button"
+              onClick={() => {
+                setQuoteModalService(filteredServices[0] || null);
+                setIsQuoteModalOpen(true);
+              }}
+              className="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md hover:shadow-lg shrink-0 cursor-pointer"
+            >
+              <FileText size={14} />
+              <span>Get Service Quote</span>
+            </button>
+
+            <button 
+              type="button"
+              onClick={() => onNavigate('/services')}
+              className="px-4 py-2.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors border border-indigo-200/60 dark:border-indigo-800/60 shrink-0 cursor-pointer"
+            >
+              <span>Full 16-Service Catalogue</span>
+              <ChevronRight size={14} />
+            </button>
+          </div>
         </div>
 
         {/* Category Pills Filter */}
@@ -258,7 +272,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
 
         {/* Core Services Responsive Grid (2 cols mobile, 3 tablet, 4 desktop) */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4 lg:gap-5">
-          {filteredServices.map((svc) => (
+          {filteredServices.map((svc, idx) => (
             <motion.div 
               key={svc.id}
               whileHover={{ y: -3 }}
@@ -271,35 +285,53 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                   <img 
                     src={getPolishedServiceImage(svc)} 
                     alt={svc.name} 
-                    loading="lazy"
+                    decoding="async"
+                    loading={idx < 4 ? "eager" : "lazy"}
+                    fetchPriority={idx < 4 ? "high" : "auto"}
                     referrerPolicy="no-referrer"
                     onError={(e) => {
-                      const fallback = getEmergencyFallbackImage(svc.category);
+                      const fallback = getEmergencyFallbackImage(svc.category, svc.id, svc.name);
                       if (e.currentTarget.src !== fallback) {
                         e.currentTarget.src = fallback;
                       }
                     }}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
                   
-                  <div className="absolute top-2.5 left-2.5 bg-slate-950/95 backdrop-blur-md px-3 py-1 rounded-xl text-xs sm:text-sm font-black text-white border border-orange-500/70 shadow-lg flex items-center gap-1.5 z-10">
+                  {/* Price Tag */}
+                  <div className="absolute top-2.5 left-2.5 bg-slate-950/95 backdrop-blur-md px-2.5 sm:px-3 py-1 rounded-xl text-xs sm:text-sm font-black text-white border border-orange-500/70 shadow-lg flex items-center gap-1.5 z-10">
                     <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
-                    <span className="font-extrabold text-orange-400 font-sans tracking-tight">{svc.price}</span>
+                    <span className="font-extrabold text-orange-400 font-sans tracking-tight text-[11px] sm:text-xs md:text-sm">{svc.price}</span>
                   </div>
+
+                  {/* Quick Quote Pill on Image */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setQuoteModalService(svc);
+                      setIsQuoteModalOpen(true);
+                    }}
+                    className="absolute top-2.5 right-2.5 bg-orange-600 hover:bg-orange-500 text-white px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-md backdrop-blur-md transition-all z-10 flex items-center gap-1 cursor-pointer active:scale-95"
+                    title={`Request Quote for ${svc.name}`}
+                  >
+                    <FileText size={10} className="shrink-0" />
+                    <span>Quote</span>
+                  </button>
                 </div>
 
                 <div className="p-3 sm:p-4 space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block">
+                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block truncate">
                       {svc.category}
                     </span>
-                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-800/60">
+                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-800/60 shrink-0">
                       Active
                     </span>
                   </div>
 
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm leading-tight sm:leading-snug break-words group-hover:text-orange-500 transition-colors uppercase font-serif">
+                  <h3 className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm leading-tight sm:leading-snug break-words group-hover:text-orange-500 transition-colors uppercase font-serif line-clamp-2">
                     {svc.name}
                   </h3>
 
@@ -312,7 +344,7 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                       Price:
                     </span>
-                    <span className="text-xs sm:text-sm font-black text-orange-600 dark:text-orange-400 tracking-tight font-sans">
+                    <span className="text-xs sm:text-sm font-black text-orange-600 dark:text-orange-400 tracking-tight font-sans truncate">
                       {svc.price}
                     </span>
                   </div>
@@ -320,14 +352,26 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
               </div>
 
               <div className="p-3 sm:p-4 pt-0">
-                <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800">
-                  <span className="text-[11px] font-extrabold text-orange-500 uppercase tracking-wider flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800 gap-1.5">
+                  <span className="text-[11px] font-extrabold text-orange-500 uppercase tracking-wider flex items-center gap-1 group-hover:translate-x-0.5 transition-transform truncate">
                     <span>View Service</span>
-                    <ArrowRight size={12} />
+                    <ArrowRight size={12} className="shrink-0" />
                   </span>
-                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400">
-                    SLA Guaranteed
-                  </span>
+
+                  {/* Dedicated Quote Button on Card Action Row */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setQuoteModalService(svc);
+                      setIsQuoteModalOpen(true);
+                    }}
+                    className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider bg-orange-500/10 hover:bg-orange-500 text-orange-600 hover:text-white dark:bg-orange-500/20 dark:hover:bg-orange-500 dark:text-orange-400 dark:hover:text-white border border-orange-500/30 transition-all flex items-center gap-1 cursor-pointer shrink-0 shadow-xs"
+                    title={`Request Quote for ${svc.name}`}
+                  >
+                    <FileText size={11} className="shrink-0" />
+                    <span>Quote</span>
+                  </button>
                 </div>
               </div>
             </motion.div>

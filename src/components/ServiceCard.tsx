@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'motion/react';
-import { Check, ArrowRight, CreditCard } from 'lucide-react';
-import { ServiceItem, parsePriceToNumeric } from '../lib/data';
+import { Check, ArrowRight, FileText } from 'lucide-react';
+import { ServiceItem } from '../lib/data';
 import { getPolishedServiceImage, getEmergencyFallbackImage } from '../lib/mediaUtils';
 import { LanguageCode } from '../lib/translations';
-import { PaystackPayButton } from './PaystackMotionCheckout';
 
 interface ServiceCardProps {
   svc: ServiceItem;
@@ -30,7 +29,7 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
 
   const imgSrc = getServiceImage ? getServiceImage(svc) : getPolishedServiceImage(svc);
 
-  // Fallback deliverables if not specified in dataset
+  // Deliverables
   const deliverables = svc.deliverables && svc.deliverables.length > 0 
     ? svc.deliverables.slice(0, 3)
     : [
@@ -38,6 +37,15 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
         'Continuous Quality & Performance Audits',
         'Direct SLA & Dedicated Engineering Support'
       ];
+
+  const handleOpenQuote = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onCustomQuote) {
+      onCustomQuote(svc);
+    } else {
+      onSelect(svc.id);
+    }
+  };
 
   return (
     <motion.div
@@ -57,11 +65,13 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
           <img 
             src={imgSrc} 
             alt={svc.name} 
-            loading="lazy"
+            decoding="async"
+            loading={index < 6 ? "eager" : "lazy"}
+            fetchPriority={index < 3 ? "high" : "auto"}
             referrerPolicy="no-referrer"
             onError={(e) => {
               setImgError(true);
-              const fallback = getEmergencyFallbackImage(svc.category);
+              const fallback = getEmergencyFallbackImage(svc.category, svc.id, svc.name);
               if (e.currentTarget.src !== fallback) {
                 e.currentTarget.src = fallback;
               }
@@ -76,12 +86,23 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
             <span className="font-extrabold text-orange-400 font-sans tracking-tight">{svc.price}</span>
           </div>
 
-          {/* Category Icon */}
-          {getCategoryIcon && (
-            <div className="absolute top-2.5 right-2.5 bg-slate-950/80 backdrop-blur-md p-1.5 rounded-lg border border-slate-800 shadow-xs">
-              {getCategoryIcon(svc.category)}
-            </div>
-          )}
+          {/* Quick Quote Pill & Category Icon */}
+          <div className="absolute top-2.5 right-2.5 flex items-center gap-1.5 z-10" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={handleOpenQuote}
+              className="bg-orange-600 hover:bg-orange-500 text-white px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider shadow-md backdrop-blur-md transition-all cursor-pointer flex items-center gap-1 active:scale-95"
+              title={`Request Quote for ${svc.name}`}
+            >
+              <FileText size={10} className="shrink-0" />
+              <span>Quote</span>
+            </button>
+            {getCategoryIcon && (
+              <div className="bg-slate-950/80 backdrop-blur-md p-1.5 rounded-lg border border-slate-800 shadow-xs">
+                {getCategoryIcon(svc.category)}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 2. Structured Information Body */}
@@ -138,31 +159,13 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
           <div className="flex items-center gap-2 shrink-0" onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                if (onCustomQuote) {
-                  onCustomQuote(svc);
-                } else {
-                  onSelect(svc.id);
-                }
-              }}
-              className="text-[10px] font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-2.5 py-1.5 rounded-lg transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
+              onClick={handleOpenQuote}
+              className="text-[10px] font-black uppercase tracking-wider text-orange-600 dark:text-orange-400 bg-orange-500/10 hover:bg-orange-500 hover:text-white dark:bg-orange-500/20 dark:hover:bg-orange-500 dark:hover:text-white px-3 py-1.5 rounded-lg transition-all border border-orange-500/30 cursor-pointer flex items-center gap-1 shadow-xs"
+              title={`Request Quote for ${svc.name}`}
             >
-              Get Quote
+              <FileText size={11} className="shrink-0" />
+              <span>Get Quote</span>
             </button>
-
-            <PaystackPayButton
-              amount={parsePriceToNumeric(svc.price, 100000)}
-              email="client@dstechagency.com"
-              customerName="Valued Client"
-              title={`Retainer: ${svc.name}`}
-              description={`Fast-Track Service Retainer Deposit for ${svc.name}`}
-              variant="emerald"
-              className="px-2.5 py-1.5 text-[10px] font-bold"
-            >
-              <CreditCard size={11} />
-              <span>Deposit</span>
-            </PaystackPayButton>
           </div>
         </div>
       </div>

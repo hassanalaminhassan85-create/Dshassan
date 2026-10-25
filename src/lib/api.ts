@@ -2079,6 +2079,9 @@ export function resolveImageUrl(urlOrKey: string | null | undefined, fallbackUrl
   if (trimmed.startsWith('/api/')) {
     return trimmed;
   }
+  if (trimmed.startsWith('/assets/') || trimmed.startsWith('assets/') || trimmed.startsWith('/uploads/') || trimmed.startsWith('uploads/')) {
+    return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
+  }
   if (trimmed.startsWith('cac') || trimmed.includes('cac_certs_')) {
     return `/api/cac/file?key=${encodeURIComponent(trimmed)}`;
   }

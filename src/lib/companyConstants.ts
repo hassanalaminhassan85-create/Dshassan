@@ -27,6 +27,11 @@ export const COMPANY_PHONE_ALT = '+234 813 123 4567';
 export const COMPANY_EMAIL = 'support@dstechagency.com';
 export const COMPANY_WEBSITE = 'https://www.dstechagency.com/';
 
+// Official Corporate Bank Payment Account Details (Moniepoint MFB)
+export const COMPANY_BANK_NAME = 'Moniepoint MFB';
+export const COMPANY_BANK_ACCOUNT_NUMBER = '8266548130';
+export const COMPANY_BANK_ACCOUNT_NAME = 'DS Tech and Digital Marketing Agency Limited';
+
 /**
  * Normalizes any dynamic or backend CAC registration string to the active standard format "9550925".
  * If an updated backend registration number is provided, it formats it or falls back to COMPANY_RC_NUMBER.

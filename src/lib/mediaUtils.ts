@@ -148,7 +148,12 @@ export function getPolishedServiceImage(service: { id?: string; name?: string; c
 }
 
 // Fallback emergency image in case an asset fails to load
-export function getEmergencyFallbackImage(category?: string): string {
+export function getEmergencyFallbackImage(category?: string, id?: string, name?: string): string {
+  if (id) {
+    try {
+      return getServiceBespokeSvgUrl(id, name || 'DS Tech Solution');
+    } catch (e) {}
+  }
   const cat = (category || '').toLowerCase();
   return CATEGORY_NICHE_IMAGES[cat] || CATEGORY_NICHE_IMAGES.default;
 }
