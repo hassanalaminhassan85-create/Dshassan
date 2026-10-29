@@ -2215,8 +2215,8 @@ export default function App() {
       </main>
 
       {/* Document bottom footer info */}
-      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'student-dashboard', 'tutor-dashboard', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog', 'management-accounts', 'management-dashboard', 'attendance', 'crm', 'home'].includes(activePage) && (
-        <MainFooter publishedCac={publishedCac} />
+      {!isUserLoggedIn && !isAdminView && ['home', 'about', 'services', 'quote', 'portfolio', 'team', 'blog', 'careers', 'recognition', 'proposals', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'clients', 'account', 'staff-portal', 'management-accounts', 'verify-certificate'].includes(activePage) && (
+        <MainFooter publishedCac={publishedCac} onNavigate={safeNavigate} />
       )}
       {/* Premium Circular Floating AI Assistant Launcher (Hidden on course-registration, attendance, and crm pages) */}
       {activePage !== 'course-registration' && activePage !== 'attendance' && activePage !== 'crm' && (
