@@ -13,6 +13,9 @@ import { StaffPortal } from './components/StaffPortal';
 import { HomeSection } from './components/HomeSection';
 import { AboutSection } from './components/AboutSection';
 import { ServicesSection } from './components/ServicesSection';
+import { ServiceQuoteView } from './components/ServiceQuoteView';
+import { getServiceBySlugOrId } from './lib/quoteUtils';
+import { SERVICES } from './lib/data';
 import { PortfolioSection } from './components/PortfolioSection';
 import { MeetOurTeamSection } from './components/MeetOurTeamSection';
 import { BlogSection } from './components/BlogSection';
@@ -267,7 +270,7 @@ const navMenuTranslations: Record<LanguageCode, { label: string; value: string }
   ]
 };
 
-export type ActivePageType = 'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard' | 'verify-certificate' | 'management-accounts' | 'management-dashboard' | 'attendance' | 'crm' | 'proposals';
+export type ActivePageType = 'home' | 'about' | 'services' | 'portfolio' | 'team' | 'blog' | 'training' | 'academy-overview' | 'student-registration' | 'course-registration' | 'tutor-application' | 'scholarship-application' | 'internship-application' | 'corporate-training' | 'mentorship-application' | 'student-dashboard' | 'clients' | 'careers' | 'account' | 'recognition' | 'staff-portal' | 'tutor-dashboard' | 'verify-certificate' | 'management-accounts' | 'management-dashboard' | 'attendance' | 'crm' | 'proposals' | 'quote';
 
 export function resolvePathToState(rawPath: string): {
   path: string;
@@ -312,6 +315,21 @@ export function resolvePathToState(rawPath: string): {
   }
 
   const lowerPath = path.toLowerCase();
+
+  // Dedicated Core Services Quotation Route (DIRECT & PRIORITY RESOLUTION - ALL 16 CORE SERVICES)
+  if (
+    lowerPath === '/quote' ||
+    lowerPath === '/quote/' ||
+    lowerPath.startsWith('/quote/') ||
+    lowerPath.startsWith('/quote')
+  ) {
+    let quoteSlug = '';
+    const quoteMatch = path.match(/^\/quote\/([\w\-]+)/i);
+    if (quoteMatch && quoteMatch[1]) {
+      quoteSlug = quoteMatch[1];
+    }
+    return { path, activePage: 'quote', isAdminView: false, appId: quoteSlug || null };
+  }
 
   // Dedicated Website Visitor Intelligence & CRM Route
   if (
@@ -539,6 +557,11 @@ export default function App() {
           pageTitle = 'Digital Services & Engineering Catalog';
           section = 'Agency Solutions';
           workflowState = 'Exploring Tech & Marketing Services';
+          break;
+        case 'quote':
+          pageTitle = 'DS TECH Service Quotation Portal';
+          section = 'Service Quotation';
+          workflowState = 'Configuring Service Quotation Request';
           break;
         case 'portfolio':
           pageTitle = 'DS TECH Engineering & Campaign Portfolio';
@@ -998,31 +1021,40 @@ export default function App() {
               <Logo size="sm" showText={true} variant={theme === 'dark' ? 'light' : 'dark'} className="shrink min-w-0" />
             </div>
 
-            {/* Desktop Navigation Links */}
-            <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5">
-              {navMenuTranslations[language as LanguageCode].map((item) => {
-                const isActive = activePage === item.value;
-                return (
-                  <button
-                    key={item.value}
-                    onClick={() => safeNavigate(item.value === 'home' ? '/' : `/${item.value}`)}
-                    className={`relative px-3 py-1.5 text-[13px] font-semibold rounded-lg transition-all duration-150 cursor-pointer select-none flex items-center gap-1.5 focus:outline-none ${
-                      isActive
-                        ? 'text-slate-950 dark:text-white font-bold bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 shadow-2xs'
-                        : 'text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/40'
-                    }`}
-                    type="button"
-                  >
-                    <span>{item.label}</span>
-                    {item.value === 'careers' && (
-                      <span className="relative flex h-1.5 w-1.5">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500"></span>
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+            {/* App-Native Quick Switcher (Core Digital Platform Modules) */}
+            <nav className="hidden md:flex items-center gap-1 sm:gap-2">
+              <button
+                type="button"
+                onClick={() => safeNavigate('/services')}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
+              >
+                Services Hub
+              </button>
+              <button
+                type="button"
+                onClick={() => safeNavigate('/academy-overview')}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
+              >
+                Academy (115+ Courses)
+              </button>
+              <button
+                type="button"
+                onClick={() => safeNavigate('/proposals')}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
+              >
+                Our Proposals
+              </button>
+              <button
+                type="button"
+                onClick={() => safeNavigate('/careers')}
+                className="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                <span>Careers</span>
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-orange-500"></span>
+                </span>
+              </button>
             </nav>
 
             {/* Unified Control Suite (Language + Theme + Menu) */}
@@ -1221,6 +1253,7 @@ export default function App() {
                     setIsApplying(true);
                     safeNavigate('/careers');
                   }} 
+                  onOpenAppMenu={() => setIsMobileMenuOpen(true)}
                 />
               </motion.div>
              ) : activePage === 'about' ? (
@@ -1249,8 +1282,7 @@ export default function App() {
               >
                 <ServicesSection 
                   language={language}
-                  selectedId={selectedServiceId}
-                  onSelectId={setSelectedServiceId}
+                  onNavigateToQuote={(slug) => safeNavigate(`/quote/${slug}`)}
                   theme={theme}
                   onToggleTheme={() => setTheme(prev => prev === 'dark' ? 'light' : 'dark')}
                   onBackToMain={() => {
@@ -1258,6 +1290,49 @@ export default function App() {
                     window.scrollTo(0, 0);
                   }}
                 />
+              </motion.div>
+             ) : activePage === 'quote' ? (
+              <motion.div
+                key="quote-section"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="w-full"
+              >
+                {(() => {
+                  const targetService = getServiceBySlugOrId(currentAppId || 'website-development', SERVICES);
+                  if (targetService) {
+                    return (
+                      <ServiceQuoteView
+                        service={targetService}
+                        allServices={SERVICES}
+                        language={language}
+                        onBack={() => safeNavigate('/services')}
+                        onNavigateToService={(slug) => safeNavigate(`/quote/${slug}`)}
+                      />
+                    );
+                  }
+                  return (
+                    <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center space-y-4">
+                      <div className="p-4 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20">
+                        <AlertCircle size={36} />
+                      </div>
+                      <h2 className="text-2xl font-black uppercase text-[#000E32] dark:text-white font-serif">
+                        Service Quotation Route Not Found
+                      </h2>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md font-light">
+                        The requested service route "{currentAppId}" could not be matched with our active Core Services catalogue.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => safeNavigate('/services')}
+                        className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md"
+                      >
+                        Return to Core Services Marketplace
+                      </button>
+                    </div>
+                  );
+                })()}
               </motion.div>
              ) : activePage === 'portfolio' ? (
               <motion.div
@@ -2140,7 +2215,7 @@ export default function App() {
       </main>
 
       {/* Document bottom footer info */}
-      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'student-dashboard', 'tutor-dashboard', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog', 'management-accounts', 'management-dashboard', 'attendance', 'crm'].includes(activePage) && (
+      {!isUserLoggedIn && !isAdminView && !['account', 'clients', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'student-dashboard', 'tutor-dashboard', 'staff-portal', 'recognition', 'team', 'portfolio', 'careers', 'services', 'about', 'blog', 'management-accounts', 'management-dashboard', 'attendance', 'crm', 'home'].includes(activePage) && (
         <MainFooter publishedCac={publishedCac} />
       )}
       {/* Premium Circular Floating AI Assistant Launcher (Hidden on course-registration, attendance, and crm pages) */}

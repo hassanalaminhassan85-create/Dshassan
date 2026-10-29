@@ -21,13 +21,15 @@ interface HomeSectionProps {
   onApplyForJob: (role?: string) => void;
   language: LanguageCode;
   onSelectService: (serviceId: string) => void;
+  onOpenAppMenu?: () => void;
 }
 
 export const HomeSection: React.FC<HomeSectionProps> = ({ 
   onNavigate, 
   onApplyForJob, 
   language, 
-  onSelectService 
+  onSelectService,
+  onOpenAppMenu
 }) => {
   const [bookingName, setBookingName] = useState('');
   const [bookingEmail, setBookingEmail] = useState('');
@@ -79,12 +81,6 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
 
   const t = HOME_TRANSLATIONS[language] || HOME_TRANSLATIONS.en;
 
-  const stats = [
-    { value: '500+', label: t.statsSuccessfulCampaigns || 'Successful Campaigns' },
-    { value: '99.4%', label: t.statsClientSatisfaction || 'Client Satisfaction' },
-    { value: 'RC 9550925', label: 'CAC Verified Entity' }
-  ];
-
   const features = [
     {
       title: t.missionTitle || 'End-to-End Execution',
@@ -126,30 +122,58 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
   return (
     <div className="w-full space-y-12 sm:space-y-16 pb-12 animate-fade-in text-slate-900 dark:text-slate-100">
       
-      {/* 1. CLEAN AGENCY HERO SECTION (NO DARK CARD CONTAINER WRAPPER) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 text-left">
-        <div className="space-y-6">
+      {/* 1. CLEAN AGENCY HERO SECTION */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-1 sm:pt-2 text-left">
+        <div className="space-y-5">
           
-          {/* Eyebrow Badge */}
-          <div className="inline-flex items-center gap-2 bg-indigo-50 dark:bg-indigo-950/60 border border-indigo-200/80 dark:border-indigo-800/80 px-3.5 py-1.5 rounded-full shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-            <span className="text-[10px] sm:text-[11px] font-extrabold text-indigo-700 dark:text-indigo-300 tracking-wider uppercase font-mono">
-              DIGITAL EXCELLENCE • MEASURABLE IMPACT
-            </span>
-          </div>
-
           {/* Headline */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] text-slate-900 dark:text-white font-sans">
-            We Build Brands That Lead{" "}
-            <span className="text-orange-500 font-serif italic block sm:inline">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.08] text-slate-900 dark:text-white font-sans max-w-4xl">
+            We Build Brands That <br className="hidden sm:block" />
+            Lead <br />
+            <span className="text-orange-500 dark:text-orange-400 font-italian-italic font-normal tracking-wide text-[1.08em] block sm:inline mt-1 sm:mt-0">
               and Scale.
             </span>
           </h1>
 
-          {/* Description */}
-          <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl font-normal">
-            DS Tech & Digital Marketing Agency delivers enterprise software engineering, high-ROI sponsored ad campaigns, AI workflow automation, and CAC regulatory clearance across West Africa.
-          </p>
+          {/* Premium Technology Hero Visual (Replacing Description Paragraph) */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full max-w-4xl relative group overflow-hidden rounded-2xl sm:rounded-3xl border border-amber-500/30 dark:border-amber-500/30 bg-[#030d22] dark:bg-[#020817] shadow-[0_12px_36px_-10px_rgba(245,158,11,0.22)] dark:shadow-[0_16px_40px_-12px_rgba(245,158,11,0.25)] motion-reduce:transform-none motion-reduce:transition-none"
+          >
+            {/* Ambient orange-gold & tech-navy backlight highlights */}
+            <div 
+              aria-hidden="true" 
+              className="absolute -top-12 -right-12 w-48 h-48 sm:w-64 sm:h-64 rounded-full bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-transparent blur-2xl pointer-events-none" 
+            />
+            <div 
+              aria-hidden="true" 
+              className="absolute -bottom-10 -left-10 w-44 h-44 rounded-full bg-indigo-600/15 blur-2xl pointer-events-none" 
+            />
+
+            {/* Responsive Sharp Hero Visual Frame */}
+            <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-950">
+              <img
+                src="/assets/aistudio/file_00000000225c820ea8c78c7421d11c6a_af58dd55.png"
+                alt="DS Tech Enterprise Technology, AI Automation, and Global Digital Marketing Visual"
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                referrerPolicy="no-referrer"
+                className="w-full h-full object-cover object-center transform group-hover:scale-[1.015] transition-transform duration-700 ease-out motion-reduce:transform-none"
+              />
+              {/* Subtle edge scrim & orange-gold highlight ring */}
+              <div 
+                aria-hidden="true" 
+                className="absolute inset-0 bg-gradient-to-t from-[#030d22]/50 via-transparent to-transparent pointer-events-none" 
+              />
+              <div 
+                aria-hidden="true" 
+                className="absolute inset-0 ring-1 ring-inset ring-amber-500/20 rounded-2xl sm:rounded-3xl pointer-events-none" 
+              />
+            </div>
+          </motion.div>
 
           {/* Main Action CTAs: Explore Services, View Case Studies, Request Custom Quote */}
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 pt-1">
@@ -188,64 +212,13 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
             </motion.button>
           </div>
 
-          {/* Key Metrics Bar */}
-          <div className="pt-5 grid grid-cols-3 gap-3 sm:gap-6 text-left border-t border-slate-200/80 dark:border-slate-800/80">
-            {stats.map((st, i) => (
-              <div key={i} className="space-y-0.5">
-                <span className="text-base sm:text-lg md:text-xl font-bold text-slate-900 dark:text-white tracking-tight font-sans block">
-                  {st.value}
-                </span>
-                <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium block leading-snug">
-                  {st.label}
-                </span>
-              </div>
-            ))}
-          </div>
-
         </div>
       </section>
 
       {/* 2. CORE SERVICE DISCOVERY CATALOGUE (NO DARK BOX CONTAINER) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 text-left">
         
-        {/* Section Heading */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
-          <div className="space-y-2">
-            <span className="text-orange-500 text-[11px] font-extrabold uppercase tracking-widest font-mono flex items-center gap-1.5">
-              <ShoppingBag size={14} className="text-orange-500" />
-              <span>PROFESSIONAL SERVICE MARKETPLACE</span>
-            </span>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold uppercase font-serif tracking-tight text-slate-900 dark:text-white">
-              EXPLORE OUR PROFESSIONAL SERVICE CATALOG AND MAKE YOUR SELECTION
-            </h2>
-            <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-3xl font-normal leading-relaxed">
-              Browse our core professional services below. Click any service card to inspect deliverables, view transparent pricing, and submit a custom project brief.
-            </p>
-          </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
-            <button 
-              type="button"
-              onClick={() => {
-                setQuoteModalService(filteredServices[0] || null);
-                setIsQuoteModalOpen(true);
-              }}
-              className="px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-md hover:shadow-lg shrink-0 cursor-pointer"
-            >
-              <FileText size={14} />
-              <span>Get Service Quote</span>
-            </button>
-
-            <button 
-              type="button"
-              onClick={() => onNavigate('/services')}
-              className="px-4 py-2.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-colors border border-indigo-200/60 dark:border-indigo-800/60 shrink-0 cursor-pointer"
-            >
-              <span>Full 16-Service Catalogue</span>
-              <ChevronRight size={14} />
-            </button>
-          </div>
-        </div>
 
         {/* Category Pills Filter */}
         <div className="flex flex-wrap gap-2 pt-1">
@@ -277,8 +250,21 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
               key={svc.id}
               whileHover={{ y: -3 }}
               transition={{ duration: 0.2 }}
-              onClick={() => onSelectService(svc.id)}
-              className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 shadow-sm hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group text-left"
+              onClick={() => {
+                setQuoteModalService(svc);
+                setIsQuoteModalOpen(true);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setQuoteModalService(svc);
+                  setIsQuoteModalOpen(true);
+                }
+              }}
+              tabIndex={0}
+              role="button"
+              aria-label={`Open quotation request form for ${svc.name}`}
+              className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 shadow-sm hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
             >
               <div>
                 <div className="relative h-36 sm:h-44 overflow-hidden bg-slate-950">
@@ -298,27 +284,6 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
-                  
-                  {/* Price Tag (Positioned at bottom-left with dedicated width to prevent collision) */}
-                  <div className="absolute bottom-2 left-2 max-w-[calc(100%-1rem)] bg-slate-950/90 backdrop-blur-md px-2.5 py-1 rounded-xl text-xs sm:text-sm font-black text-white border border-orange-500/70 shadow-lg flex items-center gap-1.5 z-10">
-                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0" />
-                    <span className="font-extrabold text-orange-400 font-sans tracking-tight text-[11px] sm:text-xs md:text-sm break-words whitespace-normal">{svc.price}</span>
-                  </div>
-
-                  {/* Quick Quote Button on Image Top-Right */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setQuoteModalService(svc);
-                      setIsQuoteModalOpen(true);
-                    }}
-                    className="absolute top-2.5 right-2.5 bg-orange-600 hover:bg-orange-500 text-white px-2.5 py-1 rounded-lg text-[9.5px] font-black uppercase tracking-wider shadow-md backdrop-blur-md transition-all z-10 flex items-center gap-1 cursor-pointer active:scale-95 border border-orange-400/40"
-                    title={`Request Quote for ${svc.name}`}
-                  >
-                    <FileText size={10} className="shrink-0" />
-                    <span>Quote</span>
-                  </button>
                 </div>
 
                 <div className="p-3 sm:p-4 space-y-2">
@@ -338,40 +303,26 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
                   <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed line-clamp-2 font-normal">
                     {svc.description}
                   </p>
-
-                  {/* Bold Prominent Pricing Row - Absolutely No Truncation */}
-                  <div className="pt-2 pb-0.5 border-t border-slate-100 dark:border-slate-800 flex items-baseline justify-between gap-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 shrink-0">
-                      Price:
-                    </span>
-                    <span className="text-xs sm:text-sm font-black text-orange-600 dark:text-orange-400 font-sans tracking-tight text-right leading-tight break-words whitespace-normal">
-                      {svc.price}
-                    </span>
-                  </div>
                 </div>
               </div>
 
               <div className="p-3 sm:p-4 pt-0">
                 <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800 gap-1.5">
-                  <span className="text-[10.5px] sm:text-[11px] font-extrabold text-orange-500 uppercase tracking-wider flex items-center gap-1 group-hover:translate-x-0.5 transition-transform whitespace-nowrap shrink-0">
-                    <span className="inline sm:hidden">Details</span>
-                    <span className="hidden sm:inline">View Details</span>
+                  <span className="text-[10.5px] sm:text-[11px] font-extrabold text-orange-500 uppercase tracking-wider flex items-center gap-1 group-hover:translate-x-1 transition-transform whitespace-nowrap shrink-0">
+                    <span>GET QUOTE</span>
                     <ArrowRight size={11} className="shrink-0" />
                   </span>
 
-                  {/* Dedicated Quote Button on Card Action Row */}
                   <button
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setQuoteModalService(svc);
-                      setIsQuoteModalOpen(true);
+                      onSelectService(svc.id);
                     }}
-                    className="px-2.5 py-1 rounded-lg text-[9.5px] sm:text-[10px] font-black uppercase tracking-wider bg-orange-600 hover:bg-orange-500 text-white shadow-xs transition-all flex items-center gap-1 cursor-pointer shrink-0 active:scale-95 border border-orange-500/50"
-                    title={`Request Quote for ${svc.name}`}
+                    className="text-[9.5px] font-mono text-slate-400 dark:text-slate-500 hover:text-orange-500 transition-colors cursor-pointer"
+                    title={`View dedicated page for ${svc.name}`}
                   >
-                    <FileText size={10} className="shrink-0" />
-                    <span>Quote</span>
+                    Full Brief ➔
                   </button>
                 </div>
               </div>

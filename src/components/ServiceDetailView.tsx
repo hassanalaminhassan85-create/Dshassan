@@ -1,16 +1,20 @@
-import React, { useState } from 'react';
-import { motion } from 'motion/react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowLeft, MessageSquare, CheckCircle2, ShieldCheck, 
-  Sparkles, Calendar, Award, Phone, Mail, Clock, DollarSign, FileText, CreditCard,
-  Building2, Globe, Link as LinkIcon, Check, Copy, Send, HelpCircle
+  Sparkles, Calendar, Award, Phone, Mail, Clock, DollarSign, FileText,
+  Building2, Globe, Link as LinkIcon, Check, Copy, Send, ChevronDown,
+  Layers, User, MapPin
 } from 'lucide-react';
-import { ServiceItem, parsePriceToNumeric } from '../lib/data';
-import { resolveImageUrl, apiSaveServiceRequest, ServiceRequestRecord } from '../lib/api';
-import { generateDynamicSvgUrl, getPolishedServiceImage, getEmergencyFallbackImage } from '../lib/mediaUtils';
+import { ServiceItem } from '../lib/data';
+import { apiSaveServiceRequest, ServiceRequestRecord } from '../lib/api';
 import { LanguageCode } from '../lib/translations';
-import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
-import { COMPANY_BANK_NAME, COMPANY_BANK_ACCOUNT_NUMBER, COMPANY_BANK_ACCOUNT_NAME } from '../lib/companyConstants';
+import { 
+  COMPANY_BANK_NAME, 
+  COMPANY_BANK_ACCOUNT_NUMBER, 
+  COMPANY_BANK_ACCOUNT_NAME 
+} from '../lib/companyConstants';
+import { MoniepointIcon } from './MoniepointIcon';
 
 interface ServiceDetailViewProps {
   service: ServiceItem;
@@ -20,7 +24,11 @@ interface ServiceDetailViewProps {
   getCategoryIcon?: (category: string) => React.ReactNode;
 }
 
-export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, language, onBack }) => {
+export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ 
+  service, 
+  language, 
+  onBack 
+}) => {
   const agencyPhone = '2349023489111';
 
   // Bank transfer details
@@ -30,7 +38,7 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, l
     accountNumber: COMPANY_BANK_ACCOUNT_NUMBER
   };
 
-  // Form State (13 Comprehensive Fields)
+  // Form State
   const [fullName, setFullName] = useState('');
   const [company, setCompany] = useState('');
   const [email, setEmail] = useState('');
@@ -39,23 +47,30 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, l
   const [projectTitle, setProjectTitle] = useState('');
   const [projectBrief, setProjectBrief] = useState('');
   const [expectedDeliverables, setExpectedDeliverables] = useState('');
-  const [budgetRange, setBudgetRange] = useState('₦300,000 – ₦1,000,000');
-  const [customBudget, setCustomBudget] = useState('');
-  const [completionDate, setCompletionDate] = useState('');
+  
+  // Proposed Budget (Client defined, no predefined bands)
+  const [proposedBudget, setProposedBudget] = useState('');
+  
+  // Preferred Delivery Time Dropdown State
+  const [deliveryTimeline, setDeliveryTimeline] = useState('Within 1–2 weeks');
+  const [customTimelineText, setCustomTimelineText] = useState('');
+
   const [referenceLink, setReferenceLink] = useState('');
   const [additionalNotes, setAdditionalNotes] = useState('');
 
-  // Payment Option State
-  const [paymentPlan, setPaymentPlan] = useState<'quote_only' | '70_percent_upfront' | 'full'>('quote_only');
-  const [paymentMethod, setPaymentMethod] = useState<'bank_transfer' | 'paystack' | 'consultation'>('bank_transfer');
-  const [showBankInfo, setShowBankInfo] = useState(false);
+  // Manual Payment Accordion State (Collapsed by default)
+  const [isPaymentAccordionOpen, setIsPaymentAccordionOpen] = useState(false);
+  const [amountPaid, setAmountPaid] = useState('');
   const [copiedAcc, setCopiedAcc] = useState(false);
+
+  // Engagement Preference
+  const [paymentPlan, setPaymentPlan] = useState<'quote_only' | '70_percent_upfront' | 'full'>('quote_only');
 
   // Submission State
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedRecord, setSubmittedRecord] = useState<ServiceRequestRecord | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'auto' });
     const mainContainer = document.querySelector('main') || document.getElementById('root');
     if (mainContainer) {
@@ -64,13 +79,29 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, l
   }, [service.id]);
 
   const handleCopyAccount = () => {
-    navigator.clipboard.writeText(bankDetails.accountNumber);
-    setCopiedAcc(true);
-    setTimeout(() => setCopiedAcc(false), 2000);
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(bankDetails.accountNumber);
+      setCopiedAcc(true);
+      setTimeout(() => setCopiedAcc(false), 2000);
+    }
   };
 
-  const getHighlights = (category: string) => {
-    switch (category) {
+  const formatNairaDisplay = (val: string) => {
+    const rawDigits = val.replace(/[^\d]/g, '');
+    if (!rawDigits) return '';
+    return Number(rawDigits).toLocaleString('en-NG');
+  };
+
+  const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawVal = e.target.value.replace(/[^\d]/g, '');
+    setProposedBudget(rawVal);
+  };
+
+  const getDeliverableHighlights = (svc: ServiceItem) => {
+    if (svc.deliverables && svc.deliverables.length > 0) {
+      return svc.deliverables;
+    }
+    switch (svc.category) {
       case 'marketing':
         return [
           'Full-funnel ad targeting & conversion pixel tracking',
@@ -93,19 +124,11 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, l
           'Semantic intent mapping & immediate customer help desks',
           'Complete data privacy isolation & secure local keys encryption'
         ];
-      case 'compliance':
-        return [
-          'CAC incorporation fast e-filing node submission',
-          'SCUML anti-money laundering certifications guidance',
-          'FIRS corporate tax registration (TIN) processing',
-          '100% legal agent representation with 5-day delivery'
-        ];
       default:
         return [
-          'Custom high-performance workflow diagnostics',
-          'West-African regional operational clearance audits',
-          '1-on-1 strategic advisor oversight & progress updates',
-          'Official registration clearance & digital licensing keys'
+          'Dedicated Enterprise Architecture & Strategy',
+          'Milestone-Based Execution & Quality Assurance Audits',
+          'Official SLA Guarantee & Direct Engineering Handover'
         ];
     }
   };
@@ -119,7 +142,17 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, l
 
     setIsSubmitting(true);
 
-    const finalBudget = budgetRange === 'Custom Amount' ? (customBudget ? `Custom (₦${customBudget})` : 'Custom Budget') : budgetRange;
+    const formattedBudget = proposedBudget 
+      ? `₦${Number(proposedBudget).toLocaleString('en-NG')}` 
+      : 'Open to Discussion';
+
+    const finalDeliveryTime = deliveryTimeline === 'Custom timeline'
+      ? (customTimelineText ? `Custom (${customTimelineText})` : 'Custom Timeline')
+      : deliveryTimeline;
+
+    const manualPaymentInfo = amountPaid.trim() 
+      ? `₦${Number(amountPaid.replace(/[^\d]/g, '') || amountPaid).toLocaleString('en-NG')}` 
+      : 'Optional / Not paid yet';
 
     try {
       const record = await apiSaveServiceRequest({
@@ -133,560 +166,546 @@ export const ServiceDetailView: React.FC<ServiceDetailViewProps> = ({ service, l
         projectTitle,
         projectBrief,
         expectedDeliverables,
-        budgetRange: finalBudget,
-        completionDate,
+        budgetRange: formattedBudget,
+        completionDate: finalDeliveryTime,
         referenceLink,
         additionalNotes,
         paymentPlan,
-        paymentMethod,
-        paymentStatus: paymentPlan === 'quote_only' ? 'pending' : 'pending'
+        paymentMethod: 'bank_transfer',
+        paymentStatus: 'pending'
       });
 
       setSubmittedRecord(record);
 
-      // WhatsApp format
-      const waMsg = `*DS TECH AGENCY - OFFICIAL SERVICE BRIEF REQUEST*
+      // Format WhatsApp brief docket
+      const waMsg = `*DS TECH AGENCY - OFFICIAL SERVICE QUOTATION REQUEST*
 *Ref Code:* ${record.referenceCode}
 
-*Service:* ${service.name}
-*Project Title:* ${projectTitle}
+*SERVICE SPECIFICATION:*
+• Service: ${service.name}
+• Category: ${(service.category || 'General').toUpperCase()}
 
-*Client Details:*
+*CLIENT CONTACT DETAILS:*
 • Name: ${fullName}
 • Company: ${company || 'N/A'}
 • Email: ${email}
 • Phone: ${phone}
 • Country: ${country}
 
-*Project Brief:*
-${projectBrief}
+*PROJECT SCOPE & REQUIREMENTS:*
+• Project Title: ${projectTitle}
+• Brief Overview: ${projectBrief}
+• Deliverables: ${expectedDeliverables || 'Standard Deliverables Package'}
 
-*Deliverables:* ${expectedDeliverables || 'Standard Service Package'}
-*Budget Range:* ${finalBudget}
-*Target Date:* ${completionDate || 'Flexible'}
-*Ref Link:* ${referenceLink || 'None'}
-
-*Payment Option Selected:* ${paymentPlan === 'quote_only' ? 'Request Official Quote First' : paymentPlan === '70_percent_upfront' ? '70% Upfront Commitment Deposit' : 'Full Payment'}
-${additionalNotes ? `\n*Additional Notes:*\n${additionalNotes}` : ''}
-
+*PROPOSED TERMS:*
+• Client Proposed Budget: ${formattedBudget}
+• Preferred Delivery Time: ${finalDeliveryTime}
+• Manual Payment Status: ${manualPaymentInfo}
+• Engagement Mode: ${paymentPlan === 'quote_only' ? 'Request Official Itemized Quote' : paymentPlan === '70_percent_upfront' ? '70% Upfront Retainer' : 'Full Payment Clearance'}
+${referenceLink ? `• Reference Link: ${referenceLink}\n` : ''}${additionalNotes ? `• Additional Notes: ${additionalNotes}\n` : ''}
 ----------------------------------------
-*Submitted via DS Tech Service Marketplace*`;
+*Generated via DS Tech Marketplace (RC 9550925)*`;
 
       const whatsappUrl = `https://wa.me/${agencyPhone}?text=${encodeURIComponent(waMsg)}`;
       
       setTimeout(() => {
         window.open(whatsappUrl, '_blank');
-      }, 1200);
+      }, 1000);
 
     } catch (err) {
-      console.error('Failed to submit service brief:', err);
-      alert('Something went wrong saving your brief. Please try again or message us directly on WhatsApp.');
+      console.error('Failed to submit quotation request:', err);
+      alert('Something went wrong submitting your request. Please try again or message us directly on WhatsApp.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const highlights = getHighlights(service.category);
-  const titleWords = (service.name || '').split(' ');
+  const highlights = getDeliverableHighlights(service);
 
   return (
     <motion.div 
-      initial={{ opacity: 0, scale: 0.98, y: 15 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.98, y: -15 }}
-      transition={{ type: "spring", stiffness: 220, damping: 20 }}
-      className="max-w-6xl mx-auto px-4 sm:px-6 py-6 md:py-10 space-y-8 text-left text-slate-900 dark:text-slate-100"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -12 }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
+      className="max-w-5xl mx-auto px-4 sm:px-6 py-6 md:py-8 space-y-6 text-left text-slate-900 dark:text-slate-100"
     >
-      {/* Back Button */}
+      {/* Top Navigation Back Action */}
       <button 
         onClick={onBack}
-        className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 hover:text-orange-500 transition-colors"
+        className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 rounded-lg px-2 py-1 -ml-2"
         type="button"
       >
         <ArrowLeft size={16} />
         <span>{language === 'zh' ? '返回服务目录' : 'Back to Service Catalogue'}</span>
       </button>
 
-      {/* Hero Service Card */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 md:p-8 shadow-md">
-        {/* Service Image */}
-        <div className="lg:col-span-5 relative rounded-2xl overflow-hidden min-h-[260px] lg:min-h-[340px] shadow-md bg-slate-950">
-          <img 
-            src={getPolishedServiceImage(service)} 
-            alt={service.name} 
-            loading="lazy"
-            referrerPolicy="no-referrer"
-            onError={(e) => {
-              const fallback = getEmergencyFallbackImage(service.category);
-              if (e.currentTarget.src !== fallback) {
-                e.currentTarget.src = fallback;
-              }
-            }}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute top-4 left-4 bg-slate-950/95 backdrop-blur-md px-4 py-2 rounded-xl text-sm sm:text-base font-black text-white tracking-tight border border-orange-500/80 shadow-xl flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-orange-500" />
-            <span className="text-orange-400">{service.price}</span>
+      {/* DEDICATED QUOTATION FORM CARD */}
+      <div className="bg-slate-900 text-white rounded-2xl p-6 sm:p-8 border border-slate-800 shadow-xl relative overflow-hidden">
+        
+        <div className="space-y-2 border-b border-slate-800 pb-5 mb-6">
+          <div className="flex items-center gap-2 text-orange-400 text-xs uppercase tracking-widest font-black font-mono">
+            <Sparkles size={15} className="text-amber-400 animate-pulse" />
+            <span>EXECUTIVE PROJECT QUOTATION BRIEF</span>
           </div>
-        </div>
-
-        {/* Core Content */}
-        <div className="lg:col-span-7 flex flex-col justify-between space-y-6">
-          <div className="space-y-3">
-            <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-3.5 py-1.5 rounded-full inline-block border border-indigo-200/60 dark:border-indigo-800/60">
-              {service.category} Service
-            </span>
-
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold font-display text-slate-900 dark:text-white leading-tight tracking-tight">
-              {service.name}
-            </h1>
-
-            <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
-              {service.description}
-            </p>
-          </div>
-
-          {/* Service Highlights */}
-          <div className="space-y-3 border-t border-slate-100 dark:border-slate-800 pt-5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2 font-mono">
-              <Award size={15} className="text-orange-500" />
-              <span>Core Service Features & Deliverables</span>
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {highlights.map((highlight, index) => (
-                <div key={index} className="flex gap-2 items-start bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/50">
-                  <CheckCircle2 size={15} className="text-emerald-500 shrink-0 mt-0.5" />
-                  <span className="text-slate-800 dark:text-slate-200 text-xs leading-snug font-medium">{highlight}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Quick Action Buttons */}
-          <div className="flex flex-wrap gap-3 pt-2">
-            <button
-              onClick={() => {
-                const el = document.getElementById('brief-form-section');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="px-6 py-3 bg-orange-600 hover:bg-orange-500 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-lg flex items-center gap-2 cursor-pointer"
-            >
-              <Send size={15} />
-              <span>Fill Project Brief Form</span>
-            </button>
-
-            <button
-              onClick={() => setShowBankInfo(!showBankInfo)}
-              className="px-5 py-3 bg-slate-900 dark:bg-slate-800 border border-slate-700 hover:border-emerald-500 text-slate-200 hover:text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-md flex items-center gap-2 cursor-pointer"
-            >
-              <CreditCard size={15} className="text-emerald-400" />
-              <span>{showBankInfo ? 'Hide Bank Details' : 'View Bank Transfer Info'}</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Manual Bank Details Collapsible Card */}
-      {showBankInfo && (
-        <motion.div 
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          className="bg-slate-900 text-white rounded-3xl p-6 border border-emerald-500/40 shadow-xl space-y-4"
-        >
-          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-            <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm uppercase tracking-wider">
-              <Building2 size={18} />
-              <span>Official Agency Bank Account Details</span>
-            </div>
-            <span className="text-[10px] bg-emerald-500/10 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30">
-              Manual Transfer Option
-            </span>
-          </div>
-
-          <p className="text-xs text-slate-300 leading-relaxed">
-            Payment is <strong>optional at the brief stage</strong>. If you wish to pay your deposit or project fee upfront via direct bank transfer, please use our verified company account below:
+          <h2 className="text-xl sm:text-2xl font-extrabold uppercase tracking-tight text-white font-serif">
+            Request Quotation for {service.name}
+          </h2>
+          <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-normal max-w-3xl">
+            Propose your investment budget and project timeline. Our engineering and marketing leads will evaluate your requirements and contact you with a customized solution.
           </p>
+        </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-950 p-4 rounded-2xl border border-slate-800">
-            <div>
-              <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono block">Bank Name</span>
-              <span className="text-sm font-bold text-white">{bankDetails.bankName}</span>
+        {submittedRecord ? (
+          <motion.div 
+            initial={{ scale: 0.96, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-emerald-950/40 border border-emerald-500/40 rounded-2xl p-8 text-center space-y-4"
+          >
+            <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/40">
+              <CheckCircle2 size={32} />
             </div>
-            <div>
-              <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono block">Account Name</span>
-              <span className="text-sm font-bold text-white">{bankDetails.accountName}</span>
-            </div>
-            <div className="flex items-center justify-between sm:justify-start gap-3">
-              <div>
-                <span className="text-[10px] text-slate-400 uppercase tracking-widest font-mono block">Account Number</span>
-                <span className="text-base font-extrabold text-emerald-400 font-mono tracking-wider">{bankDetails.accountNumber}</span>
-              </div>
-              <button 
+            <h3 className="text-xl font-extrabold text-white font-serif uppercase">Quotation Request Received!</h3>
+            <p className="text-slate-300 text-xs sm:text-sm max-w-xl mx-auto leading-relaxed">
+              Your reference code is <span className="text-emerald-400 font-mono font-bold">{submittedRecord.referenceCode}</span>. Our senior technical consultant has received your brief and will review your proposed budget and specifications immediately.
+            </p>
+
+            <div className="pt-3 flex flex-wrap justify-center gap-3">
+              <button
                 type="button"
-                onClick={handleCopyAccount}
-                className="p-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 rounded-xl transition-all border border-emerald-500/30"
-                title="Copy Account Number"
+                onClick={() => setSubmittedRecord(null)}
+                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
               >
-                {copiedAcc ? <Check size={16} className="text-emerald-400" /> : <Copy size={16} />}
+                Submit Another Request
+              </button>
+              <button
+                type="button"
+                onClick={onBack}
+                className="px-6 py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
+              >
+                Return to Catalogue
               </button>
             </div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        ) : (
+          <form onSubmit={handleFormSubmit} className="space-y-6">
+            
+            {/* SECTION 1: Client Contact Information */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-orange-400 font-mono flex items-center gap-2 border-b border-slate-800 pb-2">
+                <span>1. Client Identity &amp; Contact Details</span>
+              </h3>
 
-      {/* Comprehensive 13-Field Service Request Form */}
-      <div id="brief-form-section" className="bg-gradient-to-br from-[#020b1e] via-[#04122d] to-slate-950 text-white rounded-3xl p-6 sm:p-8 md:p-10 border border-indigo-900/60 shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-orange-500/5 rounded-full filter blur-3xl pointer-events-none" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* Full Name */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                    Full Name <span className="text-orange-400">*</span>
+                  </label>
+                  <input 
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="e.g. Dr. Samuel Adebayo"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                  />
+                </div>
 
-        <div className="relative z-10 space-y-8">
-          
-          <div className="space-y-2 border-b border-white/10 pb-6">
-            <div className="flex items-center gap-2 text-orange-400 text-xs uppercase tracking-widest font-black font-mono">
-              <Sparkles size={16} className="animate-pulse text-amber-400" />
-              <span>Dedicated Service Brief & Project Request Form</span>
+                {/* Company Name */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                    Company / Organization (Optional)
+                  </label>
+                  <input 
+                    type="text"
+                    value={company}
+                    onChange={(e) => setCompany(e.target.value)}
+                    placeholder="e.g. Apex Global Ventures Ltd"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                  />
+                </div>
+
+                {/* Email Address */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                    Email Address <span className="text-orange-400">*</span>
+                  </label>
+                  <input 
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. samuel@company.com"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                  />
+                </div>
+
+                {/* Phone / WhatsApp */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                    Phone / WhatsApp <span className="text-orange-400">*</span>
+                  </label>
+                  <input 
+                    type="tel"
+                    required
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="e.g. +234 802 123 4567"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 font-mono transition-colors"
+                  />
+                </div>
+
+                {/* Country */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                    Country
+                  </label>
+                  <select
+                    value={country}
+                    onChange={(e) => setCountry(e.target.value)}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
+                  >
+                    <option value="Nigeria">Nigeria</option>
+                    <option value="Ghana">Ghana</option>
+                    <option value="United Kingdom">United Kingdom</option>
+                    <option value="United States">United States</option>
+                    <option value="Canada">Canada</option>
+                    <option value="South Africa">South Africa</option>
+                    <option value="Other International">Other International</option>
+                  </select>
+                </div>
+
+                {/* Selected Service (Read-Only Display) */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                    Target Service
+                  </label>
+                  <input 
+                    type="text"
+                    readOnly
+                    value={service.name}
+                    className="w-full bg-slate-950/80 border border-slate-800 text-orange-400 font-extrabold rounded-xl px-4 py-2.5 text-xs cursor-not-allowed"
+                  />
+                </div>
+              </div>
             </div>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold uppercase tracking-tight text-white font-serif">
-              Submit Your Requirements for {service.name}
-            </h2>
-            <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-normal max-w-3xl">
-              Complete the brief below with your specific business goals, scope, and timeline. Payment is <strong>optional</strong> at this stage — you may request an official proposal first or select an upfront deposit option.
-            </p>
-          </div>
 
-          {submittedRecord ? (
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="bg-emerald-950/40 border border-emerald-500/40 rounded-3xl p-8 text-center space-y-4"
-            >
-              <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border border-emerald-500/40">
-                <CheckCircle2 size={32} />
-              </div>
-              <h3 className="text-xl font-extrabold text-white">Service Brief Submitted Successfully!</h3>
-              <p className="text-slate-300 text-xs sm:text-sm max-w-xl mx-auto">
-                Your request reference code is <span className="text-emerald-400 font-mono font-bold">{submittedRecord.referenceCode}</span>. Our engineering team and project manager have received your brief and will review it immediately.
-              </p>
+            {/* SECTION 2: Scope, Proposed Budget, & Delivery Timeline */}
+            <div className="space-y-4 pt-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-orange-400 font-mono flex items-center gap-2 border-b border-slate-800 pb-2">
+                <span>2. Project Specifications &amp; Client Terms</span>
+              </h3>
 
-              <div className="pt-2 flex flex-wrap justify-center gap-4">
-                <button
-                  type="button"
-                  onClick={() => setSubmittedRecord(null)}
-                  className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold uppercase tracking-wider"
-                >
-                  Submit Another Request
-                </button>
-                <button
-                  type="button"
-                  onClick={onBack}
-                  className="px-6 py-2.5 bg-orange-600 hover:bg-orange-500 text-white rounded-xl text-xs font-bold uppercase tracking-wider"
-                >
-                  Return to Catalogue
-                </button>
-              </div>
-            </motion.div>
-          ) : (
-            <form onSubmit={handleFormSubmit} className="space-y-6">
-              
-              {/* SECTION 1: Client Information */}
               <div className="space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-orange-400 font-mono flex items-center gap-2 border-b border-white/5 pb-2">
-                  <span>1. Contact & Identity Information</span>
-                </h3>
+                {/* Project Title */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                    Project Title / Working Name <span className="text-orange-400">*</span>
+                  </label>
+                  <input 
+                    type="text"
+                    required
+                    value={projectTitle}
+                    onChange={(e) => setProjectTitle(e.target.value)}
+                    placeholder="e.g. Corporate Website Development & Multi-Channel Marketing"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                  />
+                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {/* Field 1: Full Name */}
+                {/* Project Brief */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                    Project Brief &amp; Requirements <span className="text-orange-400">*</span>
+                  </label>
+                  <textarea 
+                    required
+                    rows={4}
+                    value={projectBrief}
+                    onChange={(e) => setProjectBrief(e.target.value)}
+                    placeholder="Describe what you need built or executed, key objectives, target audience, and functional expectations..."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors leading-relaxed resize-none"
+                  />
+                </div>
+
+                {/* Expected Deliverables */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                    Specific Expected Deliverables (Optional)
+                  </label>
+                  <input 
+                    type="text"
+                    value={expectedDeliverables}
+                    onChange={(e) => setExpectedDeliverables(e.target.value)}
+                    placeholder="e.g. Mobile web app, 10 social video ad creatives, SEO audit report..."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                  />
+                </div>
+
+                {/* Proposed Budget & Preferred Delivery Time Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  
+                  {/* REQUIREMENT 4: YOUR PROPOSED BUDGET (₦) - Pure Client Proposed Numeric Input */}
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
-                      Full Name <span className="text-orange-400">*</span>
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center justify-between">
+                      <span>YOUR PROPOSED BUDGET (₦)</span>
+                      <span className="text-[10px] text-slate-500 font-normal font-sans">(Optional)</span>
                     </label>
-                    <input 
-                      type="text"
-                      required
-                      value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
-                      placeholder="e.g. Dr. Samuel Adebayo"
-                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-orange-400 font-extrabold font-mono text-sm">
+                        ₦
+                      </span>
+                      <input 
+                        type="text"
+                        value={formatNairaDisplay(proposedBudget)}
+                        onChange={handleBudgetChange}
+                        placeholder="e.g. 500,000"
+                        className="w-full bg-slate-950 border border-slate-800 focus:border-orange-500 rounded-xl pl-9 pr-4 py-2.5 text-xs font-bold text-white font-mono focus:outline-none transition-colors"
+                      />
+                    </div>
+                    <p className="text-[10.5px] text-slate-400 leading-snug">
+                      Enter the amount you are comfortable investing. We will review your requirements and discuss a suitable solution.
+                    </p>
                   </div>
 
-                  {/* Field 2: Company Name */}
+                  {/* REQUIREMENT 3: PREFERRED DELIVERY TIME - Select Control */}
                   <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
-                      Company / Organization (Optional)
-                    </label>
-                    <input 
-                      type="text"
-                      value={company}
-                      onChange={(e) => setCompany(e.target.value)}
-                      placeholder="e.g. Apex Global Ventures Ltd"
-                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
-                    />
-                  </div>
-
-                  {/* Field 3: Email */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
-                      Email Address <span className="text-orange-400">*</span>
-                    </label>
-                    <input 
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="e.g. samuel@company.com"
-                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
-                    />
-                  </div>
-
-                  {/* Field 4: Phone Number */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
-                      Phone / WhatsApp <span className="text-orange-400">*</span>
-                    </label>
-                    <input 
-                      type="tel"
-                      required
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="e.g. +234 802 123 4567"
-                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 font-mono transition-colors"
-                    />
-                  </div>
-
-                  {/* Field 5: Country */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
-                      Country <span className="text-orange-400">*</span>
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                      PREFERRED DELIVERY TIME <span className="text-orange-400">*</span>
                     </label>
                     <select
-                      value={country}
-                      onChange={(e) => setCountry(e.target.value)}
-                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                      value={deliveryTimeline}
+                      onChange={(e) => setDeliveryTimeline(e.target.value)}
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-bold text-white focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
                     >
-                      <option value="Nigeria">Nigeria</option>
-                      <option value="Ghana">Ghana</option>
-                      <option value="United Kingdom">United Kingdom</option>
-                      <option value="United States">United States</option>
-                      <option value="Canada">Canada</option>
-                      <option value="South Africa">South Africa</option>
-                      <option value="Other International">Other International</option>
+                      <option value="As soon as possible">As soon as possible</option>
+                      <option value="Within 3–7 days">Within 3–7 days</option>
+                      <option value="Within 1–2 weeks">Within 1–2 weeks</option>
+                      <option value="Within 2–4 weeks">Within 2–4 weeks</option>
+                      <option value="Within 1–2 months">Within 1–2 months</option>
+                      <option value="Flexible — let's discuss">Flexible — let's discuss</option>
+                      <option value="Custom timeline">Custom timeline</option>
                     </select>
-                  </div>
 
-                  {/* Field 6: Selected Service (Pre-filled Read-Only Display) */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1">
-                      Selected Service
-                    </label>
-                    <input 
-                      type="text"
-                      readOnly
-                      value={service.name}
-                      className="w-full bg-slate-950 border border-slate-800 text-orange-400 font-bold rounded-xl px-4 py-2.5 text-xs cursor-not-allowed"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* SECTION 2: Project Specifications */}
-              <div className="space-y-4 pt-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-orange-400 font-mono flex items-center gap-2 border-b border-white/5 pb-2">
-                  <span>2. Scope & Requirement Details</span>
-                </h3>
-
-                <div className="space-y-4">
-                  {/* Field 7: Project Title */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                      Project Title / Working Name <span className="text-orange-400">*</span>
-                    </label>
-                    <input 
-                      type="text"
-                      required
-                      value={projectTitle}
-                      onChange={(e) => setProjectTitle(e.target.value)}
-                      placeholder="e.g. Corporate Rebranding & Multi-channel Performance Ads"
-                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
-                    />
-                  </div>
-
-                  {/* Field 8: Project Brief */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                      Project Brief & Overview <span className="text-orange-400">*</span>
-                    </label>
-                    <textarea 
-                      required
-                      rows={4}
-                      value={projectBrief}
-                      onChange={(e) => setProjectBrief(e.target.value)}
-                      placeholder="Provide a concise overview of what you want us to build, market, or execute for your business..."
-                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl p-4 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors leading-relaxed resize-none"
-                    />
-                  </div>
-
-                  {/* Field 9: Expected Deliverables */}
-                  <div className="space-y-1.5">
-                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                      Expected Deliverables (Optional)
-                    </label>
-                    <input 
-                      type="text"
-                      value={expectedDeliverables}
-                      onChange={(e) => setExpectedDeliverables(e.target.value)}
-                      placeholder="e.g. Website source code, 5 short video ads, logo vector files..."
-                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    {/* Field 10: Budget Range */}
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                        Target Budget Range <span className="text-orange-400">*</span>
-                      </label>
-                      <select
-                        value={budgetRange}
-                        onChange={(e) => setBudgetRange(e.target.value)}
-                        className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
-                      >
-                        <option value="₦100,000 – ₦300,000">₦100,000 – ₦300,000</option>
-                        <option value="₦300,000 – ₦1,000,000">₦300,000 – ₦1,000,000</option>
-                        <option value="₦1,000,000 – ₦5,000,000">₦1,000,000 – ₦5,000,000</option>
-                        <option value="₦5,000,000+">₦5,000,000+ (Enterprise)</option>
-                        <option value="Custom Amount">Custom Amount</option>
-                      </select>
-                      {budgetRange === 'Custom Amount' && (
+                    {deliveryTimeline === 'Custom timeline' && (
+                      <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="pt-1.5">
                         <input 
                           type="text"
-                          value={customBudget}
-                          onChange={(e) => setCustomBudget(e.target.value)}
-                          placeholder="Enter custom budget in ₦"
-                          className="w-full mt-2 bg-slate-900 border border-orange-500 rounded-xl px-3.5 py-2 text-xs font-mono text-white focus:outline-none"
+                          value={customTimelineText}
+                          onChange={(e) => setCustomTimelineText(e.target.value)}
+                          placeholder="Specify custom timeline (e.g. Target launch Dec 15th)"
+                          className="w-full bg-slate-950 border border-orange-500 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none"
                         />
-                      )}
-                    </div>
+                      </motion.div>
+                    )}
 
-                    {/* Field 11: Completion Date */}
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                        Expected Completion Date
-                      </label>
-                      <input 
-                        type="date"
-                        value={completionDate}
-                        onChange={(e) => setCompletionDate(e.target.value)}
-                        className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
-                      />
-                    </div>
-
-                    {/* Field 12: Reference Link */}
-                    <div className="space-y-1.5">
-                      <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                        Reference Link / Inspiration URL
-                      </label>
-                      <input 
-                        type="url"
-                        value={referenceLink}
-                        onChange={(e) => setReferenceLink(e.target.value)}
-                        placeholder="https://example.com"
-                        className="w-full bg-slate-900/90 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
-                      />
-                    </div>
+                    <p className="text-[10.5px] text-slate-400 leading-snug">
+                      These options represent your preferred timeline, subject to project review and confirmation by DS Tech.
+                    </p>
                   </div>
 
-                  {/* Field 13: Additional Notes */}
+                </div>
+
+                {/* Reference Link & Additional Notes Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
-                      Additional Notes or Special Instructions (Optional)
+                      Reference Link / Inspiration URL
                     </label>
-                    <textarea 
-                      rows={2}
+                    <input 
+                      type="url"
+                      value={referenceLink}
+                      onChange={(e) => setReferenceLink(e.target.value)}
+                      placeholder="https://example.com"
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">
+                      Additional Notes or Special Instructions
+                    </label>
+                    <input 
+                      type="text"
                       value={additionalNotes}
                       onChange={(e) => setAdditionalNotes(e.target.value)}
-                      placeholder="Any specific tech stack preferences, branding guidelines, or existing domain details..."
-                      className="w-full bg-slate-900/90 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors leading-relaxed resize-none"
+                      placeholder="Tech stack preferences, existing domain info, etc."
+                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-orange-500 transition-colors"
                     />
                   </div>
                 </div>
+
               </div>
+            </div>
 
-              {/* SECTION 3: Payment & Engagement Preferences */}
-              <div className="space-y-4 pt-2">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-orange-400 font-mono flex items-center gap-2 border-b border-white/5 pb-2">
-                  <span>3. Payment & Engagement Preference</span>
-                  <span className="text-[10px] text-slate-400 font-normal normal-case">(Payment is optional at initial brief submission)</span>
-                </h3>
+            {/* REQUIREMENT 5: MANUAL PAYMENT ACCORDION (Collapsed by Default with Moniepoint Official Icon) */}
+            <div className="space-y-2 pt-2">
+              <div className="border border-slate-800 rounded-xl overflow-hidden bg-slate-950/80">
+                <button
+                  type="button"
+                  onClick={() => setIsPaymentAccordionOpen(!isPaymentAccordionOpen)}
+                  aria-expanded={isPaymentAccordionOpen}
+                  aria-controls="manual-payment-accordion-content"
+                  className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-800/50 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                >
+                  <div className="flex items-center gap-3">
+                    <MoniepointIcon size={24} />
+                    <div>
+                      <div className="text-xs font-black uppercase tracking-wider text-white flex items-center gap-2">
+                        <span>Manual Payment Instructions</span>
+                        <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-blue-500/20 text-blue-400 border border-blue-500/30 font-mono">
+                          MONIEPOINT MFB
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400 font-normal">
+                        Direct company bank transfer guidance &amp; account details (Optional)
+                      </p>
+                    </div>
+                  </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setPaymentPlan('quote_only')}
-                    className={`p-4 rounded-2xl border text-left transition-all ${
-                      paymentPlan === 'quote_only'
-                        ? 'bg-orange-600/20 border-orange-500 text-white shadow-lg'
-                        : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="font-extrabold text-xs uppercase tracking-wide">Request Official Quote First</div>
-                    <p className="text-[11px] text-slate-400 mt-1 leading-snug">
-                      We review your brief and send a detailed itemized quote before any payment.
-                    </p>
-                  </button>
+                  <ChevronDown 
+                    size={18} 
+                    className={`text-slate-400 transition-transform duration-300 ${isPaymentAccordionOpen ? 'rotate-180 text-orange-400' : ''}`} 
+                  />
+                </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setPaymentPlan('70_percent_upfront')}
-                    className={`p-4 rounded-2xl border text-left transition-all ${
-                      paymentPlan === '70_percent_upfront'
-                        ? 'bg-emerald-600/20 border-emerald-500 text-white shadow-lg'
-                        : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="font-extrabold text-xs uppercase tracking-wide">70% Upfront Retainer</div>
-                    <p className="text-[11px] text-slate-400 mt-1 leading-snug">
-                      Commit with 70% upfront payment to fast-track immediate project start.
-                    </p>
-                  </button>
+                <AnimatePresence>
+                  {isPaymentAccordionOpen && (
+                    <motion.div
+                      id="manual-payment-accordion-content"
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: 'easeInOut' }}
+                      className="overflow-hidden border-t border-slate-800 bg-slate-950 p-4 sm:p-5 space-y-4"
+                    >
+                      <p className="text-xs text-slate-300 leading-relaxed font-normal">
+                        Payment is <strong>completely optional at the brief stage</strong>. If you wish to make a deposit or upfront retainer via direct bank transfer, please use our official corporate Moniepoint account below:
+                      </p>
 
-                  <button
-                    type="button"
-                    onClick={() => setPaymentPlan('full')}
-                    className={`p-4 rounded-2xl border text-left transition-all ${
-                      paymentPlan === 'full'
-                        ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-lg'
-                        : 'bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="font-extrabold text-xs uppercase tracking-wide">Full Payment</div>
-                    <p className="text-[11px] text-slate-400 mt-1 leading-snug">
-                      Full upfront clearance with high-priority sprint execution and dedicated lead.
-                    </p>
-                  </button>
-                </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800">
+                        <div>
+                          <span className="text-[9.5px] text-slate-400 uppercase tracking-widest font-mono block">Bank Name</span>
+                          <span className="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5 mt-0.5">
+                            <MoniepointIcon size={16} />
+                            {bankDetails.bankName}
+                          </span>
+                        </div>
+
+                        <div>
+                          <span className="text-[9.5px] text-slate-400 uppercase tracking-widest font-mono block">Account Name</span>
+                          <span className="text-xs font-bold text-white block mt-0.5">{bankDetails.accountName}</span>
+                        </div>
+
+                        <div className="flex items-center justify-between sm:justify-start gap-2">
+                          <div>
+                            <span className="text-[9.5px] text-slate-400 uppercase tracking-widest font-mono block">Account Number</span>
+                            <span className="text-sm sm:text-base font-black text-emerald-400 font-mono tracking-wider">{bankDetails.accountNumber}</span>
+                          </div>
+                          <button 
+                            type="button"
+                            onClick={handleCopyAccount}
+                            className="p-2 bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-300 rounded-lg transition-colors border border-emerald-500/30 cursor-pointer"
+                            title="Copy Account Number"
+                          >
+                            {copiedAcc ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Optional Amount Paid Input Box */}
+                      <div className="space-y-1.5 pt-1">
+                        <label className="text-[10.5px] font-bold uppercase tracking-wider text-slate-300">
+                          Amount Paid / Evidence Reference (Optional - leave blank if not paid yet)
+                        </label>
+                        <input 
+                          type="text"
+                          value={amountPaid}
+                          onChange={(e) => setAmountPaid(e.target.value)}
+                          placeholder="e.g. ₦100,000 or Transaction Ref"
+                          className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-orange-500 font-mono"
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
+            </div>
 
-              {/* Submit Button */}
-              <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-white/10">
-                <div className="text-[11px] text-slate-400 flex items-center gap-2">
-                  <ShieldCheck size={16} className="text-emerald-400 shrink-0" />
-                  <span>Brief recorded securely to agency database & WhatsApp channel</span>
-                </div>
+            {/* SECTION 3: Engagement Options & Submission */}
+            <div className="space-y-4 pt-2">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-orange-400 font-mono flex items-center gap-2 border-b border-slate-800 pb-2">
+                <span>3. Engagement Preference &amp; Submission</span>
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setPaymentPlan('quote_only')}
+                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    paymentPlan === 'quote_only'
+                      ? 'bg-orange-600/20 border-orange-500 text-white shadow-md'
+                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="font-extrabold text-xs uppercase tracking-wide">Request Itemized Quote</div>
+                  <p className="text-[10.5px] text-slate-400 mt-1 leading-snug">
+                    Receive an official breakdown before any financial commitment.
+                  </p>
+                </button>
 
                 <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-500 hover:from-orange-500 hover:to-amber-500 text-white font-extrabold text-xs uppercase tracking-wider rounded-2xl transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                  type="button"
+                  onClick={() => setPaymentPlan('70_percent_upfront')}
+                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    paymentPlan === '70_percent_upfront'
+                      ? 'bg-emerald-600/20 border-emerald-500 text-white shadow-md'
+                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                  }`}
                 >
-                  <Send size={16} />
-                  <span>{isSubmitting ? 'Saving Brief...' : 'Submit Service Brief & Connect'}</span>
+                  <div className="font-extrabold text-xs uppercase tracking-wide">70% Upfront Retainer</div>
+                  <p className="text-[10.5px] text-slate-400 mt-1 leading-snug">
+                    Commit deposit to fast-track immediate technical sprint.
+                  </p>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setPaymentPlan('full')}
+                  className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer ${
+                    paymentPlan === 'full'
+                      ? 'bg-indigo-600/20 border-indigo-500 text-white shadow-md'
+                      : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-slate-700'
+                  }`}
+                >
+                  <div className="font-extrabold text-xs uppercase tracking-wide">Full Payment Clearance</div>
+                  <p className="text-[10.5px] text-slate-400 mt-1 leading-snug">
+                    High-priority VIP execution with dedicated project lead.
+                  </p>
                 </button>
               </div>
+            </div>
 
-            </form>
-          )}
+            {/* Action Footer */}
+            <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-800">
+              <div className="text-[11px] text-slate-400 flex items-center gap-2">
+                <ShieldCheck size={16} className="text-emerald-400 shrink-0" />
+                <span>Brief saved securely to database &amp; WhatsApp channel</span>
+              </div>
 
-        </div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-orange-600 via-amber-600 to-orange-500 hover:from-orange-500 hover:to-amber-500 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-xl flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 active:scale-95"
+              >
+                <Send size={15} />
+                <span>{isSubmitting ? 'Saving Brief...' : 'Submit Quotation Request'}</span>
+              </button>
+            </div>
+
+          </form>
+        )}
+
       </div>
 
     </motion.div>
