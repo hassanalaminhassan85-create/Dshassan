@@ -15,6 +15,7 @@ import { CacTrustSection } from './CacTrustSection';
 import { CustomQuoteModal } from './CustomQuoteModal';
 import { resolveImageUrl, apiSubscribeToServices } from '../lib/api';
 import { getPolishedServiceImage, getEmergencyFallbackImage } from '../lib/mediaUtils';
+import { getServiceSlug } from '../lib/quoteUtils';
 
 interface HomeSectionProps {
   onNavigate: (path: string) => void;
@@ -245,89 +246,79 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
 
         {/* Core Services Responsive Grid (2 cols mobile, 3 tablet, 4 desktop) */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4 lg:gap-5">
-          {filteredServices.map((svc, idx) => (
-            <motion.div 
-              key={svc.id}
-              whileHover={{ y: -3 }}
-              transition={{ duration: 0.2 }}
-              onClick={() => {
-                setQuoteModalService(svc);
-                setIsQuoteModalOpen(true);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setQuoteModalService(svc);
-                  setIsQuoteModalOpen(true);
-                }
-              }}
-              tabIndex={0}
-              role="button"
-              aria-label={`Open quotation request form for ${svc.name}`}
-              className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 shadow-sm hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
-            >
-              <div>
-                <div className="relative h-36 sm:h-44 overflow-hidden bg-slate-950">
-                  <img 
-                    src={getPolishedServiceImage(svc)} 
-                    alt={svc.name} 
-                    decoding="async"
-                    loading={idx < 4 ? "eager" : "lazy"}
-                    fetchPriority={idx < 4 ? "high" : "auto"}
-                    referrerPolicy="no-referrer"
-                    onError={(e) => {
-                      const fallback = getEmergencyFallbackImage(svc.category, svc.id, svc.name);
-                      if (e.currentTarget.src !== fallback) {
-                        e.currentTarget.src = fallback;
-                      }
-                    }}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
-                </div>
-
-                <div className="p-3 sm:p-4 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block truncate">
-                      {svc.category}
-                    </span>
-                    <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-800/60 shrink-0">
-                      Active
-                    </span>
+          {filteredServices.map((svc, idx) => {
+            const slug = getServiceSlug(svc);
+            return (
+              <motion.div 
+                key={svc.id}
+                whileHover={{ y: -3 }}
+                transition={{ duration: 0.2 }}
+                onClick={() => onNavigate(`/quote/${slug}`)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    onNavigate(`/quote/${slug}`);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`Explore ${svc.name} service and request quotation`}
+                className="bg-white dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 hover:border-orange-500 dark:hover:border-orange-500 shadow-sm hover:shadow-md transition-all flex flex-col justify-between cursor-pointer group text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+              >
+                <div>
+                  <div className="relative h-36 sm:h-44 overflow-hidden bg-slate-950">
+                    <img 
+                      src={getPolishedServiceImage(svc)} 
+                      alt={svc.name} 
+                      decoding="async"
+                      loading={idx < 4 ? "eager" : "lazy"}
+                      fetchPriority={idx < 4 ? "high" : "auto"}
+                      referrerPolicy="no-referrer"
+                      onError={(e) => {
+                        const fallback = getEmergencyFallbackImage(svc.category, svc.id, svc.name);
+                        if (e.currentTarget.src !== fallback) {
+                          e.currentTarget.src = fallback;
+                        }
+                      }}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent pointer-events-none" />
                   </div>
 
-                  <h3 className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm leading-tight sm:leading-snug break-words group-hover:text-orange-500 transition-colors uppercase font-serif line-clamp-2">
-                    {svc.name}
-                  </h3>
+                  <div className="p-3 sm:p-4 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-indigo-600 dark:text-indigo-400 block truncate">
+                        {svc.category}
+                      </span>
+                      <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-800/60 shrink-0">
+                        Active
+                      </span>
+                    </div>
 
-                  <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed line-clamp-2 font-normal">
-                    {svc.description}
-                  </p>
+                    <h3 className="font-extrabold text-slate-900 dark:text-white text-xs sm:text-sm leading-tight sm:leading-snug break-words group-hover:text-orange-500 transition-colors uppercase font-serif line-clamp-2">
+                      {svc.name}
+                    </h3>
+
+                    <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed line-clamp-2 font-normal">
+                      {svc.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="p-3 sm:p-4 pt-0">
-                <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800 gap-1.5">
-                  <span className="text-[10.5px] sm:text-[11px] font-extrabold text-orange-500 uppercase tracking-wider flex items-center gap-1 group-hover:translate-x-1 transition-transform whitespace-nowrap shrink-0">
-                    <span>GET QUOTE</span>
-                    <ArrowRight size={11} className="shrink-0" />
-                  </span>
-
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectService(svc.id);
-                    }}
-                    className="text-[9.5px] font-mono text-slate-400 dark:text-slate-500 hover:text-orange-500 transition-colors cursor-pointer"
-                    title={`View dedicated page for ${svc.name}`}
-                  >
-                    Full Brief ➔
-                  </button>
+                <div className="p-3 sm:p-4 pt-0">
+                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800">
+                    <span className="text-[11px] font-extrabold text-[#000E32] dark:text-orange-400 uppercase tracking-wider flex items-center gap-1 group-hover:text-orange-500 transition-all">
+                      <span>Explore Service</span>
+                      <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    </span>
+                    <span className="text-[9px] font-mono text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest">
+                      Quote Route
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
 
       </section>
