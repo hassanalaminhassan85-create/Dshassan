@@ -500,7 +500,8 @@ export default function App() {
   const [application, setApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
-      return !!resolvePathToState(window.location.pathname || '/').appId;
+      const res = resolvePathToState(window.location.pathname || '/');
+      return !!res.appId && res.activePage !== 'proposals' && res.activePage !== 'verify-certificate' && res.activePage !== 'quote';
     }
     return false;
   });
@@ -868,12 +869,14 @@ export default function App() {
         setIsAdminView(false);
       }
 
-      if (resolved.appId && resolved.activePage !== 'proposals' && resolved.activePage !== 'verify-certificate') {
+      const isJobAppRoute = !!resolved.appId && resolved.activePage !== 'proposals' && resolved.activePage !== 'verify-certificate' && resolved.activePage !== 'quote';
+
+      if (isJobAppRoute) {
         setCurrentAppId(resolved.appId);
         setLoading(true);
         setErrorMsg(null);
         try {
-          const data = await apiGetApplication(resolved.appId);
+          const data = await apiGetApplication(resolved.appId!);
           setApplication(data);
           setIsApplying(false);
         } catch (err: any) {
@@ -882,12 +885,13 @@ export default function App() {
           setLoading(false);
         }
       } else {
-        if (resolved.activePage === 'proposals' || resolved.activePage === 'verify-certificate') {
+        if (resolved.activePage === 'proposals' || resolved.activePage === 'verify-certificate' || resolved.activePage === 'quote') {
           setCurrentAppId(resolved.appId);
         } else {
           setCurrentAppId(null);
         }
         setApplication(null);
+        setErrorMsg(null);
         setActivePage(resolved.activePage);
       }
     };
