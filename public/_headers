@@ -1,40 +1,62 @@
-# Cloudflare Pages Global CDN Edge Header Rules for Instant Load Speed
-/*
-  Cache-Control: public, max-age=0, must-revalidate
+# Cloudflare Pages Global CDN Edge Header Rules for Instant Cache Freshness
 
+# 1. Entry points & HTML documents - Never cache, always revalidate with origin
+/
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+/200.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+  Expires: 0
+
+# 2. Service Worker scripts & deployment version descriptor - Never cache, zero max-age
+/firebase-messaging-sw.js
+  Cache-Control: no-cache, no-store, must-revalidate, max-age=0
+  Pragma: no-cache
+  Expires: 0
+  Access-Control-Allow-Origin: *
+
+/sw.js
+  Cache-Control: no-cache, no-store, must-revalidate, max-age=0
+  Pragma: no-cache
+  Expires: 0
+
+/registerSW.js
+  Cache-Control: no-cache, no-store, must-revalidate, max-age=0
+  Pragma: no-cache
+  Expires: 0
+
+/version.json
+  Cache-Control: no-cache, no-store, must-revalidate, max-age=0
+  Pragma: no-cache
+  Expires: 0
+  Access-Control-Allow-Origin: *
+
+/manifest.json
+  Cache-Control: no-cache, must-revalidate, max-age=0
+  Access-Control-Allow-Origin: *
+
+/manifest.webmanifest
+  Cache-Control: no-cache, must-revalidate, max-age=0
+  Access-Control-Allow-Origin: *
+
+# 3. Genuinely content-hashed production static assets (Vite builds) - Cache 1 year immutable
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
   Access-Control-Allow-Origin: *
 
+# 4. Service media assets - Cache with background revalidation
 /assets/services/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=604800, stale-while-revalidate=86400
   Access-Control-Allow-Origin: *
 
-/*.js
-  Cache-Control: public, max-age=31536000, immutable
-
-/*.css
-  Cache-Control: public, max-age=31536000, immutable
-
-/*.png
-  Cache-Control: public, max-age=31536000, immutable
-  Access-Control-Allow-Origin: *
-
-/*.jpg
-  Cache-Control: public, max-age=31536000, immutable
-  Access-Control-Allow-Origin: *
-
-/*.jpeg
-  Cache-Control: public, max-age=31536000, immutable
-  Access-Control-Allow-Origin: *
-
-/*.webp
-  Cache-Control: public, max-age=31536000, immutable
-  Access-Control-Allow-Origin: *
-
-/*.svg
-  Cache-Control: public, max-age=31536000, immutable
-  Access-Control-Allow-Origin: *
-
-/*.woff2
-  Cache-Control: public, max-age=31536000, immutable
+# 5. Default fallback for unhashed root resources (icons, logos, sitemap) - Revalidate on visit
+/*
+  Cache-Control: public, max-age=0, must-revalidate

@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DS TECH AND DIGITAL MARKETING AGENCY LIMITED - Career Portal & Academy</title>
     
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
     <!-- Performance DNS & Preconnect Acceleration -->
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
     <link rel="dns-prefetch" href="https://images.unsplash.com" />
@@ -105,15 +109,49 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     
-    <!-- PWA Service Worker Registration -->
+    <!-- Enterprise PWA & FCM Service Worker Registration & Zero-Stale Lifecycle Management -->
     <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
+      (function() {
+        if (!('serviceWorker' in navigator)) return;
+
+        // Cleanup obsolete legacy service workers (e.g. older sw.js Workbox registrations)
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (var i = 0; i < registrations.length; i++) {
+            var reg = registrations[i];
+            if (reg.active && reg.active.scriptURL && reg.active.scriptURL.indexOf('firebase-messaging-sw.js') === -1) {
+              console.log('[SW Lifecycle] Cleaning up legacy service worker:', reg.active.scriptURL);
+              reg.unregister();
+            }
+          }
+        }).catch(function() {});
+
+        // Register official unified service worker
+        window.addEventListener('load', function() {
           navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' })
-            .then(reg => console.log('FCM Service Worker registered on startup!', reg.scope))
-            .catch(err => console.error('FCM Service Worker registration failed on startup:', err));
+            .then(function(reg) {
+              console.log('[SW Lifecycle] DS TECH Service Worker active on scope:', reg.scope);
+              // Force background revalidation immediately
+              if (reg.update) {
+                reg.update();
+              }
+
+              // Revalidate whenever returning to the tab
+              document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible' && reg.update) {
+                  reg.update();
+                }
+              });
+              window.addEventListener('focus', function() {
+                if (reg.update) {
+                  reg.update();
+                }
+              });
+            })
+            .catch(function(err) {
+              console.warn('[SW Lifecycle] Service worker registration notice:', err);
+            });
         });
-      }
+      })();
     </script>
   </body>
 </html>

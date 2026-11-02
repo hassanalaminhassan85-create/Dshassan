@@ -14,6 +14,35 @@ async function startServer() {
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
+  // Global cache control headers for all API requests
+  app.use('/api', (_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+  });
+
+  // Version Freshness Endpoints
+  app.get(['/api/version', '/version.json'], (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    try {
+      const pubVersionPath = path.resolve(process.cwd(), 'public', 'version.json');
+      if (fs.existsSync(pubVersionPath)) {
+        const raw = fs.readFileSync(pubVersionPath, 'utf-8');
+        return res.json(JSON.parse(raw));
+      }
+    } catch (e) {}
+    return res.json({
+      version: '2.4.0',
+      status: 'online',
+      buildId: 'dstech_server_' + Date.now().toString(36),
+      buildTime: Date.now(),
+      deployedAt: new Date().toISOString()
+    });
+  });
+
   // In-memory conversation store for threads
   const conversationsStore = new Map<string, { id: string; title: string; user_role: string; updated_at: string; messages: Array<any> }>();
   // In-memory course registrations store

@@ -671,12 +671,35 @@ function cloudflarePagesDevPlugin() {
   };
 }
 
+const currentBuildTime = Date.now();
+const currentBuildId = `dstech_${currentBuildTime}_${Math.random().toString(36).substring(2, 7)}`;
+
+// Ensure public/version.json is updated on build
+try {
+  const versionData = {
+    version: '2.4.0',
+    buildId: currentBuildId,
+    buildTime: currentBuildTime,
+    deployedAt: new Date(currentBuildTime).toISOString()
+  };
+  const pubDir = path.resolve(process.cwd(), 'public');
+  if (!fs.existsSync(pubDir)) fs.mkdirSync(pubDir, { recursive: true });
+  fs.writeFileSync(path.resolve(pubDir, 'version.json'), JSON.stringify(versionData, null, 2));
+} catch (e) {
+  console.warn('Failed writing public/version.json:', e);
+}
+
 export default defineConfig(() => {
   return {
+    define: {
+      __APP_BUILD_ID__: JSON.stringify(currentBuildId),
+      __APP_BUILD_TIME__: JSON.stringify(currentBuildTime),
+    },
     plugins: [
       react(),
       tailwindcss(),
       VitePWA({
+        injectRegister: null,
         registerType: 'autoUpdate',
         includeAssets: ['favicon-16x16.png', 'favicon-32x32.png', 'apple-touch-icon.png', 'icon.svg'],
         manifest: {
@@ -816,6 +839,19 @@ export default defineConfig(() => {
           if (fs.existsSync(indexHtml)) {
             fs.copyFileSync(indexHtml, fallbackHtml);
             console.log('Successfully copied index.html to 200.html for Cloudflare Pages SPA fallback');
+          }
+          // Ensure dist/version.json is definitely present with fresh build info
+          try {
+            const versionJson = path.resolve(distDir, 'version.json');
+            fs.writeFileSync(versionJson, JSON.stringify({
+              version: '2.4.0',
+              buildId: currentBuildId,
+              buildTime: currentBuildTime,
+              deployedAt: new Date(currentBuildTime).toISOString()
+            }, null, 2));
+            console.log('Successfully wrote dist/version.json for deployment freshness checking');
+          } catch (e) {
+            console.warn('Could not write dist/version.json:', e);
           }
         }
       }

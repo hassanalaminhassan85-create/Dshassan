@@ -1225,11 +1225,28 @@ export async function onRequest(context: { request: Request; env: any; params: a
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, X-User-ID, Authorization',
+    'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
   });
 
   // Immediate handling for CORS preflight options
   if (method === 'OPTIONS') {
     return new Response(null, { status: 204, headers });
+  }
+
+  // Production Deployment Version Freshness Diagnostic & Verification Endpoint
+  if (path === '/api/version') {
+    return new Response(JSON.stringify({
+      version: '2.4.0',
+      status: 'online',
+      buildId: env.BUILD_ID || 'dstech_prod_20261102_fresh',
+      buildTime: env.BUILD_TIME || Date.now(),
+      deployedAt: new Date().toISOString()
+    }), {
+      status: 200,
+      headers
+    });
   }
 
   // Handle all CRM visitor intelligence & analytics endpoints

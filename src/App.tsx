@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { ApplicationView } from './components/ApplicationView';
 import { PremiumContactSection } from './components/PremiumContactSection';
 import { PWAPrompt } from './components/PWAPrompt';
+import { VersionUpdateBanner } from './components/VersionUpdateBanner';
 
 import { CareersForm } from './components/CareersForm';
 import { AdminDashboard } from './components/AdminDashboard';
@@ -1095,6 +1096,7 @@ export default function App() {
       className="min-h-screen w-full bg-white dark:bg-slate-950 flex flex-col font-sans selection:bg-orange-500 selection:text-white transition-colors duration-300"
     >
       <PWAPrompt />
+      <VersionUpdateBanner />
       {/* Upper Navigation Header Bar */}
       {!isAdminView && !isUserLoggedIn && activePage === 'home' && !currentAppId && !isApplying && (
         <header className="no-print bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 sticky top-0 z-50 transition-colors duration-200">

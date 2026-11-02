@@ -144,7 +144,10 @@ export function PWAPrompt() {
       if ('serviceWorker' in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations();
         for (const registration of registrations) {
-          await registration.update();
+          if (registration.active) {
+            registration.active.postMessage({ type: 'CLEAR_ALL_CACHES' });
+          }
+          await registration.update().catch(() => {});
         }
       }
       setCacheSize('0.0 MB');
