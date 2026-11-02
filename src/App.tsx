@@ -15,7 +15,7 @@ import { AboutSection } from './components/AboutSection';
 import { ServicesSection } from './components/ServicesSection';
 import { ServiceQuoteView } from './components/ServiceQuoteView';
 import { getServiceBySlugOrId } from './lib/quoteUtils';
-import { SERVICES } from './lib/data';
+import { SERVICES, ServiceItem } from './lib/data';
 import { PortfolioSection } from './components/PortfolioSection';
 import { MeetOurTeamSection } from './components/MeetOurTeamSection';
 import { BlogSection } from './components/BlogSection';
@@ -58,7 +58,7 @@ import {
   TikTokIcon 
 } from './components/SocialIcons';
 import { apiGetApplication, apiSaveApplication, apiUpdateApplication } from './lib/storage';
-import { apiGetCacMetadata, apiSubscribeToCacMetadata, apiSubscribeToRealtimeSync } from './lib/api';
+import { apiGetCacMetadata, apiSubscribeToCacMetadata, apiSubscribeToRealtimeSync, apiSubscribeToServices } from './lib/api';
 import { COMPANY_CAC_RC_LABEL } from './lib/companyConstants';
 import { CAREER_ROLES, CATEGORIES, CareerRole } from './lib/roles';
 import { TRANSLATIONS, LANGUAGES, LanguageCode } from './lib/translations';
@@ -316,19 +316,59 @@ export function resolvePathToState(rawPath: string): {
 
   const lowerPath = path.toLowerCase();
 
-  // Dedicated Core Services Quotation Route (DIRECT & PRIORITY RESOLUTION - ALL 16 CORE SERVICES)
-  if (
-    lowerPath === '/quote' ||
-    lowerPath === '/quote/' ||
-    lowerPath.startsWith('/quote/') ||
-    lowerPath.startsWith('/quote')
-  ) {
-    let quoteSlug = '';
-    const quoteMatch = path.match(/^\/quote\/([\w\-]+)/i);
-    if (quoteMatch && quoteMatch[1]) {
-      quoteSlug = quoteMatch[1];
+  // Dedicated Core Services Marketplace & Quotation Route (DIRECT & PRIORITY RESOLUTION)
+  // Precise slash/end boundary prevents false-positives like /service-worker.js or /services-section
+  // Non-greedy capture allows encoded chars and dashes in slug (e.g. /quote/professional-training-consultancy)
+  const serviceRouteMatch = path.match(/^\/(quote|quotes|quotation|services|service)(?:\/([^\/\?#]+))?(?:\/.*)?$/i);
+  if (serviceRouteMatch) {
+    const routePrefix = (serviceRouteMatch[1] || '').toLowerCase();
+    const rawSlug = serviceRouteMatch[2] || '';
+    let quoteSlug = rawSlug ? decodeURIComponent(rawSlug).trim() : '';
+    
+    // Also check query parameter if no path slug was provided (e.g. /services?service=ads-management or /quote?slug=ads-management)
+    if (!quoteSlug && typeof window !== 'undefined' && window.location?.search) {
+      const searchParams = new URLSearchParams(window.location.search);
+      quoteSlug = searchParams.get('service') || searchParams.get('slug') || searchParams.get('id') || searchParams.get('quote') || searchParams.get('name') || '';
+      if (quoteSlug) quoteSlug = quoteSlug.trim();
     }
-    return { path, activePage: 'quote', isAdminView: false, appId: quoteSlug || null };
+
+    // Also check hash routing if provided (e.g. #/quote/professional-training-consultancy)
+    if (!quoteSlug && typeof window !== 'undefined' && window.location?.hash) {
+      const hashMatch = window.location.hash.match(/(?:quote|quotes|service|services|quotation)\/([^\/\?#]+)/i);
+      if (hashMatch && hashMatch[1]) {
+        quoteSlug = decodeURIComponent(hashMatch[1]).trim();
+      }
+    }
+
+    if (quoteSlug) {
+      const result = { path, activePage: 'quote' as ActivePageType, isAdminView: false, appId: quoteSlug };
+      if (typeof window !== 'undefined') {
+        console.info('[RouteResolver] ✅ Quotation Route Resolved with Service Slug:', {
+          rawPath,
+          routePrefix,
+          slug: quoteSlug,
+          activePage: result.activePage,
+          appId: result.appId
+        });
+      }
+      return result;
+    }
+    
+    // If it's specifically "/services" or "/service" with no service slug requested, show the core services catalogue grid
+    if (routePrefix === 'services' || routePrefix === 'service') {
+      const result = { path: '/services', activePage: 'services' as ActivePageType, isAdminView: false, appId: null };
+      if (typeof window !== 'undefined') {
+        console.info('[RouteResolver] 📋 Core Services Marketplace Grid Route Resolved:', { rawPath, result });
+      }
+      return result;
+    }
+
+    // Default for /quote, /quotes, /quotation with no slug: open quote view with default primary service
+    const result = { path, activePage: 'quote' as ActivePageType, isAdminView: false, appId: null };
+    if (typeof window !== 'undefined') {
+      console.info('[RouteResolver] 📝 Service Quotation Route Resolved (Default Primary):', { rawPath, result });
+    }
+    return result;
   }
 
   // Dedicated Website Visitor Intelligence & CRM Route
@@ -524,6 +564,50 @@ export default function App() {
     }
     return 'home';
   });
+
+  // Live dynamic services synchronized with Firestore & LocalStorage
+  const [liveServices, setLiveServices] = useState<ServiceItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('admin_services');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        }
+      } catch (e) {}
+    }
+    return SERVICES;
+  });
+
+  useEffect(() => {
+    const unsub = apiSubscribeToServices((data) => {
+      if (data && data.length > 0) {
+        setLiveServices(data);
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  // Route resolution audit logging on initial page load and route changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const locPath = window.location.pathname || '/';
+      const locSearch = window.location.search || '';
+      const locHash = window.location.hash || '';
+      const resolved = resolvePathToState(locPath);
+
+      console.info('[RouteResolver:Audit] 🧭 Page Route Initialized / Changed:', {
+        pathname: locPath,
+        search: locSearch,
+        hash: locHash,
+        activePage: resolved.activePage,
+        appId: resolved.appId,
+        isAdminView: resolved.isAdminView,
+        matchedService: resolved.activePage === 'quote' ? (resolved.appId || 'default-service') : null,
+        timestamp: new Date().toISOString()
+      });
+    }
+  }, [currentPath, activePage]);
 
   const [publishedCac, setPublishedCac] = useState<any>(null);
 
@@ -1295,7 +1379,7 @@ export default function App() {
                   }}
                 />
               </motion.div>
-             ) : activePage === 'quote' ? (
+              ) : activePage === 'quote' ? (
               <motion.div
                 key="quote-section"
                 initial={{ opacity: 0 }}
@@ -1304,37 +1388,18 @@ export default function App() {
                 className="w-full"
               >
                 {(() => {
-                  const targetService = getServiceBySlugOrId(currentAppId || 'website-development', SERVICES);
-                  if (targetService) {
-                    return (
-                      <ServiceQuoteView
-                        service={targetService}
-                        allServices={SERVICES}
-                        language={language}
-                        onBack={() => safeNavigate('/services')}
-                        onNavigateToService={(slug) => safeNavigate(`/quote/${slug}`)}
-                      />
-                    );
-                  }
+                  const availableCatalog = liveServices && liveServices.length > 0 ? liveServices : SERVICES;
+                  const targetService = getServiceBySlugOrId(currentAppId || 'website-development', availableCatalog);
+                  const effectiveService = targetService || availableCatalog[0] || SERVICES[0];
+
                   return (
-                    <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 text-center space-y-4">
-                      <div className="p-4 rounded-full bg-orange-500/10 text-orange-500 border border-orange-500/20">
-                        <AlertCircle size={36} />
-                      </div>
-                      <h2 className="text-2xl font-black uppercase text-[#000E32] dark:text-white font-serif">
-                        Service Quotation Route Not Found
-                      </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md font-light">
-                        The requested service route "{currentAppId}" could not be matched with our active Core Services catalogue.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => safeNavigate('/services')}
-                        className="px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer shadow-md"
-                      >
-                        Return to Core Services Marketplace
-                      </button>
-                    </div>
+                    <ServiceQuoteView
+                      service={effectiveService}
+                      allServices={availableCatalog}
+                      language={language}
+                      onBack={() => safeNavigate('/services')}
+                      onNavigateToService={(slug) => safeNavigate(`/quote/${slug}`)}
+                    />
                   );
                 })()}
               </motion.div>
@@ -2218,8 +2283,8 @@ export default function App() {
         )}
       </main>
 
-      {/* Document bottom footer info */}
-      {!isUserLoggedIn && !isAdminView && ['home', 'about', 'services', 'quote', 'portfolio', 'team', 'blog', 'careers', 'recognition', 'proposals', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'clients', 'account', 'staff-portal', 'management-accounts', 'verify-certificate'].includes(activePage) && (
+      {/* Document bottom footer info (Hidden on Quote Form for clean focused checkout) */}
+      {!isUserLoggedIn && !isAdminView && ['home', 'about', 'services', 'portfolio', 'team', 'blog', 'careers', 'recognition', 'proposals', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'clients', 'account', 'staff-portal', 'management-accounts', 'verify-certificate'].includes(activePage) && (
         <MainFooter publishedCac={publishedCac} onNavigate={safeNavigate} />
       )}
       {/* Premium Circular Floating AI Assistant Launcher (Hidden on course-registration, attendance, and crm pages) */}

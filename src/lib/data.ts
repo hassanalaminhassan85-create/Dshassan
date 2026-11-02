@@ -202,15 +202,303 @@ export interface SupportTicket {
 }
 
 // ---------------------------------------------------------
-// 1. THE 16 PROFESSIONAL SERVICE MARKETPLACE CATALOGUE
+// 1. THE COMPLETE CORE SERVICE MARKETPLACE CATALOGUE (26 SERVICES + NAMED ALIASES)
 // ---------------------------------------------------------
 const RAW_SERVICES: ServiceItem[] = [
+  // 1. Sponsored Ads Campaign Management
+  {
+    id: "svc_01",
+    name: "Sponsored Ads Campaign Management",
+    price: "₦50,000 – ₦1,000,000+",
+    description: "High-ROI sponsored ad campaigns across Meta, Instagram, Google Ads, and TikTok with conversion-optimized funnel tracking.",
+    image: "/assets/services/svc_01.jpg",
+    url: "https://wa.me/p/25850225841340268/2349023489111",
+    category: "marketing",
+    deliverables: ["Meta & Google Ads Campaign", "Precision Audience Retargeting", "High-CTR Ad Copywriting", "Weekly ROAS & ROI Reports"]
+  },
+  // 2. Digital Marketing Monthly Packages
+  {
+    id: "svc_02",
+    name: "Digital Marketing Monthly Packages",
+    price: "₦80,000 – ₦3,000,000+",
+    description: "Omnichannel monthly marketing retainers driving sustainable brand awareness, lead generation pipelines, and audience retention.",
+    image: "/assets/services/svc_02.jpg",
+    url: "https://wa.me/p/26382467731420705/2349023489111",
+    category: "marketing",
+    deliverables: ["Full-Funnel Growth Strategy", "Email Marketing Setup", "Conversion Funnel Optimization", "Omnichannel Lead Capture"]
+  },
+  // 3. Professional Training & Consultancy
+  {
+    id: "svc_03",
+    name: "Professional Training & Consultancy",
+    price: "₦100,000 – ₦5,000,000+",
+    description: "Corporate workforce upskilling, executive technology masterclasses, and digital transformation advisory for institutions.",
+    image: "/assets/services/svc_03.jpg",
+    url: "https://wa.me/2349023489111",
+    category: "training",
+    deliverables: ["Custom Corporate Training Syllabus", "On-Site & Virtual Masterclasses", "Accredited Completion Badges", "1-on-1 Executive Advisory"]
+  },
+  // 4. Content Creation and Presentation
+  {
+    id: "svc_04",
+    name: "Content Creation and Presentation",
+    price: "₦40,000 – ₦1,000,000+",
+    description: "Persuasive executive pitch decks, multimedia storytelling, corporate whitepapers, and high-impact boardroom presentations.",
+    image: "/assets/services/svc_04.jpg",
+    url: "https://wa.me/p/27413518328335319/2349023489111",
+    category: "marketing",
+    deliverables: ["Executive Pitch Decks", "Corporate Whitepapers", "Persuasive Storytelling", "Investor Presentation Design"]
+  },
+  // 5. Social Media Management
+  {
+    id: "svc_05",
+    name: "Social Media Management",
+    price: "₦70,000 – ₦2,500,000+",
+    description: "End-to-end social media publishing, proactive community moderation, viral trend curation, and strategic audience growth.",
+    image: "/assets/services/svc_05.jpg",
+    url: "https://wa.me/p/36346113405034532/2349023489111",
+    category: "marketing",
+    deliverables: ["Monthly Content Calendar", "Scheduled Daily Publishing", "Community Moderation", "Monthly Engagement Reports"]
+  },
+  // 6. Website Design and Development
+  {
+    id: "svc_06",
+    name: "Website Design and Development",
+    price: "₦150,000 – ₦5,000,000+",
+    description: "Ultra-responsive, conversion-focused websites engineered with modern React frameworks, dynamic styling, and lightning speeds.",
+    image: "/assets/services/svc_06.jpg",
+    url: "https://wa.me/p/25279439215065803/2349023489111",
+    category: "web",
+    deliverables: ["React / Next.js Architecture", "Mobile-First Responsive", "SEO & Speed Optimized", "Secure CMS Setup"]
+  },
+  // 7. Software and Mobile App Design
+  {
+    id: "svc_07",
+    name: "Software and Mobile App Design",
+    price: "₦250,000 – ₦50,000,000+",
+    description: "Scalable iOS, Android, and web applications built with modern cloud APIs, secure authentication, and offline resilience.",
+    image: "/assets/services/svc_07.jpg",
+    url: "https://wa.me/p/26225498943742627/2349023489111",
+    category: "software",
+    deliverables: ["iOS & Android Apps", "Cloud API & Database", "Offline-Ready Storage", "App Store Deployment"]
+  },
+  // 8. Project Design and Management
+  {
+    id: "svc_08",
+    name: "Project Design and Management",
+    price: "₦100,000 – ₦10,000,000+",
+    description: "Agile project execution, sprint management, risk mitigation, and milestone governance ensuring punctual product delivery.",
+    image: "/assets/services/svc_08.jpg",
+    url: "https://wa.me/p/26167607822850385/2349023489111",
+    category: "business",
+    deliverables: ["Agile Sprint Governance", "Milestone Tracking & Gantt", "Risk Mitigation Audits", "On-Schedule Delivery Guarantee"]
+  },
+  // 9. Content Creation & Presentation Portfolio
+  {
+    id: "svc_09",
+    name: "Content Creation & Presentation Portfolio",
+    price: "₦50,000 – ₦1,500,000+",
+    description: "Comprehensive visual branding, multi-page company brochures, investor lookbooks, and corporate portfolio design.",
+    image: "/assets/services/svc_09.jpg",
+    url: "https://wa.me/p/27413518328335319/2349023489111",
+    category: "marketing",
+    deliverables: ["Digital Company Profiles", "Interactive Lookbooks", "Corporate Catalogues", "Print-Ready Vector Layouts"]
+  },
+  // 10. Software & Mobile App Architecture
+  {
+    id: "svc_10",
+    name: "Software & Mobile App Architecture",
+    price: "₦300,000 – ₦25,000,000+",
+    description: "Enterprise software systems architecture, microservices infrastructure, secure database scaling, and API gateways.",
+    image: "/assets/services/svc_10.jpg",
+    url: "https://wa.me/p/26225498943742627/2349023489111",
+    category: "software",
+    deliverables: ["Microservices Architecture", "Cloud Database Sharding", "Security Audit & Pen Test", "High-Availability Deployment"]
+  },
+  // 11. Web Portals and Systems Architecture
+  {
+    id: "svc_11",
+    name: "Web Portals and Systems Architecture",
+    price: "₦200,000 – ₦8,000,000+",
+    description: "Bespoke SaaS web portals, client dashboards, automated billing engines, and secure role-based access management systems.",
+    image: "/assets/services/svc_11.jpg",
+    url: "https://wa.me/p/25279439215065803/2349023489111",
+    category: "web",
+    deliverables: ["RBAC User Access Control", "Automated Billing & Invoices", "Real-Time Telemetry Data", "Cloudflare Edge Security"]
+  },
+  // 12. Portfolio Design Package
+  {
+    id: "svc_12",
+    name: "Portfolio Design Package",
+    price: "₦100,000 – ₦700,000+",
+    description: "Stunning online portfolios engineered to showcase individual talents, creative work, professional credentials, and awards.",
+    image: "/assets/services/svc_12.jpg",
+    url: "https://wa.me/p/26668195106121616/2349023489111",
+    category: "web",
+    deliverables: ["Curated Project Showcase", "Custom Domain & SSL", "Interactive Case Studies", "Mobile-Optimized Layout"]
+  },
+  // 13. Strategic Project Blueprinting
+  {
+    id: "svc_13",
+    name: "Strategic Project Blueprinting",
+    price: "₦120,000 – ₦4,000,000+",
+    description: "Holistic technical feasibility studies, architecture diagrams, product roadmaps, and capital resource allocation blueprints.",
+    image: "/assets/services/svc_13.jpg",
+    url: "https://wa.me/p/26167607822850385/2349023489111",
+    category: "business",
+    deliverables: ["Technical Feasibility Study", "System Architecture Diagrams", "Budget & Milestone Forecast", "Risk Management Plan"]
+  },
+  // 14. Business Plan Design
+  {
+    id: "svc_14",
+    name: "Business Plan Design",
+    price: "₦80,000 – ₦2,500,000+",
+    description: "Bankable business plans, detailed 3-5 year financial forecasts, market sizing, and regulatory compliance frameworks.",
+    image: "/assets/services/svc_14.jpg",
+    url: "https://wa.me/2349023489111",
+    category: "business",
+    deliverables: ["Executive Summary & Model", "3-5 Year Financial Forecast", "Competitor & Market Analysis", "Investor-Ready PDF Document"]
+  },
+  // 15. Social Media Campaigns Mastery
+  {
+    id: "svc_15",
+    name: "Social Media Campaigns Mastery",
+    price: "₦60,000 – ₦1,800,000+",
+    description: "Intense seasonal growth campaigns, influencer collaboration management, and community viral amplification strategies.",
+    image: "/assets/services/svc_15.jpg",
+    url: "https://wa.me/p/36346113405034532/2349023489111",
+    category: "marketing",
+    deliverables: ["Viral Campaign Strategy", "Influencer Roster Sync", "Content Repurposing Suite", "Direct WhatsApp Funneling"]
+  },
+  // 16. Beginners Training
+  {
+    id: "svc_16",
+    name: "Beginners Training",
+    price: "₦40,000 – ₦350,000+",
+    description: "Foundational, hands-on digital skills masterclasses for beginners in coding, graphic design, ad campaigns, and computer literacy.",
+    image: "/assets/services/svc_16.jpg",
+    url: "https://wa.me/2349023489111",
+    category: "training",
+    deliverables: ["Zero-Experience Curriculum", "Live Interactive Mentorship", "Practical Weekly Projects", "Official Academy Certificate"]
+  },
+  // 17. Exclusive and Advanced Trainings
+  {
+    id: "svc_17",
+    name: "Exclusive and Advanced Trainings",
+    price: "₦90,000 – ₦800,000+",
+    description: "Specialized masterclasses in cloud infrastructure, AI model integration, modern React, full-stack systems, and cybersecurity.",
+    image: "/assets/services/svc_17.jpg",
+    url: "https://wa.me/2349023489111",
+    category: "training",
+    deliverables: ["Advanced Coding & Cloud", "Real Enterprise Codebases", "Direct Industry Placement", "Senior Mentor Code Reviews"]
+  },
+  // 18. Customer Care Service Management
+  {
+    id: "svc_18",
+    name: "Customer Care Service Management",
+    price: "₦75,000 – ₦1,500,000+",
+    description: "Omnichannel customer relationship workflows, WhatsApp Business automated ticketing, and dedicated client desk operations.",
+    image: "/assets/services/svc_18.jpg",
+    url: "https://wa.me/2349023489111",
+    category: "business",
+    deliverables: ["WhatsApp Multi-Agent Portal", "Ticketing SLA Workflow", "CRM Automated Follow-Ups", "Weekly Satisfaction Reports"]
+  },
+  // 19. DS ICT Support & Smart Tech
+  {
+    id: "svc_19",
+    name: "DS ICT Support & Smart Tech",
+    price: "₦120,000 – ₦6,000,000+",
+    description: "Corporate hardware deployment, local area networks, smart surveillance setups, biometric attendance devices, and cloud maintenance.",
+    image: "/assets/services/svc_19.jpg",
+    url: "https://wa.me/2349023489111",
+    category: "ict",
+    deliverables: ["Office Network & Firewall", "Smart CCTV & Biometrics", "Workstation Configuration", "24/7 IT Helpdesk Support"]
+  },
+  // 20. DS Branding and Graphic Designs
+  {
+    id: "svc_20",
+    name: "DS Branding and Graphic Designs",
+    price: "₦50,000 – ₦2,000,000+",
+    description: "Corporate identity packages, premium vector logos, style guides, promotional marketing collateral, and digital asset libraries.",
+    image: "/assets/services/svc_20.jpg",
+    url: "https://wa.me/p/27195191726837563/2349023489111",
+    category: "branding",
+    deliverables: ["Vector Logo & Icon Mark", "Pantone & Typography Guide", "Brand Collateral Assets", "Social & Stationery Templates"]
+  },
+  // 21. DS Software App Designing
+  {
+    id: "svc_21",
+    name: "DS Software App Designing",
+    price: "₦250,000 – ₦15,000,000+",
+    description: "Intuitive UI/UX wireframing, high-fidelity interactive Figma prototypes, user journeys, and component design systems.",
+    image: "/assets/services/svc_21.jpg",
+    url: "https://wa.me/p/26225498943742627/2349023489111",
+    category: "software",
+    deliverables: ["Interactive Figma Prototype", "Design System & Tokens", "User Testing & Wireframes", "Developer Hand-Off Specs"]
+  },
+  // 22. AI Content Creation Packages
+  {
+    id: "svc_22",
+    name: "AI Content Creation Packages",
+    price: "₦70,000 – ₦1,500,000+",
+    description: "Generative AI copywriting, hyper-realistic commercial graphics, social media scripts, and multilingual translation workflows.",
+    image: "/assets/services/svc_22.jpg",
+    url: "https://wa.me/p/26682737784737815/2349023489111",
+    category: "ai",
+    deliverables: ["Multi-Channel Ad Copy", "High-Resolution AI Visuals", "Localized Editorial Copy", "Human Editorial QA Review"]
+  },
+  // 23. AI Chatbot Development Package
+  {
+    id: "svc_23",
+    name: "AI Chatbot Development Package",
+    price: "₦150,000 – ₦10,000,000+",
+    description: "Custom intelligent chatbots connected to your company database, WhatsApp Business API, and website live chat.",
+    image: "/assets/services/svc_23.jpg",
+    url: "https://wa.me/p/27016836764677969/2349023489111",
+    category: "ai",
+    deliverables: ["Custom AI Assistants & Chatbots", "Workflow Automation Triggers", "WhatsApp & CRM Pipeline Sync", "Zero-Manual Operations"]
+  },
+  // 24. Business Data Analytics
+  {
+    id: "svc_24",
+    name: "Business Data Analytics",
+    price: "₦120,000 – ₦5,000,000+",
+    description: "Interactive analytics dashboards, business intelligence reporting, customer lifetime value modeling, and predictive metrics.",
+    image: "/assets/services/svc_24.jpg",
+    url: "https://wa.me/2349023489111",
+    category: "business",
+    deliverables: ["Real-Time Executive Dashboard", "Customer Cohort Insights", "Revenue Forecasting Models", "Automated Weekly Digest"]
+  },
+  // 25. CyberSecurity Services
+  {
+    id: "svc_25",
+    name: "CyberSecurity Services",
+    price: "₦150,000 – ₦15,000,000+",
+    description: "Proactive vulnerability scanning, penetration testing, SSL/TLS configuration, DDoS mitigation, and employee security training.",
+    image: "/assets/services/svc_25.jpg",
+    url: "https://wa.me/p/28514091548192000/2349023489111",
+    category: "ict",
+    deliverables: ["Vulnerability & Pen Testing", "SSL / TLS & WAF Setup", "Data Encryption Protocols", "Zero-Trust Architecture"]
+  },
+  // 26. CAC, Tax and SCUML Certificate Registration
+  {
+    id: "svc_26",
+    name: "CAC, Tax and SCUML Certificate Registration",
+    price: "₦45,000 – ₦500,000+",
+    description: "Statutory company registration with the Corporate Affairs Commission (CAC), EFCC/SCUML anti-money laundering, and FIRS TIN clearance.",
+    image: "/assets/services/svc_26.jpg",
+    url: "https://wa.me/2349023489111",
+    category: "compliance",
+    deliverables: ["CAC Limited Liability Certificate", "FIRS Corporate TIN & Clearance", "SCUML Anti-Money Laundering Cert", "Official CAC Status Report"]
+  },
+
+  // NAMED ALIASES FOR DIRECT URL CONSISTENCY
   {
     id: "svc_web_dev",
     name: "Web Development",
     price: "₦150,000 – ₦5,000,000+",
     description: "Professional, responsive websites tailored to business needs, customer acquisition, and online growth.",
-    image: "",
+    image: "/assets/services/svc_web_dev.jpg",
     url: "https://wa.me/p/25279439215065803/2349023489111",
     category: "web",
     deliverables: ["React / Next.js Architecture", "Mobile-First Responsive", "SEO & Speed Optimized", "Secure CMS Setup"]
@@ -220,7 +508,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "Software & Mobile App Development",
     price: "₦250,000 – ₦50,000,000+",
     description: "Custom software solutions and mobile applications designed around specific business requirements.",
-    image: "",
+    image: "/assets/services/svc_mobile_software.jpg",
     url: "https://wa.me/p/26225498943742627/2349023489111",
     category: "software",
     deliverables: ["iOS & Android Apps", "Cloud API & Database", "Offline-Ready Storage", "App Store Deployment"]
@@ -230,7 +518,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "Landing Page Design and Integration",
     price: "₦80,000 – ₦1,500,000+",
     description: "Conversion-focused landing pages integrated with forms, analytics, marketing tools, and other relevant services.",
-    image: "",
+    image: "/assets/services/svc_landing_pages.jpg",
     url: "https://wa.me/p/25850225841340268/2349023489111",
     category: "web",
     deliverables: ["High-Converting Hero & Wireframe", "Lead Form & WhatsApp Sync", "Pixel & Analytics Tracking", "A/B Testing Ready"]
@@ -240,7 +528,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "Portfolio Design",
     price: "₦100,000 – ₦700,000+",
     description: "Professional online portfolios that showcase skills, projects, achievements, and business capabilities.",
-    image: "",
+    image: "/assets/services/svc_portfolio_design.jpg",
     url: "https://wa.me/p/26668195106121616/2349023489111",
     category: "web",
     deliverables: ["Curated Project Gallery", "Custom Domain & SSL", "Interactive Case Studies", "Mobile-Optimized Layout"]
@@ -250,7 +538,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "AI Integration and Workflow Automation",
     price: "₦150,000 – ₦10,000,000+",
     description: "Practical AI solutions and automated workflows that reduce repetitive work and improve operational efficiency.",
-    image: "",
+    image: "/assets/services/svc_ai_automation.jpg",
     url: "https://wa.me/p/27016836764677969/2349023489111",
     category: "ai",
     deliverables: ["Custom AI Assistants & Chatbots", "Workflow Automation Triggers", "WhatsApp & CRM Pipeline Sync", "Zero-Manual Operations"]
@@ -260,7 +548,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "Ads Management",
     price: "₦50,000 – ₦1,000,000+",
     description: "Campaign setup, targeting, optimization, and performance monitoring across supported advertising platforms.",
-    image: "",
+    image: "/assets/services/svc_ads_management.jpg",
     url: "https://wa.me/p/25850225841340268/2349023489111",
     category: "marketing",
     deliverables: ["Meta & Google Ads Campaign", "Precision Audience Retargeting", "High-CTR Ad Copywriting", "Weekly ROAS & ROI Reports"]
@@ -270,7 +558,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "Search Engine Optimization (SEO)",
     price: "₦60,000 – ₦2,000,000+",
     description: "Website optimization to improve search visibility, technical performance, and organic discovery.",
-    image: "",
+    image: "/assets/services/svc_seo.jpg",
     url: "https://wa.me/p/26382467731420705/2349023489111",
     category: "marketing",
     deliverables: ["Technical SEO & Speed Audit", "Keyword Research & Ranking", "Backlink & Authority Blueprint", "Google Search Console Indexing"]
@@ -280,7 +568,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "Content Creation and Presentation",
     price: "₦40,000 – ₦1,000,000+",
     description: "Professional business content, presentations, and communication materials tailored to specific audiences.",
-    image: "",
+    image: "/assets/services/svc_content_presentation.jpg",
     url: "https://wa.me/p/27413518328335319/2349023489111",
     category: "marketing",
     deliverables: ["Executive Pitch Decks", "Corporate Whitepapers", "Persuasive Storytelling", "Investor Presentation Design"]
@@ -290,7 +578,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "AI Generated Content Creation",
     price: "₦70,000 – ₦1,500,000+",
     description: "AI-assisted creation of relevant text, visuals, and other digital content with appropriate quality review.",
-    image: "",
+    image: "/assets/services/svc_ai_content.jpg",
     url: "https://wa.me/p/26682737784737815/2349023489111",
     category: "ai",
     deliverables: ["Multi-Channel Ad Copy", "High-Resolution AI Visuals", "Localized Editorial Copy", "Human Editorial QA Review"]
@@ -300,7 +588,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "Video Editing",
     price: "₦35,000 – ₦2,000,000+",
     description: "Professional video editing, post-production, transitions, subtitles, and platform-ready exports.",
-    image: "",
+    image: "/assets/services/svc_video_editing.jpg",
     url: "https://wa.me/p/27413518328335319/2349023489111",
     category: "marketing",
     deliverables: ["4K Post-Production Editing", "Dynamic Motion Graphics", "Audio Mastering & Subtitles", "Multi-Platform Aspect Exports"]
@@ -310,7 +598,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "Digital Marketing",
     price: "₦80,000 – ₦3,000,000+",
     description: "Strategic online marketing to build awareness, reach potential customers, and support business growth.",
-    image: "",
+    image: "/assets/services/svc_digital_marketing.jpg",
     url: "https://wa.me/p/26382467731420705/2349023489111",
     category: "marketing",
     deliverables: ["Full-Funnel Growth Strategy", "Email Marketing Setup", "Conversion Funnel Optimization", "Omnichannel Lead Capture"]
@@ -320,7 +608,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "Social Media Management",
     price: "₦70,000 – ₦2,500,000+",
     description: "Social media planning, publishing, account management, and audience engagement.",
-    image: "",
+    image: "/assets/services/svc_social_media_mgmt.jpg",
     url: "https://wa.me/p/36346113405034532/2349023489111",
     category: "marketing",
     deliverables: ["Monthly Content Calendar", "Scheduled Daily Publishing", "Community Moderation", "Monthly Engagement Reports"]
@@ -330,7 +618,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "Graphic Designs and Corporate Branding",
     price: "₦50,000 – ₦2,000,000+",
     description: "Brand identity design, corporate assets, promotional materials, and consistent visual guidelines.",
-    image: "",
+    image: "/assets/services/svc_graphic_branding.jpg",
     url: "https://wa.me/p/27195191726837563/2349023489111",
     category: "branding",
     deliverables: ["Vector Logo & Icon Mark", "Pantone & Typography Guide", "Brand Collateral Assets", "Social & Stationery Templates"]
@@ -340,7 +628,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "Project Management",
     price: "₦100,000 – ₦10,000,000+",
     description: "End-to-end project planning, coordination, resource alignment, and delivery monitoring.",
-    image: "",
+    image: "/assets/services/svc_project_mgmt.jpg",
     url: "https://wa.me/p/26167607822850385/2349023489111",
     category: "business",
     deliverables: ["Agile Sprint Governance", "Milestone Tracking & Gantt", "Risk Mitigation Audits", "On-Schedule Delivery Guarantee"]
@@ -350,7 +638,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "CyberSecurity Services",
     price: "₦150,000 – ₦15,000,000+",
     description: "Essential security assessments, threat monitoring, data protection, and vulnerability management.",
-    image: "",
+    image: "/assets/services/svc_cybersecurity.jpg",
     url: "https://wa.me/p/28514091548192000/2349023489111",
     category: "ict",
     deliverables: ["Vulnerability & Pen Testing", "SSL / TLS & WAF Setup", "Data Encryption Protocols", "Zero-Trust Architecture"]
@@ -360,7 +648,7 @@ const RAW_SERVICES: ServiceItem[] = [
     name: "Event Coverage and Videography",
     price: "₦100,000 – ₦5,000,000+",
     description: "High-quality visual documentation, media coverage, and video recording for corporate or public events.",
-    image: "",
+    image: "/assets/services/svc_event_videography.jpg",
     url: "https://wa.me/p/27413518328335319/2349023489111",
     category: "marketing",
     deliverables: ["4K Multi-Camera Rig", "Live Stream Broadcasting", "Highlight Reel (48hr Delivery)", "Studio-Grade Mastered Audio"]

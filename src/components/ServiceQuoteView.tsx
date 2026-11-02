@@ -300,6 +300,239 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
       );
     }
 
+    if (cat === 'training' || name.includes('training') || name.includes('consultancy') || name.includes('course')) {
+      return (
+        <div className="space-y-4 p-4 md:p-5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+          <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+            <Layers size={14} className="text-orange-500" />
+            Training &amp; Corporate Consultancy Specifications
+          </h4>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-700 dark:text-slate-300 block">Delivery Format</label>
+              <select
+                value={serviceFields.trainingFormat || 'On-Site Corporate Workshop'}
+                onChange={(e) => updateSpecificField('trainingFormat', e.target.value)}
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:border-orange-500"
+              >
+                <option value="On-Site Corporate Workshop">On-Site Corporate Workshop</option>
+                <option value="Virtual Interactive Masterclass">Virtual Interactive Masterclass</option>
+                <option value="1-on-1 Executive Mentorship">1-on-1 Executive Mentorship</option>
+                <option value="Hybrid Intensive Bootcamp">Hybrid Intensive Bootcamp</option>
+                <option value="Institutional Staff Accreditation">Institutional Staff Accreditation</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="font-bold text-slate-700 dark:text-slate-300 block">Expected Cohort Size</label>
+              <select
+                value={serviceFields.cohortSize || 'Small Team (2–10 Attendees)'}
+                onChange={(e) => updateSpecificField('cohortSize', e.target.value)}
+                className="w-full bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:border-orange-500"
+              >
+                <option value="Individual Executive (1 Participant)">Individual Executive (1 Participant)</option>
+                <option value="Small Team (2–10 Attendees)">Small Team (2–10 Attendees)</option>
+                <option value="Department (10–30 Attendees)">Department (10–30 Attendees)</option>
+                <option value="Enterprise / Institutional (30+ Attendees)">Enterprise / Institutional (30+ Attendees)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-2">
+            <label className="font-bold text-slate-700 dark:text-slate-300 block text-xs">
+              Focus Curricula &amp; Training Modules (Select all that apply)
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                'Full-Stack Web & Mobile Engineering',
+                'AI Model Prompting & Workflow Automation',
+                'Performance Ads (Meta & Google Ads)',
+                'Executive Leadership & Boardroom Protocol',
+                'Cybersecurity Hygiene & Data Protection',
+                'Digital Graphic Branding & Content Design',
+                'Agile Sprint & Project Governance'
+              ].map((mod) => {
+                const isChecked = (serviceFields.modules || []).includes(mod);
+                return (
+                  <button
+                    key={mod}
+                    type="button"
+                    onClick={() => handleToggleArrayOption('modules', mod)}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all border cursor-pointer ${
+                      isChecked
+                        ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-xs'
+                        : 'bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500'
+                    }`}
+                  >
+                    {isChecked ? '✓ ' : '+ '}{mod}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (cat === 'branding' || name.includes('brand') || name.includes('graphic') || name.includes('logo')) {
+      return (
+        <div className="space-y-4 p-4 md:p-5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+          <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+            <Layers size={14} className="text-orange-500" />
+            Branding &amp; Creative Deliverables
+          </h4>
+          <div className="space-y-2">
+            <label className="font-bold text-slate-700 dark:text-slate-300 block text-xs">Required Brand Assets</label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                'Vector Master Logo & Iconography',
+                'Comprehensive Brand Style Guide (Pantone/Fonts)',
+                'Business Cards & Corporate Stationery',
+                'Investor Pitch Deck & Corporate Brochure',
+                'Social Media Templates & Banner Kit',
+                'Product Packaging & 3D Mockups'
+              ].map((item) => {
+                const isChecked = (serviceFields.brandItems || []).includes(item);
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => handleToggleArrayOption('brandItems', item)}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all border cursor-pointer ${
+                      isChecked
+                        ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-xs'
+                        : 'bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500'
+                    }`}
+                  >
+                    {isChecked ? '✓ ' : '+ '}{item}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (cat === 'compliance' || name.includes('cac') || name.includes('scuml') || name.includes('tax')) {
+      return (
+        <div className="space-y-4 p-4 md:p-5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+          <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+            <Layers size={14} className="text-orange-500" />
+            Statutory Corporate Compliance &amp; CAC Scope
+          </h4>
+          <div className="space-y-2">
+            <label className="font-bold text-slate-700 dark:text-slate-300 block text-xs">Required Statutory Filings</label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                'CAC Limited Liability Incorporation (LTD)',
+                'Business Name Registration (Enterprise)',
+                'SCUML Anti-Money Laundering Certificate',
+                'FIRS Corporate TIN & Tax Clearance Certificate',
+                'Annual Statutory Returns Filing',
+                'Trademark & Intellectual Property Registration'
+              ].map((item) => {
+                const isChecked = (serviceFields.complianceItems || []).includes(item);
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => handleToggleArrayOption('complianceItems', item)}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all border cursor-pointer ${
+                      isChecked
+                        ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-xs'
+                        : 'bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500'
+                    }`}
+                  >
+                    {isChecked ? '✓ ' : '+ '}{item}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (cat === 'ict' || name.includes('cyber') || name.includes('security') || name.includes('ict')) {
+      return (
+        <div className="space-y-4 p-4 md:p-5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+          <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+            <Layers size={14} className="text-orange-500" />
+            Security &amp; ICT Infrastructure Requirements
+          </h4>
+          <div className="space-y-2">
+            <label className="font-bold text-slate-700 dark:text-slate-300 block text-xs">Security &amp; IT Services</label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                'Penetration Testing & Vulnerability Assessment',
+                'SSL / TLS, Cloudflare WAF & DDoS Shield',
+                'Smart CCTV & Biometric Access Installation',
+                'Local Office Network & Firewall Setup',
+                'Cloud Backup & Disaster Recovery Architecture',
+                'Staff Cybersecurity Hygiene Workshop'
+              ].map((item) => {
+                const isChecked = (serviceFields.ictItems || []).includes(item);
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => handleToggleArrayOption('ictItems', item)}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all border cursor-pointer ${
+                      isChecked
+                        ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-xs'
+                        : 'bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500'
+                    }`}
+                  >
+                    {isChecked ? '✓ ' : '+ '}{item}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (cat === 'business' || name.includes('business') || name.includes('project') || name.includes('plan')) {
+      return (
+        <div className="space-y-4 p-4 md:p-5 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800">
+          <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
+            <Layers size={14} className="text-orange-500" />
+            Business Advisory &amp; Project Governance
+          </h4>
+          <div className="space-y-2">
+            <label className="font-bold text-slate-700 dark:text-slate-300 block text-xs">Scope of Advisory</label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                'Investor-Ready Business Plan Document',
+                '3-5 Year Comprehensive Financial Model',
+                'Market Feasibility & Competitor Analysis',
+                'Agile Project Sprint Governance',
+                'Executive Customer Support Desk Setup'
+              ].map((item) => {
+                const isChecked = (serviceFields.businessItems || []).includes(item);
+                return (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => handleToggleArrayOption('businessItems', item)}
+                    className={`px-3 py-1.5 rounded-xl text-[11px] font-bold transition-all border cursor-pointer ${
+                      isChecked
+                        ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-xs'
+                        : 'bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500'
+                    }`}
+                  >
+                    {isChecked ? '✓ ' : '+ '}{item}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return null;
   };
 
@@ -462,33 +695,46 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
           </p>
 
           {/* Quick Service Switching Tabs if user wants to switch service directly */}
-          {allServices.length > 1 && (
-            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-              <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-2">
-                Switch Service Quotation Route:
-              </label>
-              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
-                {allServices.map((s) => {
-                  const sSlug = getServiceSlug(s);
-                  const isCurrent = s.id === service.id;
-                  return (
-                    <button
-                      key={s.id}
-                      type="button"
-                      onClick={() => onNavigateToService && onNavigateToService(sSlug)}
-                      className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
-                        isCurrent
-                          ? 'bg-[#000E32] dark:bg-orange-600 text-white shadow-xs'
-                          : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'
-                      }`}
-                    >
-                      {s.name}
-                    </button>
-                  );
-                })}
+          {(() => {
+            const seen = new Set<string>();
+            const distinctServices = allServices.filter((s) => {
+              const slug = getServiceSlug(s);
+              const key = slug || (s.name || '').toLowerCase().trim();
+              if (seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            });
+
+            if (distinctServices.length <= 1) return null;
+
+            return (
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block mb-2">
+                  Switch Service Quotation Route:
+                </label>
+                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                  {distinctServices.map((s) => {
+                    const sSlug = getServiceSlug(s);
+                    const isCurrent = s.id === service.id || getServiceSlug(service) === sSlug;
+                    return (
+                      <button
+                        key={s.id || sSlug}
+                        type="button"
+                        onClick={() => onNavigateToService && onNavigateToService(sSlug)}
+                        className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider whitespace-nowrap shrink-0 transition-colors cursor-pointer ${
+                          isCurrent
+                            ? 'bg-[#000E32] dark:bg-orange-600 text-white shadow-xs'
+                            : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'
+                        }`}
+                      >
+                        {s.name}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
         </div>
 
         {/* In-App Notification Banner */}
