@@ -2287,8 +2287,8 @@ export default function App() {
       {!isUserLoggedIn && !isAdminView && ['home', 'about', 'services', 'portfolio', 'team', 'blog', 'careers', 'recognition', 'proposals', 'training', 'academy-overview', 'student-registration', 'course-registration', 'tutor-application', 'scholarship-application', 'internship-application', 'corporate-training', 'mentorship-application', 'clients', 'account', 'staff-portal', 'management-accounts', 'verify-certificate'].includes(activePage) && (
         <MainFooter publishedCac={publishedCac} onNavigate={safeNavigate} />
       )}
-      {/* Premium Circular Floating AI Assistant Launcher (Hidden on course-registration, attendance, and crm pages) */}
-      {activePage !== 'course-registration' && activePage !== 'attendance' && activePage !== 'crm' && (
+      {/* Premium Circular Floating AI Assistant Launcher (Hidden on course-registration, attendance, crm, and quote pages) */}
+      {activePage !== 'course-registration' && activePage !== 'attendance' && activePage !== 'crm' && activePage !== 'quote' && (
         <FloatingAiLauncher
           onClick={() => setIsAiModalOpen(!isAiModalOpen)}
           isModalOpen={isAiModalOpen}
@@ -2297,7 +2297,7 @@ export default function App() {
       )}
 
       {/* Enterprise AI Assistant Workspace Modal */}
-      {activePage !== 'course-registration' && activePage !== 'attendance' && activePage !== 'crm' && (
+      {activePage !== 'course-registration' && activePage !== 'attendance' && activePage !== 'crm' && activePage !== 'quote' && (
         <EnterpriseAiAssistantModal
           isOpen={isAiModalOpen}
           onClose={() => setIsAiModalOpen(false)}

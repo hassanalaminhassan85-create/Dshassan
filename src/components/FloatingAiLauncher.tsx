@@ -114,6 +114,15 @@ export const FloatingAiLauncher: React.FC<FloatingAiLauncherProps> = ({
     onClick();
   };
 
+  // Completely suppress AI launcher on quote pages
+  if (
+    (typeof window !== 'undefined' && window.location.pathname.startsWith('/quote')) ||
+    pageContext?.route?.includes('/quote') ||
+    pageContext?.pageTitle?.toLowerCase().includes('quote')
+  ) {
+    return null;
+  }
+
   // Safe page title for floating badge context
   const displayContext = pageContext?.programmeOrCourse 
     || pageContext?.pageTitle 
