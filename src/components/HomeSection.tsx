@@ -7,7 +7,7 @@ import {
   FileText, X, ExternalLink, Globe, ShoppingBag, Send, Layers
 } from 'lucide-react';
 
-import { SERVICES, TESTIMONIALS, ServiceItem } from '../lib/data';
+import { SERVICES, TESTIMONIALS, ServiceItem, sortServicesDeterministically } from '../lib/data';
 import { COMPANY_CAC_RC_LABEL } from '../lib/companyConstants';
 import { LanguageCode } from '../lib/translations';
 import { HOME_TRANSLATIONS } from '../lib/homeTranslations';
@@ -45,18 +45,15 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
 
   const [imgErrorMap, setImgErrorMap] = useState<Record<string, boolean>>({});
 
-  // Dynamic Realtime Services Sync with fresh image fallback
+  // Dynamic Realtime Services Sync with deterministic ordering and fresh image fallback
   const [services, setServices] = useState<ServiceItem[]>(() => {
     try {
       const saved = localStorage.getItem('admin_services');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return parsed.map((svc: ServiceItem) => {
-          if (!svc.image || svc.image.startsWith('data:image/svg+xml') || svc.image.includes('svg')) {
-            return { ...svc, image: getPolishedServiceImage(svc) };
-          }
-          return svc;
-        });
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return sortServicesDeterministically(parsed);
+        }
       }
       return SERVICES;
     } catch (e) {
@@ -67,14 +64,9 @@ export const HomeSection: React.FC<HomeSectionProps> = ({
   useEffect(() => {
     const unsubscribe = apiSubscribeToServices((data) => {
       if (data && data.length > 0) {
-        const cleaned = data.map((svc: ServiceItem) => {
-          if (!svc.image || svc.image.startsWith('data:image/svg+xml') || svc.image.includes('svg')) {
-            return { ...svc, image: getPolishedServiceImage(svc) };
-          }
-          return svc;
-        });
-        setServices(cleaned);
-        localStorage.setItem('admin_services', JSON.stringify(cleaned));
+        const sorted = sortServicesDeterministically(data);
+        setServices(sorted);
+        localStorage.setItem('admin_services', JSON.stringify(sorted));
       }
     });
     return () => unsubscribe();

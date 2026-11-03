@@ -29,6 +29,7 @@ export interface ServiceItem {
   url: string;
   category: 'marketing' | 'web' | 'software' | 'ai' | 'business' | 'branding' | 'ict' | 'training' | 'compliance';
   deliverables?: string[];
+  orderIndex?: number;
 }
 
 export interface PortfolioProject {
@@ -202,7 +203,98 @@ export interface SupportTicket {
 }
 
 // ---------------------------------------------------------
-// 1. THE COMPLETE CORE SERVICE MARKETPLACE CATALOGUE (26 SERVICES + NAMED ALIASES)
+// 1. UNIVERSAL SERVICE SANITIZATION & DETERMINISTIC CANONICAL ORDERING
+// ---------------------------------------------------------
+export function sanitizeServiceName(rawName?: string): string {
+  if (!rawName) return '';
+  let cleaned = rawName.trim();
+
+  // If it's the old corporate training name or variations:
+  if (
+    cleaned.toLowerCase().includes('professional training') ||
+    cleaned.toLowerCase() === 'professional training & consultancy' ||
+    cleaned.toLowerCase() === 'corporate training price list'
+  ) {
+    return 'Corporate Training and Staff Bootcamp';
+  }
+
+  // Remove "Price List" or "Pricelist" (case-insensitive, preserving legitimate name)
+  cleaned = cleaned.replace(/\s*[\(\[-]?\s*price\s*list\s*[\)\]-]?/gi, '');
+  cleaned = cleaned.replace(/\bpricelist\b/gi, '');
+  cleaned = cleaned.replace(/\s{2,}/g, ' ').trim();
+  cleaned = cleaned.replace(/^[\s\-–—:]+|[\s\-–—:]+$/g, '').trim();
+
+  if (cleaned.toLowerCase() === 'corporate training') {
+    return 'Corporate Training and Staff Bootcamp';
+  }
+
+  return cleaned || rawName;
+}
+
+export const SERVICE_CANONICAL_ORDER: Record<string, number> = {
+  svc_01: 1,
+  svc_02: 2,
+  svc_03: 3,
+  svc_04: 4,
+  svc_05: 5,
+  svc_06: 6,
+  svc_07: 7,
+  svc_08: 8,
+  svc_09: 9,
+  svc_10: 10,
+  svc_11: 11,
+  svc_12: 12,
+  svc_13: 13,
+  svc_14: 14,
+  svc_15: 15,
+  svc_16: 16,
+  svc_17: 17,
+  svc_18: 18,
+  svc_19: 19,
+  svc_20: 20,
+  svc_21: 21,
+  svc_22: 22,
+  svc_23: 23,
+  svc_24: 24,
+  svc_25: 25,
+  svc_26: 26,
+  svc_web_dev: 27,
+  svc_mobile_software: 28,
+  svc_landing_pages: 29,
+  svc_portfolio_design: 30,
+  svc_ai_automation: 31,
+  svc_ads_management: 32,
+  svc_seo: 33,
+  svc_content_presentation: 34,
+  svc_ai_content: 35,
+  svc_video_editing: 36,
+  svc_digital_marketing: 37,
+  svc_social_media_mgmt: 38,
+  svc_graphic_branding: 39,
+  svc_project_mgmt: 40,
+  svc_cybersecurity: 41,
+  svc_event_videography: 42,
+};
+
+export function sortServicesDeterministically(services: (ServiceItem | any)[]): ServiceItem[] {
+  if (!Array.isArray(services)) return [];
+  const mapped = services.map(svc => ({
+    ...svc,
+    name: sanitizeServiceName(svc.name || svc.title),
+    image: getPolishedServiceImage(svc),
+    orderIndex: svc.orderIndex ?? SERVICE_CANONICAL_ORDER[svc.id] ?? 999
+  })) as ServiceItem[];
+
+  return mapped.sort((a, b) => {
+    const orderA = a.orderIndex ?? SERVICE_CANONICAL_ORDER[a.id] ?? 999;
+    const orderB = b.orderIndex ?? SERVICE_CANONICAL_ORDER[b.id] ?? 999;
+    if (orderA !== orderB) return orderA - orderB;
+    return (a.id || '').localeCompare(b.id || '');
+  });
+}
+
+// ---------------------------------------------------------
+// 2. THE COMPLETE CORE SERVICE MARKETPLACE CATALOGUE (26 SERVICES + NAMED ALIASES)
 // ---------------------------------------------------------
 const RAW_SERVICES: ServiceItem[] = [
   // 1. Sponsored Ads Campaign Management
@@ -214,7 +306,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_01.jpg",
     url: "https://wa.me/p/25850225841340268/2349023489111",
     category: "marketing",
-    deliverables: ["Meta & Google Ads Campaign", "Precision Audience Retargeting", "High-CTR Ad Copywriting", "Weekly ROAS & ROI Reports"]
+    deliverables: ["Meta & Google Ads Campaign", "Precision Audience Retargeting", "High-CTR Ad Copywriting", "Weekly ROAS & ROI Reports"],
+    orderIndex: 1
   },
   // 2. Digital Marketing Monthly Packages
   {
@@ -225,18 +318,20 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_02.jpg",
     url: "https://wa.me/p/26382467731420705/2349023489111",
     category: "marketing",
-    deliverables: ["Full-Funnel Growth Strategy", "Email Marketing Setup", "Conversion Funnel Optimization", "Omnichannel Lead Capture"]
+    deliverables: ["Full-Funnel Growth Strategy", "Email Marketing Setup", "Conversion Funnel Optimization", "Omnichannel Lead Capture"],
+    orderIndex: 2
   },
-  // 3. Professional Training & Consultancy
+  // 3. Corporate Training and Staff Bootcamp
   {
     id: "svc_03",
-    name: "Professional Training & Consultancy",
+    name: "Corporate Training and Staff Bootcamp",
     price: "₦100,000 – ₦5,000,000+",
     description: "Corporate workforce upskilling, executive technology masterclasses, and digital transformation advisory for institutions.",
     image: "/assets/services/svc_03.jpg",
     url: "https://wa.me/2349023489111",
     category: "training",
-    deliverables: ["Custom Corporate Training Syllabus", "On-Site & Virtual Masterclasses", "Accredited Completion Badges", "1-on-1 Executive Advisory"]
+    deliverables: ["Custom Corporate Training Syllabus", "On-Site & Virtual Masterclasses", "Accredited Completion Badges", "1-on-1 Executive Advisory"],
+    orderIndex: 3
   },
   // 4. Content Creation and Presentation
   {
@@ -247,7 +342,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_04.jpg",
     url: "https://wa.me/p/27413518328335319/2349023489111",
     category: "marketing",
-    deliverables: ["Executive Pitch Decks", "Corporate Whitepapers", "Persuasive Storytelling", "Investor Presentation Design"]
+    deliverables: ["Executive Pitch Decks", "Corporate Whitepapers", "Persuasive Storytelling", "Investor Presentation Design"],
+    orderIndex: 4
   },
   // 5. Social Media Management
   {
@@ -258,7 +354,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_05.jpg",
     url: "https://wa.me/p/36346113405034532/2349023489111",
     category: "marketing",
-    deliverables: ["Monthly Content Calendar", "Scheduled Daily Publishing", "Community Moderation", "Monthly Engagement Reports"]
+    deliverables: ["Monthly Content Calendar", "Scheduled Daily Publishing", "Community Moderation", "Monthly Engagement Reports"],
+    orderIndex: 5
   },
   // 6. Website Design and Development
   {
@@ -269,7 +366,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_06.jpg",
     url: "https://wa.me/p/25279439215065803/2349023489111",
     category: "web",
-    deliverables: ["React / Next.js Architecture", "Mobile-First Responsive", "SEO & Speed Optimized", "Secure CMS Setup"]
+    deliverables: ["React / Next.js Architecture", "Mobile-First Responsive", "SEO & Speed Optimized", "Secure CMS Setup"],
+    orderIndex: 6
   },
   // 7. Software and Mobile App Design
   {
@@ -280,7 +378,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_07.jpg",
     url: "https://wa.me/p/26225498943742627/2349023489111",
     category: "software",
-    deliverables: ["iOS & Android Apps", "Cloud API & Database", "Offline-Ready Storage", "App Store Deployment"]
+    deliverables: ["iOS & Android Apps", "Cloud API & Database", "Offline-Ready Storage", "App Store Deployment"],
+    orderIndex: 7
   },
   // 8. Project Design and Management
   {
@@ -291,7 +390,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_08.jpg",
     url: "https://wa.me/p/26167607822850385/2349023489111",
     category: "business",
-    deliverables: ["Agile Sprint Governance", "Milestone Tracking & Gantt", "Risk Mitigation Audits", "On-Schedule Delivery Guarantee"]
+    deliverables: ["Agile Sprint Governance", "Milestone Tracking & Gantt", "Risk Mitigation Audits", "On-Schedule Delivery Guarantee"],
+    orderIndex: 8
   },
   // 9. Content Creation & Presentation Portfolio
   {
@@ -302,7 +402,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_09.jpg",
     url: "https://wa.me/p/27413518328335319/2349023489111",
     category: "marketing",
-    deliverables: ["Digital Company Profiles", "Interactive Lookbooks", "Corporate Catalogues", "Print-Ready Vector Layouts"]
+    deliverables: ["Digital Company Profiles", "Interactive Lookbooks", "Corporate Catalogues", "Print-Ready Vector Layouts"],
+    orderIndex: 9
   },
   // 10. Software & Mobile App Architecture
   {
@@ -313,7 +414,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_10.jpg",
     url: "https://wa.me/p/26225498943742627/2349023489111",
     category: "software",
-    deliverables: ["Microservices Architecture", "Cloud Database Sharding", "Security Audit & Pen Test", "High-Availability Deployment"]
+    deliverables: ["Microservices Architecture", "Cloud Database Sharding", "Security Audit & Pen Test", "High-Availability Deployment"],
+    orderIndex: 10
   },
   // 11. Web Portals and Systems Architecture
   {
@@ -324,7 +426,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_11.jpg",
     url: "https://wa.me/p/25279439215065803/2349023489111",
     category: "web",
-    deliverables: ["RBAC User Access Control", "Automated Billing & Invoices", "Real-Time Telemetry Data", "Cloudflare Edge Security"]
+    deliverables: ["RBAC User Access Control", "Automated Billing & Invoices", "Real-Time Telemetry Data", "Cloudflare Edge Security"],
+    orderIndex: 11
   },
   // 12. Portfolio Design Package
   {
@@ -335,7 +438,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_12.jpg",
     url: "https://wa.me/p/26668195106121616/2349023489111",
     category: "web",
-    deliverables: ["Curated Project Showcase", "Custom Domain & SSL", "Interactive Case Studies", "Mobile-Optimized Layout"]
+    deliverables: ["Curated Project Showcase", "Custom Domain & SSL", "Interactive Case Studies", "Mobile-Optimized Layout"],
+    orderIndex: 12
   },
   // 13. Strategic Project Blueprinting
   {
@@ -346,7 +450,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_13.jpg",
     url: "https://wa.me/p/26167607822850385/2349023489111",
     category: "business",
-    deliverables: ["Technical Feasibility Study", "System Architecture Diagrams", "Budget & Milestone Forecast", "Risk Management Plan"]
+    deliverables: ["Technical Feasibility Study", "System Architecture Diagrams", "Budget & Milestone Forecast", "Risk Management Plan"],
+    orderIndex: 13
   },
   // 14. Business Plan Design
   {
@@ -357,7 +462,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_14.jpg",
     url: "https://wa.me/2349023489111",
     category: "business",
-    deliverables: ["Executive Summary & Model", "3-5 Year Financial Forecast", "Competitor & Market Analysis", "Investor-Ready PDF Document"]
+    deliverables: ["Executive Summary & Model", "3-5 Year Financial Forecast", "Competitor & Market Analysis", "Investor-Ready PDF Document"],
+    orderIndex: 14
   },
   // 15. Social Media Campaigns Mastery
   {
@@ -368,7 +474,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_15.jpg",
     url: "https://wa.me/p/36346113405034532/2349023489111",
     category: "marketing",
-    deliverables: ["Viral Campaign Strategy", "Influencer Roster Sync", "Content Repurposing Suite", "Direct WhatsApp Funneling"]
+    deliverables: ["Viral Campaign Strategy", "Influencer Roster Sync", "Content Repurposing Suite", "Direct WhatsApp Funneling"],
+    orderIndex: 15
   },
   // 16. Beginners Training
   {
@@ -379,7 +486,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_16.jpg",
     url: "https://wa.me/2349023489111",
     category: "training",
-    deliverables: ["Zero-Experience Curriculum", "Live Interactive Mentorship", "Practical Weekly Projects", "Official Academy Certificate"]
+    deliverables: ["Zero-Experience Curriculum", "Live Interactive Mentorship", "Practical Weekly Projects", "Official Academy Certificate"],
+    orderIndex: 16
   },
   // 17. Exclusive and Advanced Trainings
   {
@@ -390,7 +498,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_17.jpg",
     url: "https://wa.me/2349023489111",
     category: "training",
-    deliverables: ["Advanced Coding & Cloud", "Real Enterprise Codebases", "Direct Industry Placement", "Senior Mentor Code Reviews"]
+    deliverables: ["Advanced Coding & Cloud", "Real Enterprise Codebases", "Direct Industry Placement", "Senior Mentor Code Reviews"],
+    orderIndex: 17
   },
   // 18. Customer Care Service Management
   {
@@ -401,7 +510,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_18.jpg",
     url: "https://wa.me/2349023489111",
     category: "business",
-    deliverables: ["WhatsApp Multi-Agent Portal", "Ticketing SLA Workflow", "CRM Automated Follow-Ups", "Weekly Satisfaction Reports"]
+    deliverables: ["WhatsApp Multi-Agent Portal", "Ticketing SLA Workflow", "CRM Automated Follow-Ups", "Weekly Satisfaction Reports"],
+    orderIndex: 18
   },
   // 19. DS ICT Support & Smart Tech
   {
@@ -412,7 +522,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_19.jpg",
     url: "https://wa.me/2349023489111",
     category: "ict",
-    deliverables: ["Office Network & Firewall", "Smart CCTV & Biometrics", "Workstation Configuration", "24/7 IT Helpdesk Support"]
+    deliverables: ["Office Network & Firewall", "Smart CCTV & Biometrics", "Workstation Configuration", "24/7 IT Helpdesk Support"],
+    orderIndex: 19
   },
   // 20. DS Branding and Graphic Designs
   {
@@ -423,7 +534,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_20.jpg",
     url: "https://wa.me/p/27195191726837563/2349023489111",
     category: "branding",
-    deliverables: ["Vector Logo & Icon Mark", "Pantone & Typography Guide", "Brand Collateral Assets", "Social & Stationery Templates"]
+    deliverables: ["Vector Logo & Icon Mark", "Pantone & Typography Guide", "Brand Collateral Assets", "Social & Stationery Templates"],
+    orderIndex: 20
   },
   // 21. DS Software App Designing
   {
@@ -434,7 +546,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_21.jpg",
     url: "https://wa.me/p/26225498943742627/2349023489111",
     category: "software",
-    deliverables: ["Interactive Figma Prototype", "Design System & Tokens", "User Testing & Wireframes", "Developer Hand-Off Specs"]
+    deliverables: ["Interactive Figma Prototype", "Design System & Tokens", "User Testing & Wireframes", "Developer Hand-Off Specs"],
+    orderIndex: 21
   },
   // 22. AI Content Creation Packages
   {
@@ -445,7 +558,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_22.jpg",
     url: "https://wa.me/p/26682737784737815/2349023489111",
     category: "ai",
-    deliverables: ["Multi-Channel Ad Copy", "High-Resolution AI Visuals", "Localized Editorial Copy", "Human Editorial QA Review"]
+    deliverables: ["Multi-Channel Ad Copy", "High-Resolution AI Visuals", "Localized Editorial Copy", "Human Editorial QA Review"],
+    orderIndex: 22
   },
   // 23. AI Chatbot Development Package
   {
@@ -456,7 +570,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_23.jpg",
     url: "https://wa.me/p/27016836764677969/2349023489111",
     category: "ai",
-    deliverables: ["Custom AI Assistants & Chatbots", "Workflow Automation Triggers", "WhatsApp & CRM Pipeline Sync", "Zero-Manual Operations"]
+    deliverables: ["Custom AI Assistants & Chatbots", "Workflow Automation Triggers", "WhatsApp & CRM Pipeline Sync", "Zero-Manual Operations"],
+    orderIndex: 23
   },
   // 24. Business Data Analytics
   {
@@ -467,7 +582,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_24.jpg",
     url: "https://wa.me/2349023489111",
     category: "business",
-    deliverables: ["Real-Time Executive Dashboard", "Customer Cohort Insights", "Revenue Forecasting Models", "Automated Weekly Digest"]
+    deliverables: ["Real-Time Executive Dashboard", "Customer Cohort Insights", "Revenue Forecasting Models", "Automated Weekly Digest"],
+    orderIndex: 24
   },
   // 25. CyberSecurity Services
   {
@@ -478,7 +594,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_25.jpg",
     url: "https://wa.me/p/28514091548192000/2349023489111",
     category: "ict",
-    deliverables: ["Vulnerability & Pen Testing", "SSL / TLS & WAF Setup", "Data Encryption Protocols", "Zero-Trust Architecture"]
+    deliverables: ["Vulnerability & Pen Testing", "SSL / TLS & WAF Setup", "Data Encryption Protocols", "Zero-Trust Architecture"],
+    orderIndex: 25
   },
   // 26. CAC, Tax and SCUML Certificate Registration
   {
@@ -489,7 +606,8 @@ const RAW_SERVICES: ServiceItem[] = [
     image: "/assets/services/svc_26.jpg",
     url: "https://wa.me/2349023489111",
     category: "compliance",
-    deliverables: ["CAC Limited Liability Certificate", "FIRS Corporate TIN & Clearance", "SCUML Anti-Money Laundering Cert", "Official CAC Status Report"]
+    deliverables: ["CAC Limited Liability Certificate", "FIRS Corporate TIN & Clearance", "SCUML Anti-Money Laundering Cert", "Official CAC Status Report"],
+    orderIndex: 26
   },
 
   // NAMED ALIASES FOR DIRECT URL CONSISTENCY
@@ -655,10 +773,7 @@ const RAW_SERVICES: ServiceItem[] = [
   }
 ];
 
-export const SERVICES: ServiceItem[] = RAW_SERVICES.map(svc => ({
-  ...svc,
-  image: getPolishedServiceImage(svc)
-}));
+export const SERVICES: ServiceItem[] = sortServicesDeterministically(RAW_SERVICES);
 
 
 // ---------------------------------------------------------

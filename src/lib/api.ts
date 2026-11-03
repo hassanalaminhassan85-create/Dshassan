@@ -3,7 +3,7 @@
 
 import { Department, StaffMember, StaffActivityLog, ProposalRecord } from '../types';
 import { generateDynamicSvgUrl, generateAvatarSvgUrl } from './mediaUtils';
-import { SERVICES, PORTFOLIO, BLOG_POSTS } from './data';
+import { SERVICES, PORTFOLIO, BLOG_POSTS, sanitizeServiceName, sortServicesDeterministically } from './data';
 import { 
   collection, 
   getDocs, 
@@ -163,14 +163,15 @@ import { onSnapshot } from 'firebase/firestore';
 export function apiSubscribeToServices(callback: (services: any[]) => void): () => void {
   // 1. Initial immediate multi-tier fetch
   apiGetServices().then(data => {
-    if (data && data.length > 0) callback(data);
+    if (data && data.length > 0) callback(sortServicesDeterministically(data));
   }).catch(() => callback(SERVICES));
 
   // 2. Firestore listener
   const q = query(collection(db, 'services'));
   const unsubFirestore = onSnapshot(q, (snapshot) => {
     if (!snapshot.empty) {
-      const services = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const rawServices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const services = sortServicesDeterministically(rawServices);
       localStorage.setItem('admin_services', JSON.stringify(services));
       callback(services);
     }
@@ -178,7 +179,7 @@ export function apiSubscribeToServices(callback: (services: any[]) => void): () 
 
   // 3. Custom Window Event listener for tab/cross-component synchronization
   const handleUpdate = () => {
-    apiGetServices().then(data => callback(data));
+    apiGetServices().then(data => callback(sortServicesDeterministically(data)));
   };
 
   if (typeof window !== 'undefined') {
@@ -447,8 +448,9 @@ export async function apiGetServices(): Promise<any[]> {
     if (res.ok) {
       const data = await res.json();
       if (Array.isArray(data) && data.length > 0) {
-        localStorage.setItem('admin_services', JSON.stringify(data));
-        return data;
+        const sorted = sortServicesDeterministically(data);
+        localStorage.setItem('admin_services', JSON.stringify(sorted));
+        return sorted;
       }
     }
   } catch (e) {
@@ -460,9 +462,10 @@ export async function apiGetServices(): Promise<any[]> {
     const q = query(collection(db, 'services'));
     const snapshot = await getDocs(q);
     if (!snapshot.empty) {
-      const services = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      localStorage.setItem('admin_services', JSON.stringify(services));
-      return services;
+      const rawServices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const sorted = sortServicesDeterministically(rawServices);
+      localStorage.setItem('admin_services', JSON.stringify(sorted));
+      return sorted;
     }
   } catch (e) {
     console.warn("Firestore Services GET warning:", e);
@@ -473,7 +476,10 @@ export async function apiGetServices(): Promise<any[]> {
     const saved = localStorage.getItem('admin_services');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const sorted = sortServicesDeterministically(parsed);
+        return sorted;
+      }
     }
   } catch (e) {}
 
@@ -486,7 +492,8 @@ export async function apiGetServices(): Promise<any[]> {
 
 export async function apiSaveService(service: any): Promise<any> {
   const id = service.id || doc(collection(db, 'services')).id;
-  const record = { ...service, id };
+  const sanitizedName = sanitizeServiceName(service.name);
+  const record = { ...service, id, name: sanitizedName };
   
   // 1. Write to Firestore (real-time sync)
   try {
@@ -513,7 +520,8 @@ export async function apiSaveService(service: any): Promise<any> {
     let newList = [...existing];
     if (idx >= 0) newList[idx] = record;
     else newList.push(record);
-    localStorage.setItem('admin_services', JSON.stringify(newList));
+    const sorted = sortServicesDeterministically(newList);
+    localStorage.setItem('admin_services', JSON.stringify(sorted));
   } catch (e) {}
 
   // 4. Dispatch sync event
@@ -526,11 +534,12 @@ export async function apiSaveService(service: any): Promise<any> {
 }
 
 export async function apiUpdateService(id: string, service: any): Promise<any> {
-  const record = { ...service, id };
+  const sanitizedName = sanitizeServiceName(service.name);
+  const record = { ...service, id, name: sanitizedName };
 
   // 1. Write to Firestore (real-time sync)
   try {
-    await updateDoc(doc(db, 'services', id), service);
+    await updateDoc(doc(db, 'services', id), record);
   } catch (e) {
     console.error("Firestore Services UPDATE error:", e);
   }
@@ -555,7 +564,8 @@ export async function apiUpdateService(id: string, service: any): Promise<any> {
         const idx = parsed.findIndex((s: any) => s.id === id);
         if (idx >= 0) parsed[idx] = { ...parsed[idx], ...record };
         else parsed.push(record);
-        localStorage.setItem('admin_services', JSON.stringify(parsed));
+        const sorted = sortServicesDeterministically(parsed);
+        localStorage.setItem('admin_services', JSON.stringify(sorted));
       }
     }
   } catch (e) {}

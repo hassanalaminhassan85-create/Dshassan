@@ -1,4 +1,4 @@
-import { SERVICES, ServiceItem } from './data';
+import { SERVICES, ServiceItem, sanitizeServiceName, sortServicesDeterministically } from './data';
 
 export interface ServiceSlugMapping {
   id: string;
@@ -20,8 +20,21 @@ export const SERVICE_SLUG_MAP: Record<string, ServiceSlugMapping> = {
   },
   svc_03: {
     id: 'svc_03',
-    slug: 'professional-training-consultancy',
-    aliases: ['professional-training', 'training-consultancy', 'consultancy-training', 'consultancy', 'training', 'professional-training-and-consultancy']
+    slug: 'corporate-training-and-staff-bootcamp',
+    aliases: [
+      'corporate-training',
+      'corporate-training-bootcamp',
+      'staff-bootcamp',
+      'corporate-bootcamp',
+      'corporate-training-and-staff-bootcamp',
+      'professional-training-consultancy',
+      'professional-training',
+      'training-consultancy',
+      'consultancy-training',
+      'consultancy',
+      'training',
+      'professional-training-and-consultancy'
+    ]
   },
   svc_04: {
     id: 'svc_04',
@@ -361,11 +374,16 @@ export function getServiceBySlugOrId(slugOrId: string, servicesList: ServiceItem
     } catch (e) {}
   }
 
-  const allAvailable = Array.from(combinedMap.values());
+  const allAvailable = sortServicesDeterministically(Array.from(combinedMap.values()));
+
+  const finalizeService = (s: ServiceItem): ServiceItem => ({
+    ...s,
+    name: sanitizeServiceName(s.name)
+  });
 
   // Check 1: Direct ID Match (raw or cleaned)
   let directMatch = allAvailable.find(s => s.id.toLowerCase() === rawNormalized || s.id.toLowerCase() === cleanedNormalized);
-  if (directMatch) return directMatch;
+  if (directMatch) return finalizeService(directMatch);
 
   // Check 2: Match against SERVICE_SLUG_MAP (slug, aliases, or mapKey)
   for (const candidate of [rawNormalized, cleanedNormalized]) {
@@ -379,11 +397,11 @@ export function getServiceBySlugOrId(slugOrId: string, servicesList: ServiceItem
       ) {
         // Try to find in allAvailable
         const match = allAvailable.find(s => s.id.toLowerCase() === mapping.id.toLowerCase());
-        if (match) return match;
+        if (match) return finalizeService(match);
 
         // If mapped ID has another corresponding entry
         const matchBySlug = allAvailable.find(s => getServiceSlug(s) === mapping.slug);
-        if (matchBySlug) return matchBySlug;
+        if (matchBySlug) return finalizeService(matchBySlug);
       }
     }
   }
@@ -395,7 +413,7 @@ export function getServiceBySlugOrId(slugOrId: string, servicesList: ServiceItem
       const generated = getServiceSlug(s);
       return generated === candidate;
     });
-    if (fallbackMatch) return fallbackMatch;
+    if (fallbackMatch) return finalizeService(fallbackMatch);
   }
 
   // Check 4: Substring / Partial Fuzzy Matching
@@ -408,7 +426,7 @@ export function getServiceBySlugOrId(slugOrId: string, servicesList: ServiceItem
       const sName = (s.name || '').toLowerCase();
       return candidate.includes(sSlug) || sSlug.includes(candidate) || candidate.includes(sName) || sName.includes(candidate);
     });
-    if (partialItemMatch) return partialItemMatch;
+    if (partialItemMatch) return finalizeService(partialItemMatch);
 
     for (const mapKey of Object.keys(SERVICE_SLUG_MAP)) {
       const mapping = SERVICE_SLUG_MAP[mapKey];
@@ -419,50 +437,50 @@ export function getServiceBySlugOrId(slugOrId: string, servicesList: ServiceItem
 
       if (matchFound) {
         const match = allAvailable.find(s => s.id.toLowerCase() === mapping.id.toLowerCase());
-        if (match) return match;
+        if (match) return finalizeService(match);
       }
     }
   }
 
   // Check 5: Semantic keyword matching
   for (const candidate of [cleanedNormalized, rawNormalized]) {
-    if (candidate.includes('train') || candidate.includes('consult')) {
+    if (candidate.includes('train') || candidate.includes('consult') || candidate.includes('bootcamp')) {
       const match = allAvailable.find(s => s.id === 'svc_03' || s.category === 'training');
-      if (match) return match;
+      if (match) return finalizeService(match);
     }
     if (candidate.includes('ad') || candidate.includes('sponsor')) {
       const match = allAvailable.find(s => s.id === 'svc_01' || s.id === 'svc_ads_management');
-      if (match) return match;
+      if (match) return finalizeService(match);
     }
     if (candidate.includes('web') || candidate.includes('site')) {
       const match = allAvailable.find(s => s.id === 'svc_06' || s.id === 'svc_web_dev');
-      if (match) return match;
+      if (match) return finalizeService(match);
     }
     if (candidate.includes('app') || candidate.includes('software')) {
       const match = allAvailable.find(s => s.id === 'svc_07' || s.id === 'svc_mobile_software');
-      if (match) return match;
+      if (match) return finalizeService(match);
     }
     if (candidate.includes('brand') || candidate.includes('logo')) {
       const match = allAvailable.find(s => s.id === 'svc_20' || s.id === 'svc_graphic_branding');
-      if (match) return match;
+      if (match) return finalizeService(match);
     }
     if (candidate.includes('cac') || candidate.includes('scuml') || candidate.includes('tax')) {
       const match = allAvailable.find(s => s.id === 'svc_26');
-      if (match) return match;
+      if (match) return finalizeService(match);
     }
     if (candidate.includes('cyber') || candidate.includes('security')) {
       const match = allAvailable.find(s => s.id === 'svc_25' || s.id === 'svc_cybersecurity');
-      if (match) return match;
+      if (match) return finalizeService(match);
     }
     if (candidate.includes('ai') || candidate.includes('bot')) {
       const match = allAvailable.find(s => s.id === 'svc_23' || s.id === 'svc_ai_automation');
-      if (match) return match;
+      if (match) return finalizeService(match);
     }
   }
 
   // Check 6: Universal Fail-Safe Synthesis
   // Guarantees that any custom, newly-added, or unknown service slug NEVER shows an error screen!
-  return synthesizeServiceFromSlug(slugOrId);
+  return finalizeService(synthesizeServiceFromSlug(slugOrId));
 }
 
 export interface QuotationSubmissionPayload {

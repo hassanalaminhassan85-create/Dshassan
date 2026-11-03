@@ -5,7 +5,7 @@ import {
   Layers, Laptop, Bot, LineChart, Cpu, Fingerprint, HelpCircle,
   ArrowLeft, Sun, Moon
 } from 'lucide-react';
-import { SERVICES, ServiceItem } from '../lib/data';
+import { SERVICES, ServiceItem, sortServicesDeterministically } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
 import { ServiceCard } from './ServiceCard';
 import { apiSubscribeToServices } from '../lib/api';
@@ -73,12 +73,9 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
       const saved = localStorage.getItem('admin_services');
       if (saved) {
         const parsed = JSON.parse(saved);
-        return parsed.map((svc: ServiceItem) => {
-          if (!svc.image || svc.image.startsWith('data:image/svg+xml') || svc.image.includes('svg')) {
-            return { ...svc, image: getPolishedServiceImage(svc) };
-          }
-          return svc;
-        });
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return sortServicesDeterministically(parsed);
+        }
       }
       return SERVICES;
     } catch (e) {
@@ -89,14 +86,9 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({
   useEffect(() => {
     const unsubscribe = apiSubscribeToServices((data) => {
       if (data && data.length > 0) {
-        const cleaned = data.map((svc: ServiceItem) => {
-          if (!svc.image || svc.image.startsWith('data:image/svg+xml') || svc.image.includes('svg')) {
-            return { ...svc, image: getPolishedServiceImage(svc) };
-          }
-          return svc;
-        });
-        setServices(cleaned);
-        localStorage.setItem('admin_services', JSON.stringify(cleaned));
+        const sorted = sortServicesDeterministically(data);
+        setServices(sorted);
+        localStorage.setItem('admin_services', JSON.stringify(sorted));
       }
     });
     return () => unsubscribe();

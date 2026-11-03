@@ -90,8 +90,8 @@ self.addEventListener('fetch', (event) => {
   }
 
   // B. NAVIGATION REQUESTS (HTML ENTRYPOINT) - STRICT NETWORK FIRST
-  // Whenever the user visits or revisits the site, retrieve the fresh HTML from Cloudflare.
-  // Only serve from cache if network is completely unreachable (offline).
+  // Always retrieve the fresh HTML document directly from the origin network.
+  // Never overwrite the root offline fallback URL with responses from other page navigations!
   if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
     event.respondWith(
       fetch(request)
@@ -99,15 +99,20 @@ self.addEventListener('fetch', (event) => {
           if (networkResponse && networkResponse.status === 200) {
             const responseToCache = networkResponse.clone();
             caches.open(STATIC_CACHE_NAME).then((cache) => {
-              cache.put(OFFLINE_FALLBACK_URL, responseToCache);
+              // Cache specifically under this request's own URL
+              cache.put(request, responseToCache);
+              // ONLY update the root offline fallback if the navigated URL was actually the root homepage!
+              if (url.pathname === '/' || url.pathname === '/index.html' || url.pathname === '') {
+                cache.put(OFFLINE_FALLBACK_URL, networkResponse.clone());
+              }
             });
           }
           return networkResponse;
         })
         .catch(() => {
-          console.log('[ServiceWorker] Network unavailable, serving cached offline application shell');
-          return caches.match(OFFLINE_FALLBACK_URL).then((cached) => {
-            return cached || caches.match('/index.html');
+          console.log('[ServiceWorker] Network unreachable, retrieving cached navigation entry');
+          return caches.match(request).then((cached) => {
+            return cached || caches.match(OFFLINE_FALLBACK_URL) || caches.match('/index.html');
           });
         })
     );

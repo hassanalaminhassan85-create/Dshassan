@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  ArrowLeft, Sparkles, CheckCircle2, AlertCircle, 
-  Clock, DollarSign, User, Phone, Mail, Building2, 
-  FileText, Copy, Check, ChevronDown, ShieldCheck, Layers, Send
+  ArrowLeft, CheckCircle2, AlertCircle, 
+  Clock, User, Phone, Mail, Building2, 
+  Layers, Copy, Check, ChevronDown, ShieldCheck,
+  CheckSquare, Square
 } from 'lucide-react';
-import { ServiceItem } from '../lib/data';
+import { SERVICES, ServiceItem, sortServicesDeterministically, sanitizeServiceName } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
 import { 
   COMPANY_BANK_NAME, 
@@ -15,7 +16,6 @@ import {
 import { MoniepointIcon } from './MoniepointIcon';
 import { OfficialWhatsAppIcon } from './OfficialWhatsAppIcon';
 import { getServiceSlug, saveQuotationRecord } from '../lib/quoteUtils';
-import { Logo } from './Logo';
 
 interface ServiceQuoteViewProps {
   service: ServiceItem;
@@ -34,7 +34,7 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
 }) => {
   const agencyPhone = '2349023489111';
 
-  // Client Details State
+  // Client Contact Details State
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -66,6 +66,7 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittedSuccess, setIsSubmittedSuccess] = useState(false);
+  const [submittedWhatsappUrl, setSubmittedWhatsappUrl] = useState('');
 
   // Scroll to top on mount or service change
   useEffect(() => {
@@ -82,6 +83,11 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
   const handleBudgetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawVal = e.target.value.replace(/[^\d]/g, '');
     setProposedBudget(rawVal);
+  };
+
+  const handleAmountPaidChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawVal = e.target.value.replace(/[^\d]/g, '');
+    setAmountPaid(rawVal);
   };
 
   const formatNairaDisplay = (val: string) => {
@@ -112,76 +118,99 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
     });
   };
 
-  // Render Tailored Service-Specific Questions
+  // Render Tailored Service-Specific Questions with compact, multi-select rows
   const renderServiceSpecificFields = () => {
     const cat = service.category;
-    const name = service.name.toLowerCase();
+    const name = (service.name || '').toLowerCase();
 
     if (cat === 'web' || name.includes('website') || name.includes('landing') || name.includes('portfolio')) {
+      const selectedFeatures: string[] = serviceFields.features || [];
+      const featureOptions = [
+        'Online Payments (Paystack/Flutterwave)',
+        'WhatsApp Live Chat Integration',
+        'User Login / Client Dashboard',
+        'CMS / Admin Management System',
+        'Multilingual Support',
+        'Booking / Appointment System',
+        'SEO & Speed Optimization'
+      ];
+
       return (
-        <div className="space-y-3 p-3.5 sm:p-4 rounded-xl bg-slate-50/70 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-            <Layers size={13} className="text-orange-500" />
-            <span>Website &amp; Web Platform Requirements</span>
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">Project Type</label>
-              <select
-                value={serviceFields.websiteType || 'Corporate Business Website'}
-                onChange={(e) => updateSpecificField('websiteType', e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:border-orange-500"
-              >
-                <option value="Corporate Business Website">Corporate Business Website</option>
-                <option value="E-Commerce Store & Payment Portal">E-Commerce Store &amp; Payment Portal</option>
-                <option value="Conversion Landing Page">Conversion Landing Page</option>
-                <option value="Personal / Professional Portfolio">Personal / Professional Portfolio</option>
-                <option value="Custom Web Application / SaaS">Custom Web Application / SaaS</option>
-              </select>
+        <div className="space-y-4 p-4 sm:p-5 rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF]">
+          <div className="flex items-center gap-2">
+            <Layers size={16} className="text-[#E87932] shrink-0" />
+            <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#17243A]">
+              Website &amp; Web Platform Requirements
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+                Project Type
+              </label>
+              <div className="relative">
+                <select
+                  value={serviceFields.websiteType || 'Corporate Business Website'}
+                  onChange={(e) => updateSpecificField('websiteType', e.target.value)}
+                  className="w-full h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] pl-3.5 pr-9 text-[14px] sm:text-[15px] font-normal text-[#17243A] focus:outline-none focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="Corporate Business Website">Corporate Business Website</option>
+                  <option value="E-Commerce Store & Payment Portal">E-Commerce Store &amp; Payment Portal</option>
+                  <option value="Conversion Landing Page">Conversion Landing Page</option>
+                  <option value="Personal / Professional Portfolio">Personal / Professional Portfolio</option>
+                  <option value="Custom Web Application / SaaS">Custom Web Application / SaaS</option>
+                </select>
+                <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#667085] pointer-events-none" />
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">Estimated Page Count</label>
-              <select
-                value={serviceFields.pageCount || '1–5 Pages'}
-                onChange={(e) => updateSpecificField('pageCount', e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:border-orange-500"
-              >
-                <option value="Single Page (Landing Page)">Single Page (Landing Page)</option>
-                <option value="1–5 Pages">1–5 Pages</option>
-                <option value="5–15 Pages">5–15 Pages</option>
-                <option value="15+ Custom Portal Pages">15+ Custom Portal Pages</option>
-              </select>
+            <div className="space-y-1.5">
+              <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+                Estimated Page Count
+              </label>
+              <div className="relative">
+                <select
+                  value={serviceFields.pageCount || '1–5 Pages'}
+                  onChange={(e) => updateSpecificField('pageCount', e.target.value)}
+                  className="w-full h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] pl-3.5 pr-9 text-[14px] sm:text-[15px] font-normal text-[#17243A] focus:outline-none focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="Single Page (Landing Page)">Single Page (Landing Page)</option>
+                  <option value="1–5 Pages">1–5 Pages</option>
+                  <option value="5–15 Pages">5–15 Pages</option>
+                  <option value="15+ Custom Portal Pages">15+ Custom Portal Pages</option>
+                </select>
+                <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#667085] pointer-events-none" />
+              </div>
             </div>
           </div>
 
-          <div className="space-y-1.5 pt-1">
-            <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">
-              Required Core Features (Select all that apply)
+          <div className="space-y-2 pt-1">
+            <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+              Required Core Features <span className="text-[12px] font-normal text-[#667085]">(Select all that apply)</span>
             </label>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                'Online Payments (Paystack/Flutterwave)',
-                'WhatsApp Live Chat Integration',
-                'User Login / Client Dashboard',
-                'CMS / Admin Management System',
-                'Multilingual Support',
-                'Booking / Appointment System',
-                'SEO & Speed Optimization'
-              ].map((feat) => {
-                const isChecked = (serviceFields.features || []).includes(feat);
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {featureOptions.map((feat) => {
+                const isChecked = selectedFeatures.includes(feat);
                 return (
                   <button
                     key={feat}
                     type="button"
                     onClick={() => handleToggleArrayOption('features', feat)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border cursor-pointer ${
+                    className={`w-full min-h-[46px] p-3 rounded-[10px] border text-left flex items-center gap-3 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 ${
                       isChecked
-                        ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-xs'
-                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500/60'
+                        ? 'bg-[#FFF9F5] border-[#E87932] text-[#17243A]'
+                        : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-[#F8FAFC] text-[#17243A]'
                     }`}
                   >
-                    {isChecked ? '✓ ' : '+ '}{feat}
+                    <div className={`w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center shrink-0 transition-colors ${
+                      isChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
+                    }`}>
+                      {isChecked ? <Check size={12} strokeWidth={3} /> : null}
+                    </div>
+                    <span className="text-[13px] sm:text-[14px] font-normal text-[#17243A] leading-snug">
+                      {feat}
+                    </span>
                   </button>
                 );
               })}
@@ -192,29 +221,50 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
     }
 
     if (cat === 'software' || name.includes('software') || name.includes('app')) {
+      const selectedPlatforms: string[] = serviceFields.platforms || [];
+      const platformOptions = [
+        'iOS Mobile App',
+        'Android Mobile App',
+        'Cross-Platform Mobile (iOS + Android)',
+        'Web App / SaaS Portal',
+        'Desktop Application'
+      ];
+
       return (
-        <div className="space-y-3 p-3.5 sm:p-4 rounded-xl bg-slate-50/70 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-            <Layers size={13} className="text-orange-500" />
-            <span>Software &amp; Mobile App Architecture</span>
-          </h4>
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">Target Platforms</label>
-            <div className="flex flex-wrap gap-1.5">
-              {['iOS Mobile App', 'Android Mobile App', 'Cross-Platform Mobile (iOS + Android)', 'Web App / SaaS Portal', 'Desktop Application'].map((plat) => {
-                const isChecked = (serviceFields.platforms || []).includes(plat);
+        <div className="space-y-4 p-4 sm:p-5 rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF]">
+          <div className="flex items-center gap-2">
+            <Layers size={16} className="text-[#E87932] shrink-0" />
+            <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#17243A]">
+              Software &amp; Mobile App Architecture
+            </h3>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+              Target Platforms <span className="text-[12px] font-normal text-[#667085]">(Select all that apply)</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {platformOptions.map((plat) => {
+                const isChecked = selectedPlatforms.includes(plat);
                 return (
                   <button
                     key={plat}
                     type="button"
                     onClick={() => handleToggleArrayOption('platforms', plat)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border cursor-pointer ${
+                    className={`w-full min-h-[46px] p-3 rounded-[10px] border text-left flex items-center gap-3 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 ${
                       isChecked
-                        ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-xs'
-                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500/60'
+                        ? 'bg-[#FFF9F5] border-[#E87932] text-[#17243A]'
+                        : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-[#F8FAFC] text-[#17243A]'
                     }`}
                   >
-                    {isChecked ? '✓ ' : '+ '}{plat}
+                    <div className={`w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center shrink-0 transition-colors ${
+                      isChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
+                    }`}>
+                      {isChecked ? <Check size={12} strokeWidth={3} /> : null}
+                    </div>
+                    <span className="text-[13px] sm:text-[14px] font-normal text-[#17243A] leading-snug">
+                      {plat}
+                    </span>
                   </button>
                 );
               })}
@@ -226,34 +276,44 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
 
     if (cat === 'marketing' || name.includes('ads') || name.includes('marketing') || name.includes('social') || name.includes('seo')) {
       return (
-        <div className="space-y-3 p-3.5 sm:p-4 rounded-xl bg-slate-50/70 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-            <Layers size={13} className="text-orange-500" />
-            <span>Marketing &amp; Campaign Objectives</span>
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">Primary Campaign Objective</label>
-              <select
-                value={serviceFields.campaignObjective || 'Lead Generation'}
-                onChange={(e) => updateSpecificField('campaignObjective', e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:border-orange-500"
-              >
-                <option value="Lead Generation & WhatsApp Enquiries">Lead Generation &amp; WhatsApp Enquiries</option>
-                <option value="Direct Sales & E-Commerce Conversions">Direct Sales &amp; E-Commerce Conversions</option>
-                <option value="Brand Awareness & Organic Outreach">Brand Awareness &amp; Organic Outreach</option>
-                <option value="Search Engine Indexing & Ranking (SEO)">Search Engine Indexing &amp; Ranking (SEO)</option>
-              </select>
+        <div className="space-y-4 p-4 sm:p-5 rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF]">
+          <div className="flex items-center gap-2">
+            <Layers size={16} className="text-[#E87932] shrink-0" />
+            <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#17243A]">
+              Marketing &amp; Campaign Objectives
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+                Primary Campaign Objective
+              </label>
+              <div className="relative">
+                <select
+                  value={serviceFields.campaignObjective || 'Lead Generation & WhatsApp Enquiries'}
+                  onChange={(e) => updateSpecificField('campaignObjective', e.target.value)}
+                  className="w-full h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] pl-3.5 pr-9 text-[14px] sm:text-[15px] font-normal text-[#17243A] focus:outline-none focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="Lead Generation & WhatsApp Enquiries">Lead Generation &amp; WhatsApp Enquiries</option>
+                  <option value="Direct Sales & E-Commerce Conversions">Direct Sales &amp; E-Commerce Conversions</option>
+                  <option value="Brand Awareness & Organic Outreach">Brand Awareness &amp; Organic Outreach</option>
+                  <option value="Search Engine Indexing & Ranking (SEO)">Search Engine Indexing &amp; Ranking (SEO)</option>
+                </select>
+                <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#667085] pointer-events-none" />
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">Target Audience Location</label>
+            <div className="space-y-1.5">
+              <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+                Target Audience Location
+              </label>
               <input
                 type="text"
                 value={serviceFields.targetLocation || 'Nigeria (Abuja / Lagos / Nationwide)'}
                 onChange={(e) => updateSpecificField('targetLocation', e.target.value)}
                 placeholder="e.g. Abuja & Lagos, or International"
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:border-orange-500"
+                className="w-full h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] px-3.5 text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors"
               />
             </div>
           </div>
@@ -262,35 +322,50 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
     }
 
     if (cat === 'ai' || name.includes('ai') || name.includes('automation')) {
+      const selectedWorkflows: string[] = serviceFields.workflows || [];
+      const workflowOptions = [
+        'Automated Customer Care Chatbot (WhatsApp / Web)',
+        'Lead Qualification & CRM Sync',
+        'AI Content & Copywriting Pipeline',
+        'Document & Invoice Extraction',
+        'Custom AI Agent API Integration'
+      ];
+
       return (
-        <div className="space-y-3 p-3.5 sm:p-4 rounded-xl bg-slate-50/70 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-            <Layers size={13} className="text-orange-500" />
-            <span>AI &amp; Automation Preferences</span>
-          </h4>
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">Primary Automation Workflows</label>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                'Automated Customer Care Chatbot (WhatsApp / Web)',
-                'Lead Qualification & CRM Sync',
-                'AI Content & Copywriting Pipeline',
-                'Document & Invoice Extraction',
-                'Custom AI Agent API Integration'
-              ].map((flow) => {
-                const isChecked = (serviceFields.workflows || []).includes(flow);
+        <div className="space-y-4 p-4 sm:p-5 rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF]">
+          <div className="flex items-center gap-2">
+            <Layers size={16} className="text-[#E87932] shrink-0" />
+            <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#17243A]">
+              AI &amp; Automation Preferences
+            </h3>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+              Primary Automation Workflows <span className="text-[12px] font-normal text-[#667085]">(Select all that apply)</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {workflowOptions.map((flow) => {
+                const isChecked = selectedWorkflows.includes(flow);
                 return (
                   <button
                     key={flow}
                     type="button"
                     onClick={() => handleToggleArrayOption('workflows', flow)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border cursor-pointer ${
+                    className={`w-full min-h-[46px] p-3 rounded-[10px] border text-left flex items-center gap-3 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 ${
                       isChecked
-                        ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-xs'
-                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500/60'
+                        ? 'bg-[#FFF9F5] border-[#E87932] text-[#17243A]'
+                        : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-[#F8FAFC] text-[#17243A]'
                     }`}
                   >
-                    {isChecked ? '✓ ' : '+ '}{flow}
+                    <div className={`w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center shrink-0 transition-colors ${
+                      isChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
+                    }`}>
+                      {isChecked ? <Check size={12} strokeWidth={3} /> : null}
+                    </div>
+                    <span className="text-[13px] sm:text-[14px] font-normal text-[#17243A] leading-snug">
+                      {flow}
+                    </span>
                   </button>
                 );
               })}
@@ -300,71 +375,94 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
       );
     }
 
-    if (cat === 'training' || name.includes('training') || name.includes('consultancy') || name.includes('course')) {
+    if (cat === 'training' || name.includes('training') || name.includes('bootcamp') || name.includes('consultancy') || name.includes('course')) {
+      const selectedModules: string[] = serviceFields.modules || [];
+      const moduleOptions = [
+        'Full-Stack Web & Mobile Engineering',
+        'AI Model Prompting & Workflow Automation',
+        'Performance Ads (Meta & Google Ads)',
+        'Executive Leadership & Boardroom Protocol',
+        'Cybersecurity Hygiene & Data Protection',
+        'Digital Graphic Branding & Content Design',
+        'Agile Sprint & Project Governance'
+      ];
+
       return (
-        <div className="space-y-3 p-3.5 sm:p-4 rounded-xl bg-slate-50/70 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-            <Layers size={13} className="text-orange-500" />
-            <span>Training &amp; Corporate Consultancy Specifications</span>
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">Delivery Format</label>
-              <select
-                value={serviceFields.trainingFormat || 'On-Site Corporate Workshop'}
-                onChange={(e) => updateSpecificField('trainingFormat', e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:border-orange-500"
-              >
-                <option value="On-Site Corporate Workshop">On-Site Corporate Workshop</option>
-                <option value="Virtual Interactive Masterclass">Virtual Interactive Masterclass</option>
-                <option value="1-on-1 Executive Mentorship">1-on-1 Executive Mentorship</option>
-                <option value="Hybrid Intensive Bootcamp">Hybrid Intensive Bootcamp</option>
-                <option value="Institutional Staff Accreditation">Institutional Staff Accreditation</option>
-              </select>
+        <div className="space-y-4 p-4 sm:p-5 rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF]">
+          <div className="flex items-center gap-2">
+            <Layers size={16} className="text-[#E87932] shrink-0" />
+            <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#17243A]">
+              Corporate Training &amp; Staff Bootcamp Specifications
+            </h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+                Delivery Format
+              </label>
+              <div className="relative">
+                <select
+                  value={serviceFields.trainingFormat || 'On-Site Corporate Workshop'}
+                  onChange={(e) => updateSpecificField('trainingFormat', e.target.value)}
+                  className="w-full h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] pl-3.5 pr-9 text-[14px] sm:text-[15px] font-normal text-[#17243A] focus:outline-none focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="On-Site Corporate Workshop">On-Site Corporate Workshop</option>
+                  <option value="Virtual Interactive Masterclass">Virtual Interactive Masterclass</option>
+                  <option value="1-on-1 Executive Mentorship">1-on-1 Executive Mentorship</option>
+                  <option value="Hybrid Intensive Bootcamp">Hybrid Intensive Bootcamp</option>
+                  <option value="Institutional Staff Accreditation">Institutional Staff Accreditation</option>
+                </select>
+                <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#667085] pointer-events-none" />
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">Expected Cohort Size</label>
-              <select
-                value={serviceFields.cohortSize || 'Small Team (2–10 Attendees)'}
-                onChange={(e) => updateSpecificField('cohortSize', e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-900 dark:text-slate-100 focus:outline-none focus:border-orange-500"
-              >
-                <option value="Individual Executive (1 Participant)">Individual Executive (1 Participant)</option>
-                <option value="Small Team (2–10 Attendees)">Small Team (2–10 Attendees)</option>
-                <option value="Department (10–30 Attendees)">Department (10–30 Attendees)</option>
-                <option value="Enterprise / Institutional (30+ Attendees)">Enterprise / Institutional (30+ Attendees)</option>
-              </select>
+            <div className="space-y-1.5">
+              <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+                Expected Cohort Size
+              </label>
+              <div className="relative">
+                <select
+                  value={serviceFields.cohortSize || 'Small Team (2–10 Attendees)'}
+                  onChange={(e) => updateSpecificField('cohortSize', e.target.value)}
+                  className="w-full h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] pl-3.5 pr-9 text-[14px] sm:text-[15px] font-normal text-[#17243A] focus:outline-none focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 appearance-none cursor-pointer transition-colors"
+                >
+                  <option value="Individual Executive (1 Participant)">Individual Executive (1 Participant)</option>
+                  <option value="Small Team (2–10 Attendees)">Small Team (2–10 Attendees)</option>
+                  <option value="Department (10–30 Attendees)">Department (10–30 Attendees)</option>
+                  <option value="Enterprise / Institutional (30+ Attendees)">Enterprise / Institutional (30+ Attendees)</option>
+                </select>
+                <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#667085] pointer-events-none" />
+              </div>
             </div>
           </div>
 
-          <div className="space-y-1.5 pt-1">
-            <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">
-              Focus Curricula &amp; Training Modules
+          <div className="space-y-2 pt-1">
+            <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+              Focus Curricula &amp; Training Modules <span className="text-[12px] font-normal text-[#667085]">(Select all that apply)</span>
             </label>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                'Full-Stack Web & Mobile Engineering',
-                'AI Model Prompting & Workflow Automation',
-                'Performance Ads (Meta & Google Ads)',
-                'Executive Leadership & Boardroom Protocol',
-                'Cybersecurity Hygiene & Data Protection',
-                'Digital Graphic Branding & Content Design',
-                'Agile Sprint & Project Governance'
-              ].map((mod) => {
-                const isChecked = (serviceFields.modules || []).includes(mod);
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {moduleOptions.map((mod) => {
+                const isChecked = selectedModules.includes(mod);
                 return (
                   <button
                     key={mod}
                     type="button"
                     onClick={() => handleToggleArrayOption('modules', mod)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border cursor-pointer ${
+                    className={`w-full min-h-[46px] p-3 rounded-[10px] border text-left flex items-center gap-3 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 ${
                       isChecked
-                        ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-xs'
-                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500/60'
+                        ? 'bg-[#FFF9F5] border-[#E87932] text-[#17243A]'
+                        : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-[#F8FAFC] text-[#17243A]'
                     }`}
                   >
-                    {isChecked ? '✓ ' : '+ '}{mod}
+                    <div className={`w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center shrink-0 transition-colors ${
+                      isChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
+                    }`}>
+                      {isChecked ? <Check size={12} strokeWidth={3} /> : null}
+                    </div>
+                    <span className="text-[13px] sm:text-[14px] font-normal text-[#17243A] leading-snug">
+                      {mod}
+                    </span>
                   </button>
                 );
               })}
@@ -375,36 +473,51 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
     }
 
     if (cat === 'branding' || name.includes('brand') || name.includes('graphic') || name.includes('logo')) {
+      const selectedBrandItems: string[] = serviceFields.brandItems || [];
+      const brandOptions = [
+        'Vector Master Logo & Iconography',
+        'Comprehensive Brand Style Guide (Pantone/Fonts)',
+        'Business Cards & Corporate Stationery',
+        'Investor Pitch Deck & Corporate Brochure',
+        'Social Media Templates & Banner Kit',
+        'Product Packaging & 3D Mockups'
+      ];
+
       return (
-        <div className="space-y-3 p-3.5 sm:p-4 rounded-xl bg-slate-50/70 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-            <Layers size={13} className="text-orange-500" />
-            <span>Branding &amp; Creative Deliverables</span>
-          </h4>
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">Required Brand Assets</label>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                'Vector Master Logo & Iconography',
-                'Comprehensive Brand Style Guide (Pantone/Fonts)',
-                'Business Cards & Corporate Stationery',
-                'Investor Pitch Deck & Corporate Brochure',
-                'Social Media Templates & Banner Kit',
-                'Product Packaging & 3D Mockups'
-              ].map((item) => {
-                const isChecked = (serviceFields.brandItems || []).includes(item);
+        <div className="space-y-4 p-4 sm:p-5 rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF]">
+          <div className="flex items-center gap-2">
+            <Layers size={16} className="text-[#E87932] shrink-0" />
+            <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#17243A]">
+              Branding &amp; Creative Deliverables
+            </h3>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+              Required Brand Assets <span className="text-[12px] font-normal text-[#667085]">(Select all that apply)</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {brandOptions.map((item) => {
+                const isChecked = selectedBrandItems.includes(item);
                 return (
                   <button
                     key={item}
                     type="button"
                     onClick={() => handleToggleArrayOption('brandItems', item)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border cursor-pointer ${
+                    className={`w-full min-h-[46px] p-3 rounded-[10px] border text-left flex items-center gap-3 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 ${
                       isChecked
-                        ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-xs'
-                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500/60'
+                        ? 'bg-[#FFF9F5] border-[#E87932] text-[#17243A]'
+                        : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-[#F8FAFC] text-[#17243A]'
                     }`}
                   >
-                    {isChecked ? '✓ ' : '+ '}{item}
+                    <div className={`w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center shrink-0 transition-colors ${
+                      isChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
+                    }`}>
+                      {isChecked ? <Check size={12} strokeWidth={3} /> : null}
+                    </div>
+                    <span className="text-[13px] sm:text-[14px] font-normal text-[#17243A] leading-snug">
+                      {item}
+                    </span>
                   </button>
                 );
               })}
@@ -415,36 +528,51 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
     }
 
     if (cat === 'compliance' || name.includes('cac') || name.includes('scuml') || name.includes('tax')) {
+      const selectedCompliance: string[] = serviceFields.complianceItems || [];
+      const complianceOptions = [
+        'CAC Limited Liability Incorporation (LTD)',
+        'Business Name Registration (Enterprise)',
+        'SCUML Anti-Money Laundering Certificate',
+        'FIRS Corporate TIN & Tax Clearance Certificate',
+        'Annual Statutory Returns Filing',
+        'Trademark & Intellectual Property Registration'
+      ];
+
       return (
-        <div className="space-y-3 p-3.5 sm:p-4 rounded-xl bg-slate-50/70 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-            <Layers size={13} className="text-orange-500" />
-            <span>Statutory Corporate Compliance &amp; CAC Scope</span>
-          </h4>
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">Required Statutory Filings</label>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                'CAC Limited Liability Incorporation (LTD)',
-                'Business Name Registration (Enterprise)',
-                'SCUML Anti-Money Laundering Certificate',
-                'FIRS Corporate TIN & Tax Clearance Certificate',
-                'Annual Statutory Returns Filing',
-                'Trademark & Intellectual Property Registration'
-              ].map((item) => {
-                const isChecked = (serviceFields.complianceItems || []).includes(item);
+        <div className="space-y-4 p-4 sm:p-5 rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF]">
+          <div className="flex items-center gap-2">
+            <Layers size={16} className="text-[#E87932] shrink-0" />
+            <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#17243A]">
+              Statutory Corporate Compliance &amp; CAC Scope
+            </h3>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+              Required Statutory Filings <span className="text-[12px] font-normal text-[#667085]">(Select all that apply)</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {complianceOptions.map((item) => {
+                const isChecked = selectedCompliance.includes(item);
                 return (
                   <button
                     key={item}
                     type="button"
                     onClick={() => handleToggleArrayOption('complianceItems', item)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border cursor-pointer ${
+                    className={`w-full min-h-[46px] p-3 rounded-[10px] border text-left flex items-center gap-3 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 ${
                       isChecked
-                        ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-xs'
-                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500/60'
+                        ? 'bg-[#FFF9F5] border-[#E87932] text-[#17243A]'
+                        : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-[#F8FAFC] text-[#17243A]'
                     }`}
                   >
-                    {isChecked ? '✓ ' : '+ '}{item}
+                    <div className={`w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center shrink-0 transition-colors ${
+                      isChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
+                    }`}>
+                      {isChecked ? <Check size={12} strokeWidth={3} /> : null}
+                    </div>
+                    <span className="text-[13px] sm:text-[14px] font-normal text-[#17243A] leading-snug">
+                      {item}
+                    </span>
                   </button>
                 );
               })}
@@ -455,36 +583,51 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
     }
 
     if (cat === 'ict' || name.includes('cyber') || name.includes('security') || name.includes('ict')) {
+      const selectedIct: string[] = serviceFields.ictItems || [];
+      const ictOptions = [
+        'Penetration Testing & Vulnerability Assessment',
+        'SSL / TLS, Cloudflare WAF & DDoS Shield',
+        'Smart CCTV & Biometric Access Installation',
+        'Local Office Network & Firewall Setup',
+        'Cloud Backup & Disaster Recovery Architecture',
+        'Staff Cybersecurity Hygiene Workshop'
+      ];
+
       return (
-        <div className="space-y-3 p-3.5 sm:p-4 rounded-xl bg-slate-50/70 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-            <Layers size={13} className="text-orange-500" />
-            <span>Security &amp; ICT Infrastructure Requirements</span>
-          </h4>
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">Security &amp; IT Services</label>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                'Penetration Testing & Vulnerability Assessment',
-                'SSL / TLS, Cloudflare WAF & DDoS Shield',
-                'Smart CCTV & Biometric Access Installation',
-                'Local Office Network & Firewall Setup',
-                'Cloud Backup & Disaster Recovery Architecture',
-                'Staff Cybersecurity Hygiene Workshop'
-              ].map((item) => {
-                const isChecked = (serviceFields.ictItems || []).includes(item);
+        <div className="space-y-4 p-4 sm:p-5 rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF]">
+          <div className="flex items-center gap-2">
+            <Layers size={16} className="text-[#E87932] shrink-0" />
+            <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#17243A]">
+              Security &amp; ICT Infrastructure Requirements
+            </h3>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+              Security &amp; IT Services <span className="text-[12px] font-normal text-[#667085]">(Select all that apply)</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {ictOptions.map((item) => {
+                const isChecked = selectedIct.includes(item);
                 return (
                   <button
                     key={item}
                     type="button"
                     onClick={() => handleToggleArrayOption('ictItems', item)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border cursor-pointer ${
+                    className={`w-full min-h-[46px] p-3 rounded-[10px] border text-left flex items-center gap-3 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 ${
                       isChecked
-                        ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-xs'
-                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500/60'
+                        ? 'bg-[#FFF9F5] border-[#E87932] text-[#17243A]'
+                        : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-[#F8FAFC] text-[#17243A]'
                     }`}
                   >
-                    {isChecked ? '✓ ' : '+ '}{item}
+                    <div className={`w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center shrink-0 transition-colors ${
+                      isChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
+                    }`}>
+                      {isChecked ? <Check size={12} strokeWidth={3} /> : null}
+                    </div>
+                    <span className="text-[13px] sm:text-[14px] font-normal text-[#17243A] leading-snug">
+                      {item}
+                    </span>
                   </button>
                 );
               })}
@@ -495,35 +638,50 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
     }
 
     if (cat === 'business' || name.includes('business') || name.includes('project') || name.includes('plan')) {
+      const selectedBusiness: string[] = serviceFields.businessItems || [];
+      const businessOptions = [
+        'Investor-Ready Business Plan Document',
+        '3-5 Year Comprehensive Financial Model',
+        'Market Feasibility & Competitor Analysis',
+        'Agile Project Sprint Governance',
+        'Executive Customer Support Desk Setup'
+      ];
+
       return (
-        <div className="space-y-3 p-3.5 sm:p-4 rounded-xl bg-slate-50/70 dark:bg-slate-950/70 border border-slate-200/80 dark:border-slate-800">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-            <Layers size={13} className="text-orange-500" />
-            <span>Business Advisory &amp; Project Governance</span>
-          </h4>
-          <div className="space-y-1.5">
-            <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">Scope of Advisory</label>
-            <div className="flex flex-wrap gap-1.5">
-              {[
-                'Investor-Ready Business Plan Document',
-                '3-5 Year Comprehensive Financial Model',
-                'Market Feasibility & Competitor Analysis',
-                'Agile Project Sprint Governance',
-                'Executive Customer Support Desk Setup'
-              ].map((item) => {
-                const isChecked = (serviceFields.businessItems || []).includes(item);
+        <div className="space-y-4 p-4 sm:p-5 rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF]">
+          <div className="flex items-center gap-2">
+            <Layers size={16} className="text-[#E87932] shrink-0" />
+            <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#17243A]">
+              Business Advisory &amp; Project Governance
+            </h3>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+              Scope of Advisory <span className="text-[12px] font-normal text-[#667085]">(Select all that apply)</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {businessOptions.map((item) => {
+                const isChecked = selectedBusiness.includes(item);
                 return (
                   <button
                     key={item}
                     type="button"
                     onClick={() => handleToggleArrayOption('businessItems', item)}
-                    className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all border cursor-pointer ${
+                    className={`w-full min-h-[46px] p-3 rounded-[10px] border text-left flex items-center gap-3 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 ${
                       isChecked
-                        ? 'bg-[#000E32] dark:bg-orange-600 text-white border-transparent shadow-xs'
-                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-orange-500/60'
+                        ? 'bg-[#FFF9F5] border-[#E87932] text-[#17243A]'
+                        : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-[#F8FAFC] text-[#17243A]'
                     }`}
                   >
-                    {isChecked ? '✓ ' : '+ '}{item}
+                    <div className={`w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center shrink-0 transition-colors ${
+                      isChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
+                    }`}>
+                      {isChecked ? <Check size={12} strokeWidth={3} /> : null}
+                    </div>
+                    <span className="text-[13px] sm:text-[14px] font-normal text-[#17243A] leading-snug">
+                      {item}
+                    </span>
                   </button>
                 );
               })}
@@ -538,6 +696,7 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
 
   const handleSubmitQuotation = (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setNotification(null);
 
     // Form Validation
@@ -579,6 +738,19 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
       ? `₦${Number(amountPaid.replace(/[^\d]/g, '') || amountPaid).toLocaleString('en-NG')}` 
       : 'Optional / Not paid yet';
 
+    // Compile service-specific detail lines for WhatsApp
+    const serviceSpecificDetails: string[] = [];
+    if (Object.keys(serviceFields).length > 0) {
+      serviceSpecificDetails.push(`*TECHNICAL SPECIFICATIONS:*`);
+      for (const [key, val] of Object.entries(serviceFields)) {
+        if (Array.isArray(val) && val.length > 0) {
+          serviceSpecificDetails.push(`• ${key}: ${val.join(', ')}`);
+        } else if (typeof val === 'string' && val.trim()) {
+          serviceSpecificDetails.push(`• ${key}: ${val}`);
+        }
+      }
+    }
+
     // Save quotation record to persistent store for admin review
     const quotationPayload = {
       id: `quote_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -606,15 +778,16 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
       `*DS TECH AGENCY - OFFICIAL SERVICE QUOTATION REQUEST*`,
       ``,
       `*CLIENT INFORMATION:*`,
-      `• Full Name: ${fullName}`,
-      `• WhatsApp Contact: ${phone}`,
-      email ? `• Email: ${email}` : null,
-      company ? `• Company / Brand: ${company}` : null,
+      `• Full Name: ${fullName.trim()}`,
+      `• WhatsApp Contact: ${phone.trim()}`,
+      email.trim() ? `• Email: ${email.trim()}` : null,
+      company.trim() ? `• Company / Brand: ${company.trim()}` : null,
       ``,
       `*SELECTED SERVICE SPECIFICATION:*`,
       `• Service: ${service.name}`,
       `• Service ID: ${service.id}`,
       `• Category: ${service.category.toUpperCase()}`,
+      ...(serviceSpecificDetails.length > 0 ? [``, ...serviceSpecificDetails] : []),
       ``,
       `*PROPOSED CLIENT TERMS:*`,
       `• Proposed Budget: ${formattedBudget}`,
@@ -627,7 +800,7 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
       `• Account Name: ${COMPANY_BANK_ACCOUNT_NAME}`,
       ``,
       `*CUSTOM PROJECT DESCRIPTION & SCOPE:*`,
-      `${description}`,
+      `${description.trim()}`,
       ``,
       `----------------------------------------`,
       `*Submitted via DS Tech Dedicated Quotation Portal (RC 9550925)*`
@@ -635,24 +808,29 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
 
     const fullMessage = messageLines.join('\n');
     const whatsappUrl = `https://wa.me/${agencyPhone}?text=${encodeURIComponent(fullMessage)}`;
+    setSubmittedWhatsappUrl(whatsappUrl);
 
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSubmittedSuccess(true);
       setNotification({
         type: 'success',
-        message: 'Your quotation request has been generated! Opening WhatsApp chat with our engineering desk...'
+        message: 'Your quotation request has been compiled! Launching WhatsApp conversation with our engineering desk...'
       });
 
-      setTimeout(() => {
+      try {
         window.open(whatsappUrl, '_blank');
-      }, 1000);
+      } catch (e) {
+        // Fallback handled by direct link in success notification
+      }
     }, 600);
   };
 
   const distinctServices = useMemo(() => {
+    const list = Array.isArray(allServices) && allServices.length > 0 ? allServices : SERVICES;
+    const sorted = sortServicesDeterministically(list);
     const seen = new Set<string>();
-    return allServices.filter((s) => {
+    return sorted.filter((s) => {
       const slug = getServiceSlug(s);
       const key = slug || (s.name || '').toLowerCase().trim();
       if (seen.has(key)) return false;
@@ -662,31 +840,31 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
   }, [allServices]);
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans antialiased py-4 sm:py-6 px-3 sm:px-6">
-      <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4">
+    <div className="min-h-screen w-full bg-[#F5F7FA] text-[#17243A] font-['Inter',sans-serif] antialiased py-6 sm:py-10 px-4 sm:px-8 lg:px-[40px]">
+      <div className="max-w-[1120px] mx-auto space-y-5 sm:space-y-6">
         
-        {/* Minimal Compact Navigation & Service Switcher */}
-        <div className="flex items-center justify-between gap-3 px-1">
+        {/* Compact, Responsive Header & Service Navigation */}
+        <nav aria-label="Service quotation navigation" className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-orange-500/50 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 h-[40px] px-3.5 rounded-[10px] text-[13px] font-medium text-[#17243A] bg-white border border-[#E5E9EF] hover:bg-[#F8FAFC] hover:border-[#D0D5DD] transition-colors shadow-[0_1px_2px_rgba(16,24,40,0.04)] cursor-pointer self-start focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20"
           >
-            <ArrowLeft size={14} className="text-orange-500 shrink-0" />
+            <ArrowLeft size={15} className="text-[#E87932] shrink-0" />
             <span>Back to Services</span>
           </button>
 
           {distinctServices.length > 1 && (
-            <div className="flex items-center gap-2">
-              <label htmlFor="service-switcher" className="text-[11px] font-medium text-slate-400 dark:text-slate-500 hidden sm:inline whitespace-nowrap">
+            <div className="flex items-center gap-2.5 self-stretch sm:self-auto">
+              <label htmlFor="service-switcher" className="text-[12px] font-medium text-[#667085] whitespace-nowrap hidden sm:inline">
                 Service:
               </label>
-              <div className="relative">
+              <div className="relative flex-1 sm:flex-initial">
                 <select
                   id="service-switcher"
                   value={getServiceSlug(service)}
                   onChange={(e) => onNavigateToService && onNavigateToService(e.target.value)}
-                  className="appearance-none bg-white/90 dark:bg-slate-900/90 border border-slate-200/90 dark:border-slate-800 rounded-lg pl-3 pr-7 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-orange-500 shadow-xs cursor-pointer max-w-[200px] sm:max-w-[260px] truncate"
+                  className="w-full sm:w-[280px] h-[40px] bg-white border border-[#E5E9EF] rounded-[10px] pl-3.5 pr-8 text-[13px] font-medium text-[#17243A] focus:outline-none focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 shadow-[0_1px_2px_rgba(16,24,40,0.04)] appearance-none cursor-pointer truncate transition-colors"
                 >
                   {distinctServices.map((s) => (
                     <option key={s.id || getServiceSlug(s)} value={getServiceSlug(s)}>
@@ -694,11 +872,11 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
                     </option>
                   ))}
                 </select>
-                <ChevronDown size={13} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#667085] pointer-events-none" />
               </div>
             </div>
           )}
-        </div>
+        </nav>
 
         {/* In-App Notification Banner */}
         <AnimatePresence>
@@ -707,303 +885,385 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
-              className={`p-3 sm:p-3.5 rounded-xl border flex items-start gap-2.5 text-xs ${
+              className={`p-4 rounded-[12px] border flex items-start gap-3 text-[14px] leading-relaxed ${
                 notification.type === 'error'
-                  ? 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300'
+                  ? 'bg-[#FEF3F2] border-[#FECDCA] text-[#B42318]'
                   : notification.type === 'success'
-                  ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
-                  : 'bg-indigo-50 dark:bg-indigo-950/40 border-indigo-200 dark:border-indigo-800 text-indigo-800 dark:text-indigo-300'
+                  ? 'bg-[#ECFDF3] border-[#A6F4C5] text-[#027A48]'
+                  : 'bg-[#F8FAFC] border-[#E5E9EF] text-[#17243A]'
               }`}
             >
               {notification.type === 'error' ? (
-                <AlertCircle className="shrink-0 text-red-500 mt-0.5" size={16} />
+                <AlertCircle className="shrink-0 text-[#D92D20] mt-0.5" size={18} />
               ) : (
-                <CheckCircle2 className="shrink-0 text-emerald-500 mt-0.5" size={16} />
+                <CheckCircle2 className="shrink-0 text-[#079B68] mt-0.5" size={18} />
               )}
-              <div className="flex-1 font-medium leading-relaxed">
-                {notification.message}
+              <div className="flex-1 font-medium space-y-2">
+                <p>{notification.message}</p>
+                {notification.type === 'success' && submittedWhatsappUrl && (
+                  <div className="pt-1">
+                    <a
+                      href={submittedWhatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#25D366] hover:bg-[#20bd5a] text-white text-[13px] font-bold rounded-[8px] transition-colors shadow-sm"
+                    >
+                      <OfficialWhatsAppIcon className="w-4 h-4 fill-white" />
+                      <span>Open WhatsApp Chat Directly</span>
+                    </a>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Main Compact Form Card */}
-        <div className="bg-white dark:bg-slate-900/95 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm p-4 sm:p-6 space-y-5">
+        {/* Main Enterprise Quotation Card */}
+        <main className="bg-white rounded-[18px] sm:rounded-[20px] border border-[#E5E9EF] shadow-[0_1px_3px_rgba(16,24,40,0.06),0_1px_2px_rgba(16,24,40,0.04)] p-5 sm:p-8 lg:p-[36px] space-y-6 sm:space-y-8">
+          
           {/* Service Title & Scope Header */}
-          <div className="border-b border-slate-100 dark:border-slate-800/80 pb-3.5 space-y-1.5">
-            <div className="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-              <span className="font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400">
+          <header className="border-b border-[#E5E9EF] pb-5 sm:pb-6 space-y-2">
+            <div className="flex flex-wrap items-center gap-2 text-[12px] text-[#667085] font-normal">
+              <span className="font-semibold text-[#E87932] uppercase tracking-wider">
                 {service.category}
               </span>
               <span aria-hidden="true">·</span>
               <span>Official Quotation</span>
               <span aria-hidden="true">·</span>
-              <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-                <ShieldCheck size={12} />
+              <span className="inline-flex items-center gap-1 font-medium text-[#079B68]">
+                <ShieldCheck size={14} />
                 SLA Guaranteed
               </span>
             </div>
 
-            <h1 className="text-lg sm:text-xl font-bold text-[#000E32] dark:text-white tracking-tight">
+            <h1 className="text-[25px] sm:text-[30px] font-bold text-[#17243A] tracking-tight leading-tight">
               Request Quotation: {service.name}
             </h1>
 
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-normal">
+            <p className="text-[14px] sm:text-[15px] text-[#667085] font-normal leading-relaxed max-w-3xl">
               {service.description}
             </p>
-          </div>
 
-          <form onSubmit={handleSubmitQuotation} className="space-y-4 sm:space-y-5">
+            {service.deliverables && service.deliverables.length > 0 && (
+              <div className="pt-2">
+                <div className="p-3.5 sm:p-4 rounded-[10px] bg-[#F8FAFC] border border-[#E5E9EF] space-y-2">
+                  <h2 className="text-[13px] font-semibold text-[#17243A]">
+                    Key Deliverables Included in this Specification:
+                  </h2>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[13px] text-[#667085]">
+                    {service.deliverables.map((deliv, idx) => (
+                      <div key={idx} className="flex items-start gap-2">
+                        <Check size={14} className="text-[#079B68] shrink-0 mt-0.5" />
+                        <span>{deliv}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </header>
+
+          <form onSubmit={handleSubmitQuotation} className="space-y-6">
             
-            {/* 1. Client Contact Details */}
-            <div className="space-y-2.5">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <User size={13} className="text-orange-500" />
-                <span>1. Client Information</span>
+            {/* 1. Client Information */}
+            <section aria-labelledby="client-info-heading" className="space-y-3.5 sm:space-y-[18px]">
+              <div className="flex items-center gap-2 border-b border-[#E5E9EF] pb-2">
+                <User size={16} className="text-[#E87932] shrink-0" />
+                <h2 id="client-info-heading" className="text-[16px] sm:text-[17px] font-semibold text-[#17243A]">
+                  1. Client Information
+                </h2>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">
-                    Full Name <span className="text-red-500">*</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 sm:gap-y-[18px]">
+                <div>
+                  <label htmlFor="quote-fullname" className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block mb-1.5">
+                    Full Name <span className="text-[#E87932]">*</span>
                   </label>
                   <input
+                    id="quote-fullname"
                     type="text"
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="Enter your full name"
-                    className="w-full bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 transition-colors"
+                    className="w-full h-[46px] sm:h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] px-3.5 sm:px-4 text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">
-                    WhatsApp Phone Number <span className="text-red-500">*</span>
+                <div>
+                  <label htmlFor="quote-phone" className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block mb-1.5">
+                    WhatsApp Phone Number <span className="text-[#E87932]">*</span>
                   </label>
                   <input
+                    id="quote-phone"
                     type="tel"
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="e.g. +234 812 345 6789"
-                    className="w-full bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 font-mono transition-colors"
+                    className="w-full h-[46px] sm:h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] px-3.5 sm:px-4 text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">
-                    Email Address <span className="text-slate-400 text-[10px] font-normal">(Optional)</span>
+                <div>
+                  <label htmlFor="quote-email" className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block mb-1.5">
+                    Email Address <span className="text-[#667085] text-[12px] font-normal">(Optional)</span>
                   </label>
                   <input
+                    id="quote-email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="client@company.com"
-                    className="w-full bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 transition-colors"
+                    className="w-full h-[46px] sm:h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] px-3.5 sm:px-4 text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">
-                    Company / Organization <span className="text-slate-400 text-[10px] font-normal">(Optional)</span>
+                <div>
+                  <label htmlFor="quote-company" className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block mb-1.5">
+                    Company / Organization <span className="text-[#667085] text-[12px] font-normal">(Optional)</span>
                   </label>
                   <input
+                    id="quote-company"
                     type="text"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
                     placeholder="e.g. DS Tech Ventures Ltd"
-                    className="w-full bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500/20 transition-colors"
+                    className="w-full h-[46px] sm:h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] px-3.5 sm:px-4 text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors"
                   />
                 </div>
               </div>
-            </div>
+            </section>
 
             {/* 2. Service-Specific Technical Scope */}
             {renderServiceSpecificFields()}
 
-            {/* 3. Delivery Timeline & Budget */}
-            <div className="space-y-2.5">
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                <Clock size={13} className="text-orange-500" />
-                <span>2. Delivery Timeline &amp; Proposed Budget</span>
+            {/* 3. Delivery Timeline & Proposed Budget */}
+            <section aria-labelledby="timeline-budget-heading" className="space-y-3.5 sm:space-y-[18px]">
+              <div className="flex items-center gap-2 border-b border-[#E5E9EF] pb-2">
+                <Clock size={16} className="text-[#E87932] shrink-0" />
+                <h2 id="timeline-budget-heading" className="text-[16px] sm:text-[17px] font-semibold text-[#17243A]">
+                  2. Delivery Timeline &amp; Proposed Budget
+                </h2>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">
-                    Preferred Delivery Timeline <span className="text-red-500">*</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 sm:gap-y-[18px]">
+                <div>
+                  <label htmlFor="quote-delivery-timeline" className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block mb-1.5">
+                    Preferred Delivery Timeline <span className="text-[#E87932]">*</span>
                   </label>
-                  <select
-                    value={deliveryTimeline}
-                    onChange={(e) => setDeliveryTimeline(e.target.value)}
-                    className="w-full bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-2 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 cursor-pointer transition-colors"
-                  >
-                    <option value="As soon as possible">As soon as possible</option>
-                    <option value="Within 3–7 days">Within 3–7 days</option>
-                    <option value="Within 1–2 weeks">Within 1–2 weeks</option>
-                    <option value="Within 2–4 weeks">Within 2–4 weeks</option>
-                    <option value="Within 1–2 months">Within 1–2 months</option>
-                    <option value="Flexible — let's discuss">Flexible — let's discuss</option>
-                    <option value="Custom timeline">Custom timeline</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      id="quote-delivery-timeline"
+                      value={deliveryTimeline}
+                      onChange={(e) => setDeliveryTimeline(e.target.value)}
+                      className="w-full h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] pl-3.5 pr-9 text-[14px] sm:text-[15px] font-normal text-[#17243A] focus:outline-none focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 appearance-none cursor-pointer transition-colors"
+                    >
+                      <option value="As soon as possible">As soon as possible</option>
+                      <option value="Within 3–7 days">Within 3–7 days</option>
+                      <option value="Within 1–2 weeks">Within 1–2 weeks</option>
+                      <option value="Within 2–4 weeks">Within 2–4 weeks</option>
+                      <option value="Within 1–2 months">Within 1–2 months</option>
+                      <option value="Flexible — let's discuss">Flexible — let's discuss</option>
+                      <option value="Custom timeline">Custom timeline</option>
+                    </select>
+                    <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#667085] pointer-events-none" />
+                  </div>
 
                   {deliveryTimeline === 'Custom timeline' && (
-                    <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="pt-1.5">
+                    <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="pt-2">
                       <input 
                         type="text"
                         value={customTimelineText}
                         onChange={(e) => setCustomTimelineText(e.target.value)}
                         placeholder="Specify target completion date or timeframe..."
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-orange-500 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none"
+                        className="w-full h-[46px] sm:h-[48px] bg-white border border-[#E87932] rounded-[10px] px-3.5 text-[14px] text-[#17243A] focus:outline-none focus:ring-2 focus:ring-[#E87932]/15"
                       />
                     </motion.div>
                   )}
+                  <p className="text-[12px] text-[#667085] mt-1.5">
+                    Subject to technical review and sprint scheduling with our lead architect.
+                  </p>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">
-                    Your Proposed Budget (₦) <span className="text-slate-400 text-[10px] font-normal">(Optional)</span>
+                <div>
+                  <label htmlFor="quote-budget" className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block mb-1.5">
+                    Your Proposed Budget (₦) <span className="text-[#667085] text-[12px] font-normal">(Optional)</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-orange-500 font-bold font-mono text-xs">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#E87932] font-semibold text-[15px] select-none pointer-events-none">
                       ₦
                     </span>
                     <input
+                      id="quote-budget"
                       type="text"
+                      inputMode="numeric"
                       value={formatNairaDisplay(proposedBudget)}
                       onChange={handleBudgetChange}
                       placeholder="e.g. 500,000"
-                      className="w-full bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg pl-7 pr-3 py-2 text-xs font-semibold text-slate-900 dark:text-white font-mono focus:outline-none focus:border-orange-500 transition-colors"
+                      className="w-full h-[46px] sm:h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] pl-8 pr-3.5 text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors"
                     />
                   </div>
+                  <p className="text-[12px] text-[#667085] mt-1.5">
+                    Specify the budget range you are comfortable with; we tailor scope to match.
+                  </p>
                 </div>
               </div>
-            </div>
+            </section>
 
             {/* 4. Project Scope Description */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">
-                Project Scope &amp; Deliverables <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                required
-                rows={3}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Detail your goals, required deliverables, features, target audience, or specific preferences..."
-                className="w-full bg-slate-50/80 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 rounded-lg p-3 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-orange-500 transition-colors leading-relaxed resize-none"
-              />
-            </div>
+            <section aria-labelledby="scope-heading" className="space-y-2">
+              <div className="flex items-center gap-2 border-b border-[#E5E9EF] pb-2">
+                <Building2 size={16} className="text-[#E87932] shrink-0" />
+                <h2 id="scope-heading" className="text-[16px] sm:text-[17px] font-semibold text-[#17243A]">
+                  3. Project Scope &amp; Deliverables
+                </h2>
+              </div>
 
-            {/* 5. Collapsed Manual Payment Accordion */}
-            <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-slate-50/60 dark:bg-slate-950/60">
+              <div>
+                <label htmlFor="quote-description" className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block mb-1.5">
+                  Detailed Project Scope &amp; Technical Requirements <span className="text-[#E87932]">*</span>
+                </label>
+                <textarea
+                  id="quote-description"
+                  required
+                  rows={4}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Detail your goals, required deliverables, key features, target audience, brand preferences, or any reference designs..."
+                  className="w-full min-h-[112px] sm:min-h-[120px] bg-white border border-[#E5E9EF] rounded-[10px] p-3.5 sm:p-4 text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors leading-relaxed resize-y"
+                />
+                <p className="text-[12px] text-[#667085] mt-1.5">
+                  Provide as much context as possible to help our senior consultants prepare an accurate estimation.
+                </p>
+              </div>
+            </section>
+
+            {/* 5. Polished Moniepoint Corporate Payment Collapsible Panel */}
+            <div className="border border-[#E5E9EF] rounded-[12px] overflow-hidden bg-white">
               <button
                 type="button"
                 onClick={() => setIsPaymentAccordionOpen(!isPaymentAccordionOpen)}
                 aria-expanded={isPaymentAccordionOpen}
-                aria-controls="manual-payment-accordion-content"
-                className="w-full p-3 sm:p-3.5 flex items-center justify-between text-left hover:bg-slate-100/70 dark:hover:bg-slate-800/40 transition-colors cursor-pointer focus:outline-none"
+                aria-controls="manual-payment-panel"
+                className="w-full p-4 sm:p-5 flex items-center justify-between text-left hover:bg-[#F8FAFC] transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20"
               >
-                <div className="flex items-center gap-2.5">
-                  <MoniepointIcon size={20} />
+                <div className="flex items-center gap-3">
+                  <MoniepointIcon size={22} />
                   <div>
-                    <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#17243A] flex flex-wrap items-center gap-2">
                       <span>Direct Corporate Bank Transfer</span>
-                      <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500">
+                      <span className="text-[12px] font-normal text-[#667085]">
                         (Optional · Moniepoint MFB)
                       </span>
-                    </h4>
+                    </h3>
+                    <p className="text-[12px] text-[#667085] mt-0.5">
+                      Advance deposit instructions for institutional accounts
+                    </p>
                   </div>
                 </div>
 
-                <ChevronDown 
-                  size={16} 
-                  className={`text-slate-400 transition-transform duration-200 ${isPaymentAccordionOpen ? 'rotate-180 text-orange-500' : ''}`} 
-                />
+                <div className="flex items-center gap-2">
+                  <span className="text-[12px] font-medium text-[#E87932] hidden sm:inline">
+                    {isPaymentAccordionOpen ? 'Hide Details' : 'View Bank Details'}
+                  </span>
+                  <ChevronDown 
+                    size={18} 
+                    className={`text-[#667085] transition-transform duration-200 ${isPaymentAccordionOpen ? 'rotate-180 text-[#E87932]' : ''}`} 
+                  />
+                </div>
               </button>
 
               <AnimatePresence>
                 {isPaymentAccordionOpen && (
                   <motion.div
-                    id="manual-payment-accordion-content"
+                    id="manual-payment-panel"
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                    className="overflow-hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3"
+                    transition={{ duration: 0.18 }}
+                    className="overflow-hidden border-t border-[#E5E9EF] bg-[#F8FAFC] p-4 sm:p-5 space-y-4"
                   >
-                    <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
-                      Making an advance payment is completely optional. If you prefer to make a direct transfer, please use our official corporate receiving account:
+                    <p className="text-[13px] sm:text-[14px] text-[#667085] leading-relaxed">
+                      Making an advance payment is completely optional. If you prefer to make a direct corporate transfer, please use our verified Moniepoint corporate receiving account:
                     </p>
 
-                    <div className="p-3 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-500 dark:text-slate-400">Bank Name</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                          <MoniepointIcon size={14} />
+                    <div className="p-4 rounded-[10px] bg-white border border-[#E5E9EF] space-y-3">
+                      <div className="flex items-center justify-between text-[13px]">
+                        <span className="text-[#667085]">Bank Name</span>
+                        <span className="font-semibold text-[#17243A] flex items-center gap-1.5">
+                          <MoniepointIcon size={16} />
                           {COMPANY_BANK_NAME}
                         </span>
                       </div>
 
-                      <div className="flex items-center justify-between border-t border-b border-slate-200 dark:border-slate-800 py-1.5">
+                      <div className="flex items-center justify-between border-t border-b border-[#E5E9EF] py-2.5">
                         <div>
-                          <span className="text-[10px] text-slate-400 uppercase font-mono block">Account Number</span>
-                          <span className="text-base font-black font-mono text-emerald-600 dark:text-emerald-400 tracking-wider">
+                          <span className="text-[11px] font-medium text-[#667085] block uppercase tracking-wider">
+                            Account Number
+                          </span>
+                          <span className="text-[18px] sm:text-[20px] font-bold font-mono text-[#079B68] tracking-wider">
                             {COMPANY_BANK_ACCOUNT_NUMBER}
                           </span>
                         </div>
                         <button
                           type="button"
                           onClick={handleCopyBank}
-                          className="px-2.5 py-1 rounded-md text-xs font-semibold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-orange-500 transition-colors flex items-center gap-1 cursor-pointer"
+                          className="h-[36px] px-3 rounded-[8px] text-[13px] font-semibold bg-[#F8FAFC] text-[#17243A] border border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-white transition-colors flex items-center gap-1.5 cursor-pointer shadow-[0_1px_2px_rgba(16,24,40,0.04)]"
                         >
-                          {copiedBank ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
-                          <span>{copiedBank ? 'Copied' : 'Copy'}</span>
+                          {copiedBank ? <Check size={14} className="text-[#079B68]" /> : <Copy size={14} />}
+                          <span>{copiedBank ? 'Copied' : 'Copy Number'}</span>
                         </button>
                       </div>
 
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-slate-500 dark:text-slate-400">Account Name</span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200 text-right">{COMPANY_BANK_ACCOUNT_NAME}</span>
+                      <div className="flex items-center justify-between text-[13px]">
+                        <span className="text-[#667085]">Account Name</span>
+                        <span className="font-semibold text-[#17243A] text-right">{COMPANY_BANK_ACCOUNT_NAME}</span>
                       </div>
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-[11px] font-semibold text-slate-700 dark:text-slate-300 block">
-                        Amount Paid (₦) <span className="text-slate-400 text-[10px] font-normal">(Optional)</span>
+                    <div className="space-y-1.5">
+                      <label htmlFor="quote-amount-paid" className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+                        Amount Paid (₦) <span className="text-[#667085] text-[12px] font-normal">(Optional — leave blank if not paid yet)</span>
                       </label>
-                      <input
-                        type="text"
-                        value={amountPaid}
-                        onChange={(e) => setAmountPaid(e.target.value)}
-                        placeholder="e.g. 200,000"
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-lg px-3 py-1.5 text-xs font-bold text-slate-900 dark:text-white font-mono focus:outline-none focus:border-orange-500"
-                      />
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#E87932] font-semibold text-[15px] select-none pointer-events-none">
+                          ₦
+                        </span>
+                        <input
+                          id="quote-amount-paid"
+                          type="text"
+                          inputMode="numeric"
+                          value={formatNairaDisplay(amountPaid)}
+                          onChange={handleAmountPaidChange}
+                          placeholder="e.g. 200,000"
+                          className="w-full h-[46px] sm:h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] pl-8 pr-3.5 text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors"
+                        />
+                      </div>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-            {/* 6. Action Button */}
-            <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800">
-              <span className="text-[11px] text-slate-500 dark:text-slate-400 text-center sm:text-left">
-                Direct dispatch to DS TECH senior engineering desk.
-              </span>
+            {/* 6. Primary Submission Button & Action Footer */}
+            <div className="pt-4 sm:pt-6 border-t border-[#E5E9EF] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <p className="text-[12px] text-[#667085] text-center sm:text-left">
+                Direct dispatch to DS TECH senior engineering desk via official WhatsApp channel.
+              </p>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-98 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                className="h-[52px] w-full sm:w-auto px-7 rounded-[12px] bg-[#079B68] hover:bg-[#06885B] active:bg-[#057A52] text-white text-[14px] font-semibold flex items-center justify-center gap-2.5 transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-[#079B68]/30 cursor-pointer disabled:opacity-50"
               >
-                <OfficialWhatsAppIcon size={18} animate={false} />
-                <span>{isSubmitting ? 'Preparing Quote...' : 'Submit Quote Request via WhatsApp ➔'}</span>
+                <OfficialWhatsAppIcon size={20} animate={false} />
+                <span>{isSubmitting ? 'Preparing Quotation...' : 'Submit Quote Request via WhatsApp ➔'}</span>
               </button>
             </div>
 
           </form>
-        </div>
+        </main>
 
       </div>
     </div>

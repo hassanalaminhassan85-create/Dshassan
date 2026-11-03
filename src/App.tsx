@@ -16,7 +16,7 @@ import { AboutSection } from './components/AboutSection';
 import { ServicesSection } from './components/ServicesSection';
 import { ServiceQuoteView } from './components/ServiceQuoteView';
 import { getServiceBySlugOrId } from './lib/quoteUtils';
-import { SERVICES, ServiceItem } from './lib/data';
+import { SERVICES, ServiceItem, sortServicesDeterministically, sanitizeServiceName } from './lib/data';
 import { PortfolioSection } from './components/PortfolioSection';
 import { MeetOurTeamSection } from './components/MeetOurTeamSection';
 import { BlogSection } from './components/BlogSection';
@@ -317,23 +317,28 @@ export function resolvePathToState(rawPath: string): {
 
   const lowerPath = path.toLowerCase();
 
-  // Dedicated Core Services Marketplace & Quotation Route (DIRECT & PRIORITY RESOLUTION)
-  // Precise slash/end boundary prevents false-positives like /service-worker.js or /services-section
-  // Non-greedy capture allows encoded chars and dashes in slug (e.g. /quote/professional-training-consultancy)
-  const serviceRouteMatch = path.match(/^\/(quote|quotes|quotation|services|service)(?:\/([^\/\?#]+))?(?:\/.*)?$/i);
-  if (serviceRouteMatch) {
-    const routePrefix = (serviceRouteMatch[1] || '').toLowerCase();
-    const rawSlug = serviceRouteMatch[2] || '';
+  // 1. ROOT HOMEPAGE DIRECT & PRIORITY RESOLUTION (PREVENTS ACCIDENTAL REDIRECTS ON REFRESH)
+  if (lowerPath === '' || lowerPath === '/' || lowerPath === '/home' || lowerPath === '/index.html') {
+    return { path: '/', activePage: 'home', isAdminView: false, appId: null };
+  }
+
+  // 2. CORE SERVICES CATALOGUE GRID DIRECT RESOLUTION (/services, /services/)
+  if (lowerPath === '/services' || lowerPath === '/services/' || lowerPath === '/service' || lowerPath === '/service/') {
+    return { path: '/services', activePage: 'services', isAdminView: false, appId: null };
+  }
+
+  // 3. DEDICATED SERVICE QUOTATION ROUTES (/quote/:slug, /quote, /quotation/:slug, /quotation, etc.)
+  const quoteRouteMatch = path.match(/^\/(?:quote|quotes|quotation|service-quote)(?:\/([^\/\?#]+))?(?:\/.*)?$/i);
+  if (quoteRouteMatch) {
+    const rawSlug = quoteRouteMatch[1] || '';
     let quoteSlug = rawSlug ? decodeURIComponent(rawSlug).trim() : '';
-    
-    // Also check query parameter if no path slug was provided (e.g. /services?service=ads-management or /quote?slug=ads-management)
+
     if (!quoteSlug && typeof window !== 'undefined' && window.location?.search) {
       const searchParams = new URLSearchParams(window.location.search);
       quoteSlug = searchParams.get('service') || searchParams.get('slug') || searchParams.get('id') || searchParams.get('quote') || searchParams.get('name') || '';
       if (quoteSlug) quoteSlug = quoteSlug.trim();
     }
 
-    // Also check hash routing if provided (e.g. #/quote/professional-training-consultancy)
     if (!quoteSlug && typeof window !== 'undefined' && window.location?.hash) {
       const hashMatch = window.location.hash.match(/(?:quote|quotes|service|services|quotation)\/([^\/\?#]+)/i);
       if (hashMatch && hashMatch[1]) {
@@ -341,35 +346,16 @@ export function resolvePathToState(rawPath: string): {
       }
     }
 
-    if (quoteSlug) {
-      const result = { path, activePage: 'quote' as ActivePageType, isAdminView: false, appId: quoteSlug };
-      if (typeof window !== 'undefined') {
-        console.info('[RouteResolver] ✅ Quotation Route Resolved with Service Slug:', {
-          rawPath,
-          routePrefix,
-          slug: quoteSlug,
-          activePage: result.activePage,
-          appId: result.appId
-        });
-      }
-      return result;
-    }
-    
-    // If it's specifically "/services" or "/service" with no service slug requested, show the core services catalogue grid
-    if (routePrefix === 'services' || routePrefix === 'service') {
-      const result = { path: '/services', activePage: 'services' as ActivePageType, isAdminView: false, appId: null };
-      if (typeof window !== 'undefined') {
-        console.info('[RouteResolver] 📋 Core Services Marketplace Grid Route Resolved:', { rawPath, result });
-      }
-      return result;
-    }
+    return { path, activePage: 'quote' as ActivePageType, isAdminView: false, appId: quoteSlug || null };
+  }
 
-    // Default for /quote, /quotes, /quotation with no slug: open quote view with default primary service
-    const result = { path, activePage: 'quote' as ActivePageType, isAdminView: false, appId: null };
-    if (typeof window !== 'undefined') {
-      console.info('[RouteResolver] 📝 Service Quotation Route Resolved (Default Primary):', { rawPath, result });
+  // 4. SUB-SERVICES DIRECT LINK (/services/:slug)
+  const servicesSubMatch = path.match(/^\/services\/([^\/\?#]+)(?:\/.*)?$/i);
+  if (servicesSubMatch && servicesSubMatch[1]) {
+    const rawSubSlug = decodeURIComponent(servicesSubMatch[1]).trim();
+    if (rawSubSlug) {
+      return { path, activePage: 'quote' as ActivePageType, isAdminView: false, appId: rawSubSlug };
     }
-    return result;
   }
 
   // Dedicated Website Visitor Intelligence & CRM Route
@@ -541,8 +527,9 @@ export default function App() {
   const [application, setApplication] = useState<JobApplication | null>(null);
   const [loading, setLoading] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
-      const res = resolvePathToState(window.location.pathname || '/');
-      return !!res.appId && res.activePage !== 'proposals' && res.activePage !== 'verify-certificate' && res.activePage !== 'quote';
+      const rawPath = window.location.pathname || '/';
+      const res = resolvePathToState(rawPath);
+      return rawPath.startsWith('/application/') && !!res.appId;
     }
     return false;
   });
@@ -573,7 +560,7 @@ export default function App() {
         const saved = localStorage.getItem('admin_services');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+          if (Array.isArray(parsed) && parsed.length > 0) return sortServicesDeterministically(parsed);
         }
       } catch (e) {}
     }
@@ -583,7 +570,7 @@ export default function App() {
   useEffect(() => {
     const unsub = apiSubscribeToServices((data) => {
       if (data && data.length > 0) {
-        setLiveServices(data);
+        setLiveServices(sortServicesDeterministically(data));
       }
     });
     return () => unsub();
@@ -954,7 +941,7 @@ export default function App() {
         setIsAdminView(false);
       }
 
-      const isJobAppRoute = !!resolved.appId && resolved.activePage !== 'proposals' && resolved.activePage !== 'verify-certificate' && resolved.activePage !== 'quote';
+      const isJobAppRoute = rawPath.startsWith('/application/') && !!resolved.appId;
 
       if (isJobAppRoute) {
         setCurrentAppId(resolved.appId);

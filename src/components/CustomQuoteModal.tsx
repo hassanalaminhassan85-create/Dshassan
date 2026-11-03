@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  X, MessageSquare, Sparkles, CheckCircle2, 
-  DollarSign, Clock, User, Phone, Mail, Building, FileText, 
-  Layers, Copy, Check, ChevronDown
+  X, CheckCircle2, 
+  Clock, User, Phone, Mail, Building, FileText, 
+  Copy, Check, ChevronDown, ShieldCheck
 } from 'lucide-react';
 import { ServiceItem } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
@@ -13,6 +13,7 @@ import {
   COMPANY_BANK_ACCOUNT_NAME 
 } from '../lib/companyConstants';
 import { MoniepointIcon } from './MoniepointIcon';
+import { OfficialWhatsAppIcon } from './OfficialWhatsAppIcon';
 
 interface CustomQuoteModalProps {
   isOpen: boolean;
@@ -85,6 +86,11 @@ export const CustomQuoteModal: React.FC<CustomQuoteModalProps> = ({
     setProposedBudget(rawVal);
   };
 
+  const handleAmountPaidChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawVal = e.target.value.replace(/[^\d]/g, '');
+    setAmountPaid(rawVal);
+  };
+
   const handleCopyAccountNumber = () => {
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard.writeText(COMPANY_BANK_ACCOUNT_NUMBER);
@@ -95,7 +101,7 @@ export const CustomQuoteModal: React.FC<CustomQuoteModalProps> = ({
 
   const handleSendToWhatsApp = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !phone || !description) {
+    if (!fullName.trim() || !phone.trim() || !description.trim()) {
       alert('Please fill in your name, WhatsApp phone number, and project description.');
       return;
     }
@@ -115,9 +121,9 @@ export const CustomQuoteModal: React.FC<CustomQuoteModalProps> = ({
     const message = `*DS TECH AGENCY - OFFICIAL SERVICE QUOTE & BRIEF*
 
 *CLIENT INFORMATION:*
-• Full Name: ${fullName}
-• WhatsApp Contact: ${phone}
-${email ? `• Email: ${email}\n` : ''}${company ? `• Company / Brand: ${company}\n` : ''}
+• Full Name: ${fullName.trim()}
+• WhatsApp Contact: ${phone.trim()}
+${email.trim() ? `• Email: ${email.trim()}\n` : ''}${company.trim() ? `• Company / Brand: ${company.trim()}\n` : ''}
 *SERVICE SPECIFICATION:*
 • Target Service: ${serviceTitle}
 • Category: ${serviceCategory.toUpperCase()}
@@ -136,7 +142,7 @@ ${email ? `• Email: ${email}\n` : ''}${company ? `• Company / Brand: ${compa
 ${serviceDeliverables.map(d => `• ${d}`).join('\n')}
 
 *CUSTOM PROJECT DESCRIPTION & SCOPE:*
-${description}
+${description.trim()}
 
 ----------------------------------------
 *Generated via DS Tech Digital Marketplace (RC 9550925)*`;
@@ -153,27 +159,28 @@ ${description}
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 dark:bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#17243A]/60 backdrop-blur-xs overflow-y-auto font-['Inter',sans-serif]">
         <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 12 }}
+          initial={{ opacity: 0, scale: 0.98, y: 8 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 12 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden relative my-auto text-left"
+          exit={{ opacity: 0, scale: 0.98, y: 8 }}
+          transition={{ duration: 0.18, ease: "easeOut" }}
+          className="bg-white border border-[#E5E9EF] text-[#17243A] rounded-[20px] max-w-2xl w-full shadow-[0_20px_25px_-5px_rgba(16,24,40,0.1),0_8px_10px_-6px_rgba(16,24,40,0.06)] overflow-hidden relative my-auto text-left"
         >
           {/* Header */}
-          <div className="p-5 sm:p-6 pb-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 flex items-center justify-between">
+          <div className="p-5 sm:p-6 pb-4 border-b border-[#E5E9EF] bg-white flex items-center justify-between gap-4">
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-widest text-orange-600 dark:text-orange-400 flex items-center gap-1.5 font-mono">
-                  <Sparkles size={12} className="text-amber-500 animate-pulse" />
-                  DS Tech Official Quotation Request
+              <div className="flex items-center gap-2 text-[12px] text-[#667085]">
+                <span className="font-semibold text-[#E87932] uppercase tracking-wider">
+                  DS TECH QUOTATION
                 </span>
-                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 font-mono">
+                <span aria-hidden="true">·</span>
+                <span className="inline-flex items-center gap-1 font-medium text-[#079B68]">
+                  <ShieldCheck size={13} />
                   SLA Guaranteed
                 </span>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black uppercase font-serif text-slate-900 dark:text-white tracking-tight leading-tight">
+              <h2 className="text-[20px] sm:text-[22px] font-bold text-[#17243A] tracking-tight leading-snug">
                 {serviceTitle}
               </h2>
             </div>
@@ -181,8 +188,8 @@ ${description}
             <button 
               type="button"
               onClick={onClose}
-              className="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white rounded-2xl transition-colors shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
-              title="Close Quote Modal"
+              className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-[#F8FAFC] text-[#667085] hover:text-[#17243A] hover:bg-[#E5E9EF] transition-colors shrink-0 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20"
+              title="Close Quote Dialog"
             >
               <X size={18} />
             </button>
@@ -192,48 +199,49 @@ ${description}
           <div className="p-5 sm:p-6 space-y-5 max-h-[78vh] overflow-y-auto">
             {submitted ? (
               <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
+                initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="py-12 text-center space-y-4"
+                className="py-10 text-center space-y-3"
               >
-                <div className="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto border border-emerald-500/30">
-                  <CheckCircle2 size={32} />
+                <div className="w-14 h-14 rounded-full bg-[#ECFDF3] text-[#079B68] flex items-center justify-center mx-auto border border-[#A6F4C5]">
+                  <CheckCircle2 size={28} />
                 </div>
-                <h3 className="text-xl font-extrabold uppercase font-serif text-slate-900 dark:text-white">Connecting to WhatsApp...</h3>
-                <p className="text-xs text-slate-600 dark:text-slate-300 max-w-md mx-auto font-medium leading-relaxed">
-                  Your customized project brief and quote docket have been compiled. Redirecting you to chat directly with our senior consultant on WhatsApp.
+                <h3 className="text-[18px] font-bold text-[#17243A]">Connecting to WhatsApp...</h3>
+                <p className="text-[14px] text-[#667085] max-w-md mx-auto font-normal leading-relaxed">
+                  Your project brief and quotation requirements have been compiled. Redirecting to chat directly with our senior engineering desk.
                 </p>
               </motion.div>
             ) : (
               <form onSubmit={handleSendToWhatsApp} className="space-y-5">
                 
-                {/* 1. Target Service Selector (if selecting different service) */}
+                {/* 1. Target Service Selector */}
                 {allServices.length > 0 && (
                   <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5 font-mono">
-                      <FileText size={12} className="text-orange-500" />
+                    <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
                       Target Service Catalog Selection
                     </label>
-                    <select
-                      value={selectedServiceId}
-                      onChange={(e) => setSelectedServiceId(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
-                    >
-                      {allServices.map((s) => (
-                        <option key={s.id} value={s.id} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
-                          {s.name}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={selectedServiceId}
+                        onChange={(e) => setSelectedServiceId(e.target.value)}
+                        className="w-full h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] pl-3.5 pr-9 text-[14px] sm:text-[15px] font-normal text-[#17243A] focus:outline-none focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 appearance-none cursor-pointer transition-colors"
+                      >
+                        {allServices.map((s) => (
+                          <option key={s.id} value={s.id} className="text-[#17243A]">
+                            {s.name}
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#667085] pointer-events-none" />
+                    </div>
                   </div>
                 )}
 
                 {/* 2. Client Identity Info Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                      <User size={12} className="text-orange-500" />
-                      Full Name *
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
+                  <div>
+                    <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block mb-1.5">
+                      Full Name <span className="text-[#E87932]">*</span>
                     </label>
                     <input 
                       type="text"
@@ -241,14 +249,13 @@ ${description}
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       placeholder="e.g. David Solomon"
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-orange-500 transition-colors"
+                      className="w-full h-[46px] sm:h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] px-3.5 text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                      <Phone size={12} className="text-emerald-500" />
-                      WhatsApp Phone Number *
+                  <div>
+                    <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block mb-1.5">
+                      WhatsApp Phone Number <span className="text-[#E87932]">*</span>
                     </label>
                     <input 
                       type="tel"
@@ -256,109 +263,97 @@ ${description}
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       placeholder="e.g. +234 812 345 6789"
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-orange-500 transition-colors font-mono"
+                      className="w-full h-[46px] sm:h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] px-3.5 text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                      <Mail size={12} className="text-indigo-500" />
-                      Email Address (Optional)
+                  <div>
+                    <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block mb-1.5">
+                      Email Address <span className="text-[#667085] text-[12px] font-normal">(Optional)</span>
                     </label>
                     <input 
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="client@company.com"
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-orange-500 transition-colors"
+                      className="w-full h-[46px] sm:h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] px-3.5 text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors"
                     />
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                      <Building size={12} className="text-amber-500" />
-                      Company / Organization (Optional)
+                  <div>
+                    <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block mb-1.5">
+                      Company / Organization <span className="text-[#667085] text-[12px] font-normal">(Optional)</span>
                     </label>
                     <input 
                       type="text"
                       value={company}
                       onChange={(e) => setCompany(e.target.value)}
                       placeholder="e.g. DS Tech Ventures Ltd"
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-orange-500 transition-colors"
+                      className="w-full h-[46px] sm:h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] px-3.5 text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors"
                     />
                   </div>
                 </div>
 
-                {/* 3. YOUR PROPOSED BUDGET (₦) & PREFERRED DELIVERY TIME Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  
-                  {/* Proposed Budget Field */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                      <DollarSign size={12} className="text-emerald-500" />
-                      YOUR PROPOSED BUDGET (₦)
+                {/* 3. Budget & Preferred Delivery Time Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-4">
+                  <div>
+                    <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block mb-1.5">
+                      Preferred Delivery Timeline <span className="text-[#E87932]">*</span>
                     </label>
                     <div className="relative">
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-orange-500 font-extrabold font-mono text-sm">
-                        ₦
-                      </span>
-                      <input 
-                        type="text"
-                        value={formatNairaDisplay(proposedBudget)}
-                        onChange={handleBudgetChange}
-                        placeholder="e.g. 500,000"
-                        className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl pl-8 pr-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white font-mono focus:outline-none focus:border-orange-500 transition-colors"
-                      />
+                      <select
+                        value={deliveryTimeline}
+                        onChange={(e) => setDeliveryTimeline(e.target.value)}
+                        className="w-full h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] pl-3.5 pr-9 text-[14px] sm:text-[15px] font-normal text-[#17243A] focus:outline-none focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 appearance-none cursor-pointer transition-colors"
+                      >
+                        <option value="As soon as possible">As soon as possible</option>
+                        <option value="Within 3–7 days">Within 3–7 days</option>
+                        <option value="Within 1–2 weeks">Within 1–2 weeks</option>
+                        <option value="Within 2–4 weeks">Within 2–4 weeks</option>
+                        <option value="Within 1–2 months">Within 1–2 months</option>
+                        <option value="Flexible — let's discuss">Flexible — let's discuss</option>
+                        <option value="Custom timeline">Custom timeline</option>
+                      </select>
+                      <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#667085] pointer-events-none" />
                     </div>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-snug">
-                      Enter the amount you are comfortable investing. We will review your requirements and discuss a suitable solution.
-                    </p>
-                  </div>
-
-                  {/* Preferred Delivery Time Select */}
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                      <Clock size={12} className="text-orange-500" />
-                      PREFERRED DELIVERY TIME *
-                    </label>
-                    <select
-                      value={deliveryTimeline}
-                      onChange={(e) => setDeliveryTimeline(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
-                    >
-                      <option value="As soon as possible">As soon as possible</option>
-                      <option value="Within 3–7 days">Within 3–7 days</option>
-                      <option value="Within 1–2 weeks">Within 1–2 weeks</option>
-                      <option value="Within 2–4 weeks">Within 2–4 weeks</option>
-                      <option value="Within 1–2 months">Within 1–2 months</option>
-                      <option value="Flexible — let's discuss">Flexible — let's discuss</option>
-                      <option value="Custom timeline">Custom timeline</option>
-                    </select>
 
                     {deliveryTimeline === 'Custom timeline' && (
-                      <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="pt-1">
+                      <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="pt-2">
                         <input 
                           type="text"
                           value={customTimelineText}
                           onChange={(e) => setCustomTimelineText(e.target.value)}
                           placeholder="Specify timeline requirements..."
-                          className="w-full bg-slate-50 dark:bg-slate-950 border border-orange-500 rounded-xl px-3 py-2 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none"
+                          className="w-full h-[46px] bg-white border border-[#E87932] rounded-[10px] px-3.5 text-[14px] text-[#17243A] focus:outline-none"
                         />
                       </motion.div>
                     )}
-
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-snug">
-                      These options represent your preferred timeline, subject to project review and confirmation by DS Tech.
-                    </p>
                   </div>
 
+                  <div>
+                    <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block mb-1.5">
+                      Your Proposed Budget (₦) <span className="text-[#667085] text-[12px] font-normal">(Optional)</span>
+                    </label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#E87932] font-semibold text-[15px] select-none pointer-events-none">
+                        ₦
+                      </span>
+                      <input 
+                        type="text"
+                        inputMode="numeric"
+                        value={formatNairaDisplay(proposedBudget)}
+                        onChange={handleBudgetChange}
+                        placeholder="e.g. 500,000"
+                        className="w-full h-[46px] sm:h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] pl-8 pr-3.5 text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
                 </div>
 
                 {/* 4. Custom Requirements Description */}
-                <div className="space-y-1.5">
-                  <label className="text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <FileText size={12} className="text-orange-500" />
-                    Custom Requirements &amp; Project Scope *
+                <div>
+                  <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block mb-1.5">
+                    Custom Requirements &amp; Project Scope <span className="text-[#E87932]">*</span>
                   </label>
                   <textarea 
                     required
@@ -366,95 +361,96 @@ ${description}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Specify project objectives, expected milestones, target audience, technical preferences, or custom requests..."
-                    className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 rounded-xl p-3.5 text-xs font-medium text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-600 focus:outline-none focus:border-orange-500 transition-colors leading-relaxed resize-none"
+                    className="w-full min-h-[110px] bg-white border border-[#E5E9EF] rounded-[10px] p-3.5 text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors leading-relaxed resize-y"
                   />
                 </div>
 
-                {/* 5. Manual Payment Accordion (Collapsed by default) */}
-                <div className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-slate-50/70 dark:bg-slate-950/70">
+                {/* 5. Moniepoint Manual Payment Accordion */}
+                <div className="border border-[#E5E9EF] rounded-[12px] overflow-hidden bg-white">
                   <button
                     type="button"
                     onClick={() => setIsPaymentAccordionOpen(!isPaymentAccordionOpen)}
                     aria-expanded={isPaymentAccordionOpen}
-                    aria-controls="modal-manual-payment-content"
-                    className="w-full p-3.5 flex items-center justify-between text-left hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+                    className="w-full p-4 flex items-center justify-between text-left hover:bg-[#F8FAFC] transition-colors cursor-pointer focus:outline-none"
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-3">
                       <MoniepointIcon size={22} />
                       <div>
-                        <div className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                          <span>Manual Payment Instructions</span>
-                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 font-mono">
-                            Moniepoint MFB
+                        <h4 className="text-[14px] font-semibold text-[#17243A] flex flex-wrap items-center gap-2">
+                          <span>Direct Corporate Bank Transfer</span>
+                          <span className="text-[12px] font-normal text-[#667085]">
+                            (Optional · Moniepoint MFB)
                           </span>
-                        </div>
-                        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-normal">
-                          Direct bank transfer details (Optional)
-                        </p>
+                        </h4>
                       </div>
                     </div>
 
                     <ChevronDown 
-                      size={16} 
-                      className={`text-slate-400 transition-transform duration-300 ${isPaymentAccordionOpen ? 'rotate-180 text-orange-500' : ''}`} 
+                      size={18} 
+                      className={`text-[#667085] transition-transform duration-200 ${isPaymentAccordionOpen ? 'rotate-180 text-[#E87932]' : ''}`} 
                     />
                   </button>
 
                   <AnimatePresence>
                     {isPaymentAccordionOpen && (
                       <motion.div
-                        id="modal-manual-payment-content"
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3"
+                        transition={{ duration: 0.18 }}
+                        className="overflow-hidden border-t border-[#E5E9EF] bg-[#F8FAFC] p-4 space-y-3.5"
                       >
-                        <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                          Payment is optional at the initial brief submission. If you wish to make a deposit or transfer upfront, please use our official corporate Moniepoint receiving account:
+                        <p className="text-[13px] text-[#667085] leading-relaxed">
+                          Making an advance payment is optional. If you wish to make a direct transfer, please use our verified Moniepoint corporate receiving account:
                         </p>
 
-                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[9px] font-black uppercase text-slate-400 dark:text-slate-500 font-mono">BANK NAME</span>
-                            <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                        <div className="p-3.5 rounded-[10px] bg-white border border-[#E5E9EF] space-y-2.5">
+                          <div className="flex items-center justify-between text-[13px]">
+                            <span className="text-[#667085]">Bank Name</span>
+                            <span className="font-semibold text-[#17243A] flex items-center gap-1.5">
                               <MoniepointIcon size={14} />
                               {COMPANY_BANK_NAME}
                             </span>
                           </div>
 
-                          <div className="flex items-center justify-between border-t border-b border-slate-200/60 dark:border-slate-800/80 py-2">
+                          <div className="flex items-center justify-between border-t border-b border-[#E5E9EF] py-2">
                             <div>
-                              <span className="text-[9px] font-black uppercase text-slate-400 dark:text-slate-500 font-mono block">ACCOUNT NUMBER</span>
-                              <span className="text-base font-black font-mono text-emerald-600 dark:text-emerald-400 tracking-wider">{COMPANY_BANK_ACCOUNT_NUMBER}</span>
+                              <span className="text-[11px] font-medium text-[#667085] block uppercase tracking-wider">Account Number</span>
+                              <span className="text-[18px] font-bold font-mono text-[#079B68] tracking-wider">{COMPANY_BANK_ACCOUNT_NUMBER}</span>
                             </div>
                             <button
                               type="button"
                               onClick={handleCopyAccountNumber}
-                              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors flex items-center gap-1 cursor-pointer shadow-xs"
+                              className="h-[34px] px-3 rounded-[8px] text-[12px] font-semibold bg-[#F8FAFC] text-[#17243A] border border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-white transition-colors flex items-center gap-1.5 cursor-pointer"
                             >
-                              {copiedBank ? <Check size={13} className="text-emerald-500" /> : <Copy size={13} />}
+                              {copiedBank ? <Check size={13} className="text-[#079B68]" /> : <Copy size={13} />}
                               <span>{copiedBank ? 'Copied' : 'Copy'}</span>
                             </button>
                           </div>
 
-                          <div className="flex items-center justify-between text-[10.5px]">
-                            <span className="text-slate-500 dark:text-slate-400 font-medium">ACCOUNT NAME:</span>
-                            <span className="font-bold text-slate-800 dark:text-slate-200 text-right">{COMPANY_BANK_ACCOUNT_NAME}</span>
+                          <div className="flex items-center justify-between text-[13px]">
+                            <span className="text-[#667085]">Account Name</span>
+                            <span className="font-semibold text-[#17243A] text-right">{COMPANY_BANK_ACCOUNT_NAME}</span>
                           </div>
                         </div>
 
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
-                            Amount Paid (Optional - leave blank if not paid yet)
+                        <div className="space-y-1.5">
+                          <label className="text-[13px] font-medium text-[#17243A] block">
+                            Amount Paid (₦) <span className="text-[#667085] text-[12px] font-normal">(Optional)</span>
                           </label>
-                          <input 
-                            type="text"
-                            value={amountPaid}
-                            onChange={(e) => setAmountPaid(e.target.value)}
-                            placeholder="e.g. 100,000"
-                            className="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 font-mono"
-                          />
+                          <div className="relative">
+                            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#E87932] font-semibold text-[15px] select-none pointer-events-none">
+                              ₦
+                            </span>
+                            <input 
+                              type="text"
+                              inputMode="numeric"
+                              value={formatNairaDisplay(amountPaid)}
+                              onChange={handleAmountPaidChange}
+                              placeholder="e.g. 100,000"
+                              className="w-full h-[46px] bg-white border border-[#E5E9EF] rounded-[10px] pl-8 pr-3.5 text-[15px] font-normal text-[#17243A] focus:outline-none focus:border-[#E87932]"
+                            />
+                          </div>
                         </div>
                       </motion.div>
                     )}
@@ -462,12 +458,12 @@ ${description}
                 </div>
 
                 {/* 6. Action Footer */}
-                <div className="pt-2 flex items-center justify-end">
+                <div className="pt-3 border-t border-[#E5E9EF] flex items-center justify-end">
                   <button
                     type="submit"
-                    className="w-full sm:w-auto px-7 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="h-[52px] w-full sm:w-auto px-7 rounded-[12px] bg-[#079B68] hover:bg-[#06885B] active:bg-[#057A52] text-white text-[14px] font-semibold flex items-center justify-center gap-2.5 transition-all shadow-sm cursor-pointer"
                   >
-                    <MessageSquare size={16} />
+                    <OfficialWhatsAppIcon size={20} animate={false} />
                     <span>Send Quotation Request to WhatsApp ➔</span>
                   </button>
                 </div>

@@ -2342,6 +2342,97 @@ ${liveContext ? liveContext : ''}`;
     }
   });
 
+  // ==========================================
+  // OFFICIAL DS TECH SERVICES CATALOG ENDPOINTS
+  // ==========================================
+  const CANONICAL_SERVICE_ORDER: Record<string, number> = {
+    svc_01: 1, svc_02: 2, svc_03: 3, svc_04: 4, svc_05: 5, svc_06: 6,
+    svc_07: 7, svc_08: 8, svc_09: 9, svc_10: 10, svc_11: 11, svc_12: 12,
+    svc_13: 13, svc_14: 14, svc_15: 15, svc_16: 16, svc_17: 17, svc_18: 18,
+    svc_19: 19, svc_20: 20, svc_21: 21, svc_22: 22, svc_23: 23, svc_24: 24,
+    svc_25: 25, svc_26: 26
+  };
+
+  function sanitizeServiceNameForServer(rawName?: string): string {
+    if (!rawName) return '';
+    let cleaned = rawName.trim();
+    if (
+      cleaned.toLowerCase().includes('professional training') ||
+      cleaned.toLowerCase() === 'professional training & consultancy' ||
+      cleaned.toLowerCase() === 'corporate training price list'
+    ) {
+      return 'Corporate Training and Staff Bootcamp';
+    }
+    cleaned = cleaned.replace(/\s*[\(\[-]?\s*price\s*list\s*[\)\]-]?/gi, '');
+    cleaned = cleaned.replace(/\bpricelist\b/gi, '');
+    cleaned = cleaned.replace(/\s{2,}/g, ' ').trim();
+    cleaned = cleaned.replace(/^[\s\-–—:]+|[\s\-–—:]+$/g, '').trim();
+    if (cleaned.toLowerCase() === 'corporate training') {
+      return 'Corporate Training and Staff Bootcamp';
+    }
+    return cleaned || rawName;
+  }
+
+  app.get('/api/services', (_req, res) => {
+    try {
+      if (fs.existsSync(localD1Path)) {
+        const d1Data = JSON.parse(fs.readFileSync(localD1Path, 'utf8'));
+        if (Array.isArray(d1Data.services) && d1Data.services.length > 0) {
+          const sanitized = d1Data.services.map((svc: any) => {
+            const sName = sanitizeServiceNameForServer(svc.name || svc.title);
+            return {
+              ...svc,
+              name: sName,
+              title: sName,
+              orderIndex: svc.orderIndex ?? CANONICAL_SERVICE_ORDER[svc.id] ?? 999
+            };
+          });
+          sanitized.sort((a: any, b: any) => {
+            const orderA = a.orderIndex ?? CANONICAL_SERVICE_ORDER[a.id] ?? 999;
+            const orderB = b.orderIndex ?? CANONICAL_SERVICE_ORDER[b.id] ?? 999;
+            if (orderA !== orderB) return orderA - orderB;
+            return (a.id || '').localeCompare(b.id || '');
+          });
+          return res.json(sanitized);
+        }
+      }
+    } catch (e) {
+      console.warn("Could not read services from local_d1.json:", e);
+    }
+    return res.json([]);
+  });
+
+  app.post('/api/services', (req, res) => {
+    try {
+      const body = req.body;
+      const id = body.id || `svc_${Date.now()}`;
+      const sName = sanitizeServiceNameForServer(body.name || body.title);
+      const newService = {
+        ...body,
+        id,
+        name: sName,
+        title: sName,
+        orderIndex: body.orderIndex ?? CANONICAL_SERVICE_ORDER[id] ?? 999
+      };
+
+      if (fs.existsSync(localD1Path)) {
+        const d1Data = JSON.parse(fs.readFileSync(localD1Path, 'utf8'));
+        if (!Array.isArray(d1Data.services)) d1Data.services = [];
+        const existingIdx = d1Data.services.findIndex((s: any) => s.id === id);
+        if (existingIdx >= 0) {
+          d1Data.services[existingIdx] = newService;
+        } else {
+          d1Data.services.push(newService);
+        }
+        fs.writeFileSync(localD1Path, JSON.stringify(d1Data, null, 2), 'utf8');
+      }
+
+      return res.json(newService);
+    } catch (err: any) {
+      return res.status(500).json({ success: false, error: err.message || 'Failed to save service' });
+    }
+  });
+
   // Dedicated Website Visitor Intelligence & CRM API Endpoints
   app.use('/api/crm', crmRouter);
 

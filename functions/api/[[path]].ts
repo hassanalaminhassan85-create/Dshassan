@@ -2839,7 +2839,49 @@ export async function onRequest(context: { request: Request; env: any; params: a
           try {
             if (!env.DB) return new Response(JSON.stringify([]), { headers });
             const results = await env.DB.prepare(`SELECT * FROM ${table}`).all();
-            const items = (results.results || []).map((r: any) => ({ id: r.id, ...JSON.parse(r.data_json) }));
+            let items = (results.results || []).map((r: any) => ({ id: r.id, ...JSON.parse(r.data_json) }));
+
+            if (table === 'services') {
+              const sanitizeSvcName = (raw?: string) => {
+                if (!raw) return '';
+                let s = raw.trim();
+                if (s.toLowerCase().includes('professional training') || s.toLowerCase() === 'professional training & consultancy' || s.toLowerCase() === 'corporate training price list') {
+                  return 'Corporate Training and Staff Bootcamp';
+                }
+                s = s.replace(/\s*[\(\[-]?\s*price\s*list\s*[\)\]-]?/gi, '');
+                s = s.replace(/\bpricelist\b/gi, '');
+                s = s.replace(/\s{2,}/g, ' ').trim();
+                s = s.replace(/^[\s\-–—:]+|[\s\-–—:]+$/g, '').trim();
+                if (s.toLowerCase() === 'corporate training') return 'Corporate Training and Staff Bootcamp';
+                return s || raw;
+              };
+
+              const canonicalOrder: Record<string, number> = {
+                svc_01: 1, svc_02: 2, svc_03: 3, svc_04: 4, svc_05: 5, svc_06: 6,
+                svc_07: 7, svc_08: 8, svc_09: 9, svc_10: 10, svc_11: 11, svc_12: 12,
+                svc_13: 13, svc_14: 14, svc_15: 15, svc_16: 16, svc_17: 17, svc_18: 18,
+                svc_19: 19, svc_20: 20, svc_21: 21, svc_22: 22, svc_23: 23, svc_24: 24,
+                svc_25: 25, svc_26: 26
+              };
+
+              items = items.map((svc: any) => {
+                const sName = sanitizeSvcName(svc.name || svc.title);
+                return {
+                  ...svc,
+                  name: sName,
+                  title: sName,
+                  orderIndex: svc.orderIndex ?? canonicalOrder[svc.id] ?? 999
+                };
+              });
+
+              items.sort((a: any, b: any) => {
+                const orderA = a.orderIndex ?? canonicalOrder[a.id] ?? 999;
+                const orderB = b.orderIndex ?? canonicalOrder[b.id] ?? 999;
+                if (orderA !== orderB) return orderA - orderB;
+                return (a.id || '').localeCompare(b.id || '');
+              });
+            }
+
             return new Response(JSON.stringify(items), { headers });
           } catch (dbErr) {
             console.warn(`D1 query failed for GET /api/${table}:`, dbErr);
@@ -2850,7 +2892,24 @@ export async function onRequest(context: { request: Request; env: any; params: a
           try {
             const body = await request.json();
             const id = body.id || (table.substring(0, 3) + '_' + Math.random().toString(36).substring(2, 11));
-            const record = { id, ...body };
+            let record = { id, ...body };
+
+            if (table === 'services') {
+              if (record.name || record.title) {
+                let s = (record.name || record.title).trim();
+                if (s.toLowerCase().includes('professional training') || s.toLowerCase() === 'professional training & consultancy' || s.toLowerCase() === 'corporate training price list') {
+                  s = 'Corporate Training and Staff Bootcamp';
+                }
+                s = s.replace(/\s*[\(\[-]?\s*price\s*list\s*[\)\]-]?/gi, '');
+                s = s.replace(/\bpricelist\b/gi, '');
+                s = s.replace(/\s{2,}/g, ' ').trim();
+                s = s.replace(/^[\s\-–—:]+|[\s\-–—:]+$/g, '').trim();
+                if (s.toLowerCase() === 'corporate training') s = 'Corporate Training and Staff Bootcamp';
+                record.name = s;
+                record.title = s;
+              }
+            }
+
             if (env.DB) {
               await env.DB.prepare(`INSERT OR REPLACE INTO ${table} (id, data_json) VALUES (?, ?)`).bind(id, JSON.stringify(record)).run();
             }

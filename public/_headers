@@ -47,16 +47,24 @@
   Cache-Control: no-cache, must-revalidate, max-age=0
   Access-Control-Allow-Origin: *
 
-# 3. Genuinely content-hashed production static assets (Vite builds) - Cache 1 year immutable
-/assets/*
-  Cache-Control: public, max-age=31536000, immutable
-  Access-Control-Allow-Origin: *
-
-# 4. Service media assets - Cache with background revalidation
+# 3. Service media assets - Cache with background revalidation
 /assets/services/*
   Cache-Control: public, max-age=604800, stale-while-revalidate=86400
   Access-Control-Allow-Origin: *
 
-# 5. Default fallback for unhashed root resources (icons, logos, sitemap) - Revalidate on visit
+# 4. Genuinely content-hashed production static assets (Vite builds) - Cache 1 year immutable
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+# 5. API Endpoints - No store, zero cache
+/api/*
+  Cache-Control: no-cache, no-store, must-revalidate, max-age=0
+  Pragma: no-cache
+  Expires: 0
+  Access-Control-Allow-Origin: *
+
+# 6. Default fallback for unhashed root resources (icons, logos, sitemap) - Revalidate on visit
 /*
   Cache-Control: public, max-age=0, must-revalidate
+

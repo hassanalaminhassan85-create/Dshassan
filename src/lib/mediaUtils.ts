@@ -8,7 +8,7 @@ export const SERVICE_NICHE_IMAGES: Record<string, string> = {
   // Services from Firestore (svc_01 to svc_26)
   svc_01: "/assets/services/svc_01.jpg", // Sponsored Ads Campaign Management
   svc_02: "/assets/services/svc_02.jpg", // Digital Marketing Monthly Packages
-  svc_03: "/assets/services/svc_03.jpg", // Professional Training & Consultancy
+  svc_03: "/assets/services/svc_03.jpg", // Corporate Training and Staff Bootcamp
   svc_04: "/assets/services/svc_04.jpg", // Content Creation and Presentation
   svc_05: "/assets/services/svc_05.jpg", // Social Media Management
   svc_06: "/assets/services/svc_06.jpg", // Website Design and Development
@@ -73,71 +73,159 @@ export function getPolishedServiceImage(service: { id?: string; name?: string; c
     return service.image;
   }
 
-  // 2. Direct ID Match in our local static photo registry
-  if (service?.id && SERVICE_NICHE_IMAGES[service.id]) {
-    return SERVICE_NICHE_IMAGES[service.id];
+  // 2. Direct ID Match in our local static photo registry (svc_01 to svc_26 and aliases)
+  if (service?.id) {
+    const rawId = service.id.toLowerCase().trim();
+    if (SERVICE_NICHE_IMAGES[rawId]) {
+      return SERVICE_NICHE_IMAGES[rawId];
+    }
   }
 
-  // 3. Intelligent Semantic Title Keyword Match
+  // 3. Intelligent Semantic Title Keyword Match (Specific matches FIRST to prevent substring collisions)
   const nameLower = (service?.name || '').toLowerCase();
 
-  if (nameLower.includes('sponsored') || nameLower.includes('ads') || nameLower.includes('campaign management')) {
-    return SERVICE_NICHE_IMAGES.svc_01;
-  }
-  if (nameLower.includes('digital marketing') || nameLower.includes('monthly package')) {
-    return SERVICE_NICHE_IMAGES.svc_02;
-  }
-  if (nameLower.includes('consultancy') || nameLower.includes('professional training') || nameLower.includes('trainings')) {
+  // Corporate Training & Staff Bootcamp (svc_03)
+  if (
+    nameLower.includes('corporate training') ||
+    nameLower.includes('staff bootcamp') ||
+    nameLower.includes('bootcamp') ||
+    nameLower.includes('professional training') ||
+    nameLower.includes('consultancy')
+  ) {
     return SERVICE_NICHE_IMAGES.svc_03;
   }
+
+  // Beginners Training (svc_16)
+  if (nameLower.includes('beginner') || nameLower.includes('beginners training')) {
+    return SERVICE_NICHE_IMAGES.svc_16;
+  }
+
+  // Exclusive & Advanced Trainings (svc_17)
+  if (nameLower.includes('exclusive and advanced') || nameLower.includes('advanced trainings') || nameLower.includes('advanced training')) {
+    return SERVICE_NICHE_IMAGES.svc_17;
+  }
+
+  // Content Creation & Presentation Portfolio (svc_09) - Match before generic content/presentation
+  if (nameLower.includes('presentation portfolio') || nameLower.includes('presentation & portfolio') || nameLower.includes('content creation & presentation portfolio')) {
+    return SERVICE_NICHE_IMAGES.svc_09;
+  }
+
+  // Content Creation and Presentation (svc_04)
   if (nameLower.includes('presentation') || nameLower.includes('content creation')) {
     return SERVICE_NICHE_IMAGES.svc_04;
   }
+
+  // Social Media Campaigns Mastery (svc_15) - Match before generic social media
+  if (nameLower.includes('campaigns mastery') || nameLower.includes('social media campaigns')) {
+    return SERVICE_NICHE_IMAGES.svc_15;
+  }
+
+  // Social Media Management (svc_05)
   if (nameLower.includes('social media')) {
     return SERVICE_NICHE_IMAGES.svc_05;
   }
-  if (nameLower.includes('website design') || nameLower.includes('web dev')) {
-    return SERVICE_NICHE_IMAGES.svc_06;
+
+  // Software & Mobile App Architecture (svc_10) - Match before generic app design
+  if (nameLower.includes('architecture') || (nameLower.includes('systems architecture') && nameLower.includes('mobile'))) {
+    return SERVICE_NICHE_IMAGES.svc_10;
   }
+
+  // Web Portals and Systems Architecture (svc_11)
+  if (nameLower.includes('web portals') || nameLower.includes('systems architecture')) {
+    return SERVICE_NICHE_IMAGES.svc_11;
+  }
+
+  // DS Software App Designing (svc_21)
+  if (nameLower.includes('software app designing') || nameLower.includes('app designing')) {
+    return SERVICE_NICHE_IMAGES.svc_21;
+  }
+
+  // Software and Mobile App Design (svc_07)
   if (nameLower.includes('mobile app') || nameLower.includes('app design') || nameLower.includes('software and mobile')) {
     return SERVICE_NICHE_IMAGES.svc_07;
   }
+
+  // Strategic Project Blueprinting (svc_13)
+  if (nameLower.includes('blueprinting') || nameLower.includes('strategic project')) {
+    return SERVICE_NICHE_IMAGES.svc_13;
+  }
+
+  // Project Design and Management (svc_08)
   if (nameLower.includes('project design') || nameLower.includes('project management')) {
     return SERVICE_NICHE_IMAGES.svc_08;
   }
+
+  // Sponsored Ads Campaign Management (svc_01)
+  if (nameLower.includes('sponsored') || nameLower.includes('ads') || nameLower.includes('campaign management')) {
+    return SERVICE_NICHE_IMAGES.svc_01;
+  }
+
+  // Digital Marketing Monthly Packages (svc_02)
+  if (nameLower.includes('digital marketing') || nameLower.includes('monthly package')) {
+    return SERVICE_NICHE_IMAGES.svc_02;
+  }
+
+  // Website Design and Development (svc_06)
+  if (nameLower.includes('website design') || nameLower.includes('web dev') || nameLower.includes('web development')) {
+    return SERVICE_NICHE_IMAGES.svc_06;
+  }
+
+  // Portfolio Design Package (svc_12)
   if (nameLower.includes('portfolio')) {
     return SERVICE_NICHE_IMAGES.svc_12;
   }
+
+  // Business Plan Design (svc_14)
   if (nameLower.includes('business plan')) {
     return SERVICE_NICHE_IMAGES.svc_14;
   }
+
+  // Customer Care Service Management (svc_18)
   if (nameLower.includes('customer care')) {
     return SERVICE_NICHE_IMAGES.svc_18;
   }
-  if (nameLower.includes('ict') || nameLower.includes('smart technology')) {
+
+  // DS ICT Support & Smart Tech (svc_19)
+  if (nameLower.includes('ict') || nameLower.includes('smart tech') || nameLower.includes('smart technology')) {
     return SERVICE_NICHE_IMAGES.svc_19;
   }
-  if (nameLower.includes('branding') || nameLower.includes('graphic design')) {
+
+  // DS Branding and Graphic Designs (svc_20)
+  if (nameLower.includes('branding') || nameLower.includes('graphic design') || nameLower.includes('graphic designs')) {
     return SERVICE_NICHE_IMAGES.svc_20;
   }
+
+  // AI Content Creation Packages (svc_22)
   if (nameLower.includes('ai content')) {
     return SERVICE_NICHE_IMAGES.svc_22;
   }
+
+  // AI Chatbot Development Package (svc_23)
   if (nameLower.includes('chatbot') || nameLower.includes('ai chat') || nameLower.includes('ai automation')) {
     return SERVICE_NICHE_IMAGES.svc_23;
   }
+
+  // Business Data Analytics (svc_24)
   if (nameLower.includes('analytics') || nameLower.includes('data analytics')) {
     return SERVICE_NICHE_IMAGES.svc_24;
   }
+
+  // CyberSecurity Services (svc_25)
   if (nameLower.includes('cyber') || nameLower.includes('cybersecurity') || nameLower.includes('security')) {
     return SERVICE_NICHE_IMAGES.svc_25;
   }
+
+  // CAC, Tax and SCUML Certificate Registration (svc_26)
   if (nameLower.includes('cac') || nameLower.includes('scuml') || nameLower.includes('tax') || nameLower.includes('registration')) {
     return SERVICE_NICHE_IMAGES.svc_26;
   }
+
+  // Video Editing (svc_video_editing)
   if (nameLower.includes('video') || nameLower.includes('videography') || nameLower.includes('editing')) {
     return SERVICE_NICHE_IMAGES.svc_video_editing;
   }
+
+  // SEO (svc_seo)
   if (nameLower.includes('seo') || nameLower.includes('search engine')) {
     return SERVICE_NICHE_IMAGES.svc_seo;
   }
