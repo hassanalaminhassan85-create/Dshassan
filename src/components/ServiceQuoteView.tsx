@@ -53,6 +53,9 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
   // Service-Specific Dynamic Options
   const [serviceFields, setServiceFields] = useState<Record<string, any>>({});
 
+  // Accordion State for Content Creation Packages
+  const [isContentAccordionOpen, setIsContentAccordionOpen] = useState(true);
+
   // Accordion State for Manual Payment Instructions (Collapsed by default)
   const [isPaymentAccordionOpen, setIsPaymentAccordionOpen] = useState(false);
   const [amountPaid, setAmountPaid] = useState('');
@@ -73,7 +76,7 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [service.id]);
 
-  // Reset service specific fields when service changes
+  // Reset or preserve service specific fields when service changes
   useEffect(() => {
     setNotification(null);
     setIsSubmittedSuccess(false);
@@ -84,9 +87,13 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
       service.id === 'svc_content_presentation';
 
     if (isContentCreation) {
-      setServiceFields({ contentCreationPackage: 'AI VIDEO CONTENT CREATION PACKAGE' });
-    } else {
-      setServiceFields({});
+      setIsContentAccordionOpen(true);
+      setServiceFields(prev => ({
+        contentCreationPackage: prev.contentCreationPackage || 'AI VIDEO CONTENT CREATION PACKAGE',
+        contentGoal: prev.contentGoal !== undefined ? prev.contentGoal : '',
+        aspectRatio: prev.aspectRatio !== undefined ? prev.aspectRatio : '',
+        ...prev
+      }));
     }
   }, [service.id, service.name]);
 
@@ -156,97 +163,131 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
       ];
 
       return (
-        <div className="space-y-4 p-4 sm:p-5 rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF]" id="content-creation-packages-section">
-          <div className="flex items-center gap-2">
-            <Layers size={16} className="text-[#E87932] shrink-0" />
-            <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#17243A]">
-              Content Creation Package Options
-            </h3>
-          </div>
+        <div className="rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF] overflow-hidden transition-all shadow-xs" id="content-creation-packages-section">
+          {/* Polished Accordion Header */}
+          <button
+            type="button"
+            onClick={() => setIsContentAccordionOpen(!isContentAccordionOpen)}
+            aria-expanded={isContentAccordionOpen}
+            aria-controls="content-creation-accordion-body"
+            className="w-full p-4 flex items-center justify-between text-left hover:bg-[#F1F5F9] transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 select-none"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-[#E87932]/10 flex items-center justify-center shrink-0 text-[#E87932]">
+                <Layers size={17} />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-[14px] sm:text-[15px] font-semibold text-[#17243A] leading-snug truncate">
+                  Content Creation Package Options
+                </h3>
+                <p className="text-[12px] text-[#667085] truncate font-normal">
+                  Active Package: <span className="font-semibold text-[#E87932]">{selectedPackage}</span>
+                </p>
+              </div>
+            </div>
 
-          <p className="text-[13px] text-[#667085] leading-relaxed">
-            Select your desired video content creation package for this quotation:
-          </p>
+            <div className="flex items-center gap-2 shrink-0 ml-3">
+              <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-white border border-[#E5E9EF] text-[#667085]">
+                {isContentAccordionOpen ? 'Hide Options' : 'Expand Options'}
+              </span>
+              <div className={`w-7 h-7 rounded-full bg-white border border-[#E5E9EF] flex items-center justify-center transition-transform duration-200 ${isContentAccordionOpen ? 'rotate-180 text-[#E87932]' : 'text-[#667085]'}`}>
+                <ChevronDown size={16} />
+              </div>
+            </div>
+          </button>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-            {packageOptions.map((pkg) => {
-              const isSelected = selectedPackage === pkg.name;
-              return (
-                <button
-                  key={pkg.name}
-                  type="button"
-                  onClick={() => updateSpecificField('contentCreationPackage', pkg.name)}
-                  className={`w-full p-4 rounded-[12px] border text-left flex flex-col justify-between gap-3 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 relative ${
-                    isSelected
-                      ? 'bg-[#FFF9F5] border-[#E87932] ring-1 ring-[#E87932]/30 shadow-xs text-[#17243A]'
-                      : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-[#F8FAFC] text-[#17243A]'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-1">
-                      <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
-                        isSelected ? 'bg-[#E87932]/10 text-[#E87932]' : 'bg-slate-100 text-slate-600'
-                      }`}>
-                        {pkg.tag}
-                      </span>
-                      <h4 className="text-[13px] sm:text-[14px] font-bold text-[#17243A] leading-snug">
-                        {pkg.name}
-                      </h4>
+          {/* Accordion Body */}
+          <AnimatePresence initial={false}>
+            {isContentAccordionOpen && (
+              <motion.div
+                id="content-creation-accordion-body"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: 'easeInOut' }}
+                className="overflow-hidden border-t border-[#E5E9EF]"
+              >
+                <div className="p-4 sm:p-5 space-y-4 bg-white">
+                  <p className="text-[13px] text-[#667085] leading-relaxed font-normal">
+                    Select your preferred video content creation package for this quotation:
+                  </p>
+
+                  {/* 2 Refined Package Cards */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {packageOptions.map((pkg) => {
+                      const isSelected = selectedPackage === pkg.name;
+                      return (
+                        <button
+                          key={pkg.name}
+                          type="button"
+                          onClick={() => updateSpecificField('contentCreationPackage', pkg.name)}
+                          className={`w-full p-3.5 sm:p-4 rounded-[12px] border text-left flex flex-col justify-between gap-3 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 relative ${
+                            isSelected
+                              ? 'bg-[#FFF9F5] border-[#E87932] ring-1 ring-[#E87932]/30 shadow-xs text-[#17243A]'
+                              : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-[#F8FAFC] text-[#17243A]'
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="space-y-1">
+                              <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                                isSelected ? 'bg-[#E87932]/10 text-[#E87932]' : 'bg-slate-100 text-slate-600'
+                              }`}>
+                                {pkg.tag}
+                              </span>
+                              <h4 className="text-[13px] sm:text-[14px] font-bold text-[#17243A] leading-snug">
+                                {pkg.name}
+                              </h4>
+                            </div>
+                            <div className={`w-[20px] h-[20px] rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                              isSelected ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
+                            }`}>
+                              {isSelected ? <Check size={12} strokeWidth={3} /> : null}
+                            </div>
+                          </div>
+                          <p className="text-[12px] text-[#667085] leading-relaxed font-normal">
+                            {pkg.description}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Client-Editable Content Requirements */}
+                  <div className="pt-3 space-y-4 border-t border-[#F1F5F9]">
+                    {/* Primary Content Goal */}
+                    <div className="space-y-1.5">
+                      <label htmlFor="content-goal-input" className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+                        Primary Content Goal
+                      </label>
+                      <textarea
+                        id="content-goal-input"
+                        rows={3}
+                        value={serviceFields.contentGoal || ''}
+                        onChange={(e) => updateSpecificField('contentGoal', e.target.value)}
+                        placeholder="Describe what you want to achieve with your content..."
+                        className="w-full min-h-[85px] bg-white border border-[#E5E9EF] rounded-[10px] p-3.5 text-[14px] sm:text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors leading-relaxed resize-y"
+                      />
                     </div>
-                    <div className={`w-[20px] h-[20px] rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                      isSelected ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
-                    }`}>
-                      {isSelected ? <Check size={12} strokeWidth={3} /> : null}
+
+                    {/* Target Aspect Ratio / Format */}
+                    <div className="space-y-1.5">
+                      <label htmlFor="aspect-ratio-input" className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
+                        Target Aspect Ratio / Format
+                      </label>
+                      <input
+                        id="aspect-ratio-input"
+                        type="text"
+                        value={serviceFields.aspectRatio || ''}
+                        onChange={(e) => updateSpecificField('aspectRatio', e.target.value)}
+                        placeholder="e.g. 9:16, 16:9, 1:1, portrait or landscape."
+                        className="w-full h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] px-3.5 text-[14px] sm:text-[15px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors"
+                      />
                     </div>
                   </div>
-                  <p className="text-[12px] text-[#667085] leading-relaxed">
-                    {pkg.description}
-                  </p>
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4 pt-2">
-            <div className="space-y-1.5">
-              <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
-                Primary Content Goal
-              </label>
-              <div className="relative">
-                <select
-                  value={serviceFields.contentGoal || 'Social Media Reels & Shorts (TikTok / IG)'}
-                  onChange={(e) => updateSpecificField('contentGoal', e.target.value)}
-                  className="w-full h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] pl-3.5 pr-9 text-[14px] sm:text-[15px] font-normal text-[#17243A] focus:outline-none focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 appearance-none cursor-pointer transition-colors"
-                >
-                  <option value="Social Media Reels & Shorts (TikTok / IG)">Social Media Reels &amp; Shorts (TikTok / IG)</option>
-                  <option value="Brand Storytelling & Commercial Ads">Brand Storytelling &amp; Commercial Ads</option>
-                  <option value="Product Showcase & Walkthrough">Product Showcase &amp; Walkthrough</option>
-                  <option value="Executive Pitch & Investor Video">Executive Pitch &amp; Investor Video</option>
-                  <option value="Educational & Thought Leadership Series">Educational &amp; Thought Leadership Series</option>
-                </select>
-                <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#667085] pointer-events-none" />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[13px] sm:text-[14px] font-medium text-[#17243A] block">
-                Target Aspect Ratio / Format
-              </label>
-              <div className="relative">
-                <select
-                  value={serviceFields.aspectRatio || '9:16 Vertical (Reels / TikTok / Shorts)'}
-                  onChange={(e) => updateSpecificField('aspectRatio', e.target.value)}
-                  className="w-full h-[48px] bg-white border border-[#E5E9EF] rounded-[10px] pl-3.5 pr-9 text-[14px] sm:text-[15px] font-normal text-[#17243A] focus:outline-none focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 appearance-none cursor-pointer transition-colors"
-                >
-                  <option value="9:16 Vertical (Reels / TikTok / Shorts)">9:16 Vertical (Reels / TikTok / Shorts)</option>
-                  <option value="16:9 Landscape (YouTube / Presentation)">16:9 Landscape (YouTube / Presentation)</option>
-                  <option value="Cross-Platform (Both 9:16 & 16:9)">Cross-Platform (Both 9:16 &amp; 16:9)</option>
-                  <option value="1:1 Square (Instagram / LinkedIn Feed)">1:1 Square (Instagram / LinkedIn Feed)</option>
-                </select>
-                <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#667085] pointer-events-none" />
-              </div>
-            </div>
-          </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       );
     }
@@ -880,7 +921,11 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
       serviceSpecificDetails.push(`*TECHNICAL SPECIFICATIONS:*`);
       for (const [key, val] of Object.entries(serviceFields)) {
         if (key === 'contentCreationPackage') continue; // Handled directly in selected package
-        if (Array.isArray(val) && val.length > 0) {
+        if (key === 'contentGoal' && typeof val === 'string' && val.trim()) {
+          serviceSpecificDetails.push(`• Primary Content Goal: ${val.trim()}`);
+        } else if (key === 'aspectRatio' && typeof val === 'string' && val.trim()) {
+          serviceSpecificDetails.push(`• Target Aspect Ratio / Format: ${val.trim()}`);
+        } else if (Array.isArray(val) && val.length > 0) {
           serviceSpecificDetails.push(`• ${key}: ${val.join(', ')}`);
         } else if (typeof val === 'string' && val.trim()) {
           serviceSpecificDetails.push(`• ${key}: ${val}`);

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, CheckCircle2, 
   Clock, User, Phone, Mail, Building, FileText, 
-  Copy, Check, ChevronDown, ShieldCheck
+  Copy, Check, ChevronDown, ShieldCheck, Layers
 } from 'lucide-react';
 import { ServiceItem, sanitizeServiceName } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
@@ -36,6 +36,10 @@ export const CustomQuoteModal: React.FC<CustomQuoteModalProps> = ({
     initialService?.id || (allServices.length > 0 ? allServices[0].id : 'custom')
   );
   const [contentCreationPackage, setContentCreationPackage] = useState<string>('AI VIDEO CONTENT CREATION PACKAGE');
+  const [contentGoal, setContentGoal] = useState('');
+  const [aspectRatio, setAspectRatio] = useState('');
+  const [isContentAccordionOpen, setIsContentAccordionOpen] = useState(true);
+
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -133,8 +137,7 @@ ${email.trim() ? `• Email: ${email.trim()}\n` : ''}${company.trim() ? `• Com
 *SERVICE SPECIFICATION:*
 • Target Service: ${serviceTitle}
 • Category: ${serviceCategory.toUpperCase()}
-${isContentCreation ? `• Selected Package: ${contentCreationPackage}\n` : ''}
-
+${isContentCreation ? `• Selected Package: ${contentCreationPackage}\n` : ''}${isContentCreation && contentGoal.trim() ? `• Primary Content Goal: ${contentGoal.trim()}\n` : ''}${isContentCreation && aspectRatio.trim() ? `• Target Aspect Ratio / Format: ${aspectRatio.trim()}\n` : ''}
 *CLIENT PROPOSED TERMS:*
 • Proposed Budget: ${formattedBudget}
 • Preferred Delivery Time: ${finalDeliveryTime}
@@ -253,55 +256,138 @@ ${description.trim()}
 
                 {/* Content Creation Quotation Packages (Strictly for Content Creation only) */}
                 {isContentCreation && (
-                  <div className="space-y-2 p-3.5 sm:p-4 rounded-[12px] bg-[#F8FAFC] border border-[#E5E9EF]">
-                    <div className="flex items-center justify-between">
-                      <label className="text-[13px] font-semibold text-[#17243A] block">
-                        Content Creation Package <span className="text-[#E87932]">*</span>
-                      </label>
-                      <span className="text-[11px] text-[#667085] font-normal">Quotation Package Option</span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      {[
-                        {
-                          name: 'AI VIDEO CONTENT CREATION PACKAGE',
-                          tag: 'AI-Generated'
-                        },
-                        {
-                          name: 'HUMAN VIDEO CREATION PACKAGE',
-                          tag: 'Human Talent & Studio'
-                        }
-                      ].map((pkg) => {
-                        const isSelected = contentCreationPackage === pkg.name;
-                        return (
-                          <button
-                            key={pkg.name}
-                            type="button"
-                            onClick={() => setContentCreationPackage(pkg.name)}
-                            className={`w-full min-h-[46px] p-3 rounded-[10px] border text-left flex items-center justify-between gap-3 transition-colors cursor-pointer ${
-                              isSelected
-                                ? 'bg-[#FFF9F5] border-[#E87932] text-[#17243A] ring-1 ring-[#E87932]/20'
-                                : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-[#F8FAFC] text-[#17243A]'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <div className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center shrink-0 transition-colors ${
-                                isSelected ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
-                              }`}>
-                                {isSelected ? <Check size={12} strokeWidth={3} /> : null}
-                              </div>
-                              <span className="text-[12px] sm:text-[13px] font-bold text-[#17243A] leading-snug">
-                                {pkg.name}
-                              </span>
+                  <div className="rounded-[12px] bg-[#F8FAFC] border border-[#E5E9EF] overflow-hidden transition-all shadow-xs" id="modal-content-creation-packages-section">
+                    {/* Accordion Header */}
+                    <button
+                      type="button"
+                      onClick={() => setIsContentAccordionOpen(!isContentAccordionOpen)}
+                      aria-expanded={isContentAccordionOpen}
+                      className="w-full p-3.5 sm:p-4 flex items-center justify-between text-left hover:bg-[#F1F5F9] transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 select-none"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-7 h-7 rounded-lg bg-[#E87932]/10 flex items-center justify-center shrink-0 text-[#E87932]">
+                          <Layers size={16} />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="text-[13px] sm:text-[14px] font-semibold text-[#17243A] leading-snug truncate">
+                            Content Creation Package Options
+                          </h3>
+                          <p className="text-[11px] text-[#667085] truncate font-normal">
+                            Active: <span className="font-semibold text-[#E87932]">{contentCreationPackage}</span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
+                        <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-white border border-[#E5E9EF] text-[#667085]">
+                          {isContentAccordionOpen ? 'Hide' : 'Expand'}
+                        </span>
+                        <div className={`w-6 h-6 rounded-full bg-white border border-[#E5E9EF] flex items-center justify-center transition-transform duration-200 ${isContentAccordionOpen ? 'rotate-180 text-[#E87932]' : 'text-[#667085]'}`}>
+                          <ChevronDown size={14} />
+                        </div>
+                      </div>
+                    </button>
+
+                    {/* Accordion Body */}
+                    <AnimatePresence initial={false}>
+                      {isContentAccordionOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2, ease: 'easeInOut' }}
+                          className="overflow-hidden border-t border-[#E5E9EF]"
+                        >
+                          <div className="p-3.5 sm:p-4 space-y-3.5 bg-white">
+                            <p className="text-[12px] text-[#667085] leading-relaxed font-normal">
+                              Select your preferred video content creation package for this quotation:
+                            </p>
+
+                            {/* 2 Refined Package Cards */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                              {[
+                                {
+                                  name: 'AI VIDEO CONTENT CREATION PACKAGE',
+                                  tag: 'AI-Generated & Rapid',
+                                  description: 'Generative AI scriptwriting, synthetic voiceover, prompt-engineered visual assets, and viral social formatting.'
+                                },
+                                {
+                                  name: 'HUMAN VIDEO CREATION PACKAGE',
+                                  tag: 'Studio Cast & Presenter',
+                                  description: 'Live-action studio cinematography, professional human presenter, physical shoot direction, and bespoke editing.'
+                                }
+                              ].map((pkg) => {
+                                const isSelected = contentCreationPackage === pkg.name;
+                                return (
+                                  <button
+                                    key={pkg.name}
+                                    type="button"
+                                    onClick={() => setContentCreationPackage(pkg.name)}
+                                    className={`w-full p-3 rounded-[10px] border text-left flex flex-col justify-between gap-2 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 relative ${
+                                      isSelected
+                                        ? 'bg-[#FFF9F5] border-[#E87932] ring-1 ring-[#E87932]/30 text-[#17243A]'
+                                        : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-[#F8FAFC] text-[#17243A]'
+                                    }`}
+                                  >
+                                    <div className="flex items-start justify-between gap-2">
+                                      <div className="space-y-0.5">
+                                        <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                                          isSelected ? 'bg-[#E87932]/10 text-[#E87932]' : 'bg-slate-100 text-slate-600'
+                                        }`}>
+                                          {pkg.tag}
+                                        </span>
+                                        <h4 className="text-[12px] sm:text-[13px] font-bold text-[#17243A] leading-snug">
+                                          {pkg.name}
+                                        </h4>
+                                      </div>
+                                      <div className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                                        isSelected ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
+                                      }`}>
+                                        {isSelected ? <Check size={11} strokeWidth={3} /> : null}
+                                      </div>
+                                    </div>
+                                    <p className="text-[11px] text-[#667085] leading-normal font-normal">
+                                      {pkg.description}
+                                    </p>
+                                  </button>
+                                );
+                              })}
                             </div>
-                            <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded shrink-0 ${
-                              isSelected ? 'bg-[#E87932]/10 text-[#E87932]' : 'bg-slate-100 text-slate-500'
-                            }`}>
-                              {pkg.tag}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
+
+                            {/* Client-Editable Content Requirements */}
+                            <div className="pt-2 space-y-3 border-t border-[#F1F5F9]">
+                              {/* Primary Content Goal */}
+                              <div className="space-y-1">
+                                <label className="text-[12px] sm:text-[13px] font-medium text-[#17243A] block">
+                                  Primary Content Goal
+                                </label>
+                                <textarea
+                                  rows={2}
+                                  value={contentGoal}
+                                  onChange={(e) => setContentGoal(e.target.value)}
+                                  placeholder="Describe what you want to achieve with your content..."
+                                  className="w-full min-h-[75px] bg-white border border-[#E5E9EF] rounded-[8px] p-3 text-[13px] sm:text-[14px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors leading-relaxed resize-y"
+                                />
+                              </div>
+
+                              {/* Target Aspect Ratio / Format */}
+                              <div className="space-y-1">
+                                <label className="text-[12px] sm:text-[13px] font-medium text-[#17243A] block">
+                                  Target Aspect Ratio / Format
+                                </label>
+                                <input
+                                  type="text"
+                                  value={aspectRatio}
+                                  onChange={(e) => setAspectRatio(e.target.value)}
+                                  placeholder="e.g. 9:16, 16:9, 1:1, portrait or landscape."
+                                  className="w-full h-[44px] bg-white border border-[#E5E9EF] rounded-[8px] px-3 text-[13px] sm:text-[14px] font-normal text-[#17243A] placeholder-[#98A2B3] hover:border-[#D0D5DD] focus:border-[#E87932] focus:ring-2 focus:ring-[#E87932]/15 outline-none transition-colors"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )}
 
