@@ -10,13 +10,13 @@ export const SERVICE_SLUG_MAP: Record<string, ServiceSlugMapping> = {
   // THE 26 CORE CATALOGUE SERVICES
   svc_01: {
     id: 'svc_01',
-    slug: 'sponsored-ads-campaign-management',
-    aliases: ['ads-management', 'sponsored-ads', 'sponsored-ads-campaign', 'meta-ads', 'google-ads', 'facebook-ads', 'ads-campaign']
+    slug: 'ads-management',
+    aliases: ['sponsored-ads-campaign-management', 'sponsored-ads', 'sponsored-ads-campaign', 'meta-ads', 'google-ads', 'facebook-ads', 'ads-campaign']
   },
   svc_02: {
     id: 'svc_02',
-    slug: 'digital-marketing-monthly-packages',
-    aliases: ['digital-marketing', 'digital-marketing-packages', 'online-marketing', 'monthly-marketing']
+    slug: 'digital-marketing',
+    aliases: ['digital-marketing-monthly-packages', 'digital-marketing-packages', 'online-marketing', 'monthly-marketing']
   },
   svc_03: {
     id: 'svc_03',
@@ -38,8 +38,8 @@ export const SERVICE_SLUG_MAP: Record<string, ServiceSlugMapping> = {
   },
   svc_04: {
     id: 'svc_04',
-    slug: 'content-creation-and-presentation',
-    aliases: ['content-creation', 'content-presentation', 'pitch-decks', 'corporate-presentations']
+    slug: 'content-creation',
+    aliases: ['content-creation-and-presentation', 'content-presentation', 'pitch-decks', 'corporate-presentations']
   },
   svc_05: {
     id: 'svc_05',
@@ -113,18 +113,18 @@ export const SERVICE_SLUG_MAP: Record<string, ServiceSlugMapping> = {
   },
   svc_19: {
     id: 'svc_19',
-    slug: 'ds-ict-support-and-smart-tech',
-    aliases: ['ict-support', 'smart-tech', 'smart-technology', 'cctv-biometrics', 'network-setup']
+    slug: 'ict-support-and-smart-tech',
+    aliases: ['ds-ict-support-and-smart-tech', 'ict-support', 'smart-tech', 'smart-technology', 'cctv-biometrics', 'network-setup']
   },
   svc_20: {
     id: 'svc_20',
-    slug: 'ds-branding-and-graphic-designs',
-    aliases: ['branding-and-graphic-designs', 'graphic-designs', 'corporate-branding', 'logo-design']
+    slug: 'branding-and-graphic-designs',
+    aliases: ['ds-branding-and-graphic-designs', 'branding-and-graphic-designs', 'graphic-designs', 'corporate-branding', 'logo-design']
   },
   svc_21: {
     id: 'svc_21',
-    slug: 'ds-software-app-designing',
-    aliases: ['software-app-designing', 'ui-ux-design', 'figma-prototyping']
+    slug: 'software-app-designing',
+    aliases: ['ds-software-app-designing', 'software-app-designing', 'ui-ux-design', 'figma-prototyping']
   },
   svc_22: {
     id: 'svc_22',
@@ -190,8 +190,8 @@ export const SERVICE_SLUG_MAP: Record<string, ServiceSlugMapping> = {
   },
   svc_content_presentation: {
     id: 'svc_content_presentation',
-    slug: 'content-creation-and-presentation',
-    aliases: ['content-presentation', 'pitch-deck-design']
+    slug: 'content-creation',
+    aliases: ['content-creation-and-presentation', 'content-presentation', 'pitch-deck-design']
   },
   svc_ai_content: {
     id: 'svc_ai_content',

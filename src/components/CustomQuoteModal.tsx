@@ -5,7 +5,7 @@ import {
   Clock, User, Phone, Mail, Building, FileText, 
   Copy, Check, ChevronDown, ShieldCheck
 } from 'lucide-react';
-import { ServiceItem } from '../lib/data';
+import { ServiceItem, sanitizeServiceName } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
 import { 
   COMPANY_BANK_NAME, 
@@ -35,6 +35,7 @@ export const CustomQuoteModal: React.FC<CustomQuoteModalProps> = ({
   const [selectedServiceId, setSelectedServiceId] = useState<string>(
     initialService?.id || (allServices.length > 0 ? allServices[0].id : 'custom')
   );
+  const [contentCreationPackage, setContentCreationPackage] = useState<string>('AI VIDEO CONTENT CREATION PACKAGE');
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -65,7 +66,12 @@ export const CustomQuoteModal: React.FC<CustomQuoteModalProps> = ({
   if (!isOpen) return null;
 
   const currentService = allServices.find(s => s.id === selectedServiceId) || initialService;
-  const serviceTitle = currentService ? currentService.name : 'Custom Enterprise Project';
+  const isContentCreation = currentService ? (
+    sanitizeServiceName(currentService.name).toLowerCase() === 'content creation' ||
+    currentService.id === 'svc_04' ||
+    currentService.id === 'svc_content_presentation'
+  ) : false;
+  const serviceTitle = currentService ? sanitizeServiceName(currentService.name) : 'Custom Enterprise Project';
   const serviceCategory = currentService?.category || 'General';
   const serviceDeliverables = currentService?.deliverables && currentService.deliverables.length > 0
     ? currentService.deliverables
@@ -127,6 +133,7 @@ ${email.trim() ? `• Email: ${email.trim()}\n` : ''}${company.trim() ? `• Com
 *SERVICE SPECIFICATION:*
 • Target Service: ${serviceTitle}
 • Category: ${serviceCategory.toUpperCase()}
+${isContentCreation ? `• Selected Package: ${contentCreationPackage}\n` : ''}
 
 *CLIENT PROPOSED TERMS:*
 • Proposed Budget: ${formattedBudget}
@@ -183,6 +190,13 @@ ${description.trim()}
               <h2 className="text-[20px] sm:text-[22px] font-bold text-[#17243A] tracking-tight leading-snug">
                 {serviceTitle}
               </h2>
+              {isContentCreation && (
+                <div className="pt-0.5">
+                  <span className="inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-[#E87932]/10 text-[#E87932] rounded border border-[#E87932]/20">
+                    {contentCreationPackage}
+                  </span>
+                </div>
+              )}
             </div>
 
             <button 
@@ -228,11 +242,65 @@ ${description.trim()}
                       >
                         {allServices.map((s) => (
                           <option key={s.id} value={s.id} className="text-[#17243A]">
-                            {s.name}
+                            {sanitizeServiceName(s.name)}
                           </option>
                         ))}
                       </select>
                       <ChevronDown size={16} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#667085] pointer-events-none" />
+                    </div>
+                  </div>
+                )}
+
+                {/* Content Creation Quotation Packages (Strictly for Content Creation only) */}
+                {isContentCreation && (
+                  <div className="space-y-2 p-3.5 sm:p-4 rounded-[12px] bg-[#F8FAFC] border border-[#E5E9EF]">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[13px] font-semibold text-[#17243A] block">
+                        Content Creation Package <span className="text-[#E87932]">*</span>
+                      </label>
+                      <span className="text-[11px] text-[#667085] font-normal">Quotation Package Option</span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {[
+                        {
+                          name: 'AI VIDEO CONTENT CREATION PACKAGE',
+                          tag: 'AI-Generated'
+                        },
+                        {
+                          name: 'HUMAN VIDEO CREATION PACKAGE',
+                          tag: 'Human Talent & Studio'
+                        }
+                      ].map((pkg) => {
+                        const isSelected = contentCreationPackage === pkg.name;
+                        return (
+                          <button
+                            key={pkg.name}
+                            type="button"
+                            onClick={() => setContentCreationPackage(pkg.name)}
+                            className={`w-full min-h-[46px] p-3 rounded-[10px] border text-left flex items-center justify-between gap-3 transition-colors cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#FFF9F5] border-[#E87932] text-[#17243A] ring-1 ring-[#E87932]/20'
+                                : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-[#F8FAFC] text-[#17243A]'
+                            }`}
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <div className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center shrink-0 transition-colors ${
+                                isSelected ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
+                              }`}>
+                                {isSelected ? <Check size={12} strokeWidth={3} /> : null}
+                              </div>
+                              <span className="text-[12px] sm:text-[13px] font-bold text-[#17243A] leading-snug">
+                                {pkg.name}
+                              </span>
+                            </div>
+                            <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded shrink-0 ${
+                              isSelected ? 'bg-[#E87932]/10 text-[#E87932]' : 'bg-slate-100 text-slate-500'
+                            }`}>
+                              {pkg.tag}
+                            </span>
+                          </button>
+                        );
+                      })}
                     </div>
                   </div>
                 )}

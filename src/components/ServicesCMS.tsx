@@ -440,7 +440,7 @@ export const ServicesCMS: React.FC<ServicesCMSProps> = ({ onRefresh }) => {
                       value={formState.name}
                       onChange={e => setFormState({...formState, name: e.target.value})}
                       className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold text-slate-900 dark:text-white focus:outline-none focus:border-orange-500 transition-all"
-                      placeholder="e.g. Sponsored Ads Campaign Management"
+                      placeholder="e.g. Ads Management"
                     />
                   </div>
                   <div className="space-y-1.5 text-left">

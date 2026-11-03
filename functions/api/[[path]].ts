@@ -2845,14 +2845,50 @@ export async function onRequest(context: { request: Request; env: any; params: a
               const sanitizeSvcName = (raw?: string) => {
                 if (!raw) return '';
                 let s = raw.trim();
-                if (s.toLowerCase().includes('professional training') || s.toLowerCase() === 'professional training & consultancy' || s.toLowerCase() === 'corporate training price list') {
+                if (/^DS\s+(?!Tech\b|Agency\b)/i.test(s)) {
+                  s = s.replace(/^DS\s+/i, '').trim();
+                }
+                if (
+                  s.toLowerCase() === 'content creation and presentation' ||
+                  s.toLowerCase() === 'content creation and presentations' ||
+                  s.toLowerCase() === 'content creation & presentation'
+                ) {
+                  return 'Content Creation';
+                }
+                if (
+                  s.toLowerCase() === 'sponsored ads campaign management' ||
+                  s.toLowerCase() === 'sponsored ads campaign' ||
+                  s.toLowerCase() === 'sponsored ads' ||
+                  s.toLowerCase() === 'sponsored ad campaigns'
+                ) {
+                  return 'Ads Management';
+                }
+                if (
+                  s.toLowerCase() === 'digital marketing monthly packages' ||
+                  s.toLowerCase() === 'digital marketing monthly package' ||
+                  s.toLowerCase() === 'digital marketing packages'
+                ) {
+                  return 'Digital Marketing';
+                }
+                if (
+                  s.toLowerCase().includes('professional training') ||
+                  s.toLowerCase() === 'professional training & consultancy' ||
+                  s.toLowerCase() === 'corporate training price list' ||
+                  s.toLowerCase() === 'corporate training'
+                ) {
                   return 'Corporate Training and Staff Bootcamp';
                 }
                 s = s.replace(/\s*[\(\[-]?\s*price\s*list\s*[\)\]-]?/gi, '');
                 s = s.replace(/\bpricelist\b/gi, '');
                 s = s.replace(/\s{2,}/g, ' ').trim();
                 s = s.replace(/^[\s\-–—:]+|[\s\-–—:]+$/g, '').trim();
+                if (/^DS\s+(?!Tech\b|Agency\b)/i.test(s)) {
+                  s = s.replace(/^DS\s+/i, '').trim();
+                }
                 if (s.toLowerCase() === 'corporate training') return 'Corporate Training and Staff Bootcamp';
+                if (s.toLowerCase() === 'content creation and presentation') return 'Content Creation';
+                if (s.toLowerCase() === 'sponsored ads campaign management' || s.toLowerCase() === 'sponsored ads') return 'Ads Management';
+                if (s.toLowerCase() === 'digital marketing monthly packages') return 'Digital Marketing';
                 return s || raw;
               };
 
@@ -2897,14 +2933,47 @@ export async function onRequest(context: { request: Request; env: any; params: a
             if (table === 'services') {
               if (record.name || record.title) {
                 let s = (record.name || record.title).trim();
-                if (s.toLowerCase().includes('professional training') || s.toLowerCase() === 'professional training & consultancy' || s.toLowerCase() === 'corporate training price list') {
+                if (/^DS\s+(?!Tech\b|Agency\b)/i.test(s)) {
+                  s = s.replace(/^DS\s+/i, '').trim();
+                }
+                if (
+                  s.toLowerCase() === 'content creation and presentation' ||
+                  s.toLowerCase() === 'content creation and presentations' ||
+                  s.toLowerCase() === 'content creation & presentation'
+                ) {
+                  s = 'Content Creation';
+                } else if (
+                  s.toLowerCase() === 'sponsored ads campaign management' ||
+                  s.toLowerCase() === 'sponsored ads campaign' ||
+                  s.toLowerCase() === 'sponsored ads' ||
+                  s.toLowerCase() === 'sponsored ad campaigns'
+                ) {
+                  s = 'Ads Management';
+                } else if (
+                  s.toLowerCase() === 'digital marketing monthly packages' ||
+                  s.toLowerCase() === 'digital marketing monthly package' ||
+                  s.toLowerCase() === 'digital marketing packages'
+                ) {
+                  s = 'Digital Marketing';
+                } else if (
+                  s.toLowerCase().includes('professional training') ||
+                  s.toLowerCase() === 'professional training & consultancy' ||
+                  s.toLowerCase() === 'corporate training price list' ||
+                  s.toLowerCase() === 'corporate training'
+                ) {
                   s = 'Corporate Training and Staff Bootcamp';
                 }
                 s = s.replace(/\s*[\(\[-]?\s*price\s*list\s*[\)\]-]?/gi, '');
                 s = s.replace(/\bpricelist\b/gi, '');
                 s = s.replace(/\s{2,}/g, ' ').trim();
                 s = s.replace(/^[\s\-–—:]+|[\s\-–—:]+$/g, '').trim();
+                if (/^DS\s+(?!Tech\b|Agency\b)/i.test(s)) {
+                  s = s.replace(/^DS\s+/i, '').trim();
+                }
                 if (s.toLowerCase() === 'corporate training') s = 'Corporate Training and Staff Bootcamp';
+                if (s.toLowerCase() === 'content creation and presentation') s = 'Content Creation';
+                if (s.toLowerCase() === 'sponsored ads campaign management' || s.toLowerCase() === 'sponsored ads') s = 'Ads Management';
+                if (s.toLowerCase() === 'digital marketing monthly packages') s = 'Digital Marketing';
                 record.name = s;
                 record.title = s;
               }

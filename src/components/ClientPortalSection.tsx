@@ -131,7 +131,7 @@ const AVAILABLE_SERVICES_CATALOG = [
   },
   {
     id: 'srv_ads',
-    title: 'Sponsored Ads & Social Media Campaigns',
+    title: 'Ads Management & Social Media Campaigns',
     category: 'marketing',
     description: 'Targeted Meta, TikTok, and Google ad funnel optimization with verified conversion tracking pixels.',
     defaultBudget: '₦350,000',
@@ -891,7 +891,7 @@ export const ClientPortalSection: React.FC<{ onBackToPortal?: () => void }> = ({
                       >
                         <option value="Full-Stack Web App Engineering">Web App Engineering</option>
                         <option value="CAC Corporate Incorporation">CAC Corporate Incorporation</option>
-                        <option value="Sponsored Ads & Social Media Campaigns">Sponsored Ad Campaigns</option>
+                        <option value="Ads Management & Social Media Campaigns">Ads Management Campaigns</option>
                       </select>
                     </div>
                     <div className="space-y-1">

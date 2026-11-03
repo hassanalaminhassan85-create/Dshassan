@@ -6,10 +6,10 @@ import { getServiceBespokeSvgUrl, SERVICE_SVGS } from './serviceSvgs';
 // Local High-Performance Static Images Dictionary (100% Cloudflare Edge Cached)
 export const SERVICE_NICHE_IMAGES: Record<string, string> = {
   // Services from Firestore (svc_01 to svc_26)
-  svc_01: "/assets/services/svc_01.jpg", // Sponsored Ads Campaign Management
-  svc_02: "/assets/services/svc_02.jpg", // Digital Marketing Monthly Packages
+  svc_01: "/assets/services/svc_01.jpg", // Ads Management
+  svc_02: "/assets/services/svc_02.jpg", // Digital Marketing
   svc_03: "/assets/services/svc_03.jpg", // Corporate Training and Staff Bootcamp
-  svc_04: "/assets/services/svc_04.jpg", // Content Creation and Presentation
+  svc_04: "/assets/services/svc_04.jpg", // Content Creation
   svc_05: "/assets/services/svc_05.jpg", // Social Media Management
   svc_06: "/assets/services/svc_06.jpg", // Website Design and Development
   svc_07: "/assets/services/svc_07.jpg", // Software and Mobile App Design
@@ -24,13 +24,13 @@ export const SERVICE_NICHE_IMAGES: Record<string, string> = {
   svc_16: "/assets/services/svc_16.jpg", // Beginners Training
   svc_17: "/assets/services/svc_17.jpg", // Exclusive and Advanced Trainings
   svc_18: "/assets/services/svc_18.jpg", // Customer Care Service Management
-  svc_19: "/assets/services/svc_19.jpg", // DS ICT SUPPORT & SMART TECH
-  svc_20: "/assets/services/svc_20.jpg", // DS BRANDING AND GRAPHIC DESIGNS
-  svc_21: "/assets/services/svc_21.jpg", // DS SOFTWARE APP DESIGNING
+  svc_19: "/assets/services/svc_19.jpg", // ICT Support & Smart Tech
+  svc_20: "/assets/services/svc_20.jpg", // Branding and Graphic Designs
+  svc_21: "/assets/services/svc_21.jpg", // Software App Designing
   svc_22: "/assets/services/svc_22.jpg", // AI Content Creation Packages
   svc_23: "/assets/services/svc_23.jpg", // AI Chatbot Development Package
   svc_24: "/assets/services/svc_24.jpg", // Business Data Analytics
-  svc_25: "/assets/services/svc_25.jpg", // CYBERSECURITY SERVICES
+  svc_25: "/assets/services/svc_25.jpg", // CyberSecurity Services
   svc_26: "/assets/services/svc_26.jpg", // CAC, Tax and SCUML Certificate Registration
 
   // Named Service IDs (svc_web_dev, etc.)
@@ -110,7 +110,7 @@ export function getPolishedServiceImage(service: { id?: string; name?: string; c
     return SERVICE_NICHE_IMAGES.svc_09;
   }
 
-  // Content Creation and Presentation (svc_04)
+  // Content Creation (svc_04)
   if (nameLower.includes('presentation') || nameLower.includes('content creation')) {
     return SERVICE_NICHE_IMAGES.svc_04;
   }
@@ -135,7 +135,7 @@ export function getPolishedServiceImage(service: { id?: string; name?: string; c
     return SERVICE_NICHE_IMAGES.svc_11;
   }
 
-  // DS Software App Designing (svc_21)
+  // Software App Designing (svc_21)
   if (nameLower.includes('software app designing') || nameLower.includes('app designing')) {
     return SERVICE_NICHE_IMAGES.svc_21;
   }
@@ -155,12 +155,12 @@ export function getPolishedServiceImage(service: { id?: string; name?: string; c
     return SERVICE_NICHE_IMAGES.svc_08;
   }
 
-  // Sponsored Ads Campaign Management (svc_01)
+  // Ads Management (svc_01)
   if (nameLower.includes('sponsored') || nameLower.includes('ads') || nameLower.includes('campaign management')) {
     return SERVICE_NICHE_IMAGES.svc_01;
   }
 
-  // Digital Marketing Monthly Packages (svc_02)
+  // Digital Marketing (svc_02)
   if (nameLower.includes('digital marketing') || nameLower.includes('monthly package')) {
     return SERVICE_NICHE_IMAGES.svc_02;
   }
@@ -185,12 +185,12 @@ export function getPolishedServiceImage(service: { id?: string; name?: string; c
     return SERVICE_NICHE_IMAGES.svc_18;
   }
 
-  // DS ICT Support & Smart Tech (svc_19)
+  // ICT Support & Smart Tech (svc_19)
   if (nameLower.includes('ict') || nameLower.includes('smart tech') || nameLower.includes('smart technology')) {
     return SERVICE_NICHE_IMAGES.svc_19;
   }
 
-  // DS Branding and Graphic Designs (svc_20)
+  // Branding and Graphic Designs (svc_20)
   if (nameLower.includes('branding') || nameLower.includes('graphic design') || nameLower.includes('graphic designs')) {
     return SERVICE_NICHE_IMAGES.svc_20;
   }

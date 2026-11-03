@@ -2356,20 +2356,67 @@ ${liveContext ? liveContext : ''}`;
   function sanitizeServiceNameForServer(rawName?: string): string {
     if (!rawName) return '';
     let cleaned = rawName.trim();
+
+    // Strip DS prefix if present in individual service titles (e.g. "DS ICT Support", "DS Branding", "DS Software")
+    if (/^DS\s+(?!Tech\b|Agency\b)/i.test(cleaned)) {
+      cleaned = cleaned.replace(/^DS\s+/i, '').trim();
+    }
+
+    if (
+      cleaned.toLowerCase() === 'content creation and presentation' ||
+      cleaned.toLowerCase() === 'content creation and presentations' ||
+      cleaned.toLowerCase() === 'content creation & presentation'
+    ) {
+      return 'Content Creation';
+    }
+
+    if (
+      cleaned.toLowerCase() === 'sponsored ads campaign management' ||
+      cleaned.toLowerCase() === 'sponsored ads campaign' ||
+      cleaned.toLowerCase() === 'sponsored ads' ||
+      cleaned.toLowerCase() === 'sponsored ad campaigns'
+    ) {
+      return 'Ads Management';
+    }
+
+    if (
+      cleaned.toLowerCase() === 'digital marketing monthly packages' ||
+      cleaned.toLowerCase() === 'digital marketing monthly package' ||
+      cleaned.toLowerCase() === 'digital marketing packages'
+    ) {
+      return 'Digital Marketing';
+    }
+
     if (
       cleaned.toLowerCase().includes('professional training') ||
       cleaned.toLowerCase() === 'professional training & consultancy' ||
-      cleaned.toLowerCase() === 'corporate training price list'
+      cleaned.toLowerCase() === 'corporate training price list' ||
+      cleaned.toLowerCase() === 'corporate training'
     ) {
       return 'Corporate Training and Staff Bootcamp';
     }
+
     cleaned = cleaned.replace(/\s*[\(\[-]?\s*price\s*list\s*[\)\]-]?/gi, '');
     cleaned = cleaned.replace(/\bpricelist\b/gi, '');
     cleaned = cleaned.replace(/\s{2,}/g, ' ').trim();
     cleaned = cleaned.replace(/^[\s\-–—:]+|[\s\-–—:]+$/g, '').trim();
+
+    if (/^DS\s+(?!Tech\b|Agency\b)/i.test(cleaned)) {
+      cleaned = cleaned.replace(/^DS\s+/i, '').trim();
+    }
     if (cleaned.toLowerCase() === 'corporate training') {
       return 'Corporate Training and Staff Bootcamp';
     }
+    if (cleaned.toLowerCase() === 'content creation and presentation') {
+      return 'Content Creation';
+    }
+    if (cleaned.toLowerCase() === 'sponsored ads campaign management' || cleaned.toLowerCase() === 'sponsored ads') {
+      return 'Ads Management';
+    }
+    if (cleaned.toLowerCase() === 'digital marketing monthly packages') {
+      return 'Digital Marketing';
+    }
+
     return cleaned || rawName;
   }
 

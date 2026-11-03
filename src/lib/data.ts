@@ -209,11 +209,47 @@ export function sanitizeServiceName(rawName?: string): string {
   if (!rawName) return '';
   let cleaned = rawName.trim();
 
-  // If it's the old corporate training name or variations:
+  // Strip DS prefix if present in individual service titles (e.g. "DS ICT Support", "DS Branding", "DS Software")
+  // Guarded so it never touches "DS TECH" or "DS Tech Agency" branding
+  if (/^DS\s+(?!Tech\b|Agency\b)/i.test(cleaned)) {
+    cleaned = cleaned.replace(/^DS\s+/i, '').trim();
+  }
+
+  // Exact mappings:
+  // 1. Content Creation and Presentation → Content Creation
+  if (
+    cleaned.toLowerCase() === 'content creation and presentation' ||
+    cleaned.toLowerCase() === 'content creation and presentations' ||
+    cleaned.toLowerCase() === 'content creation & presentation'
+  ) {
+    return 'Content Creation';
+  }
+
+  // 2. Sponsored Ads Campaign Management → Ads Management
+  if (
+    cleaned.toLowerCase() === 'sponsored ads campaign management' ||
+    cleaned.toLowerCase() === 'sponsored ads campaign' ||
+    cleaned.toLowerCase() === 'sponsored ads' ||
+    cleaned.toLowerCase() === 'sponsored ad campaigns'
+  ) {
+    return 'Ads Management';
+  }
+
+  // 3. Digital Marketing Monthly Packages → Digital Marketing
+  if (
+    cleaned.toLowerCase() === 'digital marketing monthly packages' ||
+    cleaned.toLowerCase() === 'digital marketing monthly package' ||
+    cleaned.toLowerCase() === 'digital marketing packages'
+  ) {
+    return 'Digital Marketing';
+  }
+
+  // 4. Professional Training & Consultancy → Corporate Training and Staff Bootcamp
   if (
     cleaned.toLowerCase().includes('professional training') ||
     cleaned.toLowerCase() === 'professional training & consultancy' ||
-    cleaned.toLowerCase() === 'corporate training price list'
+    cleaned.toLowerCase() === 'corporate training price list' ||
+    cleaned.toLowerCase() === 'corporate training'
   ) {
     return 'Corporate Training and Staff Bootcamp';
   }
@@ -224,8 +260,21 @@ export function sanitizeServiceName(rawName?: string): string {
   cleaned = cleaned.replace(/\s{2,}/g, ' ').trim();
   cleaned = cleaned.replace(/^[\s\-–—:]+|[\s\-–—:]+$/g, '').trim();
 
+  // Re-check after removing price list
+  if (/^DS\s+(?!Tech\b|Agency\b)/i.test(cleaned)) {
+    cleaned = cleaned.replace(/^DS\s+/i, '').trim();
+  }
   if (cleaned.toLowerCase() === 'corporate training') {
     return 'Corporate Training and Staff Bootcamp';
+  }
+  if (cleaned.toLowerCase() === 'content creation and presentation') {
+    return 'Content Creation';
+  }
+  if (cleaned.toLowerCase() === 'sponsored ads campaign management' || cleaned.toLowerCase() === 'sponsored ads') {
+    return 'Ads Management';
+  }
+  if (cleaned.toLowerCase() === 'digital marketing monthly packages') {
+    return 'Digital Marketing';
   }
 
   return cleaned || rawName;
@@ -297,10 +346,10 @@ export function sortServicesDeterministically(services: (ServiceItem | any)[]): 
 // 2. THE COMPLETE CORE SERVICE MARKETPLACE CATALOGUE (26 SERVICES + NAMED ALIASES)
 // ---------------------------------------------------------
 const RAW_SERVICES: ServiceItem[] = [
-  // 1. Sponsored Ads Campaign Management
+  // 1. Ads Management
   {
     id: "svc_01",
-    name: "Sponsored Ads Campaign Management",
+    name: "Ads Management",
     price: "₦50,000 – ₦1,000,000+",
     description: "High-ROI sponsored ad campaigns across Meta, Instagram, Google Ads, and TikTok with conversion-optimized funnel tracking.",
     image: "/assets/services/svc_01.jpg",
@@ -309,10 +358,10 @@ const RAW_SERVICES: ServiceItem[] = [
     deliverables: ["Meta & Google Ads Campaign", "Precision Audience Retargeting", "High-CTR Ad Copywriting", "Weekly ROAS & ROI Reports"],
     orderIndex: 1
   },
-  // 2. Digital Marketing Monthly Packages
+  // 2. Digital Marketing
   {
     id: "svc_02",
-    name: "Digital Marketing Monthly Packages",
+    name: "Digital Marketing",
     price: "₦80,000 – ₦3,000,000+",
     description: "Omnichannel monthly marketing retainers driving sustainable brand awareness, lead generation pipelines, and audience retention.",
     image: "/assets/services/svc_02.jpg",
@@ -333,10 +382,10 @@ const RAW_SERVICES: ServiceItem[] = [
     deliverables: ["Custom Corporate Training Syllabus", "On-Site & Virtual Masterclasses", "Accredited Completion Badges", "1-on-1 Executive Advisory"],
     orderIndex: 3
   },
-  // 4. Content Creation and Presentation
+  // 4. Content Creation
   {
     id: "svc_04",
-    name: "Content Creation and Presentation",
+    name: "Content Creation",
     price: "₦40,000 – ₦1,000,000+",
     description: "Persuasive executive pitch decks, multimedia storytelling, corporate whitepapers, and high-impact boardroom presentations.",
     image: "/assets/services/svc_04.jpg",
@@ -513,10 +562,10 @@ const RAW_SERVICES: ServiceItem[] = [
     deliverables: ["WhatsApp Multi-Agent Portal", "Ticketing SLA Workflow", "CRM Automated Follow-Ups", "Weekly Satisfaction Reports"],
     orderIndex: 18
   },
-  // 19. DS ICT Support & Smart Tech
+  // 19. ICT Support & Smart Tech
   {
     id: "svc_19",
-    name: "DS ICT Support & Smart Tech",
+    name: "ICT Support & Smart Tech",
     price: "₦120,000 – ₦6,000,000+",
     description: "Corporate hardware deployment, local area networks, smart surveillance setups, biometric attendance devices, and cloud maintenance.",
     image: "/assets/services/svc_19.jpg",
@@ -525,10 +574,10 @@ const RAW_SERVICES: ServiceItem[] = [
     deliverables: ["Office Network & Firewall", "Smart CCTV & Biometrics", "Workstation Configuration", "24/7 IT Helpdesk Support"],
     orderIndex: 19
   },
-  // 20. DS Branding and Graphic Designs
+  // 20. Branding and Graphic Designs
   {
     id: "svc_20",
-    name: "DS Branding and Graphic Designs",
+    name: "Branding and Graphic Designs",
     price: "₦50,000 – ₦2,000,000+",
     description: "Corporate identity packages, premium vector logos, style guides, promotional marketing collateral, and digital asset libraries.",
     image: "/assets/services/svc_20.jpg",
@@ -537,10 +586,10 @@ const RAW_SERVICES: ServiceItem[] = [
     deliverables: ["Vector Logo & Icon Mark", "Pantone & Typography Guide", "Brand Collateral Assets", "Social & Stationery Templates"],
     orderIndex: 20
   },
-  // 21. DS Software App Designing
+  // 21. Software App Designing
   {
     id: "svc_21",
-    name: "DS Software App Designing",
+    name: "Software App Designing",
     price: "₦250,000 – ₦15,000,000+",
     description: "Intuitive UI/UX wireframing, high-fidelity interactive Figma prototypes, user journeys, and component design systems.",
     image: "/assets/services/svc_21.jpg",
@@ -683,7 +732,7 @@ const RAW_SERVICES: ServiceItem[] = [
   },
   {
     id: "svc_content_presentation",
-    name: "Content Creation and Presentation",
+    name: "Content Creation",
     price: "₦40,000 – ₦1,000,000+",
     description: "Professional business content, presentations, and communication materials tailored to specific audiences.",
     image: "/assets/services/svc_content_presentation.jpg",
