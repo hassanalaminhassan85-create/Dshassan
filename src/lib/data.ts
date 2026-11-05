@@ -325,23 +325,6 @@ export const SERVICE_CANONICAL_ORDER: Record<string, number> = {
   svc_event_videography: 42,
 };
 
-export function sortServicesDeterministically(services: (ServiceItem | any)[]): ServiceItem[] {
-  if (!Array.isArray(services)) return [];
-  const mapped = services.map(svc => ({
-    ...svc,
-    name: sanitizeServiceName(svc.name || svc.title),
-    image: getPolishedServiceImage(svc),
-    orderIndex: svc.orderIndex ?? SERVICE_CANONICAL_ORDER[svc.id] ?? 999
-  })) as ServiceItem[];
-
-  return mapped.sort((a, b) => {
-    const orderA = a.orderIndex ?? SERVICE_CANONICAL_ORDER[a.id] ?? 999;
-    const orderB = b.orderIndex ?? SERVICE_CANONICAL_ORDER[b.id] ?? 999;
-    if (orderA !== orderB) return orderA - orderB;
-    return (a.id || '').localeCompare(b.id || '');
-  });
-}
-
 // ---------------------------------------------------------
 // 2. THE COMPLETE CORE SERVICE MARKETPLACE CATALOGUE (26 SERVICES + NAMED ALIASES)
 // ---------------------------------------------------------
@@ -821,6 +804,39 @@ const RAW_SERVICES: ServiceItem[] = [
     deliverables: ["4K Multi-Camera Rig", "Live Stream Broadcasting", "Highlight Reel (48hr Delivery)", "Studio-Grade Mastered Audio"]
   }
 ];
+
+const CANONICAL_SERVICE_MAP = new Map<string, ServiceItem>();
+for (const s of RAW_SERVICES) {
+  CANONICAL_SERVICE_MAP.set(s.id, s);
+}
+
+export function sortServicesDeterministically(services: (ServiceItem | any)[]): ServiceItem[] {
+  if (!Array.isArray(services)) return [];
+  const mapped = services.map(svc => {
+    const canonical = CANONICAL_SERVICE_MAP.get(svc.id);
+    let desc = svc.description || canonical?.description || '';
+    if (desc.toLowerCase().includes('monthly digital marketing packages')) {
+      desc = canonical?.description || desc;
+    }
+
+    return {
+      ...svc,
+      name: sanitizeServiceName(svc.name || svc.title),
+      description: desc,
+      deliverables: (svc.deliverables && svc.deliverables.length > 0) ? svc.deliverables : canonical?.deliverables,
+      price: svc.price || canonical?.price,
+      image: getPolishedServiceImage(svc),
+      orderIndex: svc.orderIndex ?? SERVICE_CANONICAL_ORDER[svc.id] ?? 999
+    };
+  }) as ServiceItem[];
+
+  return mapped.sort((a, b) => {
+    const orderA = a.orderIndex ?? SERVICE_CANONICAL_ORDER[a.id] ?? 999;
+    const orderB = b.orderIndex ?? SERVICE_CANONICAL_ORDER[b.id] ?? 999;
+    if (orderA !== orderB) return orderA - orderB;
+    return (a.id || '').localeCompare(b.id || '');
+  });
+}
 
 export const SERVICES: ServiceItem[] = sortServicesDeterministically(RAW_SERVICES);
 
