@@ -36,6 +36,13 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
 }) => {
   const agencyPhone = '2349023489111';
 
+  const sanitizedServiceName = sanitizeServiceName(service.name).toLowerCase();
+  const isDigitalMarketing = 
+    sanitizedServiceName === 'digital marketing' || 
+    service.id === 'svc_02' || 
+    service.id === 'svc_digital_marketing' ||
+    cleanServiceSlug(service.id) === 'digital-marketing';
+
   // Client Contact Details State
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -106,6 +113,9 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
   // Accordion State for Content Creation Packages
   const [isContentAccordionOpen, setIsContentAccordionOpen] = useState(true);
 
+  // Accordion State for Ads Management Campaign Objectives
+  const [isAdsAccordionOpen, setIsAdsAccordionOpen] = useState(true);
+
   // Accordion State for Manual Payment Instructions (Collapsed by default)
   const [isPaymentAccordionOpen, setIsPaymentAccordionOpen] = useState(false);
   const [amountPaid, setAmountPaid] = useState('');
@@ -144,6 +154,17 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
         aspectRatio: prev.aspectRatio !== undefined ? prev.aspectRatio : '',
         ...prev
       }));
+    }
+
+    const isAds = 
+      sanitizeServiceName(service.name).toLowerCase() === 'ads management' || 
+      service.id === 'svc_01' || 
+      service.id === 'svc_ads_management' ||
+      cleanServiceSlug(service.id) === 'ads-management' ||
+      cleanServiceSlug(service.id) === 'sponsored-ads-campaign-management';
+
+    if (isAds) {
+      setIsAdsAccordionOpen(true);
     }
   }, [service.id, service.name]);
 
@@ -707,11 +728,13 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
           badge: 'High ROAS',
           description: 'Paid sponsored ad campaigns across Meta, Google, TikTok, and YouTube.',
           subOptions: [
-            'Meta Ads (Facebook & Instagram)',
-            'Google Search & Display Ads',
-            'TikTok Sponsored Ads',
-            'YouTube Video Ads',
-            'Retargeting & Pixel Tracking Campaigns'
+            'Meta Ads Management (Facebook & Instagram)',
+            'Google Ads Management (Search, Display & YouTube)',
+            'TikTok & Emerging Platform Ads',
+            'Boosting Followers & Engagement',
+            'Leads & Sales Generation',
+            'Landing Page & WhatsApp Enquiries',
+            'Ad Analytics, Tracking & ROAS Optimization'
           ]
         },
         {
@@ -733,7 +756,7 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
           badge: 'Brand Presence',
           description: 'Consistent publishing, community moderation, and channel growth.',
           subOptions: [
-            'Monthly Content Calendar & Publishing',
+            'Strategic Content Calendar & Publishing',
             'Community Management & Moderation',
             'Reels & Shorts Video Production',
             'Influencer Campaign Coordination',
@@ -830,94 +853,176 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
     }
 
     if (isAdsManagement) {
-      const adsManagementObjectivesData = [
+      const selectedObjectives: string[] = Array.isArray(serviceFields.adsManagementObjectives)
+        ? serviceFields.adsManagementObjectives
+        : [];
+
+      const availableObjectives = [
         {
           title: 'Meta Ads Management (Facebook & Instagram)',
           icon: Share2,
-          badge: 'Precision Meta Ads',
-          description: 'Targeted feed, story, carousel, and conversion ads across Meta platforms.',
-          subOptions: [
-            'Carousel & Collection Product Ads',
-            'Feed & Story Conversion Campaigns',
-            'Custom Audience & Pixel Retargeting',
-            'Lookalike Audience Expansion'
-          ]
+          summary: 'Targeted feed, story, reels & conversion campaigns across Meta'
         },
         {
           title: 'Google Ads Management (Search, Display & YouTube)',
           icon: Search,
-          badge: 'High-Intent Search',
-          description: 'Pay-per-click Google search campaigns, banner display, and YouTube ads.',
-          subOptions: [
-            'High-Intent Google Search Ads',
-            'Google Display Network Banners',
-            'YouTube Video In-Stream Ads',
-            'Google Shopping Ads Setup'
-          ]
+          summary: 'High-intent PPC search, Google display banners & YouTube ads'
         },
         {
           title: 'TikTok & Emerging Platform Ads',
           icon: Video,
-          badge: 'Short-Form Viral',
-          description: 'Native TikTok spark ads, brand takeovers, and instant lead forms.',
-          subOptions: [
-            'Spark Ads & In-Feed Native Ads',
-            'TopView Brand Takeover',
-            'Instant Lead Generation Forms'
-          ]
+          summary: 'Native TikTok spark ads, viral feed takeovers & instant lead forms'
         },
         {
           title: 'Boosting Followers & Engagement',
           icon: Users,
-          badge: 'Audience Growth',
-          description: 'Accelerate social profile growth, page likes, followers, and post engagement.',
-          subOptions: [
-            'Social Profile Traffic Campaigns',
-            'Audience Engagement & Interactive Ads',
-            'Viral Growth & Community Building'
-          ]
+          summary: 'Accelerate social profile growth, page likes & audience engagement'
         },
         {
           title: 'Leads & Sales Generation',
           icon: Target,
-          badge: 'Direct Revenue',
-          description: 'Drive high-converting customer leads, phone calls, and direct e-commerce sales.',
-          subOptions: [
-            'High-ROAS Direct Sales Funnels',
-            'Instant Lead Form Campaigns',
-            'E-Commerce Checkout Conversions'
-          ]
+          summary: 'High-ROAS direct customer acquisition, phone calls & online sales'
         },
         {
           title: 'Landing Page & WhatsApp Enquiries',
           icon: MessageSquare,
-          badge: 'Instant Enquiries',
-          description: 'Direct click-to-WhatsApp ads integrated with high-converting landing pages.',
-          subOptions: [
-            'Direct WhatsApp Click-to-Chat Ads',
-            'High-Converting Sales Landing Page',
-            'Real-Time Lead CRM Notifications'
-          ]
+          summary: 'Click-to-WhatsApp direct chat ads integrated with high-converting pages'
         },
         {
           title: 'Ad Analytics, Tracking & ROAS Optimization',
           icon: BarChart3,
-          badge: 'Data & Tracking',
-          description: 'Meta Pixel, Conversions API (CAPI), Google Analytics 4, and weekly ROAS reporting.',
-          subOptions: [
-            'Meta Pixel & Conversions API (CAPI)',
-            'Google Analytics (GA4) Goal Tracking',
-            'Weekly ROAS & ROI Performance Audits'
-          ]
+          summary: 'Meta Pixel, Conversions API (CAPI), GA4 tracking & weekly ROAS audits'
         }
       ];
 
-      return renderAccordionObjectiveCards(
-        adsManagementObjectivesData,
-        'adsManagementObjectives',
-        'adsManagementSubOptions',
-        'Ads Management Campaign Objectives',
-        'Select campaign goals and expand cards to configure specific ad channels and objectives'
+      const selectAllObjectives = () => {
+        setServiceFields(prev => ({
+          ...prev,
+          adsManagementObjectives: availableObjectives.map(o => o.title)
+        }));
+      };
+
+      const clearAllObjectives = () => {
+        setServiceFields(prev => ({
+          ...prev,
+          adsManagementObjectives: []
+        }));
+      };
+
+      return (
+        <div className="rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF] overflow-hidden transition-all shadow-xs" id="ads-management-objectives-section">
+          {/* Main Accordion Header */}
+          <button
+            type="button"
+            onClick={() => setIsAdsAccordionOpen(!isAdsAccordionOpen)}
+            aria-expanded={isAdsAccordionOpen}
+            aria-controls="ads-management-accordion-body"
+            className="w-full p-3.5 sm:p-4 flex items-center justify-between text-left hover:bg-[#F1F5F9]/70 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 select-none"
+          >
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-[#E87932]/10 flex items-center justify-center shrink-0 text-[#E87932]">
+                <Layers size={17} />
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-[14px] sm:text-[15px] font-bold text-[#17243A] leading-snug truncate">
+                  Ads Management Campaign Objectives
+                </h3>
+                <p className="text-[12px] text-[#667085] truncate font-normal mt-0.5">
+                  Select your target advertising channels and campaign goals
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 ml-3">
+              <span className="text-[11px] sm:text-[12px] font-semibold text-[#E87932] bg-[#E87932]/10 px-2.5 py-1 rounded-full border border-[#E87932]/20">
+                {selectedObjectives.length} Selected
+              </span>
+              <div className={`w-7 h-7 rounded-full bg-white border border-[#E5E9EF] flex items-center justify-center transition-transform duration-200 ${isAdsAccordionOpen ? 'rotate-180 text-[#E87932]' : 'text-[#667085]'}`}>
+                <ChevronDown size={15} />
+              </div>
+            </div>
+          </button>
+
+          {/* Accordion Body with Compact Cards */}
+          <AnimatePresence initial={false}>
+            {isAdsAccordionOpen && (
+              <motion.div
+                id="ads-management-accordion-body"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: 'easeInOut' }}
+                className="overflow-hidden border-t border-[#E5E9EF] bg-[#FAFCFF] p-3.5 sm:p-4 space-y-3"
+              >
+                <div className="flex items-center justify-between gap-2 text-[12px]">
+                  <span className="text-[#667085] font-medium">
+                    Available Campaign Objectives ({availableObjectives.length}):
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={selectAllObjectives}
+                      className="text-[#E87932] hover:underline font-semibold cursor-pointer"
+                    >
+                      Select All
+                    </button>
+                    {selectedObjectives.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={clearAllObjectives}
+                        className="text-[#667085] hover:text-[#17243A] font-medium cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {availableObjectives.map((obj) => {
+                    const Icon = obj.icon;
+                    const isSelected = selectedObjectives.includes(obj.title);
+
+                    return (
+                      <button
+                        key={obj.title}
+                        type="button"
+                        onClick={() => toggleObjective('adsManagementObjectives', obj.title)}
+                        className={`p-3 rounded-[12px] border text-left flex items-center justify-between gap-3 transition-all cursor-pointer group ${
+                          isSelected
+                            ? 'bg-[#FFF9F5] border-[#E87932] shadow-2xs'
+                            : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-slate-50/70'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                            isSelected ? 'bg-[#E87932] text-white shadow-2xs' : 'bg-[#E87932]/10 text-[#E87932]'
+                          }`}>
+                            <Icon size={16} />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-[13px] sm:text-[13.5px] font-semibold text-[#17243A] leading-snug line-clamp-1">
+                              {obj.title}
+                            </div>
+                            <p className="text-[11.5px] text-[#667085] leading-tight line-clamp-1 mt-0.5">
+                              {obj.summary}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className={`w-[20px] h-[20px] rounded-[5px] border flex items-center justify-center shrink-0 transition-colors ${
+                          isSelected ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD] group-hover:border-[#E87932]'
+                        }`}>
+                          {isSelected ? <Check size={12} strokeWidth={3} /> : null}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       );
     }
 
@@ -1645,7 +1750,9 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
             </h1>
 
             <p className="text-[14px] sm:text-[15px] text-[#667085] font-normal leading-relaxed max-w-3xl">
-              {service.description}
+              {isDigitalMarketing
+                ? "Comprehensive digital marketing solutions covering social media management, SEO, ads management, AI-powered business automation, content creation, brand development, and strategic digital growth."
+                : service.description}
             </p>
 
             {service.deliverables && service.deliverables.length > 0 && (

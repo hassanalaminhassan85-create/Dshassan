@@ -41,6 +41,7 @@ export const CustomQuoteModal: React.FC<CustomQuoteModalProps> = ({
   const [contentGoal, setContentGoal] = useState('');
   const [aspectRatio, setAspectRatio] = useState('');
   const [isContentAccordionOpen, setIsContentAccordionOpen] = useState(true);
+  const [isAdsAccordionOpen, setIsAdsAccordionOpen] = useState(true);
 
   // Digital Marketing & Ads Management Accordion State
   const [digitalMarketingObjectives, setDigitalMarketingObjectives] = useState<string[]>([]);
@@ -473,7 +474,7 @@ ${description.trim()}
                       {[
                         { title: 'Ads Management', icon: Megaphone, badge: 'High ROAS', subOptions: ['Meta Ads (Facebook & Instagram)', 'Google Search & Display Ads', 'TikTok Sponsored Ads', 'YouTube Video Ads', 'Retargeting & Pixel Tracking'] },
                         { title: 'SEO', icon: Search, badge: 'Organic Traffic', subOptions: ['Technical & On-Page SEO', 'Keyword Research & Content Strategy', 'Local SEO & Google Business Profile', 'Backlink Building', 'E-Commerce SEO'] },
-                        { title: 'Social Media Management', icon: Share2, badge: 'Brand Presence', subOptions: ['Monthly Content Calendar & Publishing', 'Community Management & Moderation', 'Reels & Shorts Video Production', 'Influencer Coordination', 'Performance Analytics'] },
+                        { title: 'Social Media Management', icon: Share2, badge: 'Brand Presence', subOptions: ['Strategic Content Calendar & Publishing', 'Community Management & Moderation', 'Reels & Shorts Video Production', 'Influencer Coordination', 'Performance Analytics'] },
                         { title: 'Digital Marketing & Business Growth Strategies', icon: TrendingUp, badge: 'Full Funnel', subOptions: ['Omnichannel Growth Strategy', 'Conversion Rate Optimization (CRO)', 'Customer Retention Funnels', 'Email & SMS Automation', 'Market Positioning'] },
                         { title: 'AI Business Automation', icon: Bot, badge: 'AI Workflows', subOptions: ['AI Support Chatbots (WhatsApp/Web)', 'Automated Lead Scoring & CRM Sync', 'AI Copywriting Engine', 'Zapier/Make Workflow Automation', 'Invoice & Order Automation'] },
                         { title: 'Landing Page & Sales Funnel Integration', icon: Layout, badge: 'High Conversion', subOptions: ['High-Converting Sales Landing Pages', 'WhatsApp Lead Capture Integration', 'Payment Gateway Integration', 'Lead Magnet Funnels', 'A/B Testing & Tracking'] },
@@ -536,79 +537,135 @@ ${description.trim()}
 
                 {/* Ads Management Accordion Objective Cards */}
                 {isAdsManagement && (
-                  <div className="space-y-3 p-3.5 sm:p-4 rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF]">
-                    <div className="flex items-center justify-between gap-2 border-b border-[#E5E9EF] pb-2.5">
-                      <div className="flex items-center gap-2">
-                        <Layers size={15} className="text-[#E87932] shrink-0" />
-                        <h3 className="text-[13.5px] sm:text-[14.5px] font-bold text-[#17243A]">
-                          Ads Management Campaign Objectives
-                        </h3>
+                  <div className="rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF] overflow-hidden transition-all shadow-xs" id="custom-quote-ads-objectives">
+                    {/* Main Accordion Header */}
+                    <button
+                      type="button"
+                      onClick={() => setIsAdsAccordionOpen(!isAdsAccordionOpen)}
+                      aria-expanded={isAdsAccordionOpen}
+                      className="w-full p-3 sm:p-3.5 flex items-center justify-between text-left hover:bg-[#F1F5F9]/70 transition-colors cursor-pointer focus:outline-none select-none"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-7 h-7 rounded-lg bg-[#E87932]/10 flex items-center justify-center shrink-0 text-[#E87932]">
+                          <Layers size={15} />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="text-[13px] sm:text-[14px] font-bold text-[#17243A] leading-snug truncate">
+                            Ads Management Campaign Objectives
+                          </h3>
+                          <p className="text-[11px] text-[#667085] truncate font-normal mt-0.5">
+                            Select target advertising channels and campaign goals
+                          </p>
+                        </div>
                       </div>
-                      <span className="text-[11px] font-semibold text-[#E87932] bg-[#E87932]/10 px-2 py-0.5 rounded-full border border-[#E87932]/20">
-                        {adsManagementObjectives.length} Selected
-                      </span>
-                    </div>
 
-                    <div className="space-y-2.5">
-                      {[
-                        { title: 'Meta Ads Management (Facebook & Instagram)', icon: Share2, badge: 'Meta Ads', subOptions: ['Carousel & Collection Product Ads', 'Feed & Story Conversion Campaigns', 'Custom Audience & Pixel Retargeting', 'Lookalike Audience Expansion'] },
-                        { title: 'Google Ads Management (Search, Display & YouTube)', icon: Search, badge: 'Google Ads', subOptions: ['High-Intent Google Search Ads', 'Google Display Network Banners', 'YouTube Video In-Stream Ads', 'Google Shopping Ads Setup'] },
-                        { title: 'TikTok & Emerging Platform Ads', icon: Video, badge: 'TikTok Ads', subOptions: ['Spark Ads & In-Feed Native Ads', 'TopView Brand Takeover', 'Instant Lead Generation Forms'] },
-                        { title: 'Boosting Followers & Engagement', icon: Users, badge: 'Growth', subOptions: ['Social Profile Traffic Campaigns', 'Audience Engagement & Interactive Ads', 'Viral Growth & Community Building'] },
-                        { title: 'Leads & Sales Generation', icon: Target, badge: 'Revenue', subOptions: ['High-ROAS Direct Sales Funnels', 'Instant Lead Form Campaigns', 'E-Commerce Checkout Conversions'] },
-                        { title: 'Landing Page & WhatsApp Enquiries', icon: MessageSquare, badge: 'Enquiries', subOptions: ['Direct WhatsApp Click-to-Chat Ads', 'High-Converting Sales Landing Page', 'Real-Time Lead CRM Notifications'] },
-                        { title: 'Ad Analytics, Tracking & ROAS Optimization', icon: BarChart3, badge: 'Analytics', subOptions: ['Meta Pixel & Conversions API (CAPI)', 'Google Analytics (GA4) Goal Tracking', 'Weekly ROAS & ROI Performance Audits'] }
-                      ].map(obj => {
-                        const Icon = obj.icon;
-                        const isObjSel = adsManagementObjectives.includes(obj.title);
-                        const isOpen = !!openModalAccordions[obj.title];
-                        const subList = adsManagementSubOptions[obj.title] || [];
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
+                        <span className="text-[10.5px] font-semibold text-[#E87932] bg-[#E87932]/10 px-2 py-0.5 rounded-full border border-[#E87932]/20">
+                          {adsManagementObjectives.length} Selected
+                        </span>
+                        <div className={`w-6 h-6 rounded-full bg-white border border-[#E5E9EF] flex items-center justify-center transition-transform duration-200 ${isAdsAccordionOpen ? 'rotate-180 text-[#E87932]' : 'text-[#667085]'}`}>
+                          <ChevronDown size={14} />
+                        </div>
+                      </div>
+                    </button>
 
-                        return (
-                          <div key={obj.title} className={`rounded-[12px] border transition-all overflow-hidden bg-white ${isObjSel || isOpen ? 'border-[#E87932]/60 shadow-2xs' : 'border-[#E5E9EF]'}`}>
-                            <div className="p-3 flex items-center justify-between gap-2.5">
-                              <button type="button" onClick={() => toggleModalAccordion(obj.title)} className="flex-1 flex items-center gap-2.5 text-left cursor-pointer min-w-0 focus:outline-none">
-                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${isObjSel ? 'bg-[#E87932] text-white' : 'bg-[#E87932]/10 text-[#E87932]'}`}>
-                                  <Icon size={15} />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <h4 className="text-[13px] font-bold text-[#17243A] leading-snug truncate">{obj.title}</h4>
-                                </div>
+                    {/* Accordion Body with Compact Cards */}
+                    <AnimatePresence initial={false}>
+                      {isAdsAccordionOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2, ease: 'easeInOut' }}
+                          className="border-t border-[#E5E9EF] bg-[#FAFCFF] p-3 space-y-2.5"
+                        >
+                          <div className="flex items-center justify-between gap-2 text-[11.5px]">
+                            <span className="text-[#667085] font-medium">
+                              Available Objectives:
+                            </span>
+                            <div className="flex items-center gap-2.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const allTitles = [
+                                    'Meta Ads Management (Facebook & Instagram)',
+                                    'Google Ads Management (Search, Display & YouTube)',
+                                    'TikTok & Emerging Platform Ads',
+                                    'Boosting Followers & Engagement',
+                                    'Leads & Sales Generation',
+                                    'Landing Page & WhatsApp Enquiries',
+                                    'Ad Analytics, Tracking & ROAS Optimization'
+                                  ];
+                                  setAdsManagementObjectives(allTitles);
+                                }}
+                                className="text-[#E87932] hover:underline font-semibold cursor-pointer"
+                              >
+                                Select All
                               </button>
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                {subList.length > 0 && <span className="text-[10px] font-bold text-[#027A48] bg-[#ECFDF3] px-1.5 py-0.5 rounded">{subList.length} opts</span>}
-                                <button type="button" onClick={() => toggleModalObjective('ads', obj.title)} className={`w-[20px] h-[20px] rounded border flex items-center justify-center cursor-pointer ${isObjSel ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'}`}>
-                                  {isObjSel ? <Check size={12} strokeWidth={3} /> : null}
+                              {adsManagementObjectives.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => setAdsManagementObjectives([])}
+                                  className="text-[#667085] hover:text-[#17243A] font-medium cursor-pointer"
+                                >
+                                  Clear
                                 </button>
-                                <button type="button" onClick={() => toggleModalAccordion(obj.title)} className="w-6 h-6 rounded-full bg-[#F8FAFC] border border-[#E5E9EF] flex items-center justify-center text-[#667085]">
-                                  <ChevronDown size={13} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#E87932]' : ''}`} />
-                                </button>
-                              </div>
-                            </div>
-
-                            <AnimatePresence initial={false}>
-                              {isOpen && (
-                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-[#F1F5F9] bg-[#FAFCFF] p-3 space-y-2">
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                                    {obj.subOptions.map(sub => {
-                                      const isChecked = subList.includes(sub);
-                                      return (
-                                        <button key={sub} type="button" onClick={() => toggleModalSubOption('ads', obj.title, sub)} className={`p-2 rounded-[8px] border text-left flex items-center justify-between text-[12px] cursor-pointer ${isChecked ? 'bg-[#FFF9F5] border-[#E87932] font-semibold text-[#17243A]' : 'bg-white border-[#E5E9EF] text-[#667085]'}`}>
-                                          <span className="truncate">{sub}</span>
-                                          <div className={`w-3.5 h-3.5 rounded-[3px] border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'}`}>
-                                            {isChecked ? <Check size={10} strokeWidth={3} /> : null}
-                                          </div>
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                </motion.div>
                               )}
-                            </AnimatePresence>
+                            </div>
                           </div>
-                        );
-                      })}
-                    </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {[
+                              { title: 'Meta Ads Management (Facebook & Instagram)', icon: Share2, summary: 'Feed, Stories, Reels & conversion ads' },
+                              { title: 'Google Ads Management (Search, Display & YouTube)', icon: Search, summary: 'Search PPC, Display & YouTube video' },
+                              { title: 'TikTok & Emerging Platform Ads', icon: Video, summary: 'Spark ads, viral video & instant lead forms' },
+                              { title: 'Boosting Followers & Engagement', icon: Users, summary: 'Profile growth, post likes & community' },
+                              { title: 'Leads & Sales Generation', icon: Target, summary: 'High-ROAS direct conversions & sales' },
+                              { title: 'Landing Page & WhatsApp Enquiries', icon: MessageSquare, summary: 'Click-to-WhatsApp & high-converting pages' },
+                              { title: 'Ad Analytics, Tracking & ROAS Optimization', icon: BarChart3, summary: 'Pixel, GA4, CAPI & weekly performance' }
+                            ].map(obj => {
+                              const Icon = obj.icon;
+                              const isObjSel = adsManagementObjectives.includes(obj.title);
+
+                              return (
+                                <button
+                                  key={obj.title}
+                                  type="button"
+                                  onClick={() => toggleModalObjective('ads', obj.title)}
+                                  className={`p-2.5 rounded-[10px] border text-left flex items-center justify-between gap-2.5 transition-all cursor-pointer group ${
+                                    isObjSel
+                                      ? 'bg-[#FFF9F5] border-[#E87932] shadow-2xs'
+                                      : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-slate-50/70'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                      isObjSel ? 'bg-[#E87932] text-white' : 'bg-[#E87932]/10 text-[#E87932]'
+                                    }`}>
+                                      <Icon size={14} />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <h4 className="text-[12.5px] font-semibold text-[#17243A] leading-snug line-clamp-1">
+                                        {obj.title}
+                                      </h4>
+                                      <p className="text-[11px] text-[#667085] leading-tight line-clamp-1 mt-0.5">
+                                        {obj.summary}
+                                      </p>
+                                    </div>
+                                  </div>
+
+                                  <div className={`w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center shrink-0 transition-colors ${
+                                    isObjSel ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD] group-hover:border-[#E87932]'
+                                  }`}>
+                                    {isObjSel ? <Check size={11} strokeWidth={3} /> : null}
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )}
 

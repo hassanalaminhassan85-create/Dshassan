@@ -560,7 +560,18 @@ export default function App() {
         const saved = localStorage.getItem('admin_services');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (Array.isArray(parsed) && parsed.length > 0) return sortServicesDeterministically(parsed);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const synced = parsed.map(s => {
+              if (s.id === 'svc_02' || s.id === 'svc_digital_marketing' || s.name === 'Digital Marketing') {
+                return {
+                  ...s,
+                  description: "Comprehensive digital marketing solutions covering social media management, SEO, ads management, AI-powered business automation, content creation, brand development, and strategic digital growth."
+                };
+              }
+              return s;
+            });
+            return sortServicesDeterministically(synced);
+          }
         }
       } catch (e) {}
     }
