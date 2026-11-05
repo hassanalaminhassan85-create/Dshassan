@@ -3,7 +3,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   X, CheckCircle2, 
   Clock, User, Phone, Mail, Building, FileText, 
-  Copy, Check, ChevronDown, ShieldCheck, Layers
+  Copy, Check, ChevronDown, ShieldCheck, Layers,
+  Megaphone, Search, Share2, TrendingUp, Bot, Layout,
+  Video, Palette, Calendar, Users, Target, MessageSquare, BarChart3
 } from 'lucide-react';
 import { ServiceItem, sanitizeServiceName } from '../lib/data';
 import { LanguageCode } from '../lib/translations';
@@ -40,6 +42,13 @@ export const CustomQuoteModal: React.FC<CustomQuoteModalProps> = ({
   const [aspectRatio, setAspectRatio] = useState('');
   const [isContentAccordionOpen, setIsContentAccordionOpen] = useState(true);
 
+  // Digital Marketing & Ads Management Accordion State
+  const [digitalMarketingObjectives, setDigitalMarketingObjectives] = useState<string[]>([]);
+  const [digitalMarketingSubOptions, setDigitalMarketingSubOptions] = useState<Record<string, string[]>>({});
+  const [adsManagementObjectives, setAdsManagementObjectives] = useState<string[]>([]);
+  const [adsManagementSubOptions, setAdsManagementSubOptions] = useState<Record<string, string[]>>({});
+  const [openModalAccordions, setOpenModalAccordions] = useState<Record<string, boolean>>({});
+
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -70,11 +79,65 @@ export const CustomQuoteModal: React.FC<CustomQuoteModalProps> = ({
   if (!isOpen) return null;
 
   const currentService = allServices.find(s => s.id === selectedServiceId) || initialService;
+  const sanitizedCurrentName = currentService ? sanitizeServiceName(currentService.name).toLowerCase() : '';
+  const currentId = (currentService?.id || '').toLowerCase();
+
   const isContentCreation = currentService ? (
-    sanitizeServiceName(currentService.name).toLowerCase() === 'content creation' ||
-    currentService.id === 'svc_04' ||
-    currentService.id === 'svc_content_presentation'
+    sanitizedCurrentName === 'content creation' ||
+    currentId === 'svc_04' ||
+    currentId === 'svc_content_presentation'
   ) : false;
+
+  const isDigitalMarketing = currentService ? (
+    sanitizedCurrentName === 'digital marketing' ||
+    currentId === 'svc_02' ||
+    currentId === 'svc_digital_marketing'
+  ) : false;
+
+  const isAdsManagement = currentService ? (
+    sanitizedCurrentName === 'ads management' ||
+    currentId === 'svc_01' ||
+    currentId === 'svc_ads_management'
+  ) : false;
+
+  const toggleModalAccordion = (key: string) => {
+    setOpenModalAccordions(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const toggleModalObjective = (group: 'digital' | 'ads', title: string) => {
+    if (group === 'digital') {
+      setDigitalMarketingObjectives(prev => 
+        prev.includes(title) ? prev.filter(t => t !== title) : [...prev, title]
+      );
+    } else {
+      setAdsManagementObjectives(prev => 
+        prev.includes(title) ? prev.filter(t => t !== title) : [...prev, title]
+      );
+    }
+  };
+
+  const toggleModalSubOption = (group: 'digital' | 'ads', parentTitle: string, subOpt: string) => {
+    if (group === 'digital') {
+      setDigitalMarketingSubOptions(prev => {
+        const list = prev[parentTitle] || [];
+        const updated = list.includes(subOpt) ? list.filter(i => i !== subOpt) : [...list, subOpt];
+        if (updated.length > 0 && !digitalMarketingObjectives.includes(parentTitle)) {
+          setDigitalMarketingObjectives(objs => [...objs, parentTitle]);
+        }
+        return { ...prev, [parentTitle]: updated };
+      });
+    } else {
+      setAdsManagementSubOptions(prev => {
+        const list = prev[parentTitle] || [];
+        const updated = list.includes(subOpt) ? list.filter(i => i !== subOpt) : [...list, subOpt];
+        if (updated.length > 0 && !adsManagementObjectives.includes(parentTitle)) {
+          setAdsManagementObjectives(objs => [...objs, parentTitle]);
+        }
+        return { ...prev, [parentTitle]: updated };
+      });
+    }
+  };
+
   const serviceTitle = currentService ? sanitizeServiceName(currentService.name) : 'Custom Enterprise Project';
   const serviceCategory = currentService?.category || 'General';
   const serviceDeliverables = currentService?.deliverables && currentService.deliverables.length > 0
@@ -137,7 +200,7 @@ ${email.trim() ? `• Email: ${email.trim()}\n` : ''}${company.trim() ? `• Com
 *SERVICE SPECIFICATION:*
 • Target Service: ${serviceTitle}
 • Category: ${serviceCategory.toUpperCase()}
-${isContentCreation ? `• Selected Package: ${contentCreationPackage}\n` : ''}${isContentCreation && contentGoal.trim() ? `• Primary Content Goal: ${contentGoal.trim()}\n` : ''}${isContentCreation && aspectRatio.trim() ? `• Target Aspect Ratio / Format: ${aspectRatio.trim()}\n` : ''}
+${isContentCreation ? `• Selected Package: ${contentCreationPackage}\n` : ''}${isContentCreation && contentGoal.trim() ? `• Primary Content Goal: ${contentGoal.trim()}\n` : ''}${isContentCreation && aspectRatio.trim() ? `• Target Aspect Ratio / Format: ${aspectRatio.trim()}\n` : ''}${isDigitalMarketing && digitalMarketingObjectives.length > 0 ? `• Digital Marketing Objectives: ${digitalMarketingObjectives.join(', ')}\n` : ''}${isAdsManagement && adsManagementObjectives.length > 0 ? `• Ads Management Objectives: ${adsManagementObjectives.join(', ')}\n` : ''}
 *CLIENT PROPOSED TERMS:*
 • Proposed Budget: ${formattedBudget}
 • Preferred Delivery Time: ${finalDeliveryTime}
@@ -388,6 +451,164 @@ ${description.trim()}
                         </motion.div>
                       )}
                     </AnimatePresence>
+                  </div>
+                )}
+
+                {/* Digital Marketing Accordion Objective Cards */}
+                {isDigitalMarketing && (
+                  <div className="space-y-3 p-3.5 sm:p-4 rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF]">
+                    <div className="flex items-center justify-between gap-2 border-b border-[#E5E9EF] pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <Layers size={15} className="text-[#E87932] shrink-0" />
+                        <h3 className="text-[13.5px] sm:text-[14.5px] font-bold text-[#17243A]">
+                          Digital Marketing Primary Objectives
+                        </h3>
+                      </div>
+                      <span className="text-[11px] font-semibold text-[#E87932] bg-[#E87932]/10 px-2 py-0.5 rounded-full border border-[#E87932]/20">
+                        {digitalMarketingObjectives.length} Selected
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {[
+                        { title: 'Ads Management', icon: Megaphone, badge: 'High ROAS', subOptions: ['Meta Ads (Facebook & Instagram)', 'Google Search & Display Ads', 'TikTok Sponsored Ads', 'YouTube Video Ads', 'Retargeting & Pixel Tracking'] },
+                        { title: 'SEO', icon: Search, badge: 'Organic Traffic', subOptions: ['Technical & On-Page SEO', 'Keyword Research & Content Strategy', 'Local SEO & Google Business Profile', 'Backlink Building', 'E-Commerce SEO'] },
+                        { title: 'Social Media Management', icon: Share2, badge: 'Brand Presence', subOptions: ['Monthly Content Calendar & Publishing', 'Community Management & Moderation', 'Reels & Shorts Video Production', 'Influencer Coordination', 'Performance Analytics'] },
+                        { title: 'Digital Marketing & Business Growth Strategies', icon: TrendingUp, badge: 'Full Funnel', subOptions: ['Omnichannel Growth Strategy', 'Conversion Rate Optimization (CRO)', 'Customer Retention Funnels', 'Email & SMS Automation', 'Market Positioning'] },
+                        { title: 'AI Business Automation', icon: Bot, badge: 'AI Workflows', subOptions: ['AI Support Chatbots (WhatsApp/Web)', 'Automated Lead Scoring & CRM Sync', 'AI Copywriting Engine', 'Zapier/Make Workflow Automation', 'Invoice & Order Automation'] },
+                        { title: 'Landing Page & Sales Funnel Integration', icon: Layout, badge: 'High Conversion', subOptions: ['High-Converting Sales Landing Pages', 'WhatsApp Lead Capture Integration', 'Payment Gateway Integration', 'Lead Magnet Funnels', 'A/B Testing & Tracking'] },
+                        { title: 'Content Creation & Video Editing', icon: Video, badge: 'Multimedia', subOptions: ['AI Video Content Package', 'Studio Cast & Presenter Package', 'Pitch Decks & Presentations', 'Technical Copywriting', 'Podcast Post-Production'] },
+                        { title: 'Graphic Design & Corporate Branding', icon: Palette, badge: 'Branding', subOptions: ['Vector Master Logo & Brand Identity', 'Corporate Brand Guidelines', 'Social Media Graphics Kit', '3D Mockups & Packaging', 'Business Stationery'] },
+                        { title: 'Event & Brand Promotion', icon: Calendar, badge: 'PR & Media', subOptions: ['Product Launch Campaigns', 'On-Site Event Coverage & Video', 'Press Release Distribution', 'PR & Reputation Management', 'Trade Show Branding'] }
+                      ].map(obj => {
+                        const Icon = obj.icon;
+                        const isObjSel = digitalMarketingObjectives.includes(obj.title);
+                        const isOpen = !!openModalAccordions[obj.title];
+                        const subList = digitalMarketingSubOptions[obj.title] || [];
+
+                        return (
+                          <div key={obj.title} className={`rounded-[12px] border transition-all overflow-hidden bg-white ${isObjSel || isOpen ? 'border-[#E87932]/60 shadow-2xs' : 'border-[#E5E9EF]'}`}>
+                            <div className="p-3 flex items-center justify-between gap-2.5">
+                              <button type="button" onClick={() => toggleModalAccordion(obj.title)} className="flex-1 flex items-center gap-2.5 text-left cursor-pointer min-w-0 focus:outline-none">
+                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${isObjSel ? 'bg-[#E87932] text-white' : 'bg-[#E87932]/10 text-[#E87932]'}`}>
+                                  <Icon size={15} />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <h4 className="text-[13px] font-bold text-[#17243A] leading-snug truncate">{obj.title}</h4>
+                                </div>
+                              </button>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                {subList.length > 0 && <span className="text-[10px] font-bold text-[#027A48] bg-[#ECFDF3] px-1.5 py-0.5 rounded">{subList.length} opts</span>}
+                                <button type="button" onClick={() => toggleModalObjective('digital', obj.title)} className={`w-[20px] h-[20px] rounded border flex items-center justify-center cursor-pointer ${isObjSel ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'}`}>
+                                  {isObjSel ? <Check size={12} strokeWidth={3} /> : null}
+                                </button>
+                                <button type="button" onClick={() => toggleModalAccordion(obj.title)} className="w-6 h-6 rounded-full bg-[#F8FAFC] border border-[#E5E9EF] flex items-center justify-center text-[#667085]">
+                                  <ChevronDown size={13} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#E87932]' : ''}`} />
+                                </button>
+                              </div>
+                            </div>
+
+                            <AnimatePresence initial={false}>
+                              {isOpen && (
+                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-[#F1F5F9] bg-[#FAFCFF] p-3 space-y-2">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                    {obj.subOptions.map(sub => {
+                                      const isChecked = subList.includes(sub);
+                                      return (
+                                        <button key={sub} type="button" onClick={() => toggleModalSubOption('digital', obj.title, sub)} className={`p-2 rounded-[8px] border text-left flex items-center justify-between text-[12px] cursor-pointer ${isChecked ? 'bg-[#FFF9F5] border-[#E87932] font-semibold text-[#17243A]' : 'bg-white border-[#E5E9EF] text-[#667085]'}`}>
+                                          <span className="truncate">{sub}</span>
+                                          <div className={`w-3.5 h-3.5 rounded-[3px] border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'}`}>
+                                            {isChecked ? <Check size={10} strokeWidth={3} /> : null}
+                                          </div>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Ads Management Accordion Objective Cards */}
+                {isAdsManagement && (
+                  <div className="space-y-3 p-3.5 sm:p-4 rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF]">
+                    <div className="flex items-center justify-between gap-2 border-b border-[#E5E9EF] pb-2.5">
+                      <div className="flex items-center gap-2">
+                        <Layers size={15} className="text-[#E87932] shrink-0" />
+                        <h3 className="text-[13.5px] sm:text-[14.5px] font-bold text-[#17243A]">
+                          Ads Management Campaign Objectives
+                        </h3>
+                      </div>
+                      <span className="text-[11px] font-semibold text-[#E87932] bg-[#E87932]/10 px-2 py-0.5 rounded-full border border-[#E87932]/20">
+                        {adsManagementObjectives.length} Selected
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {[
+                        { title: 'Meta Ads Management (Facebook & Instagram)', icon: Share2, badge: 'Meta Ads', subOptions: ['Carousel & Collection Product Ads', 'Feed & Story Conversion Campaigns', 'Custom Audience & Pixel Retargeting', 'Lookalike Audience Expansion'] },
+                        { title: 'Google Ads Management (Search, Display & YouTube)', icon: Search, badge: 'Google Ads', subOptions: ['High-Intent Google Search Ads', 'Google Display Network Banners', 'YouTube Video In-Stream Ads', 'Google Shopping Ads Setup'] },
+                        { title: 'TikTok & Emerging Platform Ads', icon: Video, badge: 'TikTok Ads', subOptions: ['Spark Ads & In-Feed Native Ads', 'TopView Brand Takeover', 'Instant Lead Generation Forms'] },
+                        { title: 'Boosting Followers & Engagement', icon: Users, badge: 'Growth', subOptions: ['Social Profile Traffic Campaigns', 'Audience Engagement & Interactive Ads', 'Viral Growth & Community Building'] },
+                        { title: 'Leads & Sales Generation', icon: Target, badge: 'Revenue', subOptions: ['High-ROAS Direct Sales Funnels', 'Instant Lead Form Campaigns', 'E-Commerce Checkout Conversions'] },
+                        { title: 'Landing Page & WhatsApp Enquiries', icon: MessageSquare, badge: 'Enquiries', subOptions: ['Direct WhatsApp Click-to-Chat Ads', 'High-Converting Sales Landing Page', 'Real-Time Lead CRM Notifications'] },
+                        { title: 'Ad Analytics, Tracking & ROAS Optimization', icon: BarChart3, badge: 'Analytics', subOptions: ['Meta Pixel & Conversions API (CAPI)', 'Google Analytics (GA4) Goal Tracking', 'Weekly ROAS & ROI Performance Audits'] }
+                      ].map(obj => {
+                        const Icon = obj.icon;
+                        const isObjSel = adsManagementObjectives.includes(obj.title);
+                        const isOpen = !!openModalAccordions[obj.title];
+                        const subList = adsManagementSubOptions[obj.title] || [];
+
+                        return (
+                          <div key={obj.title} className={`rounded-[12px] border transition-all overflow-hidden bg-white ${isObjSel || isOpen ? 'border-[#E87932]/60 shadow-2xs' : 'border-[#E5E9EF]'}`}>
+                            <div className="p-3 flex items-center justify-between gap-2.5">
+                              <button type="button" onClick={() => toggleModalAccordion(obj.title)} className="flex-1 flex items-center gap-2.5 text-left cursor-pointer min-w-0 focus:outline-none">
+                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${isObjSel ? 'bg-[#E87932] text-white' : 'bg-[#E87932]/10 text-[#E87932]'}`}>
+                                  <Icon size={15} />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <h4 className="text-[13px] font-bold text-[#17243A] leading-snug truncate">{obj.title}</h4>
+                                </div>
+                              </button>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                {subList.length > 0 && <span className="text-[10px] font-bold text-[#027A48] bg-[#ECFDF3] px-1.5 py-0.5 rounded">{subList.length} opts</span>}
+                                <button type="button" onClick={() => toggleModalObjective('ads', obj.title)} className={`w-[20px] h-[20px] rounded border flex items-center justify-center cursor-pointer ${isObjSel ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'}`}>
+                                  {isObjSel ? <Check size={12} strokeWidth={3} /> : null}
+                                </button>
+                                <button type="button" onClick={() => toggleModalAccordion(obj.title)} className="w-6 h-6 rounded-full bg-[#F8FAFC] border border-[#E5E9EF] flex items-center justify-center text-[#667085]">
+                                  <ChevronDown size={13} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#E87932]' : ''}`} />
+                                </button>
+                              </div>
+                            </div>
+
+                            <AnimatePresence initial={false}>
+                              {isOpen && (
+                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-[#F1F5F9] bg-[#FAFCFF] p-3 space-y-2">
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                    {obj.subOptions.map(sub => {
+                                      const isChecked = subList.includes(sub);
+                                      return (
+                                        <button key={sub} type="button" onClick={() => toggleModalSubOption('ads', obj.title, sub)} className={`p-2 rounded-[8px] border text-left flex items-center justify-between text-[12px] cursor-pointer ${isChecked ? 'bg-[#FFF9F5] border-[#E87932] font-semibold text-[#17243A]' : 'bg-white border-[#E5E9EF] text-[#667085]'}`}>
+                                          <span className="truncate">{sub}</span>
+                                          <div className={`w-3.5 h-3.5 rounded-[3px] border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'}`}>
+                                            {isChecked ? <Check size={10} strokeWidth={3} /> : null}
+                                          </div>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
 
