@@ -40,8 +40,9 @@ export const CustomQuoteModal: React.FC<CustomQuoteModalProps> = ({
   const [contentCreationPackage, setContentCreationPackage] = useState<string>('AI VIDEO CONTENT CREATION PACKAGE');
   const [contentGoal, setContentGoal] = useState('');
   const [aspectRatio, setAspectRatio] = useState('');
-  const [isContentAccordionOpen, setIsContentAccordionOpen] = useState(true);
-  const [isAdsAccordionOpen, setIsAdsAccordionOpen] = useState(true);
+  const [isContentAccordionOpen, setIsContentAccordionOpen] = useState(false);
+  const [isAdsAccordionOpen, setIsAdsAccordionOpen] = useState(false);
+  const [isDigitalAccordionOpen, setIsDigitalAccordionOpen] = useState(false);
 
   // Digital Marketing & Ads Management Accordion State
   const [digitalMarketingObjectives, setDigitalMarketingObjectives] = useState<string[]>([]);
@@ -456,111 +457,246 @@ ${description.trim()}
                 )}
 
                 {/* Digital Marketing Accordion Objective Cards */}
+                {/* Digital Marketing Primary Objectives */}
                 {isDigitalMarketing && (
-                  <div className="space-y-3 p-3.5 sm:p-4 rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF]">
-                    <div className="flex items-center justify-between gap-2 border-b border-[#E5E9EF] pb-2.5">
-                      <div className="flex items-center gap-2">
-                        <Layers size={15} className="text-[#E87932] shrink-0" />
-                        <h3 className="text-[13.5px] sm:text-[14.5px] font-bold text-[#17243A]">
-                          Digital Marketing Primary Objectives
-                        </h3>
+                  <div className="rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF] overflow-hidden transition-all shadow-xs" id="custom-quote-digital-objectives">
+                    {/* Main Accordion Header (Collapsed by default) */}
+                    <button
+                      type="button"
+                      onClick={() => setIsDigitalAccordionOpen(!isDigitalAccordionOpen)}
+                      aria-expanded={isDigitalAccordionOpen}
+                      className="w-full p-3 sm:p-3.5 flex items-center justify-between text-left hover:bg-[#F1F5F9]/70 transition-colors cursor-pointer focus:outline-none select-none"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
+                        <div className="w-7 h-7 rounded-lg bg-[#E87932]/10 flex items-center justify-center shrink-0 text-[#E87932]">
+                          <Layers size={15} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-[13px] sm:text-[14px] font-bold text-[#17243A] leading-snug break-words">
+                            Digital Marketing Primary Objectives
+                          </h3>
+                          <p className="text-[11px] text-[#667085] font-normal mt-0.5 leading-normal break-words">
+                            Select primary marketing goals and growth channels
+                          </p>
+                        </div>
                       </div>
-                      <span className="text-[11px] font-semibold text-[#E87932] bg-[#E87932]/10 px-2 py-0.5 rounded-full border border-[#E87932]/20">
-                        {digitalMarketingObjectives.length} Selected
-                      </span>
-                    </div>
 
-                    <div className="space-y-2.5">
-                      {[
-                        { title: 'Ads Management', icon: Megaphone, badge: 'High ROAS', subOptions: ['Meta Ads (Facebook & Instagram)', 'Google Search & Display Ads', 'TikTok Sponsored Ads', 'YouTube Video Ads', 'Retargeting & Pixel Tracking'] },
-                        { title: 'SEO', icon: Search, badge: 'Organic Traffic', subOptions: ['Technical & On-Page SEO', 'Keyword Research & Content Strategy', 'Local SEO & Google Business Profile', 'Backlink Building', 'E-Commerce SEO'] },
-                        { title: 'Social Media Management', icon: Share2, badge: 'Brand Presence', subOptions: ['Strategic Content Calendar & Publishing', 'Community Management & Moderation', 'Reels & Shorts Video Production', 'Influencer Coordination', 'Performance Analytics'] },
-                        { title: 'Digital Marketing & Business Growth Strategies', icon: TrendingUp, badge: 'Full Funnel', subOptions: ['Omnichannel Growth Strategy', 'Conversion Rate Optimization (CRO)', 'Customer Retention Funnels', 'Email & SMS Automation', 'Market Positioning'] },
-                        { title: 'AI Business Automation', icon: Bot, badge: 'AI Workflows', subOptions: ['AI Support Chatbots (WhatsApp/Web)', 'Automated Lead Scoring & CRM Sync', 'AI Copywriting Engine', 'Zapier/Make Workflow Automation', 'Invoice & Order Automation'] },
-                        { title: 'Landing Page & Sales Funnel Integration', icon: Layout, badge: 'High Conversion', subOptions: ['High-Converting Sales Landing Pages', 'WhatsApp Lead Capture Integration', 'Payment Gateway Integration', 'Lead Magnet Funnels', 'A/B Testing & Tracking'] },
-                        { title: 'Content Creation & Video Editing', icon: Video, badge: 'Multimedia', subOptions: ['AI Video Content Package', 'Studio Cast & Presenter Package', 'Pitch Decks & Presentations', 'Technical Copywriting', 'Podcast Post-Production'] },
-                        { title: 'Graphic Design & Corporate Branding', icon: Palette, badge: 'Branding', subOptions: ['Vector Master Logo & Brand Identity', 'Corporate Brand Guidelines', 'Social Media Graphics Kit', '3D Mockups & Packaging', 'Business Stationery'] },
-                        { title: 'Event & Brand Promotion', icon: Calendar, badge: 'PR & Media', subOptions: ['Product Launch Campaigns', 'On-Site Event Coverage & Video', 'Press Release Distribution', 'PR & Reputation Management', 'Trade Show Branding'] }
-                      ].map(obj => {
-                        const Icon = obj.icon;
-                        const isObjSel = digitalMarketingObjectives.includes(obj.title);
-                        const isOpen = !!openModalAccordions[obj.title];
-                        const subList = digitalMarketingSubOptions[obj.title] || [];
+                      <div className="flex items-center gap-2 shrink-0 ml-2">
+                        <span className="text-[10.5px] font-semibold text-[#E87932] bg-[#E87932]/10 px-2 py-0.5 rounded-full border border-[#E87932]/20 whitespace-nowrap">
+                          {digitalMarketingObjectives.length} Selected
+                        </span>
+                        <div className={`w-6 h-6 rounded-full bg-white border border-[#E5E9EF] flex items-center justify-center transition-transform duration-200 ${isDigitalAccordionOpen ? 'rotate-180 text-[#E87932]' : 'text-[#667085]'}`}>
+                          <ChevronDown size={14} />
+                        </div>
+                      </div>
+                    </button>
 
-                        return (
-                          <div key={obj.title} className={`rounded-[12px] border transition-all overflow-hidden bg-white ${isObjSel || isOpen ? 'border-[#E87932]/60 shadow-2xs' : 'border-[#E5E9EF]'}`}>
-                            <div className="p-3 flex items-center justify-between gap-2.5">
-                              <button type="button" onClick={() => toggleModalAccordion(obj.title)} className="flex-1 flex items-center gap-2.5 text-left cursor-pointer min-w-0 focus:outline-none">
-                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${isObjSel ? 'bg-[#E87932] text-white' : 'bg-[#E87932]/10 text-[#E87932]'}`}>
-                                  <Icon size={15} />
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                  <h4 className="text-[13px] font-bold text-[#17243A] leading-snug truncate">{obj.title}</h4>
-                                </div>
+                    {/* Accordion Body with Compact Cards */}
+                    <AnimatePresence initial={false}>
+                      {isDigitalAccordionOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2, ease: 'easeInOut' }}
+                          className="border-t border-[#E5E9EF] bg-[#FAFCFF] p-3 space-y-2.5"
+                        >
+                          <div className="flex items-center justify-between gap-2 text-[11.5px]">
+                            <span className="text-[#667085] font-medium">
+                              Available Marketing Objectives (9):
+                            </span>
+                            <div className="flex items-center gap-2.5">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const allTitles = [
+                                    'Ads Management',
+                                    'Search Engine Optimization (SEO)',
+                                    'Social Media Management',
+                                    'Digital Marketing & Growth Strategies',
+                                    'AI Business Automation',
+                                    'Landing Page & Sales Funnels',
+                                    'Content Creation & Video Editing',
+                                    'Graphic Design & Corporate Branding',
+                                    'Event & Brand Promotion'
+                                  ];
+                                  setDigitalMarketingObjectives(allTitles);
+                                }}
+                                className="text-[#E87932] hover:underline font-semibold cursor-pointer"
+                              >
+                                Select All
                               </button>
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                {subList.length > 0 && <span className="text-[10px] font-bold text-[#027A48] bg-[#ECFDF3] px-1.5 py-0.5 rounded">{subList.length} opts</span>}
-                                <button type="button" onClick={() => toggleModalObjective('digital', obj.title)} className={`w-[20px] h-[20px] rounded border flex items-center justify-center cursor-pointer ${isObjSel ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'}`}>
-                                  {isObjSel ? <Check size={12} strokeWidth={3} /> : null}
+                              {digitalMarketingObjectives.length > 0 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setDigitalMarketingObjectives([]);
+                                    setDigitalMarketingSubOptions({});
+                                  }}
+                                  className="text-[#667085] hover:text-[#17243A] font-medium cursor-pointer"
+                                >
+                                  Clear
                                 </button>
-                                <button type="button" onClick={() => toggleModalAccordion(obj.title)} className="w-6 h-6 rounded-full bg-[#F8FAFC] border border-[#E5E9EF] flex items-center justify-center text-[#667085]">
-                                  <ChevronDown size={13} className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#E87932]' : ''}`} />
-                                </button>
-                              </div>
-                            </div>
-
-                            <AnimatePresence initial={false}>
-                              {isOpen && (
-                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-[#F1F5F9] bg-[#FAFCFF] p-3 space-y-2">
-                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                                    {obj.subOptions.map(sub => {
-                                      const isChecked = subList.includes(sub);
-                                      return (
-                                        <button key={sub} type="button" onClick={() => toggleModalSubOption('digital', obj.title, sub)} className={`p-2 rounded-[8px] border text-left flex items-center justify-between text-[12px] cursor-pointer ${isChecked ? 'bg-[#FFF9F5] border-[#E87932] font-semibold text-[#17243A]' : 'bg-white border-[#E5E9EF] text-[#667085]'}`}>
-                                          <span className="truncate">{sub}</span>
-                                          <div className={`w-3.5 h-3.5 rounded-[3px] border flex items-center justify-center shrink-0 ${isChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'}`}>
-                                            {isChecked ? <Check size={10} strokeWidth={3} /> : null}
-                                          </div>
-                                        </button>
-                                      );
-                                    })}
-                                  </div>
-                                </motion.div>
                               )}
-                            </AnimatePresence>
+                            </div>
                           </div>
-                        );
-                      })}
-                    </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {[
+                              {
+                                title: 'Ads Management',
+                                icon: Megaphone,
+                                summary: 'Paid sponsored ad campaigns across Meta, Google, TikTok, and YouTube',
+                                isAds: true,
+                                subOptions: [
+                                  'Meta Ads Management (Facebook & Instagram)',
+                                  'Google Ads Management (Search, Display & YouTube)',
+                                  'TikTok & Emerging Platform Ads',
+                                  'Boosting Followers & Engagement',
+                                  'Leads & Sales Generation',
+                                  'Landing Page & WhatsApp Enquiries',
+                                  'Ad Analytics, Tracking & ROAS Optimization'
+                                ]
+                              },
+                              { title: 'Search Engine Optimization (SEO)', icon: Search, summary: 'Keyword research, on-page SEO, speed audit & top Google indexing' },
+                              { title: 'Social Media Management', icon: Share2, summary: 'Consistent content publishing, reels production & community growth' },
+                              { title: 'Digital Marketing & Growth Strategies', icon: TrendingUp, summary: 'Full-funnel growth strategy, CRO, retention & market positioning' },
+                              { title: 'AI Business Automation', icon: Bot, summary: 'AI support chatbots, CRM sync, auto-invoicing & smart workflows' },
+                              { title: 'Landing Page & Sales Funnels', icon: Layout, summary: 'High-converting landing pages, WhatsApp capture & checkout flows' },
+                              { title: 'Content Creation & Video Editing', icon: Video, summary: 'Studio cast, AI video, executive pitch decks & technical copy' },
+                              { title: 'Graphic Design & Corporate Branding', icon: Palette, summary: 'Vector logo, brand identity guides, stationery & social kits' },
+                              { title: 'Event & Brand Promotion', icon: Calendar, summary: 'Launch campaigns, on-site event videography & PR distribution' }
+                            ].map(obj => {
+                              const Icon = obj.icon;
+                              const isObjSel = digitalMarketingObjectives.includes(obj.title);
+                              const isAds = obj.title === 'Ads Management';
+                              const isAdsSubOpen = isAds && (!!openModalAccordions['Ads Management'] || isObjSel);
+                              const currentAdsSubs: string[] = digitalMarketingSubOptions['Ads Management'] || [];
+
+                              return (
+                                <div
+                                  key={obj.title}
+                                  className={`rounded-[10px] border transition-all overflow-hidden ${
+                                    isObjSel
+                                      ? 'bg-[#FFF9F5] border-[#E87932] shadow-2xs'
+                                      : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-slate-50/70'
+                                  } ${isAds ? 'sm:col-span-2' : ''}`}
+                                >
+                                  <div
+                                    onClick={() => toggleModalObjective('digital', obj.title)}
+                                    className="p-2.5 text-left flex items-start justify-between gap-2.5 cursor-pointer group"
+                                  >
+                                    <div className="flex items-start gap-2 min-w-0 flex-1">
+                                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                                        isObjSel ? 'bg-[#E87932] text-white' : 'bg-[#E87932]/10 text-[#E87932]'
+                                      }`}>
+                                        <Icon size={14} />
+                                      </div>
+                                      <div className="min-w-0 flex-1 pr-1">
+                                        <h4 className="text-[12.5px] font-semibold text-[#17243A] leading-snug break-words">
+                                          {obj.title}
+                                        </h4>
+                                        <p className="text-[11px] text-[#667085] leading-normal mt-0.5 break-words">
+                                          {obj.summary}
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+                                      {isAds && (
+                                        <button
+                                          type="button"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleModalAccordion('Ads Management');
+                                          }}
+                                          className="w-5 h-5 rounded-full bg-white border border-[#E5E9EF] flex items-center justify-center text-[#667085] hover:text-[#E87932]"
+                                          title="Expand Ad Channels"
+                                        >
+                                          <ChevronDown size={12} className={`transition-transform duration-200 ${isAdsSubOpen ? 'rotate-180 text-[#E87932]' : ''}`} />
+                                        </button>
+                                      )}
+
+                                      <div className={`w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center shrink-0 transition-colors ${
+                                        isObjSel ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD] group-hover:border-[#E87932]'
+                                      }`}>
+                                        {isObjSel ? <Check size={11} strokeWidth={3} /> : null}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  {/* Compact Ad Objectives list when Ads Management is expanded */}
+                                  {isAds && isAdsSubOpen && (
+                                    <div className="border-t border-[#F1F5F9] bg-[#FAFCFF] p-2.5 space-y-1.5">
+                                      <div className="flex items-center justify-between text-[11px] text-[#667085]">
+                                        <span className="font-semibold text-[#17243A]">Select Advertising Channels:</span>
+                                        <span className="text-[10px] font-semibold text-[#E87932] bg-[#E87932]/10 px-1.5 py-0.5 rounded">
+                                          {currentAdsSubs.length} Selected
+                                        </span>
+                                      </div>
+                                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                                        {obj.subOptions.map(sub => {
+                                          const isSubChecked = currentAdsSubs.includes(sub);
+                                          return (
+                                            <button
+                                              key={sub}
+                                              type="button"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleModalSubOption('digital', 'Ads Management', sub);
+                                              }}
+                                              className={`p-2 rounded-[7px] border text-left flex items-start justify-between gap-1.5 text-[11.5px] cursor-pointer ${
+                                                isSubChecked ? 'bg-[#FFF9F5] border-[#E87932] font-semibold text-[#17243A]' : 'bg-white border-[#E5E9EF] text-[#667085]'
+                                              }`}
+                                            >
+                                              <span className="leading-snug break-words flex-1 min-w-0 pr-1">{sub}</span>
+                                              <div className={`w-3.5 h-3.5 rounded-[3px] border flex items-center justify-center shrink-0 mt-0.5 ${
+                                                isSubChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
+                                              }`}>
+                                                {isSubChecked ? <Check size={10} strokeWidth={3} /> : null}
+                                              </div>
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 )}
 
                 {/* Ads Management Accordion Objective Cards */}
                 {isAdsManagement && (
                   <div className="rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF] overflow-hidden transition-all shadow-xs" id="custom-quote-ads-objectives">
-                    {/* Main Accordion Header */}
+                    {/* Main Accordion Header (Collapsed by default) */}
                     <button
                       type="button"
                       onClick={() => setIsAdsAccordionOpen(!isAdsAccordionOpen)}
                       aria-expanded={isAdsAccordionOpen}
                       className="w-full p-3 sm:p-3.5 flex items-center justify-between text-left hover:bg-[#F1F5F9]/70 transition-colors cursor-pointer focus:outline-none select-none"
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex items-center gap-2.5 min-w-0 flex-1 pr-2">
                         <div className="w-7 h-7 rounded-lg bg-[#E87932]/10 flex items-center justify-center shrink-0 text-[#E87932]">
                           <Layers size={15} />
                         </div>
-                        <div className="min-w-0">
-                          <h3 className="text-[13px] sm:text-[14px] font-bold text-[#17243A] leading-snug truncate">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-[13px] sm:text-[14px] font-bold text-[#17243A] leading-snug break-words">
                             Ads Management Campaign Objectives
                           </h3>
-                          <p className="text-[11px] text-[#667085] truncate font-normal mt-0.5">
+                          <p className="text-[11px] text-[#667085] font-normal mt-0.5 leading-normal break-words">
                             Select target advertising channels and campaign goals
                           </p>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2 shrink-0 ml-2">
-                        <span className="text-[10.5px] font-semibold text-[#E87932] bg-[#E87932]/10 px-2 py-0.5 rounded-full border border-[#E87932]/20">
+                        <span className="text-[10.5px] font-semibold text-[#E87932] bg-[#E87932]/10 px-2 py-0.5 rounded-full border border-[#E87932]/20 whitespace-nowrap">
                           {adsManagementObjectives.length} Selected
                         </span>
                         <div className={`w-6 h-6 rounded-full bg-white border border-[#E5E9EF] flex items-center justify-center transition-transform duration-200 ${isAdsAccordionOpen ? 'rotate-180 text-[#E87932]' : 'text-[#667085]'}`}>
@@ -581,7 +717,7 @@ ${description.trim()}
                         >
                           <div className="flex items-center justify-between gap-2 text-[11.5px]">
                             <span className="text-[#667085] font-medium">
-                              Available Objectives:
+                              Available Objectives ({7}):
                             </span>
                             <div className="flex items-center gap-2.5">
                               <button
@@ -632,29 +768,29 @@ ${description.trim()}
                                   key={obj.title}
                                   type="button"
                                   onClick={() => toggleModalObjective('ads', obj.title)}
-                                  className={`p-2.5 rounded-[10px] border text-left flex items-center justify-between gap-2.5 transition-all cursor-pointer group ${
+                                  className={`p-2.5 rounded-[10px] border text-left flex items-start justify-between gap-2.5 transition-all cursor-pointer group ${
                                     isObjSel
                                       ? 'bg-[#FFF9F5] border-[#E87932] shadow-2xs'
                                       : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-slate-50/70'
                                   }`}
                                 >
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                                  <div className="flex items-start gap-2 min-w-0 flex-1">
+                                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                                       isObjSel ? 'bg-[#E87932] text-white' : 'bg-[#E87932]/10 text-[#E87932]'
                                     }`}>
                                       <Icon size={14} />
                                     </div>
-                                    <div className="min-w-0">
-                                      <h4 className="text-[12.5px] font-semibold text-[#17243A] leading-snug line-clamp-1">
+                                    <div className="min-w-0 flex-1 pr-1">
+                                      <h4 className="text-[12.5px] font-semibold text-[#17243A] leading-snug break-words">
                                         {obj.title}
                                       </h4>
-                                      <p className="text-[11px] text-[#667085] leading-tight line-clamp-1 mt-0.5">
+                                      <p className="text-[11px] text-[#667085] leading-normal mt-0.5 break-words">
                                         {obj.summary}
                                       </p>
                                     </div>
                                   </div>
 
-                                  <div className={`w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center shrink-0 transition-colors ${
+                                  <div className={`w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                                     isObjSel ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD] group-hover:border-[#E87932]'
                                   }`}>
                                     {isObjSel ? <Check size={11} strokeWidth={3} /> : null}

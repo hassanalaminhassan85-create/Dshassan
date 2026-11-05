@@ -110,11 +110,14 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
     });
   };
 
-  // Accordion State for Content Creation Packages
-  const [isContentAccordionOpen, setIsContentAccordionOpen] = useState(true);
+  // Accordion State for Content Creation Packages (collapsed by default)
+  const [isContentAccordionOpen, setIsContentAccordionOpen] = useState(false);
 
-  // Accordion State for Ads Management Campaign Objectives
-  const [isAdsAccordionOpen, setIsAdsAccordionOpen] = useState(true);
+  // Accordion State for Ads Management Campaign Objectives (collapsed by default)
+  const [isAdsAccordionOpen, setIsAdsAccordionOpen] = useState(false);
+
+  // Accordion State for Digital Marketing Primary Objectives (collapsed by default)
+  const [isDigitalAccordionOpen, setIsDigitalAccordionOpen] = useState(false);
 
   // Accordion State for Manual Payment Instructions (Collapsed by default)
   const [isPaymentAccordionOpen, setIsPaymentAccordionOpen] = useState(false);
@@ -147,24 +150,12 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
       service.id === 'svc_content_presentation';
 
     if (isContentCreation) {
-      setIsContentAccordionOpen(true);
       setServiceFields(prev => ({
         contentCreationPackage: prev.contentCreationPackage || 'AI VIDEO CONTENT CREATION PACKAGE',
         contentGoal: prev.contentGoal !== undefined ? prev.contentGoal : '',
         aspectRatio: prev.aspectRatio !== undefined ? prev.aspectRatio : '',
         ...prev
       }));
-    }
-
-    const isAds = 
-      sanitizeServiceName(service.name).toLowerCase() === 'ads management' || 
-      service.id === 'svc_01' || 
-      service.id === 'svc_ads_management' ||
-      cleanServiceSlug(service.id) === 'ads-management' ||
-      cleanServiceSlug(service.id) === 'sponsored-ads-campaign-management';
-
-    if (isAds) {
-      setIsAdsAccordionOpen(true);
     }
   }, [service.id, service.name]);
 
@@ -527,206 +518,20 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
       cleanServiceSlug(service.id) === 'ads-management' ||
       cleanServiceSlug(service.id) === 'sponsored-ads-campaign-management';
 
-    const renderAccordionObjectiveCards = (
-      objectivesData: Array<{
-        title: string;
-        icon: any;
-        badge: string;
-        description: string;
-        subOptions: string[];
-      }>,
-      groupKey: string,
-      subOptGroupKey: string,
-      sectionTitle: string,
-      sectionSubtitle: string
-    ) => {
-      const selectedObjectives: string[] = serviceFields[groupKey] || [];
-      const selectedSubOpts: Record<string, string[]> = serviceFields[subOptGroupKey] || {};
 
-      return (
-        <div className="space-y-4 p-4 sm:p-5 rounded-[16px] bg-[#F8FAFC] border border-[#E5E9EF] shadow-2xs">
-          <div className="flex items-center justify-between gap-3 border-b border-[#E5E9EF] pb-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <Layers size={16} className="text-[#E87932] shrink-0" />
-                <h3 className="text-[15px] sm:text-[16px] font-bold text-[#17243A]">
-                  {sectionTitle}
-                </h3>
-              </div>
-              <p className="text-[12px] text-[#667085] mt-0.5 font-normal">
-                {sectionSubtitle}
-              </p>
-            </div>
-            <div className="shrink-0 text-right">
-              <span className="text-[11px] sm:text-[12px] font-semibold text-[#E87932] bg-[#E87932]/10 px-2.5 py-1 rounded-full border border-[#E87932]/20">
-                {selectedObjectives.length} Objective{selectedObjectives.length === 1 ? '' : 's'} Selected
-              </span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3">
-            {objectivesData.map((obj) => {
-              const IconComponent = obj.icon;
-              const isObjSelected = selectedObjectives.includes(obj.title);
-              const isOpen = !!openAccordions[obj.title];
-              const currentSubList: string[] = selectedSubOpts[obj.title] || [];
-              const selectedSubCount = currentSubList.length;
-
-              return (
-                <div
-                  key={obj.title}
-                  className={`rounded-[14px] border transition-all overflow-hidden ${
-                    isObjSelected || isOpen
-                      ? 'bg-white border-[#E87932]/60 shadow-xs'
-                      : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-slate-50/50'
-                  }`}
-                >
-                  {/* Accordion Card Header */}
-                  <div className="p-3.5 sm:p-4 flex items-center justify-between gap-3">
-                    <button
-                      type="button"
-                      onClick={() => toggleAccordion(obj.title)}
-                      className="flex-1 flex items-center gap-3 text-left focus:outline-none cursor-pointer min-w-0"
-                    >
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
-                        isObjSelected ? 'bg-[#E87932] text-white shadow-xs' : 'bg-[#E87932]/10 text-[#E87932]'
-                      }`}>
-                        <IconComponent size={18} />
-                      </div>
-
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h4 className="text-[13.5px] sm:text-[14.5px] font-bold text-[#17243A] leading-snug">
-                            {obj.title}
-                          </h4>
-                          <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                            isObjSelected ? 'bg-[#E87932]/10 text-[#E87932]' : 'bg-slate-100 text-slate-600'
-                          }`}>
-                            {obj.badge}
-                          </span>
-                        </div>
-                        <p className="text-[12px] text-[#667085] font-normal truncate mt-0.5">
-                          {obj.description}
-                        </p>
-                      </div>
-                    </button>
-
-                    <div className="flex items-center gap-2 shrink-0">
-                      {selectedSubCount > 0 && (
-                        <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#ECFDF3] text-[#027A48] border border-[#A6F4C5]">
-                          {selectedSubCount} Sub-option{selectedSubCount === 1 ? '' : 's'}
-                        </span>
-                      )}
-
-                      {/* Objective Checkbox Toggle */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleObjective(groupKey, obj.title);
-                        }}
-                        title={isObjSelected ? "Unselect Objective" : "Select Objective"}
-                        className={`w-[22px] h-[22px] rounded-md border flex items-center justify-center transition-colors cursor-pointer ${
-                          isObjSelected ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD] hover:border-[#E87932]'
-                        }`}
-                      >
-                        {isObjSelected ? <Check size={14} strokeWidth={3} /> : null}
-                      </button>
-
-                      {/* Expand Chevron */}
-                      <button
-                        type="button"
-                        onClick={() => toggleAccordion(obj.title)}
-                        className="w-7 h-7 rounded-full bg-[#F8FAFC] border border-[#E5E9EF] flex items-center justify-center text-[#667085] hover:text-[#17243A] hover:bg-[#F1F5F9] transition-transform cursor-pointer"
-                      >
-                        <ChevronDown
-                          size={15}
-                          className={`transition-transform duration-200 ${isOpen ? 'rotate-180 text-[#E87932]' : ''}`}
-                        />
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Accordion Card Expanded Body */}
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2, ease: 'easeInOut' }}
-                        className="overflow-hidden border-t border-[#F1F5F9] bg-[#FAFCFF] p-3.5 sm:p-4 space-y-3"
-                      >
-                        <div className="flex items-center justify-between text-[12px] text-[#667085]">
-                          <span className="font-medium">Select specific options under {obj.title}:</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const allSubs = obj.subOptions;
-                              setServiceFields(prev => {
-                                const currentSubOpts = prev[subOptGroupKey] || {};
-                                const currentObjectives: string[] = Array.isArray(prev[groupKey]) ? prev[groupKey] : [];
-                                const updatedObjs = currentObjectives.includes(obj.title) ? currentObjectives : [...currentObjectives, obj.title];
-                                return {
-                                  ...prev,
-                                  [groupKey]: updatedObjs,
-                                  [subOptGroupKey]: {
-                                    ...currentSubOpts,
-                                    [obj.title]: allSubs
-                                  }
-                                };
-                              });
-                            }}
-                            className="text-[#E87932] hover:underline font-semibold cursor-pointer"
-                          >
-                            Select All Sub-Options
-                          </button>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {obj.subOptions.map((subOpt) => {
-                            const isSubChecked = currentSubList.includes(subOpt);
-                            return (
-                              <button
-                                key={subOpt}
-                                type="button"
-                                onClick={() => toggleSubOption(subOptGroupKey, obj.title, subOpt)}
-                                className={`p-2.5 sm:p-3 rounded-[10px] border text-left flex items-center justify-between gap-2.5 transition-all cursor-pointer ${
-                                  isSubChecked
-                                    ? 'bg-[#FFF9F5] border-[#E87932] text-[#17243A] shadow-2xs font-semibold'
-                                    : 'bg-white border-[#E5E9EF] text-[#667085] hover:border-[#D0D5DD] hover:bg-slate-50 font-normal'
-                                }`}
-                              >
-                                <span className="text-[12.5px] sm:text-[13px] leading-snug">
-                                  {subOpt}
-                                </span>
-                                <div className={`w-[18px] h-[18px] rounded-[4px] border flex items-center justify-center shrink-0 transition-colors ${
-                                  isSubChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
-                                }`}>
-                                  {isSubChecked ? <Check size={12} strokeWidth={3} /> : null}
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      );
-    };
 
     if (isDigitalMarketing) {
+      const selectedObjectives: string[] = Array.isArray(serviceFields.digitalMarketingObjectives)
+        ? serviceFields.digitalMarketingObjectives
+        : [];
+      const selectedSubOpts: Record<string, string[]> = serviceFields.digitalMarketingSubOptions || {};
+
       const digitalMarketingObjectivesData = [
         {
           title: 'Ads Management',
           icon: Megaphone,
-          badge: 'High ROAS',
-          description: 'Paid sponsored ad campaigns across Meta, Google, TikTok, and YouTube.',
+          summary: 'Paid sponsored ad campaigns across Meta, Google, TikTok, and YouTube',
+          isAdsChannel: true,
           subOptions: [
             'Meta Ads Management (Facebook & Instagram)',
             'Google Ads Management (Search, Display & YouTube)',
@@ -738,117 +543,237 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
           ]
         },
         {
-          title: 'SEO',
+          title: 'Search Engine Optimization (SEO)',
           icon: Search,
-          badge: 'Organic Traffic',
-          description: 'Search engine optimization for top rankings and domain authority.',
-          subOptions: [
-            'Technical & On-Page SEO',
-            'Keyword Research & Content Strategy',
-            'Local SEO & Google Business Profile',
-            'Backlink Building & Authority Growth',
-            'E-Commerce SEO Optimization'
-          ]
+          summary: 'Keyword research, on-page SEO, speed audit & top Google indexing'
         },
         {
           title: 'Social Media Management',
           icon: Share2,
-          badge: 'Brand Presence',
-          description: 'Consistent publishing, community moderation, and channel growth.',
-          subOptions: [
-            'Strategic Content Calendar & Publishing',
-            'Community Management & Moderation',
-            'Reels & Shorts Video Production',
-            'Influencer Campaign Coordination',
-            'Brand Analytics & Performance Reports'
-          ]
+          summary: 'Consistent content publishing, reels production & community growth'
         },
         {
-          title: 'Digital Marketing & Business Growth Strategies',
+          title: 'Digital Marketing & Growth Strategies',
           icon: TrendingUp,
-          badge: 'Full-Funnel Strategy',
-          description: 'Comprehensive growth strategy, CRO, and customer retention funnels.',
-          subOptions: [
-            'Omnichannel Growth Strategy',
-            'Conversion Rate Optimization (CRO)',
-            'Customer Retention & Loyalty Funnels',
-            'Email & SMS Marketing Automation',
-            'Market Positioning & Competitive Audit'
-          ]
+          summary: 'Full-funnel growth strategy, CRO, retention & market positioning'
         },
         {
           title: 'AI Business Automation',
           icon: Bot,
-          badge: 'Smart AI Operations',
-          description: 'Automated AI chatbots, CRM sync, and workflow optimization.',
-          subOptions: [
-            'AI Customer Support Chatbots (WhatsApp & Web)',
-            'Automated Lead Scoring & CRM Sync',
-            'AI Copywriting & Multi-Language Engine',
-            'Workflow & Zapier/Make Automation',
-            'Automated Invoice & Order Processing'
-          ]
+          summary: 'AI support chatbots, CRM sync, auto-invoicing & smart workflows'
         },
         {
-          title: 'Landing Page & Sales Funnel Integration',
+          title: 'Landing Page & Sales Funnels',
           icon: Layout,
-          badge: 'High Conversion',
-          description: 'High-converting sales landing pages, WhatsApp capture, and payment gateways.',
-          subOptions: [
-            'High-Converting Sales Landing Pages',
-            'WhatsApp Lead Capture Integration',
-            'Payment Gateway Integration (Paystack/Flutterwave)',
-            'Lead Magnet & Opt-in Funnels',
-            'A/B Split Testing & Conversion Tracking'
-          ]
+          summary: 'High-converting landing pages, WhatsApp capture & checkout flows'
         },
         {
           title: 'Content Creation & Video Editing',
           icon: Video,
-          badge: 'Multimedia Production',
-          description: 'High-impact AI/Human video creation, pitch decks, and editorial copy.',
-          subOptions: [
-            'AI Video Content Package',
-            'Studio Cast & Human Video Package',
-            'Pitch Decks & Corporate Presentations',
-            'Technical Copywriting & Blogging',
-            'Podcast & Audio Post-Production'
-          ]
+          summary: 'Studio cast, AI video, executive pitch decks & technical copy'
         },
         {
           title: 'Graphic Design & Corporate Branding',
           icon: Palette,
-          badge: 'Visual Identity',
-          description: 'Logo design, corporate identity suites, social assets, and brand guides.',
-          subOptions: [
-            'Vector Master Logo & Brand Identity',
-            'Corporate Brand Guidelines & Style Sheet',
-            'Social Media Banners & Graphics Kit',
-            'Product Packaging & 3D Mockups',
-            'Business Cards & Corporate Stationery'
-          ]
+          summary: 'Vector logo, brand identity guides, stationery & social kits'
         },
         {
           title: 'Event & Brand Promotion',
           icon: Calendar,
-          badge: 'Public Relations',
-          description: 'Product launches, on-site event coverage, PR, and trade show branding.',
-          subOptions: [
-            'Product Launch & Seasonal Campaigns',
-            'On-Site Event Coverage & Videography',
-            'Press Release & Media Distribution',
-            'PR & Brand Reputation Management',
-            'Trade Show & Exhibition Branding'
-          ]
+          summary: 'Launch campaigns, on-site event videography & PR distribution'
         }
       ];
 
-      return renderAccordionObjectiveCards(
-        digitalMarketingObjectivesData,
-        'digitalMarketingObjectives',
-        'digitalMarketingSubOptions',
-        'Digital Marketing Primary Objectives',
-        'Select your primary growth objectives and expand each card to pick sub-options'
+      const selectAllMarketing = () => {
+        setServiceFields(prev => ({
+          ...prev,
+          digitalMarketingObjectives: digitalMarketingObjectivesData.map(o => o.title)
+        }));
+      };
+
+      const clearAllMarketing = () => {
+        setServiceFields(prev => ({
+          ...prev,
+          digitalMarketingObjectives: [],
+          digitalMarketingSubOptions: {}
+        }));
+      };
+
+      return (
+        <div className="rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF] overflow-hidden transition-all shadow-xs" id="digital-marketing-objectives-section">
+          {/* Main Accordion Header (Collapsed by default) */}
+          <button
+            type="button"
+            onClick={() => setIsDigitalAccordionOpen(!isDigitalAccordionOpen)}
+            aria-expanded={isDigitalAccordionOpen}
+            aria-controls="digital-marketing-accordion-body"
+            className="w-full p-3.5 sm:p-4 flex items-center justify-between text-left hover:bg-[#F1F5F9]/70 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 select-none"
+          >
+            <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
+              <div className="w-8 h-8 rounded-lg bg-[#E87932]/10 flex items-center justify-center shrink-0 text-[#E87932]">
+                <Layers size={17} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h3 className="text-[14px] sm:text-[15px] font-bold text-[#17243A] leading-snug break-words">
+                  Digital Marketing Primary Objectives
+                </h3>
+                <p className="text-[12px] text-[#667085] font-normal mt-0.5 leading-normal break-words">
+                  Select your primary marketing goals and growth channels
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 ml-2">
+              <span className="text-[11px] sm:text-[12px] font-semibold text-[#E87932] bg-[#E87932]/10 px-2.5 py-1 rounded-full border border-[#E87932]/20 whitespace-nowrap">
+                {selectedObjectives.length} Selected
+              </span>
+              <div className={`w-7 h-7 rounded-full bg-white border border-[#E5E9EF] flex items-center justify-center transition-transform duration-200 ${isDigitalAccordionOpen ? 'rotate-180 text-[#E87932]' : 'text-[#667085]'}`}>
+                <ChevronDown size={15} />
+              </div>
+            </div>
+          </button>
+
+          {/* Accordion Body with Compact Cards */}
+          <AnimatePresence initial={false}>
+            {isDigitalAccordionOpen && (
+              <motion.div
+                id="digital-marketing-accordion-body"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2, ease: 'easeInOut' }}
+                className="overflow-hidden border-t border-[#E5E9EF] bg-[#FAFCFF] p-3.5 sm:p-4 space-y-3"
+              >
+                <div className="flex items-center justify-between gap-2 text-[12px]">
+                  <span className="text-[#667085] font-medium">
+                    Available Marketing Objectives ({digitalMarketingObjectivesData.length}):
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={selectAllMarketing}
+                      className="text-[#E87932] hover:underline font-semibold cursor-pointer"
+                    >
+                      Select All
+                    </button>
+                    {selectedObjectives.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={clearAllMarketing}
+                        className="text-[#667085] hover:text-[#17243A] font-medium cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {digitalMarketingObjectivesData.map((obj) => {
+                    const Icon = obj.icon;
+                    const isSelected = selectedObjectives.includes(obj.title);
+                    const isAds = obj.title === 'Ads Management';
+                    const isAdsSubOpen = isAds && (!!openAccordions['Ads Management'] || isSelected);
+                    const currentAdsSubs: string[] = selectedSubOpts['Ads Management'] || [];
+
+                    return (
+                      <div
+                        key={obj.title}
+                        className={`rounded-[12px] border transition-all overflow-hidden ${
+                          isSelected
+                            ? 'bg-[#FFF9F5] border-[#E87932] shadow-2xs'
+                            : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-slate-50/70'
+                        } ${isAds ? 'md:col-span-2' : ''}`}
+                      >
+                        <div
+                          onClick={() => toggleObjective('digitalMarketingObjectives', obj.title)}
+                          className="p-3 text-left flex items-start justify-between gap-3 cursor-pointer group"
+                        >
+                          <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                              isSelected ? 'bg-[#E87932] text-white shadow-2xs' : 'bg-[#E87932]/10 text-[#E87932]'
+                            }`}>
+                              <Icon size={16} />
+                            </div>
+                            <div className="min-w-0 flex-1 pr-1">
+                              <div className="text-[13px] sm:text-[13.5px] font-semibold text-[#17243A] leading-snug break-words">
+                                {obj.title}
+                              </div>
+                              <p className="text-[11.5px] text-[#667085] leading-normal mt-0.5 break-words">
+                                {obj.summary}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0 mt-0.5">
+                            {isAds && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleAccordion('Ads Management');
+                                }}
+                                className="w-6 h-6 rounded-full bg-white border border-[#E5E9EF] flex items-center justify-center text-[#667085] hover:text-[#E87932] transition-transform"
+                                title="Expand Ads Management Channels"
+                              >
+                                <ChevronDown size={13} className={`transition-transform duration-200 ${isAdsSubOpen ? 'rotate-180 text-[#E87932]' : ''}`} />
+                              </button>
+                            )}
+
+                            <div className={`w-[20px] h-[20px] rounded-[5px] border flex items-center justify-center shrink-0 transition-colors ${
+                              isSelected ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD] group-hover:border-[#E87932]'
+                            }`}>
+                              {isSelected ? <Check size={12} strokeWidth={3} /> : null}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* If Ads Management and open, list all 7 available objectives in compact cards! */}
+                        {isAds && isAdsSubOpen && (
+                          <div className="border-t border-[#F1F5F9] bg-[#FAFCFF] p-3 space-y-2">
+                            <div className="flex items-center justify-between text-[11.5px] text-[#667085]">
+                              <span className="font-semibold text-[#17243A]">Select Specific Advertising Channels:</span>
+                              <span className="text-[10.5px] font-semibold text-[#E87932] bg-[#E87932]/10 px-2 py-0.5 rounded-full">
+                                {currentAdsSubs.length} Channels Selected
+                              </span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {obj.subOptions.map(sub => {
+                                const isSubChecked = currentAdsSubs.includes(sub);
+                                return (
+                                  <button
+                                    key={sub}
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleSubOption('digitalMarketingSubOptions', 'Ads Management', sub);
+                                    }}
+                                    className={`p-2 rounded-[8px] border text-left flex items-start justify-between gap-2 text-[12px] transition-all cursor-pointer ${
+                                      isSubChecked
+                                        ? 'bg-[#FFF9F5] border-[#E87932] font-semibold text-[#17243A]'
+                                        : 'bg-white border-[#E5E9EF] text-[#667085] hover:border-[#D0D5DD]'
+                                    }`}
+                                  >
+                                    <span className="leading-snug break-words flex-1 min-w-0 pr-1">{sub}</span>
+                                    <div className={`w-3.5 h-3.5 rounded-[3px] border flex items-center justify-center shrink-0 mt-0.5 ${
+                                      isSubChecked ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD]'
+                                    }`}>
+                                      {isSubChecked ? <Check size={10} strokeWidth={3} /> : null}
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       );
     }
 
@@ -911,7 +836,7 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
 
       return (
         <div className="rounded-[14px] bg-[#F8FAFC] border border-[#E5E9EF] overflow-hidden transition-all shadow-xs" id="ads-management-objectives-section">
-          {/* Main Accordion Header */}
+          {/* Main Accordion Header (Collapsed by default) */}
           <button
             type="button"
             onClick={() => setIsAdsAccordionOpen(!isAdsAccordionOpen)}
@@ -919,22 +844,22 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
             aria-controls="ads-management-accordion-body"
             className="w-full p-3.5 sm:p-4 flex items-center justify-between text-left hover:bg-[#F1F5F9]/70 transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#E87932]/20 select-none"
           >
-            <div className="flex items-center gap-3 min-w-0">
+            <div className="flex items-center gap-3 min-w-0 flex-1 pr-2">
               <div className="w-8 h-8 rounded-lg bg-[#E87932]/10 flex items-center justify-center shrink-0 text-[#E87932]">
                 <Layers size={17} />
               </div>
-              <div className="min-w-0">
-                <h3 className="text-[14px] sm:text-[15px] font-bold text-[#17243A] leading-snug truncate">
+              <div className="min-w-0 flex-1">
+                <h3 className="text-[14px] sm:text-[15px] font-bold text-[#17243A] leading-snug break-words">
                   Ads Management Campaign Objectives
                 </h3>
-                <p className="text-[12px] text-[#667085] truncate font-normal mt-0.5">
+                <p className="text-[12px] text-[#667085] font-normal mt-0.5 leading-normal break-words">
                   Select your target advertising channels and campaign goals
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0 ml-3">
-              <span className="text-[11px] sm:text-[12px] font-semibold text-[#E87932] bg-[#E87932]/10 px-2.5 py-1 rounded-full border border-[#E87932]/20">
+            <div className="flex items-center gap-2 shrink-0 ml-2">
+              <span className="text-[11px] sm:text-[12px] font-semibold text-[#E87932] bg-[#E87932]/10 px-2.5 py-1 rounded-full border border-[#E87932]/20 whitespace-nowrap">
                 {selectedObjectives.length} Selected
               </span>
               <div className={`w-7 h-7 rounded-full bg-white border border-[#E5E9EF] flex items-center justify-center transition-transform duration-200 ${isAdsAccordionOpen ? 'rotate-180 text-[#E87932]' : 'text-[#667085]'}`}>
@@ -988,29 +913,29 @@ export const ServiceQuoteView: React.FC<ServiceQuoteViewProps> = ({
                         key={obj.title}
                         type="button"
                         onClick={() => toggleObjective('adsManagementObjectives', obj.title)}
-                        className={`p-3 rounded-[12px] border text-left flex items-center justify-between gap-3 transition-all cursor-pointer group ${
+                        className={`p-3 rounded-[12px] border text-left flex items-start justify-between gap-3 transition-all cursor-pointer group ${
                           isSelected
                             ? 'bg-[#FFF9F5] border-[#E87932] shadow-2xs'
                             : 'bg-white border-[#E5E9EF] hover:border-[#D0D5DD] hover:bg-slate-50/70'
                         }`}
                       >
-                        <div className="flex items-center gap-2.5 min-w-0">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                        <div className="flex items-start gap-2.5 min-w-0 flex-1">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                             isSelected ? 'bg-[#E87932] text-white shadow-2xs' : 'bg-[#E87932]/10 text-[#E87932]'
                           }`}>
                             <Icon size={16} />
                           </div>
-                          <div className="min-w-0">
-                            <div className="text-[13px] sm:text-[13.5px] font-semibold text-[#17243A] leading-snug line-clamp-1">
+                          <div className="min-w-0 flex-1 pr-1">
+                            <div className="text-[13px] sm:text-[13.5px] font-semibold text-[#17243A] leading-snug break-words">
                               {obj.title}
                             </div>
-                            <p className="text-[11.5px] text-[#667085] leading-tight line-clamp-1 mt-0.5">
+                            <p className="text-[11.5px] text-[#667085] leading-normal mt-0.5 break-words">
                               {obj.summary}
                             </p>
                           </div>
                         </div>
 
-                        <div className={`w-[20px] h-[20px] rounded-[5px] border flex items-center justify-center shrink-0 transition-colors ${
+                        <div className={`w-[20px] h-[20px] rounded-[5px] border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                           isSelected ? 'bg-[#E87932] border-[#E87932] text-white' : 'bg-white border-[#D0D5DD] group-hover:border-[#E87932]'
                         }`}>
                           {isSelected ? <Check size={12} strokeWidth={3} /> : null}
